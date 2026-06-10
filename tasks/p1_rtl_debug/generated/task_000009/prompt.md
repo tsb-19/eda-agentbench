@@ -1,4 +1,4 @@
-# RTL Debug Task: Comparison Boundary
+# RTL Debug Task: Sensitivity List
 
 ## Description
 
@@ -17,4 +17,4 @@ The module below has a bug. Find and fix the bug in `design.sv` so that it passe
 
 ## Hint
 
-Check the boundary conditions. Should the comparison be inclusive (>=, <=) or exclusive (>, <)?
+Pay attention to the sensitivity list. When does the always block re-evaluate?

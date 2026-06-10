@@ -1,22 +1,24 @@
 module tb_hidden;
-    reg [3:0] req;
-    wire [1:0] grant;
-    priority_enc uut (.req(req), .grant(grant));
+    reg clk=0, rst_n;
+    reg [7:0] din;
+    wire [7:0] dout;
+    pipe2 uut (.clk(clk), .rst_n(rst_n), .din(din), .dout(dout));
+    always #5 clk = ~clk;
     integer pass, fail;
     initial begin
         pass = 0; fail = 0;
-        req = 4'b0011; #10;
-        if (grant === 2'd0) begin $display("PASS: t5 priority 0 over 1"); pass=pass+1; end
-        else begin $display("FAIL: t5 expected 0 got %0d", grant); fail=fail+1; end
-        req = 4'b1100; #10;
-        if (grant === 2'd2) begin $display("PASS: t6 priority 2 over 3"); pass=pass+1; end
-        else begin $display("FAIL: t6 expected 2 got %0d", grant); fail=fail+1; end
-        req = 4'b1111; #10;
-        if (grant === 2'd0) begin $display("PASS: t7 all req priority 0"); pass=pass+1; end
-        else begin $display("FAIL: t7 expected 0 got %0d", grant); fail=fail+1; end
-        req = 4'b0000; #10;
-        if (grant === 2'd0) begin $display("PASS: t8 no req"); pass=pass+1; end
-        else begin $display("FAIL: t8 expected 0 got %0d", grant); fail=fail+1; end
+        rst_n = 0; din = 0; #20;
+        rst_n = 1;
+        din = 8'hA5; @(posedge clk); #1;
+        din = 8'h5A; @(posedge clk); #1;
+        din = 8'hFF; @(posedge clk); #1;
+        if (dout === 8'h5A) begin $display("PASS: t3 third cycle"); pass=pass+1; end
+        else begin $display("FAIL: t3 expected 5a got %h", dout); fail=fail+1; end
+        rst_n = 0; #10; rst_n = 1; #10;
+        din = 8'h42; @(posedge clk); #1;
+        din = 8'h00; @(posedge clk); #1;
+        if (dout === 8'h42) begin $display("PASS: t4 after reset"); pass=pass+1; end
+        else begin $display("FAIL: t4 expected 42 got %h", dout); fail=fail+1; end
         $display("HIDDEN_RESULT: %0d PASS, %0d FAIL", pass, fail);
         $finish;
     end

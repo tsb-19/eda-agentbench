@@ -1,19 +1,20 @@
 module tb_public;
-    reg [7:0] a, b;
-    wire [8:0] sum;
-    adder_wide uut (.a(a), .b(b), .sum(sum));
+    reg a, b, sel;
+    wire y;
+    mux2 uut (.a(a), .b(b), .sel(sel), .y(y));
     integer pass, fail;
     initial begin
         pass = 0; fail = 0;
-        a = 8'd10; b = 8'd20; #10;
-        if (sum === 9'd30) begin $display("PASS: t1 simple add"); pass=pass+1; end
-        else begin $display("FAIL: t1 expected 30 got %0d", sum); fail=fail+1; end
-        a = 8'd200; b = 8'd100; #10;
-        if (sum === 9'd300) begin $display("PASS: t2 overflow"); pass=pass+1; end
-        else begin $display("FAIL: t2 expected 300 got %0d", sum); fail=fail+1; end
-        a = 8'd255; b = 8'd255; #10;
-        if (sum === 9'd510) begin $display("PASS: t3 max"); pass=pass+1; end
-        else begin $display("FAIL: t3 expected 510 got %0d", sum); fail=fail+1; end
+        a=0; b=1; sel=0; #10;
+        if (y===1'b1) begin $display("PASS: t1 sel=0 y=b"); pass=pass+1; end
+        else begin $display("FAIL: t1 sel=0 expected 1 got %b", y); fail=fail+1; end
+        a=1; b=0; sel=1; #10;
+        if (y===1'b1) begin $display("PASS: t2 sel=1 y=a"); pass=pass+1; end
+        else begin $display("FAIL: t2 sel=1 expected 1 got %b", y); fail=fail+1; end
+        a=0; b=1; sel=0; #10;
+        b=0; #10;
+        if (y===1'b0) begin $display("PASS: t3 b changed"); pass=pass+1; end
+        else begin $display("FAIL: t3 expected 0 got %b", y); fail=fail+1; end
         $display("PUBLIC_RESULT: %0d PASS, %0d FAIL", pass, fail);
         $finish;
     end

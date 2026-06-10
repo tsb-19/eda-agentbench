@@ -1,21 +1,11 @@
-module fsm_simple (
-    input  wire clk, rst_n, go, finish,
-    output reg  busy,
-    output reg  completed
+module pipe2 (
+    input  wire       clk, rst_n,
+    input  wire [7:0] din,
+    output reg  [7:0] dout
 );
-    localparam S_IDLE=0, S_RUN=1, S_DONE=2;
-    reg [1:0] state, next;
-    always @(posedge clk or negedge rst_n)
-        if (!rst_n) state <= S_IDLE;
-        else        state <= next;
-    always @(*) begin
-        next = state;
-        busy = 0;
-        completed = 0;
-        case (state)
-            S_IDLE: begin if (go) next = S_RUN; end
-            S_RUN:  begin busy = 1; if (finish) next = S_DONE; end
-            S_DONE: begin completed = 1; next = S_IDLE; end
-        endcase
+    reg [7:0] stage1;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin stage1 <= 8'd0; dout <= 8'd0; end
+        else begin stage1 <= din; dout <= stage1; end
     end
 endmodule

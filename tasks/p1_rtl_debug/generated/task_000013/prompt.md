@@ -1,4 +1,4 @@
-# RTL Debug Task: Priority Order
+# RTL Debug Task: Blocking Nonblocking
 
 ## Description
 
@@ -17,4 +17,4 @@ The module below has a bug. Find and fix the bug in `design.sv` so that it passe
 
 ## Hint
 
-Check the priority order. Which request should be granted when multiple are active?
+Think about blocking (=) vs nonblocking (<=) assignments in sequential logic.

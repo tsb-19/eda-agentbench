@@ -1,4 +1,4 @@
-# RTL Debug Task: Enable Condition
+# RTL Debug Task: Blocking Nonblocking
 
 ## Description
 
@@ -17,4 +17,4 @@ The module below has a bug. Find and fix the bug in `design.sv` so that it passe
 
 ## Hint
 
-Check the enable condition. Does the counter increment when en is high or low?
+Think about blocking (=) vs nonblocking (<=) assignments in sequential logic.
