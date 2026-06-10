@@ -18,22 +18,33 @@ class TaskLoader:
     def __init__(self, tasks_root: Path):
         self.tasks_root = tasks_root
 
-    def discover(self, track: str | None = None) -> list[Path]:
-        """Find all task directories, optionally filtered by track."""
+    def discover(self, track: str | None = None, recursive: bool = True) -> list[Path]:
+        """Find all task directories, optionally filtered by track.
+
+        Args:
+            track: If set, only discover tasks under this track directory.
+            recursive: If True, search subdirectories (e.g., generated/) for tasks.
+        """
         results: list[Path] = []
         if track:
             track_dir = self.tasks_root / track
             if track_dir.is_dir():
-                for d in sorted(track_dir.iterdir()):
-                    if d.is_dir() and (d / "metadata.json").is_file():
-                        results.append(d)
+                self._discover_in(track_dir, results, recursive)
         else:
             for track_dir in sorted(self.tasks_root.iterdir()):
-                if track_dir.is_dir():
-                    for d in sorted(track_dir.iterdir()):
-                        if d.is_dir() and (d / "metadata.json").is_file():
-                            results.append(d)
-        return results
+                if track_dir.is_dir() and not track_dir.name.startswith("."):
+                    self._discover_in(track_dir, results, recursive)
+        return sorted(results, key=lambda p: str(p))
+
+    def _discover_in(self, directory: Path, results: list[Path], recursive: bool) -> None:
+        """Recursively discover task directories within a directory."""
+        for d in sorted(directory.iterdir()):
+            if not d.is_dir() or d.name.startswith("."):
+                continue
+            if (d / "metadata.json").is_file():
+                results.append(d)
+            elif recursive:
+                self._discover_in(d, results, recursive)
 
     def load(self, task_path: Path) -> dict:
         """Load and validate a task. Returns metadata dict. Raises TaskValidationError."""

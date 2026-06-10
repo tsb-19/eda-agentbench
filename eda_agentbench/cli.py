@@ -36,6 +36,21 @@ def main(argv: list[str] | None = None) -> None:
     p_eval.add_argument("--timeout", type=int, default=None, help="Override timeout in seconds")
     p_eval.add_argument("--verbose", action="store_true")
 
+    # evaluate-dataset
+    p_ds = sub.add_parser("evaluate-dataset", help="Evaluate all tasks in a dataset")
+    p_ds.add_argument("tasks_root", help="Root directory containing task tracks")
+    p_ds.add_argument("--submission-mode", choices=["solution", "buggy"], default="solution",
+                       help="Submission strategy: solution/ or files/ (buggy)")
+    p_ds.add_argument("--track", default=None, help="Filter by track (e.g., p1_rtl_debug)")
+    p_ds.add_argument("--timeout", type=int, default=None, help="Override timeout per task")
+    p_ds.add_argument("--run-id", default=None, help="Custom run ID (default: dataset_<timestamp>)")
+
+    # report
+    p_rep = sub.add_parser("report", help="Generate report from evaluation results")
+    p_rep.add_argument("runs_dir", help="Runs directory to report on")
+    p_rep.add_argument("--format", choices=["terminal", "json", "markdown", "all"], default="all")
+    p_rep.add_argument("--output", default=None, help="Output directory for report files")
+
     args = parser.parse_args(argv)
 
     if args.command == "detect-tools":
@@ -44,6 +59,10 @@ def main(argv: list[str] | None = None) -> None:
         cmd_validate_task(args)
     elif args.command == "evaluate-task":
         cmd_evaluate_task(args)
+    elif args.command == "evaluate-dataset":
+        cmd_evaluate_dataset(args)
+    elif args.command == "report":
+        cmd_report(args)
 
 
 def cmd_detect_tools(args) -> None:
@@ -100,12 +119,6 @@ def cmd_validate_task(args) -> None:
 
 def cmd_evaluate_task(args) -> None:
     from eda_agentbench.task.loader import TaskLoader, TaskValidationError
-    from eda_agentbench.task.validator import check_submission_forbidden
-    from eda_agentbench.tools.detector import ToolEnvironmentDetector
-    from eda_agentbench.tools.env_shim import EnvShim
-    from eda_agentbench.anti_cheat.guard import ForbiddenModificationGuard
-    from eda_agentbench.sanitizer.log_sanitizer import LogSanitizer
-    from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator, run_vcs_compile, run_vcs_sim
 
     task_path = Path(args.task).resolve()
     submission_path = Path(args.submission).resolve()
@@ -117,7 +130,6 @@ def cmd_evaluate_task(args) -> None:
         print(f"ERROR: Submission directory not found: {submission_path}", file=sys.stderr)
         sys.exit(1)
 
-    # Load task
     loader = TaskLoader(Path("."))
     try:
         meta = loader.load(task_path)
@@ -125,17 +137,49 @@ def cmd_evaluate_task(args) -> None:
         print(f"ERROR: {e}", file=sys.stderr)
         sys.exit(1)
 
+    timeout = args.timeout or meta.get("timeout_sec", 300)
+
+    try:
+        runs_dir, score_result = _evaluate_single(task_path, submission_path, meta, timeout)
+    except RuntimeError as e:
+        print(f"ANTI-CHEAT FAIL: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"\nScore: {score_result.total_score:.2f} / 1.00 {'(PASS)' if score_result.passed else '(FAIL)'}")
+    print(f"  objective_score:   {score_result.objective_score:.4f}")
+    print(f"  explanation_score: {score_result.explanation_score:.4f}")
+    for c in score_result.components:
+        print(f"  {c.name}: {c.raw_score:.2f} * {c.weight:.2f} = {c.weighted_score:.4f} — {c.details}")
+    print(f"\nScore written to: {runs_dir / 'score.json'}")
+    print(f"Logs written to:  {runs_dir}/")
+
+
+def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
+                      timeout: int, runs_root: Path | None = None) -> tuple[Path, ScoreResult]:
+    """Core evaluation logic. Returns (runs_dir, ScoreResult).
+
+    Args:
+        task_path: Path to the task directory.
+        submission_path: Path to the submission directory.
+        meta: Loaded task metadata dict.
+        timeout: Timeout in seconds.
+        runs_root: Override for runs output root (default: RUNS_ROOT).
+    """
+    from eda_agentbench.task.validator import check_submission_forbidden
+    from eda_agentbench.tools.detector import ToolEnvironmentDetector
+    from eda_agentbench.tools.env_shim import EnvShim
+    from eda_agentbench.anti_cheat.guard import ForbiddenModificationGuard
+    from eda_agentbench.sanitizer.log_sanitizer import LogSanitizer
+
     task_id = meta["task_id"]
     files_spec = meta["files"]
-    timeout = args.timeout or meta.get("timeout_sec", 300)
+    runs_base = runs_root or RUNS_ROOT
 
     # Anti-cheat: check submission doesn't contain forbidden files
     violations = check_submission_forbidden(submission_path, files_spec["forbidden"])
     if violations:
-        print(f"ANTI-CHEAT FAIL: Submission contains forbidden files: {violations}", file=sys.stderr)
-        # Write a failing score and exit
-        _write_anticheat_fail(task_path, meta, violations)
-        sys.exit(1)
+        _write_anticheat_fail(task_path, meta, violations, runs_base)
+        raise RuntimeError(f"Anti-cheat fail: submission contains forbidden files: {violations}")
 
     # Detect tools
     detector = ToolEnvironmentDetector()
@@ -146,8 +190,7 @@ def cmd_evaluate_task(args) -> None:
         if t and t.available:
             detected.append(t)
         else:
-            print(f"ERROR: Required tool '{tool_name}' not available", file=sys.stderr)
-            sys.exit(1)
+            raise RuntimeError(f"Required tool '{tool_name}' not available")
 
     env_shim = EnvShim(detected)
     env = env_shim.get_env()
@@ -155,7 +198,7 @@ def cmd_evaluate_task(args) -> None:
     # Create temp workspace
     work_dir = Path(tempfile.mkdtemp(prefix="eda_bench_"))
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    runs_dir = RUNS_ROOT / task_id / run_id
+    runs_dir = runs_base / task_id / run_id
     runs_dir.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -170,8 +213,6 @@ def cmd_evaluate_task(args) -> None:
             src = submission_path / f
             if src.is_file():
                 shutil.copy2(src, work_dir / f)
-            elif src.is_file() is False and not (work_dir / f).is_file():
-                print(f"WARNING: Editable file '{f}' not in submission and not in task files/", file=sys.stderr)
 
         # Copy hidden files into workspace (for evaluator, not visible to agent)
         src_hidden = task_path / "hidden"
@@ -182,20 +223,17 @@ def cmd_evaluate_task(args) -> None:
         guard = ForbiddenModificationGuard()
         guard.snapshot(task_path / "files", [f for f in files_spec["forbidden"] if "/" not in f])
         guard.snapshot(task_path / "hidden", [f for f in files_spec["forbidden"] if "/" not in f])
-        # Also snapshot forbidden files in work_dir
         guard.snapshot(work_dir, files_spec["forbidden"])
 
         sanitizer = LogSanitizer()
         start_time = time.time()
 
         # Run public test
-        print("Running public test...")
         pub_ok, pub_log = _run_test_script(work_dir, env, "run_public.sh", timeout)
         raw_pub_log = pub_log
         san_pub_log = sanitizer.sanitize(pub_log)
 
         # Run hidden test
-        print("Running hidden test...")
         hid_ok, hid_log = _run_test_script(work_dir, env, "run_hidden.sh", timeout)
         raw_hid_log = hid_log
         san_hid_log = sanitizer.sanitize(hid_log)
@@ -238,8 +276,6 @@ def cmd_evaluate_task(args) -> None:
 
         total_score = sum(c.weighted_score for c in components)
 
-        # Separate objective and explanation scores
-        explanation_weight = meta["scoring"].get("explanation_weight", 0.0)
         explanation_comps = [c for c in components if c.name == "explanation"]
         objective_comps = [c for c in components if c.name != "explanation"]
         explanation_score = sum(c.weighted_score for c in explanation_comps)
@@ -271,19 +307,415 @@ def cmd_evaluate_task(args) -> None:
             explanation_score=round(explanation_score, 4),
         )
 
-        # Write score JSON
         score_path = runs_dir / "score.json"
         score_path.write_text(json.dumps(score_result.to_dict(), indent=2))
-        print(f"\nScore: {total_score:.2f} / 1.00 {'(PASS)' if score_result.passed else '(FAIL)'}")
-        print(f"  objective_score:   {objective_score:.4f}")
-        print(f"  explanation_score: {explanation_score:.4f}")
-        for c in components:
-            print(f"  {c.name}: {c.raw_score:.2f} * {c.weight:.2f} = {c.weighted_score:.4f} — {c.details}")
-        print(f"\nScore written to: {score_path}")
-        print(f"Logs written to:  {runs_dir}/")
+        return runs_dir, score_result
 
     finally:
         shutil.rmtree(work_dir, ignore_errors=True)
+
+
+def cmd_evaluate_dataset(args) -> None:
+    from eda_agentbench.task.loader import TaskLoader, TaskValidationError
+
+    tasks_root = Path(args.tasks_root).resolve()
+    if not tasks_root.is_dir():
+        print(f"ERROR: Tasks root not found: {tasks_root}", file=sys.stderr)
+        sys.exit(1)
+
+    submission_mode = args.submission_mode
+    track_filter = args.track
+    timeout_override = args.timeout
+    run_id = args.run_id or f"dataset_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    dataset_runs_root = RUNS_ROOT / run_id
+
+    # Discover tasks
+    loader = TaskLoader(tasks_root)
+    task_paths = loader.discover(track=track_filter, recursive=True)
+    if not task_paths:
+        print(f"ERROR: No tasks found under {tasks_root}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"=== Dataset Evaluation ===")
+    print(f"  Tasks root:      {tasks_root}")
+    print(f"  Submission mode: {submission_mode}")
+    print(f"  Track filter:    {track_filter or 'all'}")
+    print(f"  Run ID:          {run_id}")
+    print(f"  Tasks found:     {len(task_paths)}")
+    print()
+
+    results: list[dict] = []
+    for i, task_path in enumerate(task_paths):
+        # Load task metadata first (need editable list for buggy mode)
+        try:
+            meta = loader.load(task_path)
+        except TaskValidationError as e:
+            print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: {e}")
+            results.append({
+                "task_path": str(task_path),
+                "task_id": task_path.name,
+                "status": "error",
+                "reason": str(e),
+            })
+            continue
+
+        task_id = meta["task_id"]
+        timeout = timeout_override or meta.get("timeout_sec", 300)
+
+        # Determine submission path
+        if submission_mode == "solution":
+            submission_path = task_path / "solution"
+            if not submission_path.is_dir():
+                print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: solution/ not found")
+                results.append({
+                    "task_path": str(task_path), "task_id": task_id,
+                    "track": meta["track"], "tool": meta["tool"],
+                    "difficulty": meta["difficulty"],
+                    "status": "skipped", "reason": "solution/ not found",
+                })
+                continue
+        else:
+            # Buggy mode: create temp dir with only editable files to avoid anti-cheat
+            buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
+            editable_files = meta["files"]["editable"]
+            files_dir = task_path / "files"
+            for ef in editable_files:
+                src = files_dir / ef
+                if src.is_file():
+                    shutil.copy2(src, buggy_dir / ef)
+            submission_path = buggy_dir
+
+        print(f"[{i+1}/{len(task_paths)}] {task_id} ({meta['track']}, {submission_mode})...", end=" ", flush=True)
+
+        try:
+            runs_dir, score_result = _evaluate_single(
+                task_path, submission_path, meta, timeout, runs_root=dataset_runs_root,
+            )
+            status = "pass" if score_result.passed else "fail"
+            print(f"{score_result.total_score:.2f} {'PASS' if score_result.passed else 'FAIL'}")
+            results.append({
+                "task_path": str(task_path),
+                "task_id": task_id,
+                "track": meta["track"],
+                "tool": meta["tool"],
+                "difficulty": meta["difficulty"],
+                "status": status,
+                "total_score": score_result.total_score,
+                "objective_score": score_result.objective_score,
+                "explanation_score": score_result.explanation_score,
+                "components": [c.to_dict() for c in score_result.components],
+                "score_path": str(runs_dir / "score.json"),
+            })
+        except Exception as e:
+            print(f"ERROR: {e}")
+            results.append({
+                "task_path": str(task_path),
+                "task_id": task_id,
+                "track": meta.get("track", "unknown"),
+                "tool": meta.get("tool", []),
+                "difficulty": meta.get("difficulty", "unknown"),
+                "status": "error",
+                "reason": str(e),
+            })
+        finally:
+            # Clean up buggy temp dir
+            if submission_mode != "solution" and submission_path != (task_path / "files"):
+                shutil.rmtree(submission_path, ignore_errors=True)
+
+    # Write summary
+    summary = _build_dataset_summary(results, run_id, submission_mode, track_filter)
+    summary_path = dataset_runs_root / "summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, indent=2))
+
+    # Print summary
+    print(f"\n=== Dataset Summary ===")
+    print(f"  Total:       {summary['total']}")
+    print(f"  Evaluated:   {summary['evaluated']}")
+    print(f"  Passed:      {summary['passed']}")
+    print(f"  Failed:      {summary['failed']}")
+    print(f"  Errors:      {summary['errors']}")
+    print(f"  Avg score:   {summary['avg_score']:.4f}")
+    print(f"  Avg obj:     {summary['avg_objective']:.4f}")
+    print(f"\nSummary written to: {summary_path}")
+
+
+def _build_dataset_summary(results: list[dict], run_id: str, submission_mode: str,
+                            track_filter: str | None) -> dict:
+    """Build a dataset summary dict from per-task results."""
+    evaluated = [r for r in results if r["status"] in ("pass", "fail")]
+    passed = [r for r in results if r["status"] == "pass"]
+    failed = [r for r in results if r["status"] == "fail"]
+    errors = [r for r in results if r["status"] in ("error", "skipped")]
+
+    avg_score = sum(r["total_score"] for r in evaluated) / len(evaluated) if evaluated else 0.0
+    avg_obj = sum(r["objective_score"] for r in evaluated) / len(evaluated) if evaluated else 0.0
+    avg_exp = sum(r["explanation_score"] for r in evaluated) / len(evaluated) if evaluated else 0.0
+
+    # Per-track stats
+    tracks: dict[str, dict] = {}
+    for r in evaluated:
+        t = r.get("track", "unknown")
+        if t not in tracks:
+            tracks[t] = {"total": 0, "passed": 0, "avg_score": 0.0, "scores": []}
+        tracks[t]["total"] += 1
+        tracks[t]["scores"].append(r["total_score"])
+        if r["status"] == "pass":
+            tracks[t]["passed"] += 1
+    for t in tracks:
+        scores = tracks[t]["scores"]
+        tracks[t]["avg_score"] = sum(scores) / len(scores) if scores else 0.0
+        del tracks[t]["scores"]
+
+    # Per-tool stats
+    tools: dict[str, dict] = {}
+    for r in evaluated:
+        for tool_name in r.get("tool", ["unknown"]):
+            if tool_name not in tools:
+                tools[tool_name] = {"total": 0, "passed": 0, "scores": []}
+            tools[tool_name]["total"] += 1
+            tools[tool_name]["scores"].append(r["total_score"])
+            if r["status"] == "pass":
+                tools[tool_name]["passed"] += 1
+    for t in tools:
+        scores = tools[t]["scores"]
+        tools[t]["avg_score"] = sum(scores) / len(scores) if scores else 0.0
+        del tools[t]["scores"]
+
+    # Per-difficulty stats
+    difficulties: dict[str, dict] = {}
+    for r in evaluated:
+        d = r.get("difficulty", "unknown")
+        if d not in difficulties:
+            difficulties[d] = {"total": 0, "passed": 0, "scores": []}
+        difficulties[d]["total"] += 1
+        difficulties[d]["scores"].append(r["total_score"])
+        if r["status"] == "pass":
+            difficulties[d]["passed"] += 1
+    for d in difficulties:
+        scores = difficulties[d]["scores"]
+        difficulties[d]["avg_score"] = sum(scores) / len(scores) if scores else 0.0
+        del difficulties[d]["scores"]
+
+    # Score distribution
+    buckets = {"1.0": 0, "[0.8,1.0)": 0, "[0.5,0.8)": 0, "<0.5": 0}
+    for r in evaluated:
+        s = r["total_score"]
+        if abs(s - 1.0) < 0.001:
+            buckets["1.0"] += 1
+        elif s >= 0.8:
+            buckets["[0.8,1.0)"] += 1
+        elif s >= 0.5:
+            buckets["[0.5,0.8)"] += 1
+        else:
+            buckets["<0.5"] += 1
+
+    # Buggy-specific: count tasks where score < 1.0 (lower than solution)
+    buggy_lower = sum(1 for r in evaluated if abs(r["total_score"] - 1.0) >= 0.001)
+
+    return {
+        "run_id": run_id,
+        "submission_mode": submission_mode,
+        "track_filter": track_filter,
+        "total": len(results),
+        "evaluated": len(evaluated),
+        "passed": len(passed),
+        "failed": len(failed),
+        "errors": len(errors),
+        "avg_score": round(avg_score, 4),
+        "avg_objective": round(avg_obj, 4),
+        "avg_explanation": round(avg_exp, 4),
+        "buggy_lower_than_solution_count": buggy_lower,
+        "per_track": tracks,
+        "per_tool": tools,
+        "per_difficulty": difficulties,
+        "score_distribution": buckets,
+        "failure_list": [
+            {"task_id": r["task_id"], "track": r.get("track"), "score": r.get("total_score"),
+             "reason": r.get("reason", "")}
+            for r in failed + errors
+        ],
+        "results": results,
+    }
+
+
+def cmd_report(args) -> None:
+    runs_dir = Path(args.runs_dir).resolve()
+    if not runs_dir.is_dir():
+        print(f"ERROR: Runs directory not found: {runs_dir}", file=sys.stderr)
+        sys.exit(1)
+
+    fmt = args.format
+    output_dir = Path(args.output).resolve() if args.output else runs_dir
+
+    # Check if this is a dataset run (has summary.json) or single task run
+    summary_path = runs_dir / "summary.json"
+    if summary_path.is_file():
+        summary = json.loads(summary_path.read_text())
+    else:
+        # Try to aggregate from score.json files
+        summary = _aggregate_score_jsons(runs_dir)
+
+    if fmt in ("terminal", "all"):
+        _print_terminal_report(summary)
+    if fmt in ("json", "all"):
+        out_path = output_dir / "summary.json"
+        out_path.write_text(json.dumps(summary, indent=2))
+        print(f"\nJSON summary: {out_path}")
+    if fmt in ("markdown", "all"):
+        md = _generate_markdown_report(summary)
+        out_path = output_dir / "report.md"
+        out_path.write_text(md)
+        print(f"Markdown report: {out_path}")
+
+
+def _aggregate_score_jsons(runs_dir: Path) -> dict:
+    """Aggregate score.json files from a runs directory into a summary."""
+    score_files = list(runs_dir.rglob("score.json"))
+    results = []
+    for sf in sorted(score_files):
+        try:
+            score = json.loads(sf.read_text())
+            results.append({
+                "task_id": score.get("task_id", sf.parent.parent.name),
+                "track": score.get("track", "unknown"),
+                "tool": score.get("metadata", {}).get("tool", []),
+                "difficulty": score.get("metadata", {}).get("difficulty", "unknown"),
+                "status": "pass" if score.get("passed") else "fail",
+                "total_score": score.get("total_score", 0.0),
+                "objective_score": score.get("objective_score", 0.0),
+                "explanation_score": score.get("explanation_score", 0.0),
+                "components": score.get("components", []),
+                "score_path": str(sf),
+            })
+        except (json.JSONDecodeError, KeyError):
+            continue
+
+    return _build_dataset_summary(results, runs_dir.name, "unknown", None)
+
+
+def _print_terminal_report(summary: dict) -> None:
+    """Print a formatted terminal report."""
+    print(f"\n{'='*60}")
+    print(f"  EDA-AgentBench Dataset Report")
+    print(f"{'='*60}")
+    print(f"  Run ID:          {summary.get('run_id', 'N/A')}")
+    print(f"  Submission mode: {summary.get('submission_mode', 'N/A')}")
+    print(f"  Track filter:    {summary.get('track_filter', 'all')}")
+    print(f"{'='*60}")
+
+    print(f"\n  Total tasks:     {summary['total']}")
+    print(f"  Evaluated:       {summary['evaluated']}")
+    print(f"  Passed:          {summary['passed']}")
+    print(f"  Failed:          {summary['failed']}")
+    print(f"  Errors:          {summary['errors']}")
+    print(f"  Avg score:       {summary['avg_score']:.4f}")
+    print(f"  Avg objective:   {summary['avg_objective']:.4f}")
+    print(f"  Avg explanation: {summary['avg_explanation']:.4f}")
+
+    # Score distribution
+    dist = summary.get("score_distribution", {})
+    print(f"\n  Score Distribution:")
+    for bucket, count in dist.items():
+        bar = "#" * count
+        print(f"    {bucket:>12}: {count:>3}  {bar}")
+
+    # Per-track
+    per_track = summary.get("per_track", {})
+    if per_track:
+        print(f"\n  Per-Track:")
+        print(f"    {'Track':<20} {'Total':>5} {'Pass':>5} {'Avg':>8}")
+        print(f"    {'-'*40}")
+        for track, stats in sorted(per_track.items()):
+            print(f"    {track:<20} {stats['total']:>5} {stats['passed']:>5} {stats['avg_score']:>8.4f}")
+
+    # Per-tool
+    per_tool = summary.get("per_tool", {})
+    if per_tool:
+        print(f"\n  Per-Tool:")
+        print(f"    {'Tool':<15} {'Total':>5} {'Pass':>5} {'Avg':>8}")
+        print(f"    {'-'*35}")
+        for tool, stats in sorted(per_tool.items()):
+            print(f"    {tool:<15} {stats['total']:>5} {stats['passed']:>5} {stats['avg_score']:>8.4f}")
+
+    # Per-difficulty
+    per_diff = summary.get("per_difficulty", {})
+    if per_diff:
+        print(f"\n  Per-Difficulty:")
+        print(f"    {'Difficulty':<15} {'Total':>5} {'Pass':>5} {'Avg':>8}")
+        print(f"    {'-'*35}")
+        for diff, stats in sorted(per_diff.items()):
+            print(f"    {diff:<15} {stats['total']:>5} {stats['passed']:>5} {stats['avg_score']:>8.4f}")
+
+    # Failure list
+    failures = summary.get("failure_list", [])
+    if failures:
+        print(f"\n  Failures ({len(failures)}):")
+        for f in failures[:20]:
+            reason = f.get("reason", "")
+            score = f.get("score", "N/A")
+            print(f"    {f['task_id']:<20} score={score}  {reason}")
+        if len(failures) > 20:
+            print(f"    ... and {len(failures) - 20} more")
+
+    print(f"\n{'='*60}")
+
+
+def _generate_markdown_report(summary: dict) -> str:
+    """Generate a markdown report."""
+    lines = [
+        "# EDA-AgentBench Dataset Report",
+        "",
+        f"- **Run ID:** {summary.get('run_id', 'N/A')}",
+        f"- **Submission mode:** {summary.get('submission_mode', 'N/A')}",
+        f"- **Track filter:** {summary.get('track_filter', 'all')}",
+        "",
+        "## Summary",
+        "",
+        "| Metric | Value |",
+        "|--------|-------|",
+        f"| Total tasks | {summary['total']} |",
+        f"| Evaluated | {summary['evaluated']} |",
+        f"| Passed | {summary['passed']} |",
+        f"| Failed | {summary['failed']} |",
+        f"| Errors | {summary['errors']} |",
+        f"| Avg score | {summary['avg_score']:.4f} |",
+        f"| Avg objective | {summary['avg_objective']:.4f} |",
+        f"| Avg explanation | {summary['avg_explanation']:.4f} |",
+        "",
+        "## Score Distribution",
+        "",
+        "| Bucket | Count |",
+        "|--------|-------|",
+    ]
+    for bucket, count in summary.get("score_distribution", {}).items():
+        lines.append(f"| {bucket} | {count} |")
+
+    per_track = summary.get("per_track", {})
+    if per_track:
+        lines += ["", "## Per-Track", "", "| Track | Total | Passed | Avg Score |", "|-------|-------|--------|-----------|"]
+        for track, stats in sorted(per_track.items()):
+            lines.append(f"| {track} | {stats['total']} | {stats['passed']} | {stats['avg_score']:.4f} |")
+
+    per_tool = summary.get("per_tool", {})
+    if per_tool:
+        lines += ["", "## Per-Tool", "", "| Tool | Total | Passed | Avg Score |", "|------|-------|--------|-----------|"]
+        for tool, stats in sorted(per_tool.items()):
+            lines.append(f"| {tool} | {stats['total']} | {stats['passed']} | {stats['avg_score']:.4f} |")
+
+    per_diff = summary.get("per_difficulty", {})
+    if per_diff:
+        lines += ["", "## Per-Difficulty", "", "| Difficulty | Total | Passed | Avg Score |", "|------------|-------|--------|-----------|"]
+        for diff, stats in sorted(per_diff.items()):
+            lines.append(f"| {diff} | {stats['total']} | {stats['passed']} | {stats['avg_score']:.4f} |")
+
+    failures = summary.get("failure_list", [])
+    if failures:
+        lines += ["", "## Failures", "", "| Task ID | Track | Score | Reason |", "|---------|-------|-------|--------|"]
+        for f in failures:
+            lines.append(f"| {f['task_id']} | {f.get('track', '')} | {f.get('score', 'N/A')} | {f.get('reason', '')} |")
+
+    return "\n".join(lines) + "\n"
 
 
 def _run_test_script(work_dir: Path, env: dict[str, str], script_name: str,
@@ -303,11 +735,13 @@ def _run_test_script(work_dir: Path, env: dict[str, str], script_name: str,
         return False, f"Script {script_name} timed out"
 
 
-def _write_anticheat_fail(task_path: Path, meta: dict, violations: list[str]) -> None:
+def _write_anticheat_fail(task_path: Path, meta: dict, violations: list[str],
+                           runs_base: Path | None = None) -> None:
     """Write a score.json indicating anti-cheat failure."""
     from eda_agentbench.types import ScoreResult
+    runs_root = runs_base or RUNS_ROOT
     run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
-    runs_dir = RUNS_ROOT / meta["task_id"] / run_id
+    runs_dir = runs_root / meta["task_id"] / run_id
     runs_dir.mkdir(parents=True, exist_ok=True)
     score = ScoreResult(
         task_id=meta["task_id"], track=meta["track"], mode="submission",
