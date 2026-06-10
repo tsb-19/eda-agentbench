@@ -211,14 +211,24 @@ def cmd_evaluate_task(args) -> None:
         (runs_dir / "sanitized_public.log").write_text(san_pub_log)
         (runs_dir / "sanitized_hidden.log").write_text(san_hid_log)
 
-        # Evaluate — pass the correct log for each component
-        evaluator = VCSRTLEvaluator(task_path, meta)
+        # Select evaluator based on metadata
+        evaluator_spec = meta["scoring"].get("evaluator", "rtl_debug.VCSRTLEvaluator")
+        if evaluator_spec == "spice_sim.SPICESimEvaluator":
+            from eda_agentbench.evaluator.spice_sim import SPICESimEvaluator
+            evaluator = SPICESimEvaluator(task_path, meta)
+        else:
+            from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
+            evaluator = VCSRTLEvaluator(task_path, meta)
         combined_log = raw_pub_log + "\n" + raw_hid_log
         log_map = {
             "compile": combined_log,
             "public_test": raw_pub_log,
             "hidden_test": raw_hid_log,
             "explanation": combined_log,
+            "tool_run": combined_log,
+            "output_generated": combined_log,
+            "public_metric": raw_pub_log,
+            "hidden_metric": raw_hid_log,
         }
 
         components: list[ScoreComponent] = []

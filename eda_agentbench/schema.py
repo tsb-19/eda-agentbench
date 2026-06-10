@@ -55,6 +55,20 @@ METADATA_SCHEMA = {
                 },
                 "evaluator": {"type": "string"},
                 "explanation_weight": {"type": "number", "minimum": 0, "maximum": 0.2},
+                "metrics": {
+                    "type": "object",
+                    "description": "Numeric metric configs for SPICE/timing tasks",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "measure": {"type": "string"},
+                            "target": {"type": "number"},
+                            "tolerance": {"type": "number"},
+                            "min": {"type": "number"},
+                            "max": {"type": "number"},
+                        },
+                    },
+                },
             },
         },
         "sanitizer": {
