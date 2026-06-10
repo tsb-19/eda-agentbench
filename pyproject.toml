@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eda-agentbench"
+version = "0.1.0"
+description = "Benchmark for evaluating LLM/Agent on commercial EDA workflows"
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[project.scripts]
+eda-bench = "eda_agentbench.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["eda_agentbench*"]
