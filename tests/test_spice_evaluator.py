@@ -2,7 +2,9 @@
 
 from pathlib import Path
 
-from eda_agentbench.evaluator.spice_sim import parse_hspice_measurements, _parse_hspice_value
+from eda_agentbench.evaluator.spice_sim import (
+    parse_hspice_measurements, _parse_hspice_value, parse_metrics_json,
+)
 from eda_agentbench.schema import validate_metadata
 
 
@@ -136,3 +138,81 @@ def test_p1_metadata_still_valid():
     }
     errors = validate_metadata(meta)
     assert errors == [], f"P1 metadata validation errors: {errors}"
+
+
+def test_parse_metrics_json(tmp_path):
+    """Parse metrics.json with numeric values."""
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text('{"tdrise": 8.3984e-09, "tdfall": 7.123e-09, "gain": 2.5}')
+    results = parse_metrics_json(tmp_path)
+    assert abs(results["tdrise"] - 8.3984e-9) < 1e-15
+    assert abs(results["tdfall"] - 7.123e-9) < 1e-15
+    assert abs(results["gain"] - 2.5) < 1e-10
+
+
+def test_parse_metrics_json_empty(tmp_path):
+    """Empty metrics.json returns empty dict."""
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text("{}")
+    results = parse_metrics_json(tmp_path)
+    assert results == {}
+
+
+def test_parse_metrics_json_no_file(tmp_path):
+    """Missing metrics.json returns empty dict."""
+    results = parse_metrics_json(tmp_path)
+    assert results == {}
+
+
+def test_parse_metrics_json_invalid(tmp_path):
+    """Invalid JSON returns empty dict."""
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text("not valid json{{{")
+    results = parse_metrics_json(tmp_path)
+    assert results == {}
+
+
+def test_parse_metrics_json_string_values(tmp_path):
+    """metrics.json with string values is ignored."""
+    metrics = tmp_path / "metrics.json"
+    metrics.write_text('{"tdrise": "hello", "tdfall": 1e-9}')
+    results = parse_metrics_json(tmp_path)
+    assert "tdrise" not in results
+    assert abs(results["tdfall"] - 1e-9) < 1e-15
+
+
+def test_spectre_metadata_valid():
+    """Spectre spice_sim metadata passes validation."""
+    meta = {
+        "task_id": "task_000002",
+        "track": "p4_spice_sim",
+        "tool": ["spectre"],
+        "difficulty": "easy",
+        "data_type": "template_synthetic",
+        "resource_preset": "fast",
+        "timeout_sec": 120,
+        "max_tool_calls": 10,
+        "max_patch_attempts": 3,
+        "max_output_tokens": 16000,
+        "files": {
+            "visible": ["circuit.scs", "run_public.sh"],
+            "editable": ["circuit.scs"],
+            "hidden": ["run_hidden.sh"],
+            "forbidden": ["run_public.sh", "run_hidden.sh"],
+        },
+        "run_command": "bash run_public.sh",
+        "scoring": {
+            "weights": {
+                "tool_run": 0.3, "output_generated": 0.2,
+                "public_metric": 0.2, "hidden_metric": 0.2, "explanation": 0.1,
+            },
+            "evaluator": "spice_sim.SPICESimEvaluator",
+            "metrics": {
+                "public": {"measure": "tdrise", "min": 8e-9, "max": 15e-9},
+                "hidden": {"measure": "tdfall", "min": 8e-9, "max": 15e-9},
+            },
+        },
+        "version": "1.0.0",
+    }
+    errors = validate_metadata(meta)
+    assert errors == [], f"Spectre metadata validation errors: {errors}"
