@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 from generators.p1_rtl_debug_gen import P1RTLDebugGenerator, BUG_TYPES
-from generators.p4_spice_gen import P4SPICEGenerator, _RC_CONFIGS
+from generators.p4_spice_gen import P4SPICEGenerator
 from eda_agentbench.schema import validate_metadata
 
 
@@ -78,10 +78,10 @@ def test_generator_batch_creates_count(tmp_path):
 
 
 def test_generator_distribution_balanced(tmp_path):
-    """100 tasks should cover all 10 bug types, 10 each."""
+    """1000 tasks should cover all 10 bug types, 100 each."""
     from collections import Counter
     gen = P1RTLDebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(100)
+    paths = gen.generate_batch(1000)
     types = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
@@ -94,7 +94,7 @@ def test_generator_distribution_balanced(tmp_path):
     }
     assert set(types.keys()) == expected, f"Bug types mismatch: got {set(types.keys())}"
     for bt in expected:
-        assert types[bt] == 10, f"{bt}: expected 10, got {types[bt]}"
+        assert types[bt] == 100, f"{bt}: expected 100, got {types[bt]}"
 
 
 def test_generator_validate_sample_tasks(tmp_path):
@@ -143,23 +143,42 @@ def test_p4_generator_files_exist(tmp_path):
 
 
 def test_p4_generator_tool_split(tmp_path):
-    """10 tasks: first 5 HSPICE, last 5 Spectre."""
+    """100 tasks: first 50 HSPICE, last 50 Spectre."""
     gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
     tools = []
-    for i in range(10):
+    for i in range(100):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         tools.append(meta["tool"][0])
-    assert tools[:5] == ["hspice"] * 5
-    assert tools[5:] == ["spectre"] * 5
+    assert tools[:50] == ["hspice"] * 50
+    assert tools[50:] == ["spectre"] * 50
 
 
 def test_p4_generator_unique_task_ids(tmp_path):
-    """All P4 tasks have unique task IDs."""
+    """All 100 P4 tasks have unique task IDs."""
     gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
     ids = set()
-    for i in range(10):
+    for i in range(100):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["task_id"] not in ids, f"Duplicate task_id: {meta['task_id']}"
         ids.add(meta["task_id"])
+
+
+def test_p4_generator_parameter_diversity(tmp_path):
+    """100 P4 tasks should have diverse R, C, and pulse width values."""
+    gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
+    r_sols = set()
+    c_vals = set()
+    pw_vals = set()
+    for i in range(100):
+        p = gen.generate_one(i)
+        meta = json.loads((p / "metadata.json").read_text())
+        g = meta["generator"]
+        r_sols.add(g["r_sol"])
+        c_vals.add(g["c"])
+        pw_vals.add(g["pulse_width_ns"])
+    # With 100 tasks and diverse RNG, we expect many unique values
+    assert len(r_sols) >= 10, f"Too few unique R_sol values: {len(r_sols)}"
+    assert len(c_vals) >= 5, f"Too few unique C values: {len(c_vals)}"
+    assert len(pw_vals) >= 10, f"Too few unique pulse width values: {len(pw_vals)}"

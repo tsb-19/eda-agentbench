@@ -1,8 +1,9 @@
-module range_check (
-    input  wire [3:0] val,
-    output reg        in_range
+module mux2 (
+    input  wire a, b, sel,
+    output reg  y
 );
     always @(*) begin
-        in_range = (val >= 4'd3) && (val <= 4'd12);
+        if (sel) y = a;
+        else     y = b;
     end
 endmodule

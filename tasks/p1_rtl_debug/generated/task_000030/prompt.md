@@ -1,4 +1,4 @@
-# RTL Debug Task: Width Truncation
+# RTL Debug Task: Sensitivity List
 
 ## Description
 
@@ -17,4 +17,4 @@ The module below has a bug. Find and fix the bug in `design.sv` so that it passe
 
 ## Hint
 
-Watch out for intermediate width truncation before extending to the output width.
+Pay attention to the sensitivity list. When does the always block re-evaluate?

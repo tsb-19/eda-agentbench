@@ -1,20 +1,21 @@
 module tb_hidden;
-    reg clk=0, rst_n, en;
-    wire [3:0] cnt;
-    counter_rst uut (.clk(clk), .rst_n(rst_n), .en(en), .cnt(cnt));
-    always #5 clk = ~clk;
+    reg a, b, sel;
+    wire y;
+    mux2 uut (.a(a), .b(b), .sel(sel), .y(y));
     integer pass, fail;
     initial begin
         pass = 0; fail = 0;
-        rst_n = 1; en = 0; #20;
-        rst_n = 0; #10; rst_n = 1; en = 1; #1;
-        @(posedge clk); #1;
-        @(posedge clk); #1;
-        if (cnt === 4'd2) begin $display("PASS: t4 count after release"); pass=pass+1; end
-        else begin $display("FAIL: t4 expected 2 got %0d", cnt); fail=fail+1; end
-        en = 0; @(posedge clk); #1;
-        if (cnt === 4'd2) begin $display("PASS: t5 hold when !en"); pass=pass+1; end
-        else begin $display("FAIL: t5 expected 2 got %0d", cnt); fail=fail+1; end
+        a=1; b=0; sel=1; #10;
+        a=0; #10;
+        if (y===1'b0) begin $display("PASS: t4 sel=1 a changed"); pass=pass+1; end
+        else begin $display("FAIL: t4 expected 0 got %b", y); fail=fail+1; end
+        a=0; b=0; sel=0; #10;
+        b=1; #10;
+        if (y===1'b1) begin $display("PASS: t5a b toggled up"); pass=pass+1; end
+        else begin $display("FAIL: t5a expected 1 got %b", y); fail=fail+1; end
+        b=0; #10;
+        if (y===1'b0) begin $display("PASS: t5b b toggled down"); pass=pass+1; end
+        else begin $display("FAIL: t5b expected 0 got %b", y); fail=fail+1; end
         $display("HIDDEN_RESULT: %0d PASS, %0d FAIL", pass, fail);
         $finish;
     end

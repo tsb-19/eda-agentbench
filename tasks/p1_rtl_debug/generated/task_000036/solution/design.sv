@@ -1,6 +1,9 @@
-module adder_wide (
-    input  wire [7:0] a, b,
-    output wire [8:0] sum
+module mux2 (
+    input  wire a, b, sel,
+    output reg  y
 );
-    assign sum = {1'b0, a} + {1'b0, b};
+    always @(*) begin
+        if (sel) y = a;
+        else     y = b;
+    end
 endmodule

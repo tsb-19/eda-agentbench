@@ -1,14 +1,9 @@
-module mux4 (
-    input  wire [1:0] sel,
-    input  wire [7:0] d0, d1, d2, d3,
-    output reg  [7:0] y
+module mux2 (
+    input  wire a, b, sel,
+    output reg  y
 );
-    always @(*) begin
-        case (sel)
-            2'b00: y = d0;
-            2'b01: y = d1;
-            2'b10: y = d3;
-            2'b11: y = d2;
-        endcase
+    always @(a or sel) begin
+        if (sel) y = a;
+        else     y = b;
     end
 endmodule

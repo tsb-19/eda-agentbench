@@ -1,22 +1,20 @@
 module tb_public;
-    reg [3:0] val;
-    wire in_range;
-    range_check uut (.val(val), .in_range(in_range));
+    reg a, b, sel;
+    wire y;
+    mux2 uut (.a(a), .b(b), .sel(sel), .y(y));
     integer pass, fail;
     initial begin
         pass = 0; fail = 0;
-        val = 4'd0; #10;
-        if (in_range === 1'b0) begin $display("PASS: t1 val=0 out"); pass=pass+1; end
-        else begin $display("FAIL: t1 val=0 expected 0 got %b", in_range); fail=fail+1; end
-        val = 4'd3; #10;
-        if (in_range === 1'b1) begin $display("PASS: t2 val=3 in"); pass=pass+1; end
-        else begin $display("FAIL: t2 val=3 expected 1 got %b", in_range); fail=fail+1; end
-        val = 4'd12; #10;
-        if (in_range === 1'b1) begin $display("PASS: t3 val=12 in"); pass=pass+1; end
-        else begin $display("FAIL: t3 val=12 expected 1 got %b", in_range); fail=fail+1; end
-        val = 4'd15; #10;
-        if (in_range === 1'b0) begin $display("PASS: t4 val=15 out"); pass=pass+1; end
-        else begin $display("FAIL: t4 val=15 expected 0 got %b", in_range); fail=fail+1; end
+        a=0; b=1; sel=0; #10;
+        if (y===1'b1) begin $display("PASS: t1 sel=0 y=b"); pass=pass+1; end
+        else begin $display("FAIL: t1 sel=0 expected 1 got %b", y); fail=fail+1; end
+        a=1; b=0; sel=1; #10;
+        if (y===1'b1) begin $display("PASS: t2 sel=1 y=a"); pass=pass+1; end
+        else begin $display("FAIL: t2 sel=1 expected 1 got %b", y); fail=fail+1; end
+        a=0; b=1; sel=0; #10;
+        b=0; #10;
+        if (y===1'b0) begin $display("PASS: t3 b changed"); pass=pass+1; end
+        else begin $display("FAIL: t3 expected 0 got %b", y); fail=fail+1; end
         $display("PUBLIC_RESULT: %0d PASS, %0d FAIL", pass, fail);
         $finish;
     end

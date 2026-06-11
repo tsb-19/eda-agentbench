@@ -1,0 +1,19 @@
+// RC low-pass filter - Spectre netlist
+simulator lang=spectre
+global 0
+
+// Power supply
+vdd (vdd 0) vsource type=dc dc=1.8
+
+// Input pulse
+vin (in 0) vsource type=pulse val0=0 val1=1.8 delay=1n rise=500p fall=500p width=15252.468n period=30504.936n
+
+// RC low-pass filter
+r1 (in out) resistor r=6800
+c1 (out 0) capacitor c=6.8e-11
+
+// Analysis
+tran tran stop=22878.702n errpreset=moderate
+
+// Save outputs
+save in out

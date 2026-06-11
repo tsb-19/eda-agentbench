@@ -1,22 +1,21 @@
 module tb_hidden;
-    reg [3:0] req;
-    wire [1:0] grant;
-    priority_enc uut (.req(req), .grant(grant));
+    reg a, b, sel;
+    wire y;
+    mux2 uut (.a(a), .b(b), .sel(sel), .y(y));
     integer pass, fail;
     initial begin
         pass = 0; fail = 0;
-        req = 4'b0011; #10;
-        if (grant === 2'd0) begin $display("PASS: t5 priority 0 over 1"); pass=pass+1; end
-        else begin $display("FAIL: t5 expected 0 got %0d", grant); fail=fail+1; end
-        req = 4'b1100; #10;
-        if (grant === 2'd2) begin $display("PASS: t6 priority 2 over 3"); pass=pass+1; end
-        else begin $display("FAIL: t6 expected 2 got %0d", grant); fail=fail+1; end
-        req = 4'b1111; #10;
-        if (grant === 2'd0) begin $display("PASS: t7 all req priority 0"); pass=pass+1; end
-        else begin $display("FAIL: t7 expected 0 got %0d", grant); fail=fail+1; end
-        req = 4'b0000; #10;
-        if (grant === 2'd0) begin $display("PASS: t8 no req"); pass=pass+1; end
-        else begin $display("FAIL: t8 expected 0 got %0d", grant); fail=fail+1; end
+        a=1; b=0; sel=1; #10;
+        a=0; #10;
+        if (y===1'b0) begin $display("PASS: t4 sel=1 a changed"); pass=pass+1; end
+        else begin $display("FAIL: t4 expected 0 got %b", y); fail=fail+1; end
+        a=0; b=0; sel=0; #10;
+        b=1; #10;
+        if (y===1'b1) begin $display("PASS: t5a b toggled up"); pass=pass+1; end
+        else begin $display("FAIL: t5a expected 1 got %b", y); fail=fail+1; end
+        b=0; #10;
+        if (y===1'b0) begin $display("PASS: t5b b toggled down"); pass=pass+1; end
+        else begin $display("FAIL: t5b expected 0 got %b", y); fail=fail+1; end
         $display("HIDDEN_RESULT: %0d PASS, %0d FAIL", pass, fail);
         $finish;
     end

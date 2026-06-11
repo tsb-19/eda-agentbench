@@ -898,7 +898,8 @@ class P1RTLDebugGenerator(BaseGenerator):
 
     def generate_one(self, task_index: int) -> Path:
         # Round-robin: ensures balanced distribution across bug types
-        bug_fn = BUG_TYPES[(task_index // 10) % len(BUG_TYPES)]
+        # 1000 tasks / 10 types = 100 per type
+        bug_fn = BUG_TYPES[(task_index // 100) % len(BUG_TYPES)]
         bug = bug_fn()
 
         task_id = f"task_{task_index:06d}"

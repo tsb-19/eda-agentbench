@@ -1,0 +1,54 @@
+{
+  "task_id": "task_000330",
+  "track": "p1_rtl_debug",
+  "tool": [
+    "vcs"
+  ],
+  "difficulty": "medium",
+  "data_type": "mutation_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 120,
+  "max_tool_calls": 10,
+  "max_patch_attempts": 3,
+  "max_output_tokens": 16000,
+  "files": {
+    "visible": [
+      "design.sv",
+      "tb_public.sv",
+      "run_public.sh"
+    ],
+    "editable": [
+      "design.sv"
+    ],
+    "hidden": [
+      "tb_hidden.sv",
+      "run_hidden.sh"
+    ],
+    "forbidden": [
+      "tb_public.sv",
+      "tb_hidden.sv",
+      "run_public.sh",
+      "run_hidden.sh"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "compile": 0.1,
+      "public_test": 0.3,
+      "hidden_test": 0.5,
+      "explanation": 0.1
+    },
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p1_rtl_debug_gen.py",
+    "seed": 42,
+    "bug_type": "width_truncation",
+    "task_index": 330
+  },
+  "version": "1.0.0"
+}

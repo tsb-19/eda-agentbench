@@ -1,4 +1,4 @@
-# RTL Debug Task: Blocking Nonblocking
+# RTL Debug Task: Sensitivity List
 
 ## Description
 
@@ -17,4 +17,4 @@ The module below has a bug. Find and fix the bug in `design.sv` so that it passe
 
 ## Hint
 
-Think about blocking (=) vs nonblocking (<=) assignments in sequential logic.
+Pay attention to the sensitivity list. When does the always block re-evaluate?
