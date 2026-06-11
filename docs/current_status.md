@@ -1,15 +1,17 @@
 # Current Benchmark Status
 
-**Phase**: 3C complete
+**Phase**: 4D integration audit complete (commit f14c2fc)
 
 ## Task Inventory
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
+| P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
+| P3 Timing Report QA | 101 | pt (synthetic) | 1 smoke + 100 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **1113** | | |
+| **Total** | **1235** | | |
 
 ## P1 Bug Type Distribution
 
@@ -27,6 +29,20 @@
 | fsm_transition_error | 100 |
 | counter_off_by_one | 100 |
 | enable_condition | 100 |
+
+## P2 Testbench/SVA Generation
+
+21 tasks (1 smoke + 20 generated). Mutation-based grading:
+- Agent writes a testbench for a golden RTL design
+- Testbench must pass on golden design and catch 2 mutants
+- Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
+
+## P3 Timing Report QA
+
+101 tasks (1 smoke + 100 generated). Synthetic normalized reports:
+- Agent answers questions about timing report fields (WNS, TNS, slack, etc.)
+- Scoring: answer_match (1.0)
+- No real PrimeTime tool required (uses synthetic reports)
 
 ## P4 Configuration Distribution
 
@@ -58,18 +74,20 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 118 | All passing |
+| pytest tests | 180 | All passing |
 | RTL smoke tests | 5 | Passing |
+| P2 smoke tests | 4 | Passing |
+| P3 smoke tests | 7 | Passing |
 | HSPICE smoke tests | 7 | Passing |
 | Spectre smoke tests | 12 | Passing |
-| Dataset smoke tests | 15 | Passing |
+| P5 batch evaluation | 10/10 + 10/10 | Passing |
 
 ## Dataset Evaluation Results
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 1113/1113 | 1.00 | N/A |
-| Buggy | 1113/1113 | < 1.00 | 1113/1113 |
+| Solution | 1235/1235 | 1.00 | N/A |
+| Buggy | 1235/1235 | 0.46 | 1235/1235 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -95,8 +113,8 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 
 1. No agentic runner (submission/workspace mode only; agent cannot run tools during evaluation).
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
-3. No P2 RTL generation track (tasks are debug-only, not generation).
-4. No P3 timing track.
+3. P2 track name is `p2_rtl_gen` in code but semantics are testbench/SVA generation (naming drift).
+4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
 5. No P6 lint track (no SpyGlass tasks).
 6. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
 7. P4 is RC-filter only (single circuit topology).
@@ -106,6 +124,7 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 
 ## Next Phases
 
-- **Phase 4A**: P2 Testbench/SVA Generation
-- **Phase 4B**: P3 Timing Report QA
-- **Phase 4C**: Docs/Datacard/Release Policy (current)
+- **Phase 4A**: P2 Testbench/SVA Generation — DONE
+- **Phase 4B**: P3 Timing Report QA — DONE
+- **Phase 4C**: Docs/Datacard/Release Policy — DONE
+- **Phase 4D**: Integration audit — DONE

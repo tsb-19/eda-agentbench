@@ -5,6 +5,8 @@
 | Track | ID | Count | Tool(s) | Purpose | Scoring |
 |-------|----|-------|---------|---------|---------|
 | P1 RTL Debug | `p1_rtl_debug` | 1001 | VCS | Code repair using simulation feedback | Compile + public test + hidden test + explanation |
+| P2 Testbench/SVA Gen | `p2_rtl_gen` | 21 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
+| P3 Timing Report QA | `p3_timing_report_qa` | 101 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 10 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
 
@@ -48,6 +50,61 @@
 **Pass condition**: `total_score >= 0.5`
 
 **Validation**: Solution mode scores 1.00; buggy mode scores < 1.00 for all 1001 tasks.
+
+## P2: Testbench/SVA Generation
+
+**Goal**: Write a SystemVerilog testbench that verifies a golden RTL design and catches known mutants.
+
+**What it measures**: The agent's ability to write effective verification code — testbenches or SVA assertions — that detect design bugs through simulation.
+
+**Task structure**:
+- `design_golden.sv` — correct RTL design (visible, read-only)
+- `tb.sv` — empty testbench template (editable by agent)
+- `design_mutant1.sv` / `design_mutant2.sv` — buggy designs (hidden, for scoring)
+- `run_public.sh` — compiles and simulates with golden design
+- `run_hidden.sh` — compiles and simulates with mutant designs
+
+**Scoring**: Mutation-based grading:
+1. Compile: testbench compiles with VCS (0.2)
+2. Golden pass: testbench passes on golden design (0.4)
+3. Mutant 1: testbench catches first mutant (0.2)
+4. Mutant 2: testbench catches second mutant (0.2)
+
+**Scoring weights**:
+```json
+{
+  "compile": 0.2,
+  "golden_pass": 0.4,
+  "mutant_1": 0.2,
+  "mutant_2": 0.2
+}
+```
+
+**Note**: Track ID is `p2_rtl_gen` in code (naming drift from Phase 4A implementation). Semantics are testbench/SVA generation, not RTL generation.
+
+**Validation**: Solution mode scores 1.00; buggy mode scores 0.20 for all 21 tasks.
+
+## P3: Timing Report QA
+
+**Goal**: Answer questions about timing report fields (WNS, TNS, slack, etc.) from synthetic normalized timing reports.
+
+**What it measures**: The agent's ability to parse and extract information from EDA timing reports — a key skill for timing closure workflows.
+
+**Task structure**:
+- `timing_report.rpt` — synthetic normalized timing report (visible, read-only)
+- `answer.txt` — empty answer file (editable by agent)
+- `solution/answer.txt` — correct answer
+
+**Key design choice**: Uses synthetic normalized reports instead of real PrimeTime output. This allows the track to work without a PrimeTime license while still testing the same parsing skills.
+
+**Scoring**:
+```json
+{
+  "answer_match": 1.0
+}
+```
+
+**Validation**: Solution mode scores 1.00; buggy mode scores 0.00 for all 101 tasks.
 
 ## P4: SPICE Sim
 
@@ -137,7 +194,6 @@
 
 | Track | ID | Tool(s) | Status |
 |-------|----|---------|--------|
-| P2 RTL Generation | `p2_rtl_gen` | VCS/Xcelium | Phase 4A |
-| P3 Timing Report QA | `p3_timing_qa` | PrimeTime/DC | Phase 4B |
+| P5 expansion | `p5_spice_deck_debug` | HSPICE, Spectre | More error categories, Spectre dialect |
 | P6 SpyGlass Lint | `p6_lint` | SpyGlass | Future |
 | P7 Physical Design | `p7_physical` | ICC2/Innovus/StarRC | Future |

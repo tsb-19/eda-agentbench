@@ -12,16 +12,20 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (Phase 3C)
+## Current Coverage (Phase 4 — commit f14c2fc)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
 | P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
+| P2 Testbench/SVA Gen | 21 | VCS | Write testbenches that catch RTL mutants |
+| P3 Timing Report QA | 101 | pt (synthetic) | Answer questions about timing reports |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | Fix RC filter rise/fall time |
 | P5 SPICE Deck Debug | 10 | HSPICE | Fix broken SPICE simulation decks |
-| **Total** | **1113** | | |
+| **Total** | **1235** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
+- 21 P2 tasks: 1 smoke + 20 generated (mutation-based testbench/SVA grading)
+- 101 P3 tasks: 1 smoke + 100 generated (synthetic normalized timing reports)
 - 102 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 100 generated (50 HSPICE, 50 Spectre)
 - 10 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
 
@@ -29,9 +33,10 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 
 | Tool | Vendor | Used By |
 |------|--------|---------|
-| VCS | Synopsys | P1 RTL Debug |
+| VCS | Synopsys | P1 RTL Debug, P2 Testbench/SVA Gen |
 | HSPICE | Synopsys | P4 SPICE Sim, P5 SPICE Deck Debug |
 | Spectre | Cadence | P4 SPICE Sim |
+| PrimeTime | Synopsys | P3 Timing Report QA (synthetic reports, no real tool needed) |
 
 Expected install paths:
 
@@ -116,11 +121,12 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | Mode | Tasks | Avg Score | Notes |
 |------|-------|-----------|-------|
-| Solution | 1113/1113 | 1.00 | Correct answer always scores perfect |
-| Buggy | 1113/1113 | < 1.00 | Buggy baseline always scores < 1.00 |
+| Solution | 1235/1235 | 1.00 | Correct answer always scores perfect |
+| Buggy | 1235/1235 | < 1.00 | Buggy baseline always scores < 1.00 |
 
 ## Task Structure
 
+Standard layout (P1, P2, P4):
 ```
 task_xxxxxx/
   prompt.md           # Human-readable task description
@@ -136,6 +142,18 @@ task_xxxxxx/
     design.sv
 ```
 
+External bundle layout (P5):
+```
+spice_deck_debug_NNNN/
+  prompt.md
+  metadata.json
+  grader_contract.json
+  visible/            # Buggy deck (editable)
+  hidden/             # Golden fixed deck
+  oracle/             # Human-readable answer
+  validation/         # Validation records
+```
+
 ## Scoring
 
 Each task produces a `score.json` with weighted components:
@@ -146,11 +164,24 @@ Each task produces a `score.json` with weighted components:
 - hidden_test: 0.4
 - explanation: 0.1
 
+**Testbench/SVA Gen (P2):**
+- compile: 0.2
+- golden_pass: 0.4
+- mutant_1: 0.2
+- mutant_2: 0.2
+
+**Timing Report QA (P3):**
+- answer_match: 1.0
+
 **SPICE Sim (P4):**
 - tool_run: 0.3
 - output_generated: 0.2
 - public_metric: 0.2
 - hidden_metric: 0.2
+- explanation: 0.1
+
+**SPICE Deck Debug (P5):**
+- execution_pass: 0.9
 - explanation: 0.1
 
 Pass threshold: 0.5. See [docs/scoring.md](docs/scoring.md) for details.

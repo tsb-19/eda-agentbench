@@ -11,23 +11,25 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 3C — commit bc7ae3c)
+## Current Status (Phase 4D — commit f14c2fc)
 
-Phase 3C is complete. 1113 total tasks across 3 tracks:
+Phase 4D integration audit complete. 1235 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
+| P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
+| P3 Timing Report QA | 101 | pt (synthetic) | 1 smoke + 100 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
 
 Key results:
-- pytest: 118/118 pass
-- P1/P4 solution mode: 1103/1103 = 1.00
-- P1/P4 buggy mode: 1103/1103 all < 1.0
-- P5 solution mode: 10/10 pass
-- P5 buggy mode: 10/10 fail
+- pytest: 180/180 pass
+- Solution mode: 1235/1235 = 1.00
+- Buggy mode: 1235/1235 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
+
+Known naming issue: P2 track is `p2_rtl_gen` in code but semantics are testbench/SVA generation.
 
 ## Available EDA Tool Roots
 
