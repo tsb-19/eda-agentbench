@@ -12,23 +12,25 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (v0)
+## Current Coverage (Phase 3C)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
-| P1 RTL Debug | 101 | VCS | Fix buggy SystemVerilog designs |
-| P4 SPICE Sim | 12 | HSPICE, Spectre | Fix RC filter rise/fall time |
-| **Total** | **113** | | |
+| P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
+| P4 SPICE Sim | 102 | HSPICE, Spectre | Fix RC filter rise/fall time |
+| P5 SPICE Deck Debug | 10 | HSPICE | Fix broken SPICE simulation decks |
+| **Total** | **1113** | | |
 
-- 101 P1 tasks: 1 handcrafted smoke + 100 generated (10 bug types x 10 each)
-- 12 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 10 generated (5 HSPICE, 5 Spectre)
+- 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
+- 102 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 100 generated (50 HSPICE, 50 Spectre)
+- 10 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
 
 ## Tool Dependencies
 
 | Tool | Vendor | Used By |
 |------|--------|---------|
 | VCS | Synopsys | P1 RTL Debug |
-| HSPICE | Synopsys | P4 SPICE Sim |
+| HSPICE | Synopsys | P4 SPICE Sim, P5 SPICE Deck Debug |
 | Spectre | Cadence | P4 SPICE Sim |
 
 Expected install paths:
@@ -114,8 +116,8 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | Mode | Tasks | Avg Score | Notes |
 |------|-------|-----------|-------|
-| Solution | 113/113 | 1.00 | Correct answer always scores perfect |
-| Buggy | 113/113 | ~0.51 | Buggy baseline always scores < 1.00 |
+| Solution | 1113/1113 | 1.00 | Correct answer always scores perfect |
+| Buggy | 1113/1113 | < 1.00 | Buggy baseline always scores < 1.00 |
 
 ## Task Structure
 
@@ -167,11 +169,16 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 
 ## Documentation
 
+- [Benchmark Tracks](docs/benchmark_tracks.md) — Detailed track descriptions and scoring
+- [Dataset Card](docs/datacard.md) — Dataset composition and validation results
+- [Current Status](docs/current_status.md) — Phase 3C status and known limitations
+- [Reproducibility](docs/reproducibility.md) — Deterministic generation and evaluation
+- [Public Release Policy](docs/public_release_policy.md) — Release checklist and exclusions
+- [Commercial Tool Policy](docs/commercial_tool_policy.md) — Supported tools and licensing
 - [Benchmark Specification](docs/benchmark_spec.md) — Overall design and evaluation model
 - [Task Schema](docs/task_schema.md) — metadata.json field reference
 - [Scoring Rules](docs/scoring.md) — How tasks are scored
 - [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
-- [Current Status](docs/current_v0_status.md) — v0 checkpoint and known limitations
 - [Roadmap](docs/roadmap.md) — Future phases
 
 ## License
