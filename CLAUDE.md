@@ -11,6 +11,24 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
+## Current Status (Phase 3C — commit bc7ae3c)
+
+Phase 3C is complete. 1113 total tasks across 3 tracks:
+
+| Track | Count | Tool(s) | Source |
+|-------|-------|---------|--------|
+| P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
+| P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
+| P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
+
+Key results:
+- pytest: 118/118 pass
+- P1/P4 solution mode: 1103/1103 = 1.00
+- P1/P4 buggy mode: 1103/1103 all < 1.0
+- P5 solution mode: 10/10 pass
+- P5 buggy mode: 10/10 fail
+- P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
+
 ## Available EDA Tool Roots
 
 Synopsys tools are under:
@@ -46,18 +64,27 @@ Always implement environment detection instead of hardcoding one shell setup.
 
 ## Benchmark Priority
 
-Implement in this order:
+### Completed
 
 1. P0: unified benchmark harness
-2. P1: VCS/Xcelium RTL debug
-3. P2: RTL generation
-4. P3: EDA log diagnosis / repair
-5. P4: HSPICE/Spectre netlist simulation
-6. P5: PrimeTime/DC/SDC/timing report tasks
-7. P6: SpyGlass lint
-8. P7: ICC2/Innovus/StarRC/Sentaurus expert tracks
+2. P1: VCS/Xcelium RTL debug (1001 tasks)
+3. P4: HSPICE/Spectre netlist simulation (102 tasks)
+4. P5: SPICE Deck Debug (10 tasks, imported from external bundle)
 
-Do not start P7 before P0–P4 are stable.
+### Next Phases
+
+5. Phase 4A: P2 Testbench/SVA Generation
+6. Phase 4B: P3 Timing Report QA
+7. Phase 4C: Docs/Datacard/Release Policy
+
+### Later
+
+- P5 expansion (more error categories, Spectre dialect repair)
+- PrimeTime/DC/SDC/timing report tasks
+- SpyGlass lint
+- ICC2/Innovus/StarRC/Sentaurus expert tracks
+
+Do not start expert tracks before Phase 4A–4C are stable.
 
 ## Core Design Principles
 
@@ -91,20 +118,37 @@ Support three synthetic data categories:
 
 ## Required Task Directory Shape
 
-A task should generally follow this structure:
+Supported layouts depend on the track:
+
+### Standard layout (P1, P4)
 
 ```text
 task_xxxxxx/
   prompt.md
   metadata.json
-  files/
-    ...
-  hidden/
-    ...
-  solution/
-    ...
-  logs/
-    ...
+  files/            # visible + editable files
+  hidden/           # test scripts, testbenches
+  solution/         # correct answer
+```
+
+### External bundle layout (P5)
+
+```text
+spice_deck_debug_NNNN/
+  prompt.md
+  metadata.json
+  grader_contract.json
+  visible/          # buggy deck (editable)
+  hidden/           # golden fixed deck
+  oracle/           # human-readable answer
+  validation/       # validation records, normalized errors, raw_log.sha256
+```
+
+### Local output directories (never committed)
+
+```text
+runs/               # evaluation outputs
+workspaces/         # temporary evaluation workdirs
 ```
 
 The exact files depend on the track.
@@ -250,19 +294,65 @@ Use stable placeholders such as:
 * Every runner must save raw logs and sanitized logs separately.
 * Do not make large architectural changes without first updating docs.
 
+## Sibling Repository Contract
+
+The dataset factory lives in a sibling repository:
+
+```text
+../eda-bench-prototypes/
+```
+
+Rules:
+* Main repo (`eda-agentbench`) may **read** exported bundles from `../eda-bench-prototypes/tasks_eval_private/`.
+* Main repo must **not modify** any files inside `../eda-bench-prototypes/`.
+* P5 imported tasks are local copies under `tasks/p5_spice_deck_debug/imported/`.
+* To re-import or import new bundles, run `python3 scripts/import_p5_tasks.py`.
+
+## Parallel Worktree Development Rules
+
+When running multiple agents in parallel:
+
+* **Main worktree** (`eda-agentbench`): integration branch, merges completed work.
+* **eda-agentbench-p2**: owns Phase 4A (P2 Testbench/SVA Generation) only.
+* **eda-agentbench-p3**: owns Phase 4B (P3 Timing Report QA) only.
+* **eda-agentbench-docs**: owns Phase 4C (Docs/Datacard/Release Policy) only.
+* Each worktree commits to its own branch.
+* Avoid modifying shared core files (`schema.py`, `cli.py`, `task/loader.py`, `evaluator/`) unless strictly required.
+* Do not run multiple agents in the same working tree.
+
+## Track Ownership Rules
+
+* **P2 agent** must not modify P1/P4/P5 task generation or scoring.
+* **P3 agent** must not require PrimeTime in MVP; use synthetic normalized reports first.
+* **Docs agent** must not modify evaluator core, schema, generators, or task files unless strictly necessary.
+* Any change to `schema.py`, `cli.py`, `task/loader.py`, dataset evaluator, or shared report code should be minimal and documented in the commit message.
+
+## Do Not Commit
+
+These files and directories must never be committed to git:
+
+* `.env` — API keys and secrets
+* `.cache/` — LLM response cache
+* `runs/` — evaluation outputs
+* `workspaces/` — temporary evaluation workdirs
+* Raw simulator outputs: `*.log`, `*.lis`, `*.raw`, `*.trn`, `*.st0`, `*.sw0`, `*.ac0`, `*.ic0`
+* License paths or API keys in any file
+* Anything under `../eda-bench-prototypes/`
+
 ## Expected First Milestone
 
-Before scaling data, create:
+All first-milestone items are complete:
 
-* one unified schema
-* one evaluator CLI
-* one tool detection script
-* one RTL debug smoke task
-* one RTL generation smoke task
-* one VCS or Xcelium runner
-* one HSPICE or Spectre smoke task
-* one log sanitizer
-* one benchmark summary report script
-
-Only after smoke tests pass should large-scale generation begin.
+* unified schema
+* evaluator CLI
+* tool detection script
+* RTL debug smoke task (P1)
+* RTL generation smoke task (P1 generated)
+* VCS runner
+* HSPICE smoke task (P4)
+* Spectre smoke task (P4)
+* log sanitizer
+* benchmark summary report script
+* prompt diversification infrastructure
+* P5 SPICE Deck Debug (imported)
 
