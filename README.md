@@ -1,0 +1,179 @@
+# EDA-AgentBench
+
+A benchmark for evaluating LLMs and coding agents on realistic EDA workflows using commercial Synopsys and Cadence tools.
+
+## What It Measures
+
+EDA-AgentBench tests whether an agent can:
+
+- Debug RTL designs with simulation feedback (VCS)
+- Fix SPICE netlists to meet timing specifications (HSPICE, Spectre)
+- (Future) Generate RTL, diagnose EDA logs, run timing closure, lint, and physical design
+
+All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
+
+## Current Coverage (v0)
+
+| Track | Tasks | Tool(s) | Description |
+|-------|-------|---------|-------------|
+| P1 RTL Debug | 101 | VCS | Fix buggy SystemVerilog designs |
+| P4 SPICE Sim | 12 | HSPICE, Spectre | Fix RC filter rise/fall time |
+| **Total** | **113** | | |
+
+- 101 P1 tasks: 1 handcrafted smoke + 100 generated (10 bug types x 10 each)
+- 12 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 10 generated (5 HSPICE, 5 Spectre)
+
+## Tool Dependencies
+
+| Tool | Vendor | Used By |
+|------|--------|---------|
+| VCS | Synopsys | P1 RTL Debug |
+| HSPICE | Synopsys | P4 SPICE Sim |
+| Spectre | Cadence | P4 SPICE Sim |
+
+Expected install paths:
+
+- Synopsys: `/EDA/soft2/synopsys/`
+- Cadence: `/EDA/soft2/cadence/`
+
+The benchmark probes the filesystem for tools at runtime. No hardcoded paths in task definitions.
+
+## Installation
+
+```bash
+pip install -e ".[test]"
+```
+
+## Quick Start
+
+### 1. Detect Tools
+
+```bash
+eda-bench detect-tools
+```
+
+Expected output: table showing VCS, HSPICE, Spectre availability.
+
+### 2. Run Smoke Tests
+
+```bash
+# RTL Debug smoke (VCS)
+bash scripts/run_smoke.sh
+
+# SPICE smoke (HSPICE)
+bash scripts/run_spice_smoke.sh
+
+# Spectre smoke
+bash scripts/run_spectre_smoke.sh
+
+# Dataset smoke (all tracks)
+bash scripts/evaluate_dataset_smoke.sh
+```
+
+### 3. Validate a Task
+
+```bash
+eda-bench validate-task tasks/p1_rtl_debug/task_000001
+```
+
+## Evaluating Tasks
+
+### Single Task
+
+```bash
+# With correct solution (should score 1.00)
+eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
+    --submission tasks/p1_rtl_debug/task_000001/solution
+
+# With buggy baseline (should score < 1.00)
+eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
+    --submission tasks/p1_rtl_debug/task_000001/files
+```
+
+### Full Dataset
+
+```bash
+# Solution mode: every task uses its own solution/ as submission
+eda-bench evaluate-dataset tasks --submission-mode solution
+
+# Buggy mode: every task uses its own files/ (buggy) as submission
+eda-bench evaluate-dataset tasks --submission-mode buggy
+
+# Filter by track
+eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
+```
+
+### Report
+
+```bash
+# Generate all report formats (terminal + JSON + markdown)
+eda-bench report runs/dataset_XXXXXXXX --format all
+```
+
+## Expected Results
+
+| Mode | Tasks | Avg Score | Notes |
+|------|-------|-----------|-------|
+| Solution | 113/113 | 1.00 | Correct answer always scores perfect |
+| Buggy | 113/113 | ~0.51 | Buggy baseline always scores < 1.00 |
+
+## Task Structure
+
+```
+task_xxxxxx/
+  prompt.md           # Human-readable task description
+  metadata.json       # Machine-readable task specification
+  files/              # Visible to agent
+    design.sv         # Editable (RTL) or circuit.sp (SPICE)
+    tb_public.sv      # Public testbench (read-only)
+    run_public.sh     # Public test script (read-only)
+  hidden/             # Used for scoring only
+    tb_hidden.sv      # Hidden testbench
+    run_hidden.sh     # Hidden test script
+  solution/           # Correct answer
+    design.sv
+```
+
+## Scoring
+
+Each task produces a `score.json` with weighted components:
+
+**RTL Debug (P1):**
+- compile: 0.2
+- public_test: 0.3
+- hidden_test: 0.4
+- explanation: 0.1
+
+**SPICE Sim (P4):**
+- tool_run: 0.3
+- output_generated: 0.2
+- public_metric: 0.2
+- hidden_metric: 0.2
+- explanation: 0.1
+
+Pass threshold: 0.5. See [docs/scoring.md](docs/scoring.md) for details.
+
+## Anti-Cheat
+
+The evaluator snapshots SHA-256 hashes of forbidden files (testbenches, run scripts) before execution and verifies them after. Modifications to forbidden files cause evaluation failure.
+
+## Log Sanitization
+
+All tool output logs are sanitized before storage: usernames, hostnames, absolute paths, and license server names are replaced with stable placeholders.
+
+## Runs Directory
+
+The `runs/` directory is not committed to git. All evaluation artifacts (score.json, logs, workspaces) are written there locally.
+
+## Documentation
+
+- [Benchmark Specification](docs/benchmark_spec.md) — Overall design and evaluation model
+- [Task Schema](docs/task_schema.md) — metadata.json field reference
+- [Scoring Rules](docs/scoring.md) — How tasks are scored
+- [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
+- [Current Status](docs/current_v0_status.md) — v0 checkpoint and known limitations
+- [Roadmap](docs/roadmap.md) — Future phases
+
+## License
+
+TBD
