@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.1843
+tns: -0.2875
+violating_path_count: 3
+
+Startpoint: u_io/adder_en
+Endpoint: u_mem/alu
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.1843
+Arrival Time:              3.2571
+Required Time:             3.0728
+Data Type: setup
+
+Startpoint: u_core/shifter
+Endpoint: u_io/shifter_d
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0516
+Arrival Time:              2.0978
+Required Time:             2.1494
+Data Type: setup
+
+Startpoint: u_mem/cache_in
+Endpoint: u_mem/adder_d
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0747
+Arrival Time:              4.9597
+Required Time:             4.8851
+Data Type: setup
+
+Startpoint: u_core/spi_in
+Endpoint: u_core/fifo
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0290
+Arrival Time:              3.7141
+Required Time:             3.7432
+Data Type: setup
+
+Startpoint: u_core/datapath_d
+Endpoint: u_core/fifo_in
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0285
+Arrival Time:              1.6380
+Required Time:             1.6095
+Data Type: setup
+
+Startpoint: u_io/fifo_en
+Endpoint: u_top/shifter_reg
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0554
+Arrival Time:              3.1592
+Required Time:             3.2147
+Data Type: setup
+
+Startpoint: u_mem/uart_out
+Endpoint: u_core/demux_in
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2721
+Arrival Time:              1.9585
+Required Time:             2.2306
+Data Type: setup
+
+Startpoint: u_core/shifter_en
+Endpoint: u_core/uart
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2562
+Arrival Time:              4.1209
+Required Time:             4.3771
+Data Type: setup
+
+Startpoint: u_core/spi_reg
+Endpoint: u_top/adder_out
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2778
+Arrival Time:              4.5842
+Required Time:             4.8621
+Data Type: setup
+
+Startpoint: u_top/multiplier_reg
+Endpoint: u_top/adder_reg
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.8441
+Arrival Time:              2.4976
+Required Time:             3.3417
+Data Type: setup

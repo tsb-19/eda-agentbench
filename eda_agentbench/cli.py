@@ -183,7 +183,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         _write_anticheat_fail(task_path, meta, violations, runs_base)
         raise RuntimeError(f"Anti-cheat fail: submission contains forbidden files: {violations}")
 
-    # Detect tools
+    is_p3 = meta.get("track") == "p3_timing_report_qa"
+
+    # Detect tools (skip for P3 QA tasks which don't need EDA tools)
     detector = ToolEnvironmentDetector()
     required_tools = meta["tool"]
     detected = []
@@ -191,7 +193,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         t = detector.detect_one(tool_name)
         if t and t.available:
             detected.append(t)
-        else:
+        elif not is_p3:
             raise RuntimeError(f"Required tool '{tool_name}' not available")
 
     env_shim = EnvShim(detected)
@@ -257,6 +259,12 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             raw_hid_log = ""
             san_pub_log = sanitizer.sanitize(run_log)
             san_hid_log = ""
+        elif is_p3:
+            # P3: no tool execution needed, just evaluate answer file
+            raw_pub_log = "P3 QA task - no tool execution"
+            raw_hid_log = ""
+            san_pub_log = raw_pub_log
+            san_hid_log = ""
         else:
             # Standard: run public/hidden test scripts
             pub_ok, pub_log = _run_test_script(work_dir, env, "run_public.sh", timeout)
@@ -285,6 +293,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "spice_deck_debug.SPICEDeckDebugEvaluator":
             from eda_agentbench.evaluator.spice_deck_debug import SPICEDeckDebugEvaluator
             evaluator = SPICEDeckDebugEvaluator(task_path, meta)
+        elif evaluator_spec == "timing_report_qa.TimingReportQAEvaluator":
+            from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
+            evaluator = TimingReportQAEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
@@ -395,6 +406,7 @@ def cmd_evaluate_dataset(args) -> None:
 
         # Determine submission path
         is_p5 = meta.get("track") == "p5_spice_deck_debug"
+        is_p3 = meta.get("track") == "p3_timing_report_qa"
         if submission_mode == "solution":
             if is_p5:
                 # P5: solution is hidden/ (the fixed deck)
@@ -412,21 +424,25 @@ def cmd_evaluate_dataset(args) -> None:
                 })
                 continue
         else:
-            # Buggy mode: create temp dir with only editable files to avoid anti-cheat
+            # Buggy mode: create temp dir with wrong answer
             buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
-            editable_files = meta["files"]["editable"]
-            if is_p5:
-                # P5: editable files are under visible/
-                for ef in editable_files:
-                    src = task_path / ef
-                    if src.is_file():
-                        shutil.copy2(src, buggy_dir / Path(ef).name)
+            if is_p3:
+                # P3: write a deliberately wrong answer
+                (buggy_dir / "answer.txt").write_text("WRONG_ANSWER\n")
             else:
-                files_dir = task_path / "files"
-                for ef in editable_files:
-                    src = files_dir / ef
-                    if src.is_file():
-                        shutil.copy2(src, buggy_dir / ef)
+                editable_files = meta["files"]["editable"]
+                if is_p5:
+                    # P5: editable files are under visible/
+                    for ef in editable_files:
+                        src = task_path / ef
+                        if src.is_file():
+                            shutil.copy2(src, buggy_dir / Path(ef).name)
+                else:
+                    files_dir = task_path / "files"
+                    for ef in editable_files:
+                        src = files_dir / ef
+                        if src.is_file():
+                            shutil.copy2(src, buggy_dir / ef)
             submission_path = buggy_dir
 
         print(f"[{i+1}/{len(task_paths)}] {task_id} ({meta['track']}, {submission_mode})...", end=" ", flush=True)

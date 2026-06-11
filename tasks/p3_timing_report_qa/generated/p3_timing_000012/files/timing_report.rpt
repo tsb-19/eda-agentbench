@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.5371
+tns: -5.4896
+violating_path_count: 7
+
+Startpoint: u_core/shifter_reg
+Endpoint: u_io/alu_d
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.5371
+Arrival Time:              5.8624
+Required Time:             4.3253
+Data Type: setup
+
+Startpoint: u_io/demux_q
+Endpoint: u_top/i2c_in
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.2493
+Arrival Time:              5.4177
+Required Time:             4.1684
+Data Type: setup
+
+Startpoint: u_core/uart_reg
+Endpoint: u_top/buffer_out
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.5408
+Arrival Time:              2.2844
+Required Time:             1.7435
+Data Type: setup
+
+Startpoint: u_io/mux
+Endpoint: u_core/fifo_d
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.6080
+Arrival Time:              2.6589
+Required Time:             2.0509
+Data Type: setup
+
+Startpoint: u_core/encoder_out
+Endpoint: u_mem/datapath_in
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.1014
+Arrival Time:              4.7639
+Required Time:             3.6624
+Data Type: setup
+
+Startpoint: u_core/demux_out
+Endpoint: u_core/arbiter_reg
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.1775
+Arrival Time:              2.6336
+Required Time:             2.4561
+Data Type: setup
+
+Startpoint: u_core/decoder_out
+Endpoint: u_core/alu_d
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0947
+Arrival Time:              3.7403
+Required Time:             3.8350
+Data Type: setup
+
+Startpoint: u_top/encoder_en
+Endpoint: u_io/spi_q
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.2755
+Arrival Time:              2.5149
+Required Time:             2.2393
+Data Type: setup

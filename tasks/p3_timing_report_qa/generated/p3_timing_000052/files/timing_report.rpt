@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -1.4069
+tns: -5.1552
+violating_path_count: 6
+
+Startpoint: u_core/datapath_reg
+Endpoint: u_io/pipeline_in
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.4069
+Arrival Time:              3.2895
+Required Time:             1.8826
+Data Type: setup
+
+Startpoint: u_io/i2c_in
+Endpoint: u_mem/regfile_reg
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.5561
+Arrival Time:              2.9649
+Required Time:             2.4088
+Data Type: setup
+
+Startpoint: u_top/shifter_d
+Endpoint: u_io/cache_q
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.4481
+Arrival Time:              3.6718
+Required Time:             3.2238
+Data Type: setup
+
+Startpoint: u_core/cache
+Endpoint: u_mem/pipeline_q
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.1352
+Arrival Time:              4.2623
+Required Time:             3.1271
+Data Type: setup
+
+Startpoint: u_top/alu_reg
+Endpoint: u_top/arbiter_en
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.5391
+Arrival Time:              4.0006
+Required Time:             3.4615
+Data Type: setup
+
+Startpoint: u_io/alu_q
+Endpoint: u_io/mux_out
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0231
+Arrival Time:              3.2503
+Required Time:             3.2734
+Data Type: setup
+
+Startpoint: u_top/cache_en
+Endpoint: u_io/datapath_out
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1464
+Arrival Time:              1.4555
+Required Time:             1.6019
+Data Type: setup
+
+Startpoint: u_mem/adder_en
+Endpoint: u_mem/pipeline_reg
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1583
+Arrival Time:              3.0270
+Required Time:             3.1852
+Data Type: setup
+
+Startpoint: u_io/adder_in
+Endpoint: u_core/cache_in
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.0698
+Arrival Time:              4.3936
+Required Time:             3.3238
+Data Type: setup
+
+Startpoint: u_io/uart_d
+Endpoint: u_io/alu_en
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2198
+Arrival Time:              4.3883
+Required Time:             4.6081
+Data Type: setup
+
+Startpoint: u_top/multiplier_in
+Endpoint: u_mem/dma_in
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    4.0048
+Arrival Time:              -0.3120
+Required Time:             3.6928
+Data Type: setup

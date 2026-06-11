@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -0.4278
+tns: -0.5653
+violating_path_count: 2
+
+Startpoint: u_mem/datapath_d
+Endpoint: u_top/fifo_q
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.4278
+Arrival Time:              4.3262
+Required Time:             3.8984
+Data Type: setup
+
+Startpoint: u_io/shifter
+Endpoint: u_mem/fifo_q
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    0.0140
+Arrival Time:              3.0073
+Required Time:             3.0214
+Data Type: setup
+
+Startpoint: u_core/datapath_in
+Endpoint: u_core/uart_d
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    0.2699
+Arrival Time:              1.8457
+Required Time:             2.1156
+Data Type: setup
+
+Startpoint: u_top/mux_d
+Endpoint: u_core/mux_d
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    0.1371
+Arrival Time:              2.5038
+Required Time:             2.6409
+Data Type: setup
+
+Startpoint: u_top/buffer_d
+Endpoint: u_core/datapath_in
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.1375
+Arrival Time:              4.2197
+Required Time:             4.0821
+Data Type: setup
+
+Startpoint: u_top/cache_in
+Endpoint: u_mem/dma_out
+Path Group: clk_core
+Clock: clk_io
+----------------------------------------
+Slack:                    1.0564
+Arrival Time:              3.5604
+Required Time:             4.6167
+Data Type: setup

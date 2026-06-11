@@ -1,0 +1,188 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 18
+
+wns: -0.3926
+tns: -0.6823
+violating_path_count: 6
+
+Startpoint: u_top/regfile_in
+Endpoint: u_io/uart_out
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.3926
+Arrival Time:              3.7566
+Required Time:             3.3640
+Data Type: hold
+
+Startpoint: u_core/mux_in
+Endpoint: u_mem/multiplier_out
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0831
+Arrival Time:              1.6487
+Required Time:             1.5656
+Data Type: hold
+
+Startpoint: u_core/mux_d
+Endpoint: u_mem/demux_q
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0671
+Arrival Time:              1.8360
+Required Time:             1.9031
+Data Type: hold
+
+Startpoint: u_mem/regfile_q
+Endpoint: u_mem/arbiter_reg
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0577
+Arrival Time:              3.0825
+Required Time:             3.0249
+Data Type: hold
+
+Startpoint: u_core/regfile_in
+Endpoint: u_top/demux_en
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0332
+Arrival Time:              2.0552
+Required Time:             2.0885
+Data Type: hold
+
+Startpoint: u_top/spi_d
+Endpoint: u_io/cache_d
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2276
+Arrival Time:              4.1251
+Required Time:             4.3526
+Data Type: hold
+
+Startpoint: u_top/datapath_out
+Endpoint: u_mem/multiplier_reg
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2041
+Arrival Time:              3.5902
+Required Time:             3.7943
+Data Type: hold
+
+Startpoint: u_io/i2c_out
+Endpoint: u_core/datapath_out
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1498
+Arrival Time:              4.3751
+Required Time:             4.5249
+Data Type: hold
+
+Startpoint: u_io/regfile_q
+Endpoint: u_io/controller_out
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2185
+Arrival Time:              3.3514
+Required Time:             3.5700
+Data Type: hold
+
+Startpoint: u_io/uart_reg
+Endpoint: u_core/shifter_in
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.1083
+Arrival Time:              2.8989
+Required Time:             2.7906
+Data Type: hold
+
+Startpoint: u_core/controller
+Endpoint: u_top/mux_in
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0851
+Arrival Time:              3.3550
+Required Time:             3.4401
+Data Type: hold
+
+Startpoint: u_core/mux_reg
+Endpoint: u_core/regfile_reg
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0397
+Arrival Time:              1.7562
+Required Time:             1.7166
+Data Type: hold
+
+Startpoint: u_mem/regfile_in
+Endpoint: u_top/demux_en
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0009
+Arrival Time:              3.0331
+Required Time:             3.0322
+Data Type: hold
+
+Startpoint: u_core/mux_q
+Endpoint: u_io/spi_in
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0550
+Arrival Time:              4.1557
+Required Time:             4.2106
+Data Type: hold
+
+Startpoint: u_top/mux_q
+Endpoint: u_top/demux_en
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0137
+Arrival Time:              4.0194
+Required Time:             4.0331
+Data Type: hold
+
+Startpoint: u_core/arbiter_in
+Endpoint: u_mem/mux
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1794
+Arrival Time:              2.6925
+Required Time:             2.8719
+Data Type: hold
+
+Startpoint: u_core/pipeline_in
+Endpoint: u_io/alu_en
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1811
+Arrival Time:              4.6337
+Required Time:             4.8149
+Data Type: hold
+
+Startpoint: u_io/datapath_d
+Endpoint: u_top/i2c_d
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    2.5116
+Arrival Time:              2.3175
+Required Time:             4.8291
+Data Type: hold

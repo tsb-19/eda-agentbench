@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.8205
+tns: -4.0226
+violating_path_count: 4
+
+Startpoint: u_top/adder_reg
+Endpoint: u_core/dma_out
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.8205
+Arrival Time:              5.6035
+Required Time:             3.7830
+Data Type: setup
+
+Startpoint: u_core/buffer
+Endpoint: u_mem/dma_reg
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.9359
+Arrival Time:              3.0512
+Required Time:             2.1153
+Data Type: setup
+
+Startpoint: u_core/alu_en
+Endpoint: u_core/mux_en
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3762
+Arrival Time:              5.1173
+Required Time:             4.7411
+Data Type: setup
+
+Startpoint: u_mem/i2c
+Endpoint: u_mem/encoder_d
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.8900
+Arrival Time:              4.6346
+Required Time:             3.7446
+Data Type: setup
+
+Startpoint: u_io/dma_q
+Endpoint: u_io/arbiter_in
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0323
+Arrival Time:              4.0266
+Required Time:             4.0589
+Data Type: setup
+
+Startpoint: u_mem/pipeline_in
+Endpoint: u_io/uart_out
+Path Group: in2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2222
+Arrival Time:              1.9538
+Required Time:             2.1761
+Data Type: setup

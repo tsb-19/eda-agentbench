@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -1.4567
+tns: -3.5596
+violating_path_count: 8
+
+Startpoint: u_mem/i2c
+Endpoint: u_top/fifo_in
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.4567
+Arrival Time:              3.5535
+Required Time:             2.0968
+Data Type: hold
+
+Startpoint: u_core/controller_en
+Endpoint: u_mem/i2c_out
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.5075
+Arrival Time:              2.3921
+Required Time:             1.8846
+Data Type: hold
+
+Startpoint: u_mem/fifo_reg
+Endpoint: u_top/regfile_d
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.4117
+Arrival Time:              3.3480
+Required Time:             2.9363
+Data Type: hold
+
+Startpoint: u_mem/regfile_out
+Endpoint: u_io/dma_out
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.3174
+Arrival Time:              5.3108
+Required Time:             4.9934
+Data Type: hold
+
+Startpoint: u_io/shifter_out
+Endpoint: u_top/decoder_en
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0369
+Arrival Time:              2.7031
+Required Time:             2.7400
+Data Type: hold
+
+Startpoint: u_io/arbiter_reg
+Endpoint: u_top/datapath_en
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0101
+Arrival Time:              4.9152
+Required Time:             4.9052
+Data Type: hold
+
+Startpoint: u_io/arbiter_q
+Endpoint: u_mem/buffer
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1242
+Arrival Time:              4.6465
+Required Time:             4.7707
+Data Type: hold
+
+Startpoint: u_top/arbiter_q
+Endpoint: u_io/uart_en
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0238
+Arrival Time:              4.2295
+Required Time:             4.2057
+Data Type: hold
+
+Startpoint: u_top/cache
+Endpoint: u_io/adder_reg
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1624
+Arrival Time:              3.9533
+Required Time:             4.1157
+Data Type: hold
+
+Startpoint: u_top/decoder_q
+Endpoint: u_top/decoder_q
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0258
+Arrival Time:              1.9080
+Required Time:             1.8823
+Data Type: hold
+
+Startpoint: u_mem/spi_reg
+Endpoint: u_top/alu_in
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.8066
+Arrival Time:              3.4627
+Required Time:             2.6560
+Data Type: hold
+
+Startpoint: u_mem/datapath_reg
+Endpoint: u_top/arbiter_en
+Path Group: clk_core
+Clock: pci_clk
+----------------------------------------
+Slack:                    4.4134
+Arrival Time:              -2.3606
+Required Time:             2.0528
+Data Type: hold

@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.9506
+tns: -8.6479
+violating_path_count: 7
+
+Startpoint: u_core/regfile_q
+Endpoint: u_top/spi
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.9506
+Arrival Time:              6.3332
+Required Time:             4.3826
+Data Type: setup
+
+Startpoint: u_io/controller
+Endpoint: u_mem/spi_d
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.7293
+Arrival Time:              4.4951
+Required Time:             2.7657
+Data Type: setup
+
+Startpoint: u_top/spi
+Endpoint: u_top/controller_out
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.9694
+Arrival Time:              3.6405
+Required Time:             2.6711
+Data Type: setup
+
+Startpoint: u_mem/mux_en
+Endpoint: u_top/uart_en
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.4029
+Arrival Time:              1.9260
+Required Time:             1.5231
+Data Type: setup
+
+Startpoint: u_io/decoder_d
+Endpoint: u_mem/decoder_d
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.9881
+Arrival Time:              5.1301
+Required Time:             4.1420
+Data Type: setup
+
+Startpoint: u_mem/regfile
+Endpoint: u_io/alu_out
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0654
+Arrival Time:              2.8672
+Required Time:             2.9326
+Data Type: setup
+
+Startpoint: u_core/uart_en
+Endpoint: u_io/buffer
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.3812
+Arrival Time:              2.9161
+Required Time:             1.5348
+Data Type: setup
+
+Startpoint: u_core/i2c_in
+Endpoint: u_core/regfile_en
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.2264
+Arrival Time:              2.9416
+Required Time:             1.7151
+Data Type: setup

@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.8463
+tns: -2.4236
+violating_path_count: 6
+
+Startpoint: u_core/alu
+Endpoint: u_io/decoder_reg
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.8463
+Arrival Time:              3.4825
+Required Time:             2.6362
+Data Type: hold
+
+Startpoint: u_core/buffer_reg
+Endpoint: u_io/shifter_in
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0293
+Arrival Time:              4.9299
+Required Time:             4.9006
+Data Type: hold
+
+Startpoint: u_io/encoder_d
+Endpoint: u_mem/i2c_out
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.5132
+Arrival Time:              3.5609
+Required Time:             3.0476
+Data Type: hold
+
+Startpoint: u_io/i2c_out
+Endpoint: u_core/datapath_d
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.3521
+Arrival Time:              4.3941
+Required Time:             4.0420
+Data Type: hold
+
+Startpoint: u_mem/dma_reg
+Endpoint: u_io/alu_en
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2262
+Arrival Time:              1.8901
+Required Time:             2.1164
+Data Type: hold
+
+Startpoint: u_mem/shifter_d
+Endpoint: u_core/i2c_q
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.3073
+Arrival Time:              2.4294
+Required Time:             2.1221
+Data Type: hold
+
+Startpoint: u_mem/spi_reg
+Endpoint: u_top/alu_in
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0820
+Arrival Time:              3.6759
+Required Time:             3.7579
+Data Type: hold
+
+Startpoint: u_core/alu
+Endpoint: u_core/i2c_d
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.3754
+Arrival Time:              3.2193
+Required Time:             2.8440
+Data Type: hold
+
+Startpoint: u_core/alu
+Endpoint: u_core/adder_reg
+Path Group: clk_core
+Clock: usb_clk
+----------------------------------------
+Slack:                    2.6399
+Arrival Time:              -0.2031
+Required Time:             2.4368
+Data Type: hold

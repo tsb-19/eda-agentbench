@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -1.8052
+tns: -6.7906
+violating_path_count: 7
+
+Startpoint: u_io/shifter_reg
+Endpoint: u_io/multiplier_d
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.8052
+Arrival Time:              5.0057
+Required Time:             3.2005
+Data Type: hold
+
+Startpoint: u_io/pipeline_d
+Endpoint: u_core/mux_d
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.2310
+Arrival Time:              4.0067
+Required Time:             2.7757
+Data Type: hold
+
+Startpoint: u_mem/encoder
+Endpoint: u_io/i2c_reg
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.6203
+Arrival Time:              4.6130
+Required Time:             3.9927
+Data Type: hold
+
+Startpoint: u_mem/controller_en
+Endpoint: u_io/datapath_in
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3286
+Arrival Time:              4.9012
+Required Time:             4.5726
+Data Type: hold
+
+Startpoint: u_core/encoder
+Endpoint: u_top/adder_d
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.4886
+Arrival Time:              5.2480
+Required Time:             3.7594
+Data Type: hold
+
+Startpoint: u_core/uart_q
+Endpoint: u_core/multiplier_in
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.9713
+Arrival Time:              5.5735
+Required Time:             4.6022
+Data Type: hold
+
+Startpoint: u_core/adder_en
+Endpoint: u_mem/i2c_en
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3456
+Arrival Time:              3.9107
+Required Time:             3.5651
+Data Type: hold

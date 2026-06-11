@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -1.4275
+tns: -4.7071
+violating_path_count: 8
+
+Startpoint: u_io/adder_out
+Endpoint: u_mem/fifo_d
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.4275
+Arrival Time:              4.3795
+Required Time:             2.9520
+Data Type: setup
+
+Startpoint: u_core/multiplier_out
+Endpoint: u_mem/alu_en
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.5913
+Arrival Time:              3.4544
+Required Time:             2.8632
+Data Type: setup
+
+Startpoint: u_mem/adder_reg
+Endpoint: u_top/datapath_d
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.9585
+Arrival Time:              3.8235
+Required Time:             2.8650
+Data Type: setup
+
+Startpoint: u_mem/mux_reg
+Endpoint: u_mem/dma
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.8525
+Arrival Time:              4.0523
+Required Time:             3.1997
+Data Type: setup
+
+Startpoint: u_core/buffer_in
+Endpoint: u_core/uart_reg
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.2324
+Arrival Time:              2.1791
+Required Time:             1.9467
+Data Type: setup
+
+Startpoint: u_top/fifo_en
+Endpoint: u_mem/mux_d
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.1074
+Arrival Time:              4.6414
+Required Time:             4.5340
+Data Type: setup
+
+Startpoint: u_io/pipeline_en
+Endpoint: u_core/datapath_q
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    0.0350
+Arrival Time:              4.5437
+Required Time:             4.5787
+Data Type: setup
+
+Startpoint: u_top/uart
+Endpoint: u_core/alu_d
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.0792
+Arrival Time:              4.9109
+Required Time:             4.8317
+Data Type: setup
+
+Startpoint: u_top/decoder_d
+Endpoint: u_mem/spi_in
+Path Group: in2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.4583
+Arrival Time:              2.0296
+Required Time:             1.5713
+Data Type: setup

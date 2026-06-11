@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -0.3909
+tns: -0.5720
+violating_path_count: 5
+
+Startpoint: u_io/fifo_out
+Endpoint: u_mem/buffer_d
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.3909
+Arrival Time:              4.8288
+Required Time:             4.4379
+Data Type: hold
+
+Startpoint: u_top/adder
+Endpoint: u_core/arbiter_en
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.0051
+Arrival Time:              1.9014
+Required Time:             1.8963
+Data Type: hold
+
+Startpoint: u_mem/cache_en
+Endpoint: u_core/controller_in
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.0059
+Arrival Time:              1.5019
+Required Time:             1.5078
+Data Type: hold
+
+Startpoint: u_mem/mux_en
+Endpoint: u_io/spi_q
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.0770
+Arrival Time:              1.5976
+Required Time:             1.5206
+Data Type: hold
+
+Startpoint: u_core/spi_out
+Endpoint: u_mem/cache_q
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.1890
+Arrival Time:              2.7183
+Required Time:             2.9072
+Data Type: hold
+
+Startpoint: u_mem/alu_d
+Endpoint: u_io/decoder_out
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2594
+Arrival Time:              2.6781
+Required Time:             2.9375
+Data Type: hold
+
+Startpoint: u_top/adder
+Endpoint: u_io/spi_out
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.0197
+Arrival Time:              2.9795
+Required Time:             2.9992
+Data Type: hold
+
+Startpoint: u_mem/alu_en
+Endpoint: u_top/spi_d
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.0757
+Arrival Time:              1.9138
+Required Time:             1.9896
+Data Type: hold
+
+Startpoint: u_io/fifo_d
+Endpoint: u_top/datapath_reg
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.0465
+Arrival Time:              3.0202
+Required Time:             2.9737
+Data Type: hold
+
+Startpoint: u_mem/i2c_en
+Endpoint: u_mem/regfile_reg
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.0525
+Arrival Time:              3.2642
+Required Time:             3.2117
+Data Type: hold
+
+Startpoint: u_core/spi
+Endpoint: u_core/i2c_d
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2372
+Arrival Time:              2.6237
+Required Time:             2.8610
+Data Type: hold
+
+Startpoint: u_top/fifo_reg
+Endpoint: u_io/pipeline_in
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    1.7525
+Arrival Time:              -0.2048
+Required Time:             1.5478
+Data Type: hold

@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -0.1784
+tns: -0.3514
+violating_path_count: 4
+
+Startpoint: u_mem/buffer_out
+Endpoint: u_core/decoder_reg
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.1784
+Arrival Time:              2.6425
+Required Time:             2.4641
+Data Type: setup
+
+Startpoint: u_top/cache_en
+Endpoint: u_io/shifter_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1767
+Arrival Time:              3.0564
+Required Time:             3.2331
+Data Type: setup
+
+Startpoint: u_mem/arbiter
+Endpoint: u_top/dma_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0623
+Arrival Time:              3.3236
+Required Time:             3.2613
+Data Type: setup
+
+Startpoint: u_mem/i2c_q
+Endpoint: u_mem/pipeline_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0333
+Arrival Time:              2.6959
+Required Time:             2.6625
+Data Type: setup
+
+Startpoint: u_core/dma_reg
+Endpoint: u_core/shifter_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0774
+Arrival Time:              4.9877
+Required Time:             4.9103
+Data Type: setup
+
+Startpoint: u_top/datapath_q
+Endpoint: u_core/alu_in
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1333
+Arrival Time:              3.0758
+Required Time:             3.2091
+Data Type: setup
+
+Startpoint: u_top/i2c
+Endpoint: u_core/spi_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0163
+Arrival Time:              2.2827
+Required Time:             2.2990
+Data Type: setup
+
+Startpoint: u_io/adder_en
+Endpoint: u_mem/encoder_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0343
+Arrival Time:              3.1830
+Required Time:             3.2173
+Data Type: setup
+
+Startpoint: u_io/regfile
+Endpoint: u_mem/spi_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2311
+Arrival Time:              2.3229
+Required Time:             2.5540
+Data Type: setup
+
+Startpoint: u_mem/decoder_reg
+Endpoint: u_top/demux_out
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1913
+Arrival Time:              1.3813
+Required Time:             1.5725
+Data Type: setup
+
+Startpoint: u_mem/demux_d
+Endpoint: u_core/cache_out
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1310
+Arrival Time:              3.8043
+Required Time:             3.9353
+Data Type: setup
+
+Startpoint: u_mem/regfile_d
+Endpoint: u_io/demux_en
+Path Group: clk_core
+Clock: eth_clk
+----------------------------------------
+Slack:                    3.6974
+Arrival Time:              1.1817
+Required Time:             4.8791
+Data Type: setup

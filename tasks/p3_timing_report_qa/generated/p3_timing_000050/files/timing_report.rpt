@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -0.1535
+tns: -0.1535
+violating_path_count: 1
+
+Startpoint: u_io/demux
+Endpoint: u_core/alu_en
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.1535
+Arrival Time:              1.8866
+Required Time:             1.7331
+Data Type: setup
+
+Startpoint: u_mem/regfile_reg
+Endpoint: u_core/mux_out
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1598
+Arrival Time:              2.1493
+Required Time:             2.3091
+Data Type: setup
+
+Startpoint: u_mem/adder_reg
+Endpoint: u_core/fifo_d
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1126
+Arrival Time:              2.0398
+Required Time:             2.1525
+Data Type: setup
+
+Startpoint: u_top/alu_en
+Endpoint: u_io/demux_reg
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0220
+Arrival Time:              3.1928
+Required Time:             3.2148
+Data Type: setup
+
+Startpoint: u_io/fifo_reg
+Endpoint: u_io/buffer
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2984
+Arrival Time:              4.6267
+Required Time:             4.9251
+Data Type: setup
+
+Startpoint: u_top/i2c_en
+Endpoint: u_mem/i2c_q
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2777
+Arrival Time:              4.5443
+Required Time:             4.8219
+Data Type: setup
+
+Startpoint: u_top/pipeline_d
+Endpoint: u_top/pipeline_en
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1083
+Arrival Time:              3.7647
+Required Time:             3.8730
+Data Type: setup
+
+Startpoint: u_top/i2c_in
+Endpoint: u_top/i2c_en
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0317
+Arrival Time:              3.3661
+Required Time:             3.3978
+Data Type: setup
+
+Startpoint: u_mem/i2c_reg
+Endpoint: u_top/mux_q
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2595
+Arrival Time:              4.4240
+Required Time:             4.6835
+Data Type: setup
+
+Startpoint: u_io/i2c_reg
+Endpoint: u_core/mux_out
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2794
+Arrival Time:              1.6349
+Required Time:             1.9144
+Data Type: setup
+
+Startpoint: u_io/i2c
+Endpoint: u_top/spi_d
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0213
+Arrival Time:              4.0883
+Required Time:             4.1096
+Data Type: setup
+
+Startpoint: u_io/shifter_in
+Endpoint: u_top/shifter_d
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2050
+Arrival Time:              3.4370
+Required Time:             3.6419
+Data Type: setup
+
+Startpoint: u_core/datapath_d
+Endpoint: u_mem/demux_d
+Path Group: clk_100m
+Clock: sys_clk
+----------------------------------------
+Slack:                    1.4474
+Arrival Time:              0.1439
+Required Time:             1.5913
+Data Type: setup

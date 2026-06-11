@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.5262
+tns: -0.8377
+violating_path_count: 4
+
+Startpoint: u_top/dma_d
+Endpoint: u_core/shifter
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.5262
+Arrival Time:              4.0069
+Required Time:             3.4807
+Data Type: hold
+
+Startpoint: u_mem/multiplier_d
+Endpoint: u_top/controller_reg
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.1313
+Arrival Time:              4.0223
+Required Time:             3.8910
+Data Type: hold
+
+Startpoint: u_core/controller_en
+Endpoint: u_top/uart_out
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.1229
+Arrival Time:              2.5165
+Required Time:             2.3936
+Data Type: hold
+
+Startpoint: u_mem/encoder_out
+Endpoint: u_io/cache_out
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.2951
+Arrival Time:              2.2520
+Required Time:             2.5470
+Data Type: hold
+
+Startpoint: u_io/multiplier_en
+Endpoint: u_io/alu
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.0573
+Arrival Time:              2.8921
+Required Time:             2.8348
+Data Type: hold
+
+Startpoint: u_core/shifter_reg
+Endpoint: u_mem/arbiter
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.0098
+Arrival Time:              3.4710
+Required Time:             3.4808
+Data Type: hold
+
+Startpoint: u_top/shifter_en
+Endpoint: u_top/spi_reg
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.1428
+Arrival Time:              2.5903
+Required Time:             2.7331
+Data Type: hold
+
+Startpoint: u_io/i2c_q
+Endpoint: u_io/mux_reg
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.0236
+Arrival Time:              3.0193
+Required Time:             3.0429
+Data Type: hold
+
+Startpoint: u_io/regfile_in
+Endpoint: u_io/dma_en
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    1.3962
+Arrival Time:              0.8066
+Required Time:             2.2028
+Data Type: hold

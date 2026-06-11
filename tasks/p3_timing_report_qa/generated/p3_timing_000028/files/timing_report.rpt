@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -1.4304
+tns: -3.8750
+violating_path_count: 4
+
+Startpoint: u_io/regfile_in
+Endpoint: u_io/dma_en
+Path Group: clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -1.4304
+Arrival Time:              3.5038
+Required Time:             2.0734
+Data Type: setup
+
+Startpoint: u_io/spi
+Endpoint: u_core/mux
+Path Group: clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -1.2860
+Arrival Time:              5.5199
+Required Time:             4.2339
+Data Type: setup
+
+Startpoint: u_io/multiplier_reg
+Endpoint: u_core/datapath_out
+Path Group: clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.7693
+Arrival Time:              4.1028
+Required Time:             3.3335
+Data Type: setup
+
+Startpoint: u_top/demux_d
+Endpoint: u_io/spi_in
+Path Group: clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.3893
+Arrival Time:              2.0833
+Required Time:             1.6940
+Data Type: setup
+
+Startpoint: u_core/fifo
+Endpoint: u_core/decoder_q
+Path Group: clk
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2712
+Arrival Time:              1.6325
+Required Time:             1.9037
+Data Type: setup

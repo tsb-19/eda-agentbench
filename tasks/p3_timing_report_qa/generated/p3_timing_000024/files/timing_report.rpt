@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.7227
+tns: -1.1683
+violating_path_count: 3
+
+Startpoint: u_io/pipeline_q
+Endpoint: u_core/i2c_en
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.7227
+Arrival Time:              3.9124
+Required Time:             3.1897
+Data Type: setup
+
+Startpoint: u_top/regfile_out
+Endpoint: u_io/datapath_q
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.3970
+Arrival Time:              3.4907
+Required Time:             3.0937
+Data Type: setup
+
+Startpoint: u_io/uart_en
+Endpoint: u_core/spi_q
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0486
+Arrival Time:              3.9873
+Required Time:             3.9387
+Data Type: setup
+
+Startpoint: u_top/decoder_in
+Endpoint: u_top/adder_d
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1592
+Arrival Time:              3.7108
+Required Time:             3.8700
+Data Type: setup
+
+Startpoint: u_mem/dma_d
+Endpoint: u_mem/buffer_q
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0705
+Arrival Time:              3.0466
+Required Time:             3.1172
+Data Type: setup
+
+Startpoint: u_mem/buffer_q
+Endpoint: u_top/cache_en
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2532
+Arrival Time:              2.8203
+Required Time:             3.0735
+Data Type: setup
+
+Startpoint: u_core/adder_d
+Endpoint: u_io/mux_d
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2235
+Arrival Time:              1.4955
+Required Time:             1.7190
+Data Type: setup
+
+Startpoint: u_io/shifter_out
+Endpoint: u_mem/multiplier_q
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0049
+Arrival Time:              4.5143
+Required Time:             4.5192
+Data Type: setup
+
+Startpoint: u_top/arbiter_in
+Endpoint: u_core/i2c_en
+Path Group: in2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.9016
+Arrival Time:              3.5577
+Required Time:             4.4593
+Data Type: setup

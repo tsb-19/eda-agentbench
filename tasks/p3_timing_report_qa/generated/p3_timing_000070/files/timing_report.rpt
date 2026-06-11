@@ -1,0 +1,168 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 16
+
+wns: -1.3968
+tns: -7.9331
+violating_path_count: 12
+
+Startpoint: u_core/i2c_d
+Endpoint: u_core/cache_q
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.3968
+Arrival Time:              5.7130
+Required Time:             4.3162
+Data Type: hold
+
+Startpoint: u_top/alu_d
+Endpoint: u_mem/i2c_reg
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.5772
+Arrival Time:              4.5133
+Required Time:             3.9361
+Data Type: hold
+
+Startpoint: u_top/uart_en
+Endpoint: u_mem/i2c_out
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.0114
+Arrival Time:              5.4587
+Required Time:             4.4473
+Data Type: hold
+
+Startpoint: u_top/controller_out
+Endpoint: u_mem/alu
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.5299
+Arrival Time:              2.4375
+Required Time:             1.9076
+Data Type: hold
+
+Startpoint: u_io/multiplier
+Endpoint: u_mem/fifo_en
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.2455
+Arrival Time:              2.5947
+Required Time:             2.3492
+Data Type: hold
+
+Startpoint: u_mem/pipeline
+Endpoint: u_mem/multiplier_in
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.3136
+Arrival Time:              5.0201
+Required Time:             3.7064
+Data Type: hold
+
+Startpoint: u_mem/datapath_in
+Endpoint: u_mem/decoder_reg
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2996
+Arrival Time:              1.3299
+Required Time:             1.6296
+Data Type: hold
+
+Startpoint: u_io/adder_q
+Endpoint: u_io/pipeline_out
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.0788
+Arrival Time:              2.6454
+Required Time:             1.5666
+Data Type: hold
+
+Startpoint: u_io/controller_reg
+Endpoint: u_mem/alu_d
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.7911
+Arrival Time:              4.4705
+Required Time:             3.6794
+Data Type: hold
+
+Startpoint: u_top/regfile_d
+Endpoint: u_io/shifter
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0231
+Arrival Time:              2.7266
+Required Time:             2.7035
+Data Type: hold
+
+Startpoint: u_io/buffer_out
+Endpoint: u_io/datapath
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1628
+Arrival Time:              1.7963
+Required Time:             1.9591
+Data Type: hold
+
+Startpoint: u_core/datapath_d
+Endpoint: u_top/cache_d
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0352
+Arrival Time:              2.2604
+Required Time:             2.2252
+Data Type: hold
+
+Startpoint: u_mem/arbiter_d
+Endpoint: u_top/adder_q
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0596
+Arrival Time:              3.0156
+Required Time:             2.9559
+Data Type: hold
+
+Startpoint: u_top/dma
+Endpoint: u_core/uart_en
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0435
+Arrival Time:              2.3693
+Required Time:             2.4128
+Data Type: hold
+
+Startpoint: u_top/datapath_en
+Endpoint: u_io/demux
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1470
+Arrival Time:              1.7754
+Required Time:             1.9224
+Data Type: hold
+
+Startpoint: u_io/i2c
+Endpoint: u_core/fifo_out
+Path Group: reg2reg
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.8709
+Arrival Time:              5.4429
+Required Time:             4.5720
+Data Type: hold

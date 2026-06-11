@@ -1,0 +1,168 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 16
+
+wns: -1.6377
+tns: -6.8943
+violating_path_count: 11
+
+Startpoint: u_mem/arbiter_q
+Endpoint: u_top/datapath_q
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.6377
+Arrival Time:              5.7583
+Required Time:             4.1206
+Data Type: hold
+
+Startpoint: u_mem/regfile_out
+Endpoint: u_io/pipeline_d
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.5228
+Arrival Time:              5.7309
+Required Time:             4.2081
+Data Type: hold
+
+Startpoint: u_top/cache_out
+Endpoint: u_top/regfile_q
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.3484
+Arrival Time:              3.5008
+Required Time:             2.1524
+Data Type: hold
+
+Startpoint: u_top/cache_q
+Endpoint: u_top/cache_en
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.7144
+Arrival Time:              5.0647
+Required Time:             4.3503
+Data Type: hold
+
+Startpoint: u_core/dma_q
+Endpoint: u_io/uart_out
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2486
+Arrival Time:              2.7939
+Required Time:             3.0426
+Data Type: hold
+
+Startpoint: u_core/multiplier_d
+Endpoint: u_mem/datapath_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.2111
+Arrival Time:              2.9361
+Required Time:             1.7249
+Data Type: hold
+
+Startpoint: u_core/multiplier
+Endpoint: u_core/spi_d
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0962
+Arrival Time:              2.5275
+Required Time:             2.4313
+Data Type: hold
+
+Startpoint: u_io/datapath_out
+Endpoint: u_io/shifter_out
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0971
+Arrival Time:              3.7075
+Required Time:             3.6104
+Data Type: hold
+
+Startpoint: u_io/mux
+Endpoint: u_top/demux_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0635
+Arrival Time:              3.9500
+Required Time:             3.8865
+Data Type: hold
+
+Startpoint: u_io/spi_q
+Endpoint: u_mem/buffer_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1443
+Arrival Time:              4.7692
+Required Time:             4.9136
+Data Type: hold
+
+Startpoint: u_core/regfile_en
+Endpoint: u_top/demux_out
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2700
+Arrival Time:              1.3199
+Required Time:             1.5899
+Data Type: hold
+
+Startpoint: u_mem/cache_q
+Endpoint: u_io/alu_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1636
+Arrival Time:              2.9996
+Required Time:             3.1632
+Data Type: hold
+
+Startpoint: u_io/controller_d
+Endpoint: u_mem/buffer_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0817
+Arrival Time:              4.4082
+Required Time:             4.3265
+Data Type: hold
+
+Startpoint: u_mem/spi_reg
+Endpoint: u_mem/arbiter_in
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0675
+Arrival Time:              3.0652
+Required Time:             2.9977
+Data Type: hold
+
+Startpoint: u_core/i2c_out
+Endpoint: u_core/arbiter
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0539
+Arrival Time:              2.0549
+Required Time:             2.0011
+Data Type: hold
+
+Startpoint: u_mem/dma_out
+Endpoint: u_core/datapath_reg
+Path Group: reg2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    3.7991
+Arrival Time:              -0.3785
+Required Time:             3.4206
+Data Type: hold

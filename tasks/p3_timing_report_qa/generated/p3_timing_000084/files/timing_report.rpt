@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -0.4627
+tns: -0.5362
+violating_path_count: 4
+
+Startpoint: u_core/dma_en
+Endpoint: u_mem/encoder_d
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.4627
+Arrival Time:              2.3318
+Required Time:             1.8691
+Data Type: setup
+
+Startpoint: u_core/i2c_in
+Endpoint: u_mem/uart
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1664
+Arrival Time:              4.6639
+Required Time:             4.8303
+Data Type: setup
+
+Startpoint: u_core/mux_out
+Endpoint: u_mem/adder
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2488
+Arrival Time:              4.5125
+Required Time:             4.7612
+Data Type: setup
+
+Startpoint: u_io/uart_q
+Endpoint: u_core/mux_reg
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0067
+Arrival Time:              2.4135
+Required Time:             2.4068
+Data Type: setup
+
+Startpoint: u_io/i2c
+Endpoint: u_io/buffer_in
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0247
+Arrival Time:              4.8218
+Required Time:             4.7970
+Data Type: setup
+
+Startpoint: u_top/buffer_out
+Endpoint: u_io/demux
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0243
+Arrival Time:              3.5409
+Required Time:             3.5652
+Data Type: setup
+
+Startpoint: u_top/spi_out
+Endpoint: u_core/adder
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2186
+Arrival Time:              3.1005
+Required Time:             3.3191
+Data Type: setup
+
+Startpoint: u_top/datapath_reg
+Endpoint: u_mem/i2c_in
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0421
+Arrival Time:              4.8422
+Required Time:             4.8001
+Data Type: setup
+
+Startpoint: u_core/shifter_en
+Endpoint: u_io/regfile_reg
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1988
+Arrival Time:              4.2731
+Required Time:             4.4719
+Data Type: setup
+
+Startpoint: u_mem/cache_out
+Endpoint: u_io/buffer_q
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2987
+Arrival Time:              3.6741
+Required Time:             3.9728
+Data Type: setup
+
+Startpoint: u_top/decoder_reg
+Endpoint: u_core/dma
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0333
+Arrival Time:              4.3643
+Required Time:             4.3976
+Data Type: setup
+
+Startpoint: u_top/alu_in
+Endpoint: u_mem/mux_out
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    2.5238
+Arrival Time:              0.3475
+Required Time:             2.8713
+Data Type: setup

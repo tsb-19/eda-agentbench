@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -1.1855
+tns: -2.9495
+violating_path_count: 3
+
+Startpoint: u_core/alu_q
+Endpoint: u_top/controller
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.1855
+Arrival Time:              5.8965
+Required Time:             4.7110
+Data Type: hold
+
+Startpoint: u_io/spi_q
+Endpoint: u_mem/fifo_d
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.0393
+Arrival Time:              5.7071
+Required Time:             4.6678
+Data Type: hold
+
+Startpoint: u_mem/alu_out
+Endpoint: u_mem/dma_en
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.0733
+Arrival Time:              3.9622
+Required Time:             4.0355
+Data Type: hold
+
+Startpoint: u_io/controller_d
+Endpoint: u_core/shifter_in
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.7247
+Arrival Time:              2.8797
+Required Time:             2.1550
+Data Type: hold
+
+Startpoint: u_mem/fifo_q
+Endpoint: u_io/buffer_d
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.1589
+Arrival Time:              3.0872
+Required Time:             3.2461
+Data Type: hold
+
+Startpoint: u_top/adder
+Endpoint: u_core/buffer
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.1571
+Arrival Time:              4.1331
+Required Time:             4.2902
+Data Type: hold
+
+Startpoint: u_mem/demux_in
+Endpoint: u_io/buffer_en
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    1.3314
+Arrival Time:              1.8475
+Required Time:             3.1789
+Data Type: hold

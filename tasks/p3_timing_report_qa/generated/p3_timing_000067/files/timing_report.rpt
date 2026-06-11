@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.3968
+tns: -3.8287
+violating_path_count: 5
+
+Startpoint: u_mem/arbiter_reg
+Endpoint: u_io/spi_in
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.3968
+Arrival Time:              3.7822
+Required Time:             2.3854
+Data Type: setup
+
+Startpoint: u_mem/alu_out
+Endpoint: u_io/arbiter_q
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.5272
+Arrival Time:              5.0290
+Required Time:             4.5018
+Data Type: setup
+
+Startpoint: u_top/controller_reg
+Endpoint: u_io/pipeline
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2027
+Arrival Time:              2.3383
+Required Time:             2.5410
+Data Type: setup
+
+Startpoint: u_mem/datapath_reg
+Endpoint: u_mem/mux_reg
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.2904
+Arrival Time:              5.8229
+Required Time:             4.5326
+Data Type: setup
+
+Startpoint: u_core/dma_reg
+Endpoint: u_io/regfile_q
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.3120
+Arrival Time:              5.0269
+Required Time:             4.7149
+Data Type: setup
+
+Startpoint: u_io/controller_reg
+Endpoint: u_core/fifo_reg
+Path Group: clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.3023
+Arrival Time:              3.9097
+Required Time:             3.6074
+Data Type: setup

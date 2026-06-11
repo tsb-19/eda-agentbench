@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -1.6101
+tns: -3.8962
+violating_path_count: 5
+
+Startpoint: u_core/dma_out
+Endpoint: u_mem/i2c
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.6101
+Arrival Time:              4.7656
+Required Time:             3.1555
+Data Type: setup
+
+Startpoint: u_io/datapath_en
+Endpoint: u_io/adder
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.9721
+Arrival Time:              4.3410
+Required Time:             3.3689
+Data Type: setup
+
+Startpoint: u_top/fifo_d
+Endpoint: u_io/datapath
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.7454
+Arrival Time:              3.6398
+Required Time:             2.8944
+Data Type: setup
+
+Startpoint: u_io/encoder_en
+Endpoint: u_io/adder_in
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.3356
+Arrival Time:              3.4101
+Required Time:             3.0745
+Data Type: setup
+
+Startpoint: u_core/demux
+Endpoint: u_top/multiplier_in
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    0.0031
+Arrival Time:              1.5663
+Required Time:             1.5694
+Data Type: setup
+
+Startpoint: u_io/demux_en
+Endpoint: u_mem/controller_q
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    0.1154
+Arrival Time:              4.8124
+Required Time:             4.9278
+Data Type: setup
+
+Startpoint: u_top/dma_reg
+Endpoint: u_io/pipeline_reg
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.2330
+Arrival Time:              2.7359
+Required Time:             2.5028
+Data Type: setup
+
+Startpoint: u_core/dma_en
+Endpoint: u_top/mux_en
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    0.0619
+Arrival Time:              4.6128
+Required Time:             4.6748
+Data Type: setup
+
+Startpoint: u_mem/encoder_out
+Endpoint: u_io/multiplier_in
+Path Group: clk_100m
+Clock: mem_clk
+----------------------------------------
+Slack:                    1.3597
+Arrival Time:              2.6268
+Required Time:             3.9865
+Data Type: setup
