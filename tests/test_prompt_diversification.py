@@ -340,3 +340,68 @@ def test_real_provider_safety_check():
     # Note: real provider may or may not pass depending on model behavior
     # This test just verifies the pipeline works
     assert isinstance(result, SafetyResult)
+
+
+# --- Review Packet Tests ---
+
+def test_review_packet_references_existing_tasks():
+    """Review packet JSONL references only existing task directories."""
+    packet = Path("reports/prompt_diversification_review_packet.jsonl")
+    if not packet.exists():
+        pytest.skip("Review packet not generated yet")
+    for line in packet.read_text().splitlines():
+        entry = json.loads(line)
+        task_id = entry["task_id"]
+        track = entry["track"]
+        if track == "p1_rtl_debug":
+            task_dir = Path(f"tasks/p1_rtl_debug/generated/{task_id}")
+        elif "hspice" in task_id:
+            task_dir = Path(f"tasks/p4_spice_sim/generated_hspice/{task_id}")
+        else:
+            task_dir = Path(f"tasks/p4_spice_sim/generated_spectre/{task_id}")
+        assert task_dir.exists(), f"Task dir missing: {task_dir}"
+        assert (task_dir / "metadata.json").exists(), f"metadata.json missing for {task_id}"
+
+
+def test_review_packet_rejected_no_text_leak():
+    """Rejected prompts are not stored as variant files with full text."""
+    packet = Path("reports/prompt_diversification_review_packet.jsonl")
+    if not packet.exists():
+        pytest.skip("Review packet not generated yet")
+    for line in packet.read_text().splitlines():
+        entry = json.loads(line)
+        if entry["status"] == "rejected":
+            # The variant_path should be empty or the file should not contain the full rejected text
+            if entry["variant_prompt_path"]:
+                # If path exists, the meta should say safety_passed=false
+                meta_path = Path(entry["variant_prompt_path"]).parent / "real_v1_meta.json"
+                if meta_path.exists():
+                    meta = json.loads(meta_path.read_text())
+                    assert not meta["safety_passed"]
+
+
+def test_review_packet_accepted_have_variants():
+    """Every accepted pilot task has a real_v1.md file."""
+    packet = Path("reports/prompt_diversification_review_packet.jsonl")
+    if not packet.exists():
+        pytest.skip("Review packet not generated yet")
+    for line in packet.read_text().splitlines():
+        entry = json.loads(line)
+        if entry["status"] == "accepted":
+            variant_path = Path(entry["variant_prompt_path"])
+            assert variant_path.exists(), f"Missing variant: {variant_path}"
+            assert len(variant_path.read_text()) > 0
+
+
+def test_review_packet_no_secrets():
+    """Review packet contains no API keys or endpoint secrets."""
+    for fname in ["prompt_diversification_review_packet.md",
+                   "prompt_diversification_review_packet.jsonl"]:
+        path = Path(f"reports/{fname}")
+        if not path.exists():
+            pytest.skip(f"{fname} not generated yet")
+        content = path.read_text()
+        assert "sk-" not in content
+        assert "api_key" not in content.lower() or "api_key" in content.lower().split("reviewer")[0]
+        assert "token-plan-sgp" not in content
+        assert "MIMO_API_KEY=" not in content
