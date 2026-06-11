@@ -112,6 +112,8 @@ def cmd_validate_task(args) -> None:
         print(f"  Editable files: {meta['files']['editable']}")
         print(f"  Forbidden files: {meta['files']['forbidden']}")
         print(f"  Scoring weights: {meta['scoring']['weights']}")
+        if meta.get("expected_error_category"):
+            print(f"  Expected error: {meta['expected_error_category']}")
     except TaskValidationError as e:
         print(f"INVALID: {e}", file=sys.stderr)
         sys.exit(1)
@@ -202,17 +204,33 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
     runs_dir.mkdir(parents=True, exist_ok=True)
 
     try:
+        is_p5 = meta.get("track") == "p5_spice_deck_debug"
+
         # Copy visible files to workspace
-        src_files = task_path / "files"
-        if src_files.is_dir():
-            shutil.copytree(src_files, work_dir, dirs_exist_ok=True)
+        if is_p5:
+            # P5 tasks use visible/ layout (not files/)
+            src_visible = task_path / "visible"
+            if src_visible.is_dir():
+                shutil.copytree(src_visible, work_dir, dirs_exist_ok=True)
+        else:
+            src_files = task_path / "files"
+            if src_files.is_dir():
+                shutil.copytree(src_files, work_dir, dirs_exist_ok=True)
 
         # Copy submission editable files into workspace (overwrite)
         editable = set(files_spec["editable"])
-        for f in editable:
-            src = submission_path / f
-            if src.is_file():
-                shutil.copy2(src, work_dir / f)
+        if is_p5:
+            # P5: submission replaces the editable deck file in workspace.
+            # Find the .sp file in submission and copy it to replace the editable file.
+            edit_name = Path(next(iter(editable))).name  # e.g., spice_deck_debug_0001_bug.sp
+            sub_files = list(submission_path.glob("*.sp"))
+            if sub_files:
+                shutil.copy2(sub_files[0], work_dir / edit_name)
+        else:
+            for f in editable:
+                src = submission_path / f
+                if src.is_file():
+                    shutil.copy2(src, work_dir / f)
 
         # Copy hidden files into workspace (for evaluator, not visible to agent)
         src_hidden = task_path / "hidden"
@@ -221,22 +239,32 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
 
         # Snapshot forbidden files for anti-cheat
         guard = ForbiddenModificationGuard()
-        guard.snapshot(task_path / "files", [f for f in files_spec["forbidden"] if "/" not in f])
-        guard.snapshot(task_path / "hidden", [f for f in files_spec["forbidden"] if "/" not in f])
-        guard.snapshot(work_dir, files_spec["forbidden"])
+        if is_p5:
+            guard.snapshot(work_dir, files_spec["forbidden"])
+        else:
+            guard.snapshot(task_path / "files", [f for f in files_spec["forbidden"] if "/" not in f])
+            guard.snapshot(task_path / "hidden", [f for f in files_spec["forbidden"] if "/" not in f])
+            guard.snapshot(work_dir, files_spec["forbidden"])
 
         sanitizer = LogSanitizer()
         start_time = time.time()
 
-        # Run public test
-        pub_ok, pub_log = _run_test_script(work_dir, env, "run_public.sh", timeout)
-        raw_pub_log = pub_log
-        san_pub_log = sanitizer.sanitize(pub_log)
-
-        # Run hidden test
-        hid_ok, hid_log = _run_test_script(work_dir, env, "run_hidden.sh", timeout)
-        raw_hid_log = hid_log
-        san_hid_log = sanitizer.sanitize(hid_log)
+        if is_p5:
+            # P5: run HSPICE directly on the deck file
+            deck_file = _find_deck_file(work_dir, editable)
+            run_log = _run_hspice(work_dir, env, deck_file, timeout)
+            raw_pub_log = run_log
+            raw_hid_log = ""
+            san_pub_log = sanitizer.sanitize(run_log)
+            san_hid_log = ""
+        else:
+            # Standard: run public/hidden test scripts
+            pub_ok, pub_log = _run_test_script(work_dir, env, "run_public.sh", timeout)
+            raw_pub_log = pub_log
+            san_pub_log = sanitizer.sanitize(pub_log)
+            hid_ok, hid_log = _run_test_script(work_dir, env, "run_hidden.sh", timeout)
+            raw_hid_log = hid_log
+            san_hid_log = sanitizer.sanitize(hid_log)
 
         wall_time = time.time() - start_time
 
@@ -254,6 +282,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         if evaluator_spec == "spice_sim.SPICESimEvaluator":
             from eda_agentbench.evaluator.spice_sim import SPICESimEvaluator
             evaluator = SPICESimEvaluator(task_path, meta)
+        elif evaluator_spec == "spice_deck_debug.SPICEDeckDebugEvaluator":
+            from eda_agentbench.evaluator.spice_deck_debug import SPICEDeckDebugEvaluator
+            evaluator = SPICEDeckDebugEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
@@ -363,26 +394,39 @@ def cmd_evaluate_dataset(args) -> None:
         timeout = timeout_override or meta.get("timeout_sec", 300)
 
         # Determine submission path
+        is_p5 = meta.get("track") == "p5_spice_deck_debug"
         if submission_mode == "solution":
-            submission_path = task_path / "solution"
+            if is_p5:
+                # P5: solution is hidden/ (the fixed deck)
+                submission_path = task_path / "hidden"
+            else:
+                submission_path = task_path / "solution"
             if not submission_path.is_dir():
-                print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: solution/ not found")
+                label = "hidden/" if is_p5 else "solution/"
+                print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: {label} not found")
                 results.append({
                     "task_path": str(task_path), "task_id": task_id,
                     "track": meta["track"], "tool": meta["tool"],
                     "difficulty": meta["difficulty"],
-                    "status": "skipped", "reason": "solution/ not found",
+                    "status": "skipped", "reason": f"{label} not found",
                 })
                 continue
         else:
             # Buggy mode: create temp dir with only editable files to avoid anti-cheat
             buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
             editable_files = meta["files"]["editable"]
-            files_dir = task_path / "files"
-            for ef in editable_files:
-                src = files_dir / ef
-                if src.is_file():
-                    shutil.copy2(src, buggy_dir / ef)
+            if is_p5:
+                # P5: editable files are under visible/
+                for ef in editable_files:
+                    src = task_path / ef
+                    if src.is_file():
+                        shutil.copy2(src, buggy_dir / Path(ef).name)
+            else:
+                files_dir = task_path / "files"
+                for ef in editable_files:
+                    src = files_dir / ef
+                    if src.is_file():
+                        shutil.copy2(src, buggy_dir / ef)
             submission_path = buggy_dir
 
         print(f"[{i+1}/{len(task_paths)}] {task_id} ({meta['track']}, {submission_mode})...", end=" ", flush=True)
@@ -733,6 +777,38 @@ def _run_test_script(work_dir: Path, env: dict[str, str], script_name: str,
         return result.returncode == 0, result.stdout + "\n" + result.stderr
     except subprocess.TimeoutExpired:
         return False, f"Script {script_name} timed out"
+
+
+def _find_deck_file(work_dir: Path, editable: set[str]) -> str:
+    """Find the SPICE deck file name in workspace (strips visible/ prefix)."""
+    for f in editable:
+        name = Path(f).name
+        if (work_dir / name).is_file():
+            return name
+    # Fallback: find first .sp file
+    for f in work_dir.iterdir():
+        if f.suffix == ".sp":
+            return f.name
+    return ""
+
+
+def _run_hspice(work_dir: Path, env: dict[str, str], deck_file: str,
+                timeout: int) -> str:
+    """Run HSPICE on a deck file. Returns combined stdout+stderr."""
+    if not deck_file:
+        return "ERROR: No deck file found in workspace"
+    hspice_cmd = env.get("EDA_HSPICE_CMD", "hspice")
+    try:
+        result = subprocess.run(
+            [hspice_cmd, deck_file],
+            cwd=work_dir, env=env,
+            capture_output=True, text=True, timeout=timeout,
+        )
+        return result.stdout + "\n" + result.stderr
+    except subprocess.TimeoutExpired:
+        return f"HSPICE timed out after {timeout}s"
+    except FileNotFoundError:
+        return f"ERROR: HSPICE not found at '{hspice_cmd}'"
 
 
 def _write_anticheat_fail(task_path: Path, meta: dict, violations: list[str],

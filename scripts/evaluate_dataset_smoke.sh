@@ -28,8 +28,8 @@ check_pass "$SOL_PERFECT" "Solution avg score = 1.00"
 
 SOL_PASS=$(echo "$SOL_OUT" | grep "Passed:" | awk '{print $2}')
 echo "  Passed: $SOL_PASS / 1103"
-SOL_ALL=$(python3 -c "print('PASS' if '$SOL_PASS' == '1103' else 'FAIL')")
-check_pass "$SOL_ALL" "All 1103 tasks passed in solution mode"
+SOL_ALL=$(python3 -c "print('PASS' if '$SOL_PASS' == '1113' else 'FAIL')")
+check_pass "$SOL_ALL" "All 1113 tasks passed in solution mode"
 
 # --- Buggy mode: all scores should be < 1.00 ---
 echo ""

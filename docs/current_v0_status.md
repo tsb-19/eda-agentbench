@@ -4,11 +4,12 @@
 
 ## Task Inventory
 
-| Track | Count | Tool(s) | Generator |
-|-------|-------|---------|-----------|
-| P1 RTL Debug | 101 | VCS | 1 handcrafted + 100 generated |
-| P4 SPICE Sim | 12 | HSPICE, Spectre | 2 smoke + 10 generated |
-| **Total** | **113** | | |
+| Track | Count | Tool(s) | Source |
+|-------|-------|---------|--------|
+| P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
+| P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
+| P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
+| **Total** | **1113** | | |
 
 ### P1 Bug Type Distribution
 
@@ -79,10 +80,11 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 1. **No agentic runner**: only submission/workspace mode. Agent cannot run tools during evaluation.
 2. **No LLM API integration**: explanation scoring defaults to 1.0 in submission mode.
 3. **No P2 RTL generation track**: tasks are debug-only, not generation.
-4. **No P5 timing track**: no PrimeTime/DC/SDC tasks.
+4. **No P5 timing track** (note: P5 is SPICE Deck Debug, not timing)
 5. **No P6 lint track**: no SpyGlass tasks.
 6. **No P7 physical track**: no ICC2/Innovus/StarRC/Sentaurus tasks.
 7. **P4 is RC-filter only**: single circuit topology, no op-amp or digital SPICE tasks.
-8. **No `generate` CLI command**: generation requires running Python scripts directly.
-9. **Python 3.9**: uses `from __future__ import annotations` for forward references.
-10. **Spectre measurement**: uses `-format nutascii` + Python waveform parsing (Spectre 21.1 lacks `.measure` support).
+8. **P5 is execution-only**: 10 tasks from external bundle, no generated tasks yet.
+9. **No `generate` CLI command**: generation requires running Python scripts directly.
+10. **Python 3.9**: uses `from __future__ import annotations` for forward references.
+11. **Spectre measurement**: uses `-format nutascii` + Python waveform parsing (Spectre 21.1 lacks `.measure` support).

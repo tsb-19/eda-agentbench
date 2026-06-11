@@ -70,18 +70,30 @@ class TaskLoader:
         errors: list[str] = []
         files = meta["files"]
 
-        # visible files must exist
-        for f in files["visible"]:
-            if not (task_path / "files" / f).is_file():
-                errors.append(f"Visible file not found: files/{f}")
-
-        # hidden files must exist
-        for f in files["hidden"]:
-            if not (task_path / "hidden" / f).is_file():
-                errors.append(f"Hidden file not found: hidden/{f}")
-
-        # solution dir must exist
-        if not (task_path / "solution").is_dir():
-            errors.append("solution/ directory not found")
+        # P5 external bundle tasks use visible/ instead of files/
+        if meta.get("track") == "p5_spice_deck_debug":
+            for f in files["visible"]:
+                if not (task_path / f).is_file():
+                    errors.append(f"Visible file not found: {f}")
+            for f in files["hidden"]:
+                if not (task_path / f).is_file():
+                    errors.append(f"Hidden file not found: {f}")
+            # P5 uses oracle/ instead of solution/
+            if not (task_path / "oracle").is_dir():
+                errors.append("oracle/ directory not found")
+            # grader_contract.json must exist
+            if not (task_path / "grader_contract.json").is_file():
+                errors.append("grader_contract.json not found")
+        else:
+            # Standard layout: files/ for visible, hidden/ for hidden
+            for f in files["visible"]:
+                if not (task_path / "files" / f).is_file():
+                    errors.append(f"Visible file not found: files/{f}")
+            for f in files["hidden"]:
+                if not (task_path / "hidden" / f).is_file():
+                    errors.append(f"Hidden file not found: hidden/{f}")
+            # solution dir must exist
+            if not (task_path / "solution").is_dir():
+                errors.append("solution/ directory not found")
 
         return errors

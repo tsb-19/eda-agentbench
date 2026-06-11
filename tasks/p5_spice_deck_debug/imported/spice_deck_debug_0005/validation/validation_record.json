@@ -1,0 +1,52 @@
+{
+  "task_id": "spice_deck_debug_0005",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-11T02:45:14.495395+00:00",
+  "notes": "Buggy exit=255, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 255,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "missing_include",
+        "message": "**error** ([PATH]) unable to open file \"nonexistent_models.lib\" . Either the file doesn't exist or the path is wrong. Please enter the correct file location."
+      }
+    ],
+    "raw_log_sha256": "fee8e3d5815665b3eabeb71a33786e3d8b3f36ae790fadc36a032dcbc9823fd6",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "3c6136fe144f44d87993d0d38f95c1d6324b712cfb5eefa7c83772a25144c20f",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "missing_include",
+    "observed_error_categories": [
+      "missing_include"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 3.123
+  }
+}
