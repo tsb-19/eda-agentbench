@@ -1,50 +1,82 @@
 """Optional OpenAI-compatible LLM provider.
 
-Requires environment variables:
-  LLM_API_BASE  - API base URL (default: https://api.openai.com/v1)
-  LLM_API_KEY   - API key
-  LLM_MODEL     - Model name (default: gpt-4o-mini)
+Priority: MIMO_API_KEY > OPENAI_API_KEY > LLM_API_KEY
+Loads from .env if not already in environment.
 """
 
 from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 from typing import Any
 from urllib.request import Request, urlopen
 
 from eda_agentbench.llm.base import BaseLLMProvider, LLMResponse
 
 
-class OpenAIProvider(BaseLLMProvider):
-    """OpenAI-compatible API provider.
+def _load_dotenv() -> None:
+    """Load .env file into environment if not already set."""
+    for candidate in [Path(".env"), Path.home() / ".env"]:
+        if candidate.exists():
+            for line in candidate.read_text().splitlines():
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                if "=" in line:
+                    key, _, value = line.partition("=")
+                    key = key.strip()
+                    value = value.strip().strip("'\"")
+                    if key and key not in os.environ:
+                        os.environ[key] = value
 
-    Only activated when LLM_API_KEY is set in the environment.
-    Falls back to mock provider if not available.
+
+# Provider configs: (env_key, default_api_base, default_model)
+_PROVIDER_CONFIGS = [
+    ("MIMO_API_KEY", "https://token-plan-sgp.xiaomimimo.com/v1", "mimo-v2.5-pro"),
+    ("OPENAI_API_KEY", "https://api.openai.com/v1", "gpt-4o-mini"),
+    ("LLM_API_KEY", "https://api.openai.com/v1", "gpt-4o-mini"),
+]
+
+
+def create_provider() -> BaseLLMProvider:
+    """Create the best available LLM provider.
+
+    Priority: MIMO > OPENAI > LLM. Falls back to MockLLMProvider.
     """
+    _load_dotenv()
 
-    def __init__(self):
-        self._api_base = os.environ.get("LLM_API_BASE", "https://api.openai.com/v1").rstrip("/")
-        self._api_key = os.environ.get("LLM_API_KEY", "")
-        self._model = os.environ.get("LLM_MODEL", "gpt-4o-mini")
+    for env_key, default_base, default_model in _PROVIDER_CONFIGS:
+        api_key = os.environ.get(env_key, "")
+        if api_key:
+            api_base = os.environ.get("LLM_API_BASE", default_base).rstrip("/")
+            model = os.environ.get("LLM_MODEL", default_model)
+            return OpenAIProvider(api_key=api_key, api_base=api_base, model=model)
+
+    from eda_agentbench.llm.mock import MockLLMProvider
+    return MockLLMProvider()
+
+
+class OpenAIProvider(BaseLLMProvider):
+    """OpenAI-compatible API provider."""
+
+    def __init__(self, api_key: str, api_base: str = "", model: str = ""):
+        self._api_key = api_key
+        self._api_base = (api_base or "https://api.openai.com/v1").rstrip("/")
+        self._model = model or "gpt-4o-mini"
 
     @property
     def name(self) -> str:
-        return "openai"
+        return "mimo" if "mimo" in self._api_base.lower() or "mimo" in self._model.lower() else "openai"
 
     @property
     def model(self) -> str:
         return self._model
 
-    @staticmethod
-    def is_available() -> bool:
-        """Check if the provider can be activated."""
-        return bool(os.environ.get("LLM_API_KEY"))
-
     def generate(self, prompt: str, system: str = "", **kwargs: Any) -> LLMResponse:
         """Generate text via OpenAI-compatible API."""
         if not self._api_key:
-            raise RuntimeError("LLM_API_KEY not set. Use MockLLMProvider for testing.")
+            raise RuntimeError("No API key set. Use MockLLMProvider for testing.")
 
         messages = []
         if system:
@@ -68,7 +100,7 @@ class OpenAIProvider(BaseLLMProvider):
             method="POST",
         )
 
-        with urlopen(req, timeout=60) as resp:
+        with urlopen(req, timeout=120) as resp:
             data = json.loads(resp.read())
 
         text = data["choices"][0]["message"]["content"]

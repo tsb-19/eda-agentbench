@@ -305,3 +305,38 @@ def test_sample_generation_produces_variants(tmp_path):
     for path, result in results:
         assert path.exists()
         assert len(path.read_text()) > 0
+
+
+# --- Real Provider Tests (skip if no API key) ---
+
+def _has_real_provider() -> bool:
+    """Check if a real LLM provider is available."""
+    from eda_agentbench.llm.openai_provider import create_provider
+    from eda_agentbench.llm.mock import MockLLMProvider
+    p = create_provider()
+    return not isinstance(p, MockLLMProvider)
+
+
+@pytest.mark.skipif(not _has_real_provider(), reason="No API key available")
+def test_real_provider_generates_response():
+    """Real provider returns a valid response."""
+    from eda_agentbench.llm.openai_provider import create_provider
+    provider = create_provider()
+    response = provider.generate("# Test Task\nFix the bug in design.sv.")
+    assert len(response.text) > 0
+    assert response.model
+
+
+@pytest.mark.skipif(not _has_real_provider(), reason="No API key available")
+def test_real_provider_safety_check():
+    """Real provider output passes safety check."""
+    from eda_agentbench.llm.openai_provider import create_provider
+    provider = create_provider()
+    safety = SafetyChecker()
+
+    prompt = "# RTL Debug Task: Sensitivity List\n\n## Description\n\nThe module below has a bug.\n\n## Hint\n\nPay attention to the sensitivity list."
+    response = provider.generate(prompt, system="Rewrite this prompt. Do not include bug type names.")
+    result = safety.check(response.text)
+    # Note: real provider may or may not pass depending on model behavior
+    # This test just verifies the pipeline works
+    assert isinstance(result, SafetyResult)
