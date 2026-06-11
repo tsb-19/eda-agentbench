@@ -296,6 +296,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "timing_report_qa.TimingReportQAEvaluator":
             from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
             evaluator = TimingReportQAEvaluator(task_path, meta)
+        elif evaluator_spec == "rtl_gen.RTLGenEvaluator":
+            from eda_agentbench.evaluator.rtl_gen import RTLGenEvaluator
+            evaluator = RTLGenEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
@@ -310,6 +313,12 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             "public_metric": raw_pub_log,
             "hidden_metric": raw_hid_log,
         }
+        # P2 TB/SVA: extract per-section logs from hidden log
+        if meta.get("track") == "p2_rtl_gen":
+            sections = _extract_p2_log_sections(raw_hid_log)
+            log_map["golden_pass"] = raw_pub_log
+            log_map["mutant_1"] = sections.get("mutant_1", raw_hid_log)
+            log_map["mutant_2"] = sections.get("mutant_2", raw_hid_log)
 
         components: list[ScoreComponent] = []
         for comp_name in meta["scoring"]["weights"]:
@@ -825,6 +834,27 @@ def _run_hspice(work_dir: Path, env: dict[str, str], deck_file: str,
         return f"HSPICE timed out after {timeout}s"
     except FileNotFoundError:
         return f"ERROR: HSPICE not found at '{hspice_cmd}'"
+
+
+def _extract_p2_log_sections(combined_log: str) -> dict[str, str]:
+    """Extract per-mutant sections from P2 hidden run log.
+
+    The hidden run.sh script outputs sections separated by
+    '=== Mutant N ===' headers. This function splits the log
+    into per-mutant sections so the evaluator can check each independently.
+    """
+    import re
+    sections: dict[str, str] = {}
+    # Split on "=== Mutant N ===" headers
+    parts = re.split(r"=== Mutant (\d+) ===", combined_log)
+    # parts[0] is before first header (may be empty or contain previous output)
+    # parts[1] = "1", parts[2] = content after Mutant 1
+    # parts[3] = "2", parts[4] = content after Mutant 2
+    for i in range(1, len(parts) - 1, 2):
+        mutant_num = parts[i]
+        content = parts[i + 1] if i + 1 < len(parts) else ""
+        sections[f"mutant_{mutant_num}"] = content
+    return sections
 
 
 def _write_anticheat_fail(task_path: Path, meta: dict, violations: list[str],
