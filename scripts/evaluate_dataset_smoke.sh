@@ -28,8 +28,8 @@ check_pass "$SOL_PERFECT" "Solution avg score = 1.00"
 
 SOL_PASS=$(echo "$SOL_OUT" | grep "Passed:" | awk '{print $2}')
 echo "  Passed: $SOL_PASS / 1103"
-SOL_ALL=$(python3 -c "print('PASS' if '$SOL_PASS' == '1113' else 'FAIL')")
-check_pass "$SOL_ALL" "All 1113 tasks passed in solution mode"
+SOL_ALL=$(python3 -c "print('PASS' if '$SOL_PASS' == '1134' else 'FAIL')")
+check_pass "$SOL_ALL" "All 1134 tasks passed in solution mode"
 
 # --- Buggy mode: all scores should be < 1.00 ---
 echo ""
@@ -63,6 +63,19 @@ P4_TOTAL=$(echo "$P4_OUT" | grep "Tasks found:" | awk '{print $NF}')
 echo "  P4 tasks found: $P4_TOTAL"
 P4_CHECK=$(python3 -c "print('PASS' if int('$P4_TOTAL') >= 2 else 'FAIL')")
 check_pass "$P4_CHECK" "P4 task count >= 2"
+
+# --- Track filter: P2 only ---
+echo ""
+echo "--- P2 solution mode ---"
+P2_OUT=$(eda-bench evaluate-dataset tasks --submission-mode solution --track p2_rtl_gen 2>&1)
+P2_TOTAL=$(echo "$P2_OUT" | grep "Tasks found:" | awk '{print $NF}')
+echo "  P2 tasks found: $P2_TOTAL"
+P2_CHECK=$(python3 -c "print('PASS' if int('$P2_TOTAL') >= 21 else 'FAIL')")
+check_pass "$P2_CHECK" "P2 task count >= 21"
+
+P2_AVG=$(echo "$P2_OUT" | grep "Avg score:" | awk '{print $NF}')
+P2_PERFECT=$(python3 -c "print('PASS' if abs(float('$P2_AVG') - 1.0) < 0.001 else 'FAIL')")
+check_pass "$P2_PERFECT" "P2 solution avg score = 1.00"
 
 # --- Report command ---
 echo ""
@@ -114,6 +127,13 @@ if echo "$RTL_SMOKE" | grep -q "ALL SMOKE TESTS PASSED"; then
     check_pass "PASS" "RTL smoke still passes"
 else
     check_pass "FAIL" "RTL smoke failed"
+fi
+
+P2_SMOKE=$(bash scripts/run_p2_smoke.sh 2>&1)
+if echo "$P2_SMOKE" | grep -q "ALL P2 SMOKE TESTS PASSED"; then
+    check_pass "PASS" "P2 smoke passes"
+else
+    check_pass "FAIL" "P2 smoke failed"
 fi
 
 SPICE_SMOKE=$(bash scripts/run_spice_smoke.sh 2>&1)
