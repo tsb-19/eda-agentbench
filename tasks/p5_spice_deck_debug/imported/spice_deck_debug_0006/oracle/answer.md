@@ -1,3 +1,3 @@
 # Expected Fix
 
-Change `level=99` to `level=1` in the .model statement.
+Fix diode model reference from `Drect` to `Drectifier`.

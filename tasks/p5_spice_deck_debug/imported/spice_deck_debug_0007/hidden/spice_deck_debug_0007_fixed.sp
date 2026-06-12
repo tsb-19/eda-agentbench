@@ -1,6 +1,7 @@
-.title Malformed Include - Bug 7
-R1 in out 1k
-C1 out gnd 1p
-V1 in gnd 1.8
-.tran 10p 10n
+.title Diode Rectifier - Missing Model
+D1 anode cathode Drectifier
+R1 cathode 0 10k
+V1 anode 0 SIN(0 3.3 1k)
+.model Drectifier D(Is=1e-14 N=1)
+.tran 10p 2m
 .end

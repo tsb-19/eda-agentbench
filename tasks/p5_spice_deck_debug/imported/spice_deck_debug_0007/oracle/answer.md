@@ -1,3 +1,3 @@
 # Expected Fix
 
-Remove the malformed `.include` line (no filename).
+Fix diode model reference from `Drect` to `Drectifier`.

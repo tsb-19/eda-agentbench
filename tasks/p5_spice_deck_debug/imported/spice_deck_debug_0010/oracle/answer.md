@@ -1,3 +1,3 @@
 # Expected Fix
 
-Rename duplicate `M1` to `M4`.
+Fix model name from `nmos_bad` to `nmos`, add `.model nmos nmos (level=1 vto=0.7 kp=120u)`.

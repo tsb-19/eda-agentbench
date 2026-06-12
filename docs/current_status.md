@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 5E — P2 scaled to 101, P3 scaled to 1008 (1000 synthetic + 8 PT prototype)
+**Phase**: 5F — P5 scaled to 100
 
 ## Task Inventory
 
@@ -10,8 +10,8 @@
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated |
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
-| P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **2222** | | |
+| P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
+| **Total** | **2312** | | |
 
 ## P1 Bug Type Distribution
 
@@ -68,13 +68,13 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count |
 |----------|-------|
-| missing_model | 2 |
-| missing_subckt | 2 |
-| duplicate_element | 2 |
-| wrong_pin_count | 1 |
-| missing_include | 1 |
-| unsupported_dialect | 1 |
-| invalid_directive | 1 |
+| missing_model | 15 |
+| duplicate_element | 15 |
+| missing_subckt | 14 |
+| wrong_pin_count | 14 |
+| missing_include | 14 |
+| unsupported_dialect | 14 |
+| invalid_directive | 14 |
 
 ## Test Suite
 
@@ -86,14 +86,14 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 | P3 smoke tests | 7 | Passing |
 | HSPICE smoke tests | 7 | Passing |
 | Spectre smoke tests | 12 | Passing |
-| P5 batch evaluation | 10/10 + 10/10 | Passing |
+| P5 batch evaluation | 100/100 + 100/100 | Passing |
 
 ## Dataset Evaluation Results
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2222/2222 | 1.00 | N/A |
-| Buggy | 2222/2222 | < 1.00 | 2222/2222 |
+| Solution | 2312/2312 | 1.00 | N/A |
+| Buggy | 2312/2312 | < 1.00 | 2312/2312 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -124,7 +124,7 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 5. No P6 lint track (no SpyGlass tasks).
 6. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
 7. P4 is RC-filter only (single circuit topology).
-8. P5 has 10 tasks (small set, execution-validated).
+8. P5 has 100 tasks (execution-validated, 7 error categories).
 9. No `generate` CLI command (generation requires running Python scripts directly).
 10. Spectre measurement uses `-format nutascii` + Python waveform parsing.
 
@@ -139,3 +139,4 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 - **Phase 5A**: P3 scale to 1000 — DONE
 - **Phase 5B**: P2 scale to 101 — DONE
 - **Phase 5E**: PT prototype (8 tasks) — DONE
+- **Phase 5F**: P5 scale to 100 — DONE

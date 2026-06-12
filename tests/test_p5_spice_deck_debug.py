@@ -26,7 +26,7 @@ def test_manifest_loads():
     if not (BUNDLE_ROOT / "manifest.jsonl").is_file():
         pytest.skip("External bundle not available")
     entries = load_manifest(BUNDLE_ROOT / "manifest.jsonl")
-    assert len(entries) == 10
+    assert len(entries) == 100
     for e in entries:
         assert "task_id" in e
         assert "backend" in e

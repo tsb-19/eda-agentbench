@@ -1,0 +1,98 @@
+{
+  "task_id": "spice_deck_debug_0026",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:28:02.841272+00:00",
+  "notes": "Buggy exit=1, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 1,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x1\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x2\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x3\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x4\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x5\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x6\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_subckt",
+        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x7\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">error          ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "f3f8abbf7a37b4d3c3a1c36a560549dee3cac13f9035da7bfbf8c03a5cb715a7",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** ([PATH]) Global net name \"gnd\" in subckt pin list. The pin will be connected to the local net. Recommend to not use global net names in subckt pin lists."
+      },
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "7cbbd21801f738bbefc707ee8f55845237804b8e9f76441655d33affc891c860",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "missing_subckt",
+    "observed_error_categories": [
+      "missing_subckt",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.138
+  }
+}

@@ -11,9 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 5E — P2/P3 scaled + PT prototype)
+## Current Status (Phase 5F — P5 scaled to 100)
 
-Phase 5E added 8 PrimeTime prototype tasks. 2222 total tasks across 5 tracks:
+Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
@@ -21,12 +21,12 @@ Phase 5E added 8 PrimeTime prototype tasks. 2222 total tasks across 5 tracks:
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated (10 templates) |
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
-| P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
+| P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 
 Key results:
 - pytest: 189/189 pass
-- Solution mode: 2222/2222 = 1.00
-- Buggy mode: 2222/2222 all < 1.0
+- Solution mode: 2312/2312 = 1.00
+- Buggy mode: 2312/2312 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
@@ -80,7 +80,7 @@ Always implement environment detection instead of hardcoding one shell setup.
 1. P0: unified benchmark harness
 2. P1: VCS/Xcelium RTL debug (1001 tasks)
 3. P4: HSPICE/Spectre netlist simulation (102 tasks)
-4. P5: SPICE Deck Debug (10 tasks, imported from external bundle)
+4. P5: SPICE Deck Debug (100 tasks, imported from external bundle)
 
 ### Next Phases
 
@@ -90,10 +90,11 @@ Always implement environment detection instead of hardcoding one shell setup.
 8. Phase 5A: P3 scale to 1000 — DONE
 9. Phase 5B: P2 scale to 101 — DONE
 10. Phase 5E: PT prototype (8 tasks) — DONE
+11. Phase 5F: P5 scale to 100 — DONE
 
 ### Later
 
-- P5 expansion (more error categories, Spectre dialect repair)
+- P5 Spectre dialect repair
 - PrimeTime/DC/SDC/timing report tasks
 - SpyGlass lint
 - ICC2/Innovus/StarRC/Sentaurus expert tracks

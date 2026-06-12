@@ -28,13 +28,24 @@
   },
   "failure_patterns": [
     {
-      "category": "unsupported_dialect",
+      "category": "missing_model",
       "severity": "error",
-      "description": "**error** ([PATH]) Invalid model level   99 . Specify a valid model level."
+      "description": "**error** ([PATH]) definition of model drect not found. Please specify a defined model name."
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": ">info:         ***** hspice job aborted"
     }
   ],
   "normalized_error_categories": [
-    "unsupported_dialect"
+    "missing_model",
+    "unknown"
   ],
   "public_task_path": "tasks_public/spice_deck_debug_0006",
   "private_task_path": "tasks_eval_private/spice_deck_debug_0006"

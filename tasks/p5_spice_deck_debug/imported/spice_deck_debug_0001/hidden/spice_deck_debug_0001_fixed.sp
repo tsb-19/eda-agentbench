@@ -1,4 +1,4 @@
-.title CMOS Inverter - Bug 1
+.title CMOS Inverter - Missing Model
 M1 out gate vdd vdd pmos W=2u L=180n
 M2 out gate gnd gnd nmos W=1u L=180n
 .model pmos pmos (level=1 vto=-0.7 kp=50u)

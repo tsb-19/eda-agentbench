@@ -1,0 +1,63 @@
+{
+  "task_id": "spice_deck_debug_0069",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:29:06.671054+00:00",
+  "notes": "Buggy exit=255, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 255,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "missing_include",
+        "message": "**error** ([PATH]) unable to open file \"nor_models.lib\" . Either the file doesn't exist or the path is wrong. Please enter the correct file location."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">info:         ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "a5ea6f18a5bb1d2223d171b1172d826848da120cd349cc34a449358599f6de66",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "a5323475bbb883de25ac04e20e0027446b8fb0e353e2f2079d90925902d166e8",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "missing_include",
+    "observed_error_categories": [
+      "missing_include",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 3.121
+  }
+}

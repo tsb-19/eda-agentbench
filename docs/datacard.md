@@ -12,8 +12,8 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | P2 Testbench/SVA Gen | 101 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | 1008 | pt (synthetic) | template_synthetic | answer_match |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
-| P5 SPICE Deck Debug | 10 | HSPICE | mutation_synthetic | execution-based (exit code + no fatal errors) + explanation |
-| **Total** | **2222** | | | |
+| P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
+| **Total** | **2312** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -61,20 +61,20 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 
 Each task fixes an RC filter circuit to meet rise/fall time specifications. The buggy version has a resistance value that is 5-10x too high, causing slow edges. The solution replaces it with the correct resistance.
 
-### P5 SPICE Deck Debug (10 tasks)
+### P5 SPICE Deck Debug (100 tasks)
 
-- 10 imported tasks from external debug-contrast validated bundle
-- Data type: `mutation_synthetic` (structural/syntax errors injected into valid decks)
+- 100 imported tasks from external debug-contrast validated bundle
+- Data type: `flow_synthetic` (structural/syntax errors injected into valid decks, validated with real HSPICE)
 
 | Error Category | Count | Description |
 |----------------|-------|-------------|
-| missing_model | 2 | References undefined MOSFET/diode model |
-| missing_subckt | 2 | References undefined subcircuit |
-| duplicate_element | 2 | Two elements share the same name |
-| wrong_pin_count | 1 | Subcircuit instance has wrong pin count |
-| missing_include | 1 | .include references nonexistent file |
-| unsupported_dialect | 1 | Model level not supported by HSPICE |
-| invalid_directive | 1 | Malformed .include (no filename) |
+| missing_model | 15 | References undefined MOSFET/diode model |
+| duplicate_element | 15 | Two elements share the same name |
+| missing_subckt | 14 | References undefined subcircuit |
+| wrong_pin_count | 14 | Subcircuit instance has wrong pin count |
+| missing_include | 14 | .include references nonexistent file |
+| unsupported_dialect | 14 | Model level not supported by HSPICE |
+| invalid_directive | 14 | Malformed .include (no filename) |
 
 ## Evaluation Modes
 
@@ -89,8 +89,8 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2222/2222 | 1.00 | N/A |
-| Buggy | 2222/2222 | < 1.00 | 2222/2222 |
+| Solution | 2312/2312 | 1.00 | N/A |
+| Buggy | 2312/2312 | < 1.00 | 2312/2312 |
 
 ## Test Suite
 
@@ -112,7 +112,7 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 1. No agentic runner yet (submission/workspace mode only).
 2. P1 and P4 use exact solution matching; P5 accepts any functionally correct fix.
 3. P4 covers RC filter topology only (no op-amp or digital SPICE).
-4. P5 has 10 tasks (small set, execution-validated).
+4. P5 has 100 tasks (execution-validated, 7 error categories).
 5. No LLM API integration for explanation scoring in submission mode.
 
 ## Intended Use

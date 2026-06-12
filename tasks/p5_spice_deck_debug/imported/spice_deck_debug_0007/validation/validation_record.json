@@ -5,7 +5,7 @@
   "tool_name": "Synopsys HSPICE",
   "tool_version_normalized": "unknown",
   "validation_status": "debug_contrast_verified",
-  "validation_time_utc": "2026-06-11T02:45:15.901235+00:00",
+  "validation_time_utc": "2026-06-12T04:27:49.277916+00:00",
   "notes": "Buggy exit=255, timed_out=False",
   "buggy_run": {
     "command_backend": "hspice",
@@ -15,11 +15,21 @@
     "normalized_errors": [
       {
         "severity": "error",
-        "category": "invalid_directive",
-        "message": "**error** ([PATH]) .inc/.include should have a file name with appropriate path. Please enter file name with correct path. Syntax:.inc/.include <./path/file name> before or at \"R1\""
+        "category": "missing_model",
+        "message": "**error** ([PATH]) definition of model drect not found. Please specify a defined model name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">info:         ***** hspice job aborted"
       }
     ],
-    "raw_log_sha256": "5b4002eb10e1ccc31ed41a40189aeea79f1e429c0dd46c077c08dfc6dc86d16a",
+    "raw_log_sha256": "84dd20dcd9fd2322921ad26335eca9dcad9412a3f64bf46ab4c374d64687b467",
     "raw_log_retained": true
   },
   "golden_run": {
@@ -34,19 +44,20 @@
         "message": "**warning** no tran outputs specified, analysis omitted"
       }
     ],
-    "raw_log_sha256": "7b4a1bc6f34bad06a1f0f997d5a6639769c4a04b91d33bdf55bddcd75ed39e56",
+    "raw_log_sha256": "5fcfe7fa8fbfb9d82ae0ae3d32f8349371548f1593e4831940a78c2223c36f8f",
     "raw_log_retained": true
   },
   "debug_contrast": {
     "buggy_failed_as_expected": true,
     "golden_passed_as_expected": true,
     "error_category_match": true,
-    "expected_error_category": "invalid_directive",
+    "expected_error_category": "missing_model",
     "observed_error_categories": [
-      "invalid_directive"
+      "missing_model",
+      "unknown"
     ]
   },
   "parsed_metrics": {
-    "elapsed_sec": 0.12
+    "elapsed_sec": 0.114
   }
 }

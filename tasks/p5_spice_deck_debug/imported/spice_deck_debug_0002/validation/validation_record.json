@@ -5,7 +5,7 @@
   "tool_name": "Synopsys HSPICE",
   "tool_version_normalized": "unknown",
   "validation_status": "debug_contrast_verified",
-  "validation_time_utc": "2026-06-11T02:45:09.224925+00:00",
+  "validation_time_utc": "2026-06-12T04:27:45.762977+00:00",
   "notes": "Buggy exit=1, timed_out=False",
   "buggy_run": {
     "command_backend": "hspice",
@@ -15,8 +15,13 @@
     "normalized_errors": [
       {
         "severity": "error",
-        "category": "missing_subckt",
-        "message": "**error** ([PATH]) Definition of model/subckt \"buf\" is not found for the element \"x1\". Please specify a defined model/subckt name."
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"pmos_typo\" is not found for the element \"m1\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
       },
       {
         "severity": "error",
@@ -24,7 +29,7 @@
         "message": ">error          ***** hspice job aborted"
       }
     ],
-    "raw_log_sha256": "4cb9dc477ffe73d5179322cd27f408d6b57666cc1cd5453e0d65030dfcc28f30",
+    "raw_log_sha256": "c1be9f6ff12d11840204e9da24165a00c5e1423d276f8257e6fced02dbabd0c8",
     "raw_log_retained": true
   },
   "golden_run": {
@@ -39,20 +44,20 @@
         "message": "**warning** no tran outputs specified, analysis omitted"
       }
     ],
-    "raw_log_sha256": "90c7d25e578f6ede62daa09f38de07693b2f897441887805d24916960536f6d6",
+    "raw_log_sha256": "fc6f4b80d1a670d8138c3e32af158b9b1aa30dd62c40c2b581ff0ebedbd02eeb",
     "raw_log_retained": true
   },
   "debug_contrast": {
     "buggy_failed_as_expected": true,
     "golden_passed_as_expected": true,
     "error_category_match": true,
-    "expected_error_category": "missing_subckt",
+    "expected_error_category": "missing_model",
     "observed_error_categories": [
-      "missing_subckt",
+      "missing_model",
       "unknown"
     ]
   },
   "parsed_metrics": {
-    "elapsed_sec": 0.14
+    "elapsed_sec": 0.131
   }
 }

@@ -8,7 +8,7 @@
 | P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 101 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | `p3_timing_report_qa` | 1008 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
-| P5 SPICE Deck Debug | `p5_spice_deck_debug` | 10 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
+| P5 SPICE Deck Debug | `p5_spice_deck_debug` | 100 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
 
 ## P1: RTL Debug
 
@@ -183,17 +183,17 @@
 }
 ```
 
-**Error categories** (10 tasks total):
+**Error categories** (100 tasks total):
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| missing_model | 2 | References undefined MOSFET/diode model |
-| missing_subckt | 2 | References undefined subcircuit |
-| duplicate_element | 2 | Two elements share the same name |
-| wrong_pin_count | 1 | Subcircuit instance has wrong pin count |
-| missing_include | 1 | .include references nonexistent file |
-| unsupported_dialect | 1 | Model level not supported by HSPICE |
-| invalid_directive | 1 | Malformed .include (no filename) |
+| missing_model | 15 | References undefined MOSFET/diode model |
+| duplicate_element | 15 | Two elements share the same name |
+| missing_subckt | 14 | References undefined subcircuit |
+| wrong_pin_count | 14 | Subcircuit instance has wrong pin count |
+| missing_include | 14 | .include references nonexistent file |
+| unsupported_dialect | 14 | Model level not supported by HSPICE |
+| invalid_directive | 14 | Malformed .include (no filename) |
 
 **Why exact diff is not required**: A SPICE deck can be fixed in multiple valid ways. Any syntactically valid fix that HSPICE can execute is accepted.
 
@@ -201,6 +201,6 @@
 
 | Track | ID | Tool(s) | Status |
 |-------|----|---------|--------|
-| P5 expansion | `p5_spice_deck_debug` | HSPICE, Spectre | More error categories, Spectre dialect |
+| P5 Spectre dialect | `p5_spice_deck_debug` | Spectre | Spectre dialect repair |
 | P6 SpyGlass Lint | `p6_lint` | SpyGlass | Future |
 | P7 Physical Design | `p7_physical` | ICC2/Innovus/StarRC | Future |

@@ -1,0 +1,45 @@
+{
+  "task_id": "spice_deck_debug_0014",
+  "track": "p5_spice_deck_debug",
+  "tool": [
+    "hspice"
+  ],
+  "difficulty": "easy",
+  "data_type": "flow_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 300,
+  "max_tool_calls": 30,
+  "max_patch_attempts": 8,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "visible/spice_deck_debug_0014_bug.sp"
+    ],
+    "editable": [
+      "visible/spice_deck_debug_0014_bug.sp"
+    ],
+    "hidden": [
+      "hidden/spice_deck_debug_0014_fixed.sp"
+    ],
+    "forbidden": []
+  },
+  "run_command": "{hspice_cmd} {file}",
+  "scoring": {
+    "weights": {
+      "execution_pass": 0.9,
+      "explanation": 0.1
+    },
+    "evaluator": "spice_deck_debug.SPICEDeckDebugEvaluator"
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "source": "external_bundle",
+  "expected_error_category": "missing_model",
+  "grader_contract": {
+    "exit_code": 0,
+    "no_fatal_errors": true,
+    "execution_based": true,
+    "notes": "Agent output must run with HSPICE (exit 0) and produce no fatal errors. Exact text match with oracle not required."
+  }
+}

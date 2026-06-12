@@ -28,13 +28,29 @@
   },
   "failure_patterns": [
     {
-      "category": "missing_include",
+      "category": "missing_model",
       "severity": "error",
-      "description": "**error** ([PATH]) unable to open file \"nonexistent_models.lib\" . Either the file doesn't exist or the path is wrong. Pl"
+      "description": "**error** ([PATH]) Definition of model/subckt \"pmos_bad\" is not found for the element \"m1\". Please specify a defined mod"
+    },
+    {
+      "category": "missing_model",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"pmos_bad\" is not found for the element \"m2\". Please specify a defined mod"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": ">error          ***** hspice job aborted"
     }
   ],
   "normalized_error_categories": [
-    "missing_include"
+    "missing_model",
+    "unknown"
   ],
   "public_task_path": "tasks_public/spice_deck_debug_0005",
   "private_task_path": "tasks_eval_private/spice_deck_debug_0005"

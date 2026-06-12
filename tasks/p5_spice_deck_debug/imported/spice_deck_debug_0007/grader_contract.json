@@ -28,13 +28,24 @@
   },
   "failure_patterns": [
     {
-      "category": "invalid_directive",
+      "category": "missing_model",
       "severity": "error",
-      "description": "**error** ([PATH]) .inc/.include should have a file name with appropriate path. Please enter file name with correct path"
+      "description": "**error** ([PATH]) definition of model drect not found. Please specify a defined model name."
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": ">info:         ***** hspice job aborted"
     }
   ],
   "normalized_error_categories": [
-    "invalid_directive"
+    "missing_model",
+    "unknown"
   ],
   "public_task_path": "tasks_public/spice_deck_debug_0007",
   "private_task_path": "tasks_eval_private/spice_deck_debug_0007"

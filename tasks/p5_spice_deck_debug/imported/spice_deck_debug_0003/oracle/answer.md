@@ -1,3 +1,3 @@
 # Expected Fix
 
-Add missing `gnd` pin: change `X1 in out vdd inv` to `X1 in out vdd gnd inv`.
+Fix model name from `pmos_typo` to `pmos`, add `.model pmos pmos (level=1 vto=-0.7 kp=50u)`.

@@ -1,0 +1,73 @@
+{
+  "task_id": "spice_deck_debug_0056",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:28:24.407576+00:00",
+  "notes": "Buggy exit=1, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 1,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** ([PATH]) Global net name \"gnd\" in subckt pin list. The pin will be connected to the local net. Recommend to not use global net names in subckt pin lists."
+      },
+      {
+        "severity": "error",
+        "category": "wrong_pin_count",
+        "message": "**error** ([PATH]) Number of nodes mismatch between instance \"x1\" and subcircuit \"nor2\". Subcircuit definition has    5 node(s) whereas subckt instance has    4 node(s). Please specify same number of "
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">error          ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "41a47a2946f4bf7e5e5d1bfd096def9b90dfa9b8d46b7c0a7349bc17b0108826",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** ([PATH]) Global net name \"gnd\" in subckt pin list. The pin will be connected to the local net. Recommend to not use global net names in subckt pin lists."
+      },
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "3e37607cd0c6bb3609fc1524ddfd9693f086f4ff8c1cbf2848e88534fb73b2a7",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "wrong_pin_count",
+    "observed_error_categories": [
+      "unknown",
+      "wrong_pin_count"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.141
+  }
+}

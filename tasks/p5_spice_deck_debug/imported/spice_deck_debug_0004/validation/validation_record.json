@@ -5,7 +5,7 @@
   "tool_name": "Synopsys HSPICE",
   "tool_version_normalized": "unknown",
   "validation_status": "debug_contrast_verified",
-  "validation_time_utc": "2026-06-11T02:45:10.719081+00:00",
+  "validation_time_utc": "2026-06-12T04:27:47.194725+00:00",
   "notes": "Buggy exit=1, timed_out=False",
   "buggy_run": {
     "command_backend": "hspice",
@@ -15,8 +15,18 @@
     "normalized_errors": [
       {
         "severity": "error",
-        "category": "duplicate_element",
-        "message": "**error** attempts to redefine r1               at line        0 and line        1"
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"pmos_bad\" is not found for the element \"m1\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"pmos_bad\" is not found for the element \"m2\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
       },
       {
         "severity": "error",
@@ -24,7 +34,7 @@
         "message": ">error          ***** hspice job aborted"
       }
     ],
-    "raw_log_sha256": "1a727ae80a75d781a8be1e81dc0222221ae0f84305835bdeff80e84eac63afc2",
+    "raw_log_sha256": "9800b259ef887ae311f57d2058fed7ec5c997ab68f800c410198cbeab1889b74",
     "raw_log_retained": true
   },
   "golden_run": {
@@ -32,21 +42,27 @@
     "expected_status": "pass",
     "actual_status": "pass",
     "exit_code": 0,
-    "normalized_errors": [],
-    "raw_log_sha256": "d2867ac77bec3558fca67ded785395912d7e8e7ba223b1cdd4b9293f5a7ef0b7",
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "08d59638ce60cfb05a945ffda5dadfbd4efe52622345ebf481cf299f109be5cd",
     "raw_log_retained": true
   },
   "debug_contrast": {
     "buggy_failed_as_expected": true,
     "golden_passed_as_expected": true,
     "error_category_match": true,
-    "expected_error_category": "duplicate_element",
+    "expected_error_category": "missing_model",
     "observed_error_categories": [
-      "duplicate_element",
+      "missing_model",
       "unknown"
     ]
   },
   "parsed_metrics": {
-    "elapsed_sec": 0.141
+    "elapsed_sec": 0.137
   }
 }

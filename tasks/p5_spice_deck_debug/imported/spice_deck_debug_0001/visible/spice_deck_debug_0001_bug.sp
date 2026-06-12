@@ -1,5 +1,4 @@
-.title CMOS Inverter - Bug 1
-* BUG: M1 references model "pmos_typo" which does not exist
+.title CMOS Inverter - Missing Model
 M1 out gate vdd vdd pmos_typo W=2u L=180n
 M2 out gate gnd gnd nmos W=1u L=180n
 .model nmos nmos (level=1 vto=0.7 kp=120u)

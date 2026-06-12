@@ -1,8 +1,7 @@
-.title MOSFET Bad Level - Bug 6
-* BUG: model level 99 is not a valid HSPICE MOSFET level
-M1 out gate gnd gnd nmos W=1u L=180n
-.model nmos nmos (level=99 vto=0.7 kp=120u)
-Vdd gate 0 1.8
-R1 out 0 1k
-.tran 10p 10n
+.title Diode Rectifier - Missing Model
+D1 anode cathode Drect
+R1 cathode 0 1k
+V1 anode 0 SIN(0 5 60)
+.model Drectifier D(Is=1e-14 N=1)
+.tran 10p 33m
 .end

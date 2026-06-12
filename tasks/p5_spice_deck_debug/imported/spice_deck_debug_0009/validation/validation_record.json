@@ -5,7 +5,7 @@
   "tool_name": "Synopsys HSPICE",
   "tool_version_normalized": "unknown",
   "validation_status": "debug_contrast_verified",
-  "validation_time_utc": "2026-06-11T02:45:17.324459+00:00",
+  "validation_time_utc": "2026-06-12T04:27:50.657734+00:00",
   "notes": "Buggy exit=1, timed_out=False",
   "buggy_run": {
     "command_backend": "hspice",
@@ -15,18 +15,18 @@
     "normalized_errors": [
       {
         "severity": "error",
-        "category": "missing_subckt",
-        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x1\". Please specify a defined model/subckt name."
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"nmos_bad\" is not found for the element \"m2\". Please specify a defined model/subckt name."
       },
       {
         "severity": "error",
-        "category": "missing_subckt",
-        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x2\". Please specify a defined model/subckt name."
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"nmos_bad\" is not found for the element \"m4\". Please specify a defined model/subckt name."
       },
       {
         "severity": "error",
-        "category": "missing_subckt",
-        "message": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x3\". Please specify a defined model/subckt name."
+        "category": "unknown",
+        "message": "***** job aborted"
       },
       {
         "severity": "error",
@@ -34,7 +34,7 @@
         "message": ">error          ***** hspice job aborted"
       }
     ],
-    "raw_log_sha256": "162f6f0ef4d3d38fe8066a9ee32d5ec9b15377f94494c33e2b9dbe2c323190f1",
+    "raw_log_sha256": "573eb4b8d2ad7bb9b39fef7baef7436d15ecc3ae90d7bfa6740f0eaaeb3006b3",
     "raw_log_retained": true
   },
   "golden_run": {
@@ -46,28 +46,23 @@
       {
         "severity": "warning",
         "category": "unknown",
-        "message": "**warning** ([PATH]) Global net name \"gnd\" in subckt pin list. The pin will be connected to the local net. Recommend to not use global net names in subckt pin lists."
-      },
-      {
-        "severity": "warning",
-        "category": "unknown",
         "message": "**warning** no tran outputs specified, analysis omitted"
       }
     ],
-    "raw_log_sha256": "d14657da3f1c66be3f511d6bd1449f76b74d48bf693918c65f228f4af2156df8",
+    "raw_log_sha256": "72a81b7bc17a85af0b101342dc047c7dbe87f1658b934c66b78c3910beb9b1fd",
     "raw_log_retained": true
   },
   "debug_contrast": {
     "buggy_failed_as_expected": true,
     "golden_passed_as_expected": true,
     "error_category_match": true,
-    "expected_error_category": "missing_subckt",
+    "expected_error_category": "missing_model",
     "observed_error_categories": [
-      "missing_subckt",
+      "missing_model",
       "unknown"
     ]
   },
   "parsed_metrics": {
-    "elapsed_sec": 0.143
+    "elapsed_sec": 0.14
   }
 }

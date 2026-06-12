@@ -1,8 +1,11 @@
-.title Diode Rectifier - Bug 8
-* BUG: Diode D1 references model "Drect" but .model defines "Drectifier"
-D1 anode cathode Drect
-R1 cathode 0 1k
-V1 anode 0 SIN(0 5 60)
-.model Drectifier D(Is=1e-14 N=1)
-.tran 10p 33m
+.title NOR Gate - Missing Model
+M1 mid a vdd vdd pmos W=4u L=180n
+M2 out b mid mid pmos W=4u L=180n
+M3 out a gnd gnd nmos_typo W=1u L=180n
+M4 out b gnd gnd nmos_typo W=1u L=180n
+.model pmos pmos (level=1 vto=-0.7 kp=50u)
+Vdd vdd gnd 1.8
+Va a gnd PULSE(0 1.8 0 100p 100p 1n 2n)
+Vb b gnd PULSE(0 1.8 0 100p 100p 2n 4n)
+.tran 10p 8n
 .end

@@ -1,3 +1,3 @@
 # Expected Fix
 
-Fix diode model reference from `Drect` to `Drectifier`.
+Fix model name from `nmos_typo` to `nmos`, add `.model nmos nmos (level=1 vto=0.7 kp=120u)`.

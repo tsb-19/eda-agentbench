@@ -1,3 +1,3 @@
 # Expected Fix
 
-Add `.subckt buf in out` / `Rseries in out 100` / `.ends buf` before the X1 instance.
+Fix model name from `pmos_typo` to `pmos`, add `.model pmos pmos (level=1 vto=-0.7 kp=50u)`.

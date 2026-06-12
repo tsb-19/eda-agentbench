@@ -4,7 +4,7 @@
 Find and fix the bug in the provided SPICE simulation deck.
 
 ## Bug Description
-The deck has a syntax error issue.
+The deck has a missing model issue.
 
 ## Instructions
 1. Read the SPICE deck file in `visible/`

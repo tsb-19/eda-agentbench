@@ -28,9 +28,14 @@
   },
   "failure_patterns": [
     {
-      "category": "duplicate_element",
+      "category": "missing_model",
       "severity": "error",
-      "description": "**error** attempts to redefine m1               at line        0 and line        3"
+      "description": "**error** ([PATH]) Definition of model/subckt \"nmos_bad\" is not found for the element \"m1\". Please specify a defined mod"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
     },
     {
       "category": "unknown",
@@ -39,7 +44,7 @@
     }
   ],
   "normalized_error_categories": [
-    "duplicate_element",
+    "missing_model",
     "unknown"
   ],
   "public_task_path": "tasks_public/spice_deck_debug_0010",

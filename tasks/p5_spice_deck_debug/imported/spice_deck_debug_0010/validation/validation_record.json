@@ -5,7 +5,7 @@
   "tool_name": "Synopsys HSPICE",
   "tool_version_normalized": "unknown",
   "validation_status": "debug_contrast_verified",
-  "validation_time_utc": "2026-06-11T02:45:18.051060+00:00",
+  "validation_time_utc": "2026-06-12T04:27:51.396961+00:00",
   "notes": "Buggy exit=1, timed_out=False",
   "buggy_run": {
     "command_backend": "hspice",
@@ -15,8 +15,13 @@
     "normalized_errors": [
       {
         "severity": "error",
-        "category": "duplicate_element",
-        "message": "**error** attempts to redefine m1               at line        0 and line        3"
+        "category": "missing_model",
+        "message": "**error** ([PATH]) Definition of model/subckt \"nmos_bad\" is not found for the element \"m1\". Please specify a defined model/subckt name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
       },
       {
         "severity": "error",
@@ -24,7 +29,7 @@
         "message": ">error          ***** hspice job aborted"
       }
     ],
-    "raw_log_sha256": "f91232f030ccdef34bbfa06b45ba7641fd225c5ad64c25e87248267b34637097",
+    "raw_log_sha256": "8b5995e9e478494855fdce7fdfde73e007ddf227c66e5e63b1d5dcf9de6b1fe5",
     "raw_log_retained": true
   },
   "golden_run": {
@@ -39,20 +44,20 @@
         "message": "**warning** no tran outputs specified, analysis omitted"
       }
     ],
-    "raw_log_sha256": "35fb4b45002d049a347f2771a190e4bc5ef55276a53bc5c7a8127949347b7268",
+    "raw_log_sha256": "1a462196d8e7d224115192aa8c226f72dec260f4266d9c0765614b4df6ca4ffe",
     "raw_log_retained": true
   },
   "debug_contrast": {
     "buggy_failed_as_expected": true,
     "golden_passed_as_expected": true,
     "error_category_match": true,
-    "expected_error_category": "duplicate_element",
+    "expected_error_category": "missing_model",
     "observed_error_categories": [
-      "duplicate_element",
+      "missing_model",
       "unknown"
     ]
   },
   "parsed_metrics": {
-    "elapsed_sec": 0.131
+    "elapsed_sec": 0.148
   }
 }

@@ -1,0 +1,72 @@
+{
+  "task_id": "spice_deck_debug_0023",
+  "task_family": "syntax_error",
+  "domain": "spice_deck_debug",
+  "editable_files": [
+    "visible/spice_deck_debug_0023_bug.sp"
+  ],
+  "read_only_files": [
+    "prompt.md",
+    "metadata.json"
+  ],
+  "hidden_files": [
+    "hidden/spice_deck_debug_0023_fixed.sp"
+  ],
+  "oracle_files": [
+    "oracle/answer.md"
+  ],
+  "backend": "hspice",
+  "backend_env_var": "EDA_HSPICE_CMD",
+  "command_template": "{hspice_cmd} {file}",
+  "working_directory": "visible/",
+  "timeout_sec": 300,
+  "success_criteria": {
+    "exit_code": 0,
+    "no_fatal_errors": true,
+    "execution_based": true,
+    "notes": "Agent output must run with HSPICE (exit 0) and produce no fatal errors. Exact text match with oracle not required."
+  },
+  "failure_patterns": [
+    {
+      "category": "missing_subckt",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x1\". Please specify a defined model/su"
+    },
+    {
+      "category": "missing_subckt",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x2\". Please specify a defined model/su"
+    },
+    {
+      "category": "missing_subckt",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x3\". Please specify a defined model/su"
+    },
+    {
+      "category": "missing_subckt",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x4\". Please specify a defined model/su"
+    },
+    {
+      "category": "missing_subckt",
+      "severity": "error",
+      "description": "**error** ([PATH]) Definition of model/subckt \"inv\" is not found for the element \"x5\". Please specify a defined model/su"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": ">error          ***** hspice job aborted"
+    }
+  ],
+  "normalized_error_categories": [
+    "missing_subckt",
+    "unknown"
+  ],
+  "public_task_path": "tasks_public/spice_deck_debug_0023",
+  "private_task_path": "tasks_eval_private/spice_deck_debug_0023"
+}

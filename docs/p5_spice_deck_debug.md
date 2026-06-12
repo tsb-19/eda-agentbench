@@ -75,17 +75,17 @@ Any syntactically valid fix that HSPICE can execute is accepted, even if it diff
 
 ## Error Categories
 
-The 10 imported tasks cover these error categories:
+The 100 imported tasks cover these error categories:
 
 | Category | Count | Description |
 |----------|-------|-------------|
-| missing_model | 2 | References undefined MOSFET/diode model |
-| missing_subckt | 2 | References undefined subcircuit |
-| duplicate_element | 2 | Two elements share the same name |
-| wrong_pin_count | 1 | Subcircuit instance has wrong pin count |
-| missing_include | 1 | .include references nonexistent file |
-| unsupported_dialect | 1 | Model level not supported by HSPICE |
-| invalid_directive | 1 | Malformed .include (no filename) |
+| missing_model | 15 | References undefined MOSFET/diode model |
+| duplicate_element | 15 | Two elements share the same name |
+| missing_subckt | 14 | References undefined subcircuit |
+| wrong_pin_count | 14 | Subcircuit instance has wrong pin count |
+| missing_include | 14 | .include references nonexistent file |
+| unsupported_dialect | 14 | Model level not supported by HSPICE |
+| invalid_directive | 14 | Malformed .include (no filename) |
 
 ## Running P5
 
@@ -108,7 +108,7 @@ eda-bench evaluate-task tasks/p5_spice_deck_debug/imported/spice_deck_debug_0001
 bash scripts/evaluate_p5_spice_deck_debug.sh
 ```
 
-Expected: 10/10 solution pass, 10/10 buggy fail.
+Expected: 100/100 solution pass, 100/100 buggy fail.
 
 ### Dataset evaluation
 

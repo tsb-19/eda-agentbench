@@ -1,9 +1,9 @@
-.title Buffer Circuit - Bug 2
-.subckt buf in out
-Rseries in out 100
-.ends buf
-X1 in out buf
-R1 out gnd 1k
-V1 in gnd PULSE(0 1.8 1n 100p 100p 2n 4n)
-.tran 10p 8n
+.title CMOS Inverter - Missing Model
+M1 out gate vdd vdd pmos W=4u L=90n
+M2 out gate gnd gnd nmos W=2u L=90n
+.model pmos pmos (level=1 vto=-0.7 kp=50u)
+.model nmos nmos (level=1 vto=0.7 kp=120u)
+Vdd vdd gnd 1.2
+Vin gate gnd PULSE(0 1.2 1n 100p 100p 1n 2n)
+.tran 10p 4n
 .end

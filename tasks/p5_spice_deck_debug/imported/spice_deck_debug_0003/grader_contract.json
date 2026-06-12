@@ -28,9 +28,14 @@
   },
   "failure_patterns": [
     {
-      "category": "wrong_pin_count",
+      "category": "missing_model",
       "severity": "error",
-      "description": "**error** ([PATH]) Number of nodes mismatch between instance \"x1\" and subcircuit \"inv\". Subcircuit definition has    4 n"
+      "description": "**error** ([PATH]) Definition of model/subckt \"pmos_typo\" is not found for the element \"m1\". Please specify a defined mo"
+    },
+    {
+      "category": "unknown",
+      "severity": "error",
+      "description": "***** job aborted"
     },
     {
       "category": "unknown",
@@ -39,8 +44,8 @@
     }
   ],
   "normalized_error_categories": [
-    "unknown",
-    "wrong_pin_count"
+    "missing_model",
+    "unknown"
   ],
   "public_task_path": "tasks_public/spice_deck_debug_0003",
   "private_task_path": "tasks_eval_private/spice_deck_debug_0003"
