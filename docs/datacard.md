@@ -9,11 +9,11 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | Track | Count | Tool(s) | Data Type | Scoring Method |
 |-------|-------|---------|-----------|----------------|
 | P1 RTL Debug | 1001 | VCS | mutation_synthetic | compile + public test + hidden test + explanation |
-| P2 Testbench/SVA Gen | 21 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
+| P2 Testbench/SVA Gen | 101 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | 101 | pt (synthetic) | template_synthetic | answer_match |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 10 | HSPICE | mutation_synthetic | execution-based (exit code + no fatal errors) + explanation |
-| **Total** | **1235** | | | |
+| **Total** | **1315** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -34,9 +34,11 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | counter_off_by_one | 100 | Counter boundary error |
 | enable_condition | 100 | Missing or wrong enable guard |
 
-### P2 Testbench/SVA Generation (21 tasks)
+### P2 Testbench/SVA Generation (101 tasks)
 
-- 1 smoke task + 20 generated tasks
+- 1 smoke task + 100 generated tasks
+- 10 design templates: mux2, counter, fsm, handshake, priority_encoder, pulse_detector, arbiter, edge_detector, valid_ready_fsm, fifo_status
+- 20 mutant variants across 10 templates (polarity inversion, stuck-at, wrong transition, threshold errors, etc.)
 - Data type: `mutation_synthetic` (golden design + 2 mutants per task)
 - Agent writes a testbench that passes on golden design and catches both mutants
 - Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
@@ -85,8 +87,8 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 1235/1235 | 1.00 | N/A |
-| Buggy | 1235/1235 | 0.46 | 1235/1235 |
+| Solution | 1315/1315 | 1.00 | N/A |
+| Buggy | 1315/1315 | < 1.00 | 1315/1315 |
 
 ## Test Suite
 

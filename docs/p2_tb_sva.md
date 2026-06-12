@@ -50,15 +50,39 @@ task_200000/
 
 ## Design Templates
 
-The generator uses 5 design templates:
+The generator uses 10 design templates:
 
-1. **mux2** (easy): 2-to-1 multiplexer
-2. **counter4** (easy): 4-bit counter with enable
-3. **fsm_simple** (medium): 3-state FSM
-4. **handshake_reg** (medium): valid/ready handshake register
-5. **priority_enc** (easy): 4-to-2 priority encoder
+| # | Template          | Module           | Difficulty | Mutant 1                | Mutant 2                  |
+|---|-------------------|------------------|------------|-------------------------|---------------------------|
+| 1 | mux2              | `mux2`           | easy       | select_swapped          | stuck_at_zero             |
+| 2 | counter           | `counter4`       | easy       | enable_inverted         | off_by_one                |
+| 3 | fsm               | `fsm_simple`     | medium     | wrong_transition        | missing_busy              |
+| 4 | handshake         | `handshake_reg`  | medium     | ready_inverted          | data_not_captured         |
+| 5 | priority_encoder  | `priority_enc`   | easy       | reversed_priority       | wrong_encoding            |
+| 6 | pulse_detector    | `pulse_detect`   | easy       | missing_pulse           | wrong_edge                |
+| 7 | arbiter           | `arbiter_rr`     | medium     | fixed_priority          | grant_two_bits            |
+| 8 | edge_detector     | `edge_detect`    | easy       | rising_falling_swapped  | registered_output         |
+| 9 | valid_ready_fsm   | `vr_pipe`        | medium     | ready_inverted          | data_not_latched          |
+|10 | fifo_status       | `fifo_status`    | easy       | empty_inverted          | wrong_threshold           |
 
-Each template has 2 mutant variants (10 total mutants across 5 templates).
+Each template has 2 mutant variants (20 total mutants across 10 templates).
+
+**Mutant diversity:**
+- Select/polarity inversion: select_swapped, enable_inverted, ready_inverted, empty_inverted, rising_falling_swapped
+- Missing/wrong behavior: stuck_at_zero, missing_busy, missing_pulse, data_not_captured, data_not_latched
+- Priority/order: reversed_priority, fixed_priority, wrong_transition
+- Off-by-one/threshold: off_by_one, wrong_threshold, wrong_encoding
+- Multi-signal: grant_two_bits, registered_output, wrong_edge
+
+## Template Distribution
+
+With 100 generated tasks and 10 templates, the generator cycles through templates every 4 tasks:
+
+- Tasks 0–39: templates 0–9 (4 tasks each)
+- Tasks 40–79: templates 0–9 (4 tasks each)
+- Tasks 80–99: templates 0–4 (4 tasks each)
+
+Result: templates 0–4 get 12 tasks each, templates 5–9 get 8 tasks each.
 
 ## Task ID Range
 
@@ -67,14 +91,14 @@ P2 tasks use task IDs starting at `task_200000` to avoid collisions with P1 (0-1
 ## Expected Counts
 
 - Smoke: 1 task (task_200000, handcrafted mux2)
-- Generated: 20 tasks (task_200001 - task_200020)
-- Total: 21 tasks
+- Generated: 100 tasks (task_200001 - task_200100)
+- Total: 101 tasks
 
 ## Commands
 
 ```bash
 # Generate tasks
-python3 scripts/generate_p2_tasks.py --count 20 --seed 42
+python3 scripts/generate_p2_tasks.py --count 100 --seed 42
 
 # Run smoke test
 bash scripts/run_p2_smoke.sh

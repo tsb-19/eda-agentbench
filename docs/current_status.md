@@ -1,17 +1,17 @@
 # Current Benchmark Status
 
-**Phase**: 4D integration audit complete (commit f14c2fc)
+**Phase**: 5B P2 scale-up (commit TBD)
 
 ## Task Inventory
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
-| P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
+| P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated |
 | P3 Timing Report QA | 101 | pt (synthetic) | 1 smoke + 100 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **1235** | | |
+| **Total** | **1315** | | |
 
 ## P1 Bug Type Distribution
 
@@ -32,10 +32,11 @@
 
 ## P2 Testbench/SVA Generation
 
-21 tasks (1 smoke + 20 generated). Mutation-based grading:
+101 tasks (1 smoke + 100 generated). 10 design templates, 20 mutant variants. Mutation-based grading:
 - Agent writes a testbench for a golden RTL design
 - Testbench must pass on golden design and catch 2 mutants
 - Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
+- Templates: mux2, counter, fsm, handshake, priority_encoder, pulse_detector, arbiter, edge_detector, valid_ready_fsm, fifo_status
 
 ## P3 Timing Report QA
 
@@ -86,8 +87,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 1235/1235 | 1.00 | N/A |
-| Buggy | 1235/1235 | 0.46 | 1235/1235 |
+| Solution | 1315/1315 | 1.00 | N/A |
+| Buggy | 1315/1315 | < 1.00 | 1315/1315 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
