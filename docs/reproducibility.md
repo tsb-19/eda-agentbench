@@ -177,3 +177,49 @@ python scripts/export_benchmark_summary.py
 ```
 
 This produces all report artifacts under `reports/` (task inventory, track/tool/scoring distributions, per-track breakdowns, leaderboard template, and markdown summary). The output is fully deterministic — running it twice on the same task tree produces identical files.
+
+## Baseline Suite
+
+The baseline runner automates running solution and buggy baselines and producing
+leaderboard artifacts:
+
+```bash
+# Sampled baseline (fast, ~2 min)
+python scripts/run_baseline_suite.py --sample-per-track 1 --seed 123
+
+# Full baseline (requires all EDA tools)
+python scripts/run_baseline_suite.py
+
+# Single track, single mode
+python scripts/run_baseline_suite.py --track p3_timing_report_qa --modes solution --sample-per-track 5
+```
+
+### CLI Flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--modes` | `solution,buggy` | Comma-separated modes to run |
+| `--track` | all | Filter to a single track |
+| `--sample-per-track` | full | Sample N tasks per track |
+| `--seed` | 42 | Deterministic sampling seed |
+| `--timeout` | task default | Override per-task timeout |
+| `--tasks-root` | `tasks/` | Override task directory |
+
+### Output Artifacts
+
+| File | Description |
+|------|-------------|
+| `reports/baseline_results_solution.csv` | Per-task scores for solution mode |
+| `reports/baseline_results_buggy.csv` | Per-task scores for buggy mode |
+| `reports/leaderboard_baseline_filled.csv` | Leaderboard template with baseline rows |
+| `reports/baseline_summary.md` | Human-readable summary with tables |
+
+### Baseline Interpretation
+
+| Mode | Expected Avg | Expected Pass Rate | Purpose |
+|------|-------------|-------------------|---------|
+| solution | 1.00 | 1.00 | Ceiling: validates eval pipeline |
+| buggy | < 1.00 | < 1.00 | Floor: validates discriminative power |
+
+Any real LLM submission should score between the buggy and solution baselines.
+No external model APIs are called — all evaluation is local and deterministic.
