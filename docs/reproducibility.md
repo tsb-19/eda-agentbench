@@ -167,3 +167,13 @@ To reproduce an evaluation result:
 ## Versioning
 
 Each task's `metadata.json` includes a `version` field (currently `"1.0.0"`). The benchmark package version is in `pyproject.toml` (currently `0.1.0`).
+
+## Benchmark Inventory Export
+
+A deterministic inventory and summary can be generated from the task metadata:
+
+```bash
+python scripts/export_benchmark_summary.py
+```
+
+This produces all report artifacts under `reports/` (task inventory, track/tool/scoring distributions, per-track breakdowns, leaderboard template, and markdown summary). The output is fully deterministic — running it twice on the same task tree produces identical files.

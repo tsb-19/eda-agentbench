@@ -107,6 +107,17 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 | hidden | No | No | Yes |
 | forbidden | No | No | Checked for tampering |
 
+## Generated Artifacts
+
+Deterministic dataset artifacts are available under `reports/`:
+
+- `task_inventory.json` / `task_inventory.csv` — full task inventory with metadata
+- `benchmark_summary.md` — human-readable summary (v0.3-phase5f-2312)
+- Per-track distributions: `p1_bug_distribution.csv`, `p2_template_mutant_distribution.csv`, `p3_question_type_distribution.csv`, `p5_error_category_distribution.csv`
+- `leaderboard_template.csv` — empty template for recording model evaluation results
+
+Generate with: `python scripts/export_benchmark_summary.py`
+
 ## Known Limitations
 
 1. No agentic runner yet (submission/workspace mode only).
