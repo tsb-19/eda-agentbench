@@ -11,25 +11,26 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 5A — P3 scale to 1000)
+## Current Status (Phase 5B — P2/P3 scaled)
 
-Phase 5A scaled P3 Timing Report QA from 101 to 1000 tasks. 2134 total tasks across 5 tracks:
+Phase 5B scaled P2 to 101 tasks and P3 to 1000 tasks. 2214 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
-| P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
+| P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated (10 templates) |
 | P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
 
 Key results:
-- pytest: 187/187 pass (2 skipped)
-- Solution mode: 2134/2134 = 1.00
-- Buggy mode: 2134/2134 all < 1.0
+- pytest: 189/189 pass
+- Solution mode: 2214/2214 = 1.00
+- Buggy mode: 2214/2214 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
+P2 scaled to 101 tasks (10 templates, 20 mutant variants) in Phase 5B.
 
 ### P3 Diversity (Phase 5A)
 
@@ -83,9 +84,11 @@ Always implement environment detection instead of hardcoding one shell setup.
 
 ### Next Phases
 
-5. Phase 4A: P2 Testbench/SVA Generation
-6. Phase 4B: P3 Timing Report QA
-7. Phase 4C: Docs/Datacard/Release Policy
+5. Phase 4A: P2 Testbench/SVA Generation — DONE
+6. Phase 4B: P3 Timing Report QA — DONE
+7. Phase 4C: Docs/Datacard/Release Policy — DONE
+8. Phase 5A: P3 scale to 1000 — DONE
+9. Phase 5B: P2 scale to 101 — DONE
 
 ### Later
 
@@ -323,9 +326,6 @@ Rules:
 When running multiple agents in parallel:
 
 * **Main worktree** (`eda-agentbench`): integration branch, merges completed work.
-* **eda-agentbench-p2**: owns Phase 4A (P2 Testbench/SVA Generation) only.
-* **eda-agentbench-p3**: owns Phase 4B (P3 Timing Report QA) only.
-* **eda-agentbench-docs**: owns Phase 4C (Docs/Datacard/Release Policy) only.
 * Each worktree commits to its own branch.
 * Avoid modifying shared core files (`schema.py`, `cli.py`, `task/loader.py`, `evaluator/`) unless strictly required.
 * Do not run multiple agents in the same working tree.
@@ -366,4 +366,5 @@ All first-milestone items are complete:
 * prompt diversification infrastructure
 * P5 SPICE Deck Debug (imported)
 * sampled evaluation mode (--sample-per-track, --limit, --seed)
+* P2 scaled to 101 tasks with 10 design templates (Phase 5B)
 

@@ -1,17 +1,17 @@
 # Current Benchmark Status
 
-**Phase**: 5A — P3 scaled to 1000 tasks
+**Phase**: 5B — P2 scaled to 101, P3 scaled to 1000
 
 ## Task Inventory
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
-| P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
+| P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated |
 | P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **2134** | | |
+| **Total** | **2214** | | |
 
 ## P1 Bug Type Distribution
 
@@ -32,10 +32,11 @@
 
 ## P2 Testbench/SVA Generation
 
-21 tasks (1 smoke + 20 generated). Mutation-based grading:
+101 tasks (1 smoke + 100 generated). 10 design templates, 20 mutant variants. Mutation-based grading:
 - Agent writes a testbench for a golden RTL design
 - Testbench must pass on golden design and catch 2 mutants
 - Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
+- Templates: mux2, counter, fsm, handshake, priority_encoder, pulse_detector, arbiter, edge_detector, valid_ready_fsm, fifo_status
 
 ## P3 Timing Report QA
 
@@ -78,7 +79,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 187 | All passing (2 skipped) |
+| pytest tests | 189 | All passing |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |
@@ -90,8 +91,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2134/2134 | 1.00 | N/A |
-| Buggy | 2134/2134 | < 1.00 | 2134/2134 |
+| Solution | 2214/2214 | 1.00 | N/A |
+| Buggy | 2214/2214 | < 1.00 | 2214/2214 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -132,3 +133,7 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 - **Phase 4B**: P3 Timing Report QA — DONE
 - **Phase 4C**: Docs/Datacard/Release Policy — DONE
 - **Phase 4D**: Integration audit — DONE
+- **Phase 4E**: P2 naming cleanup — DONE
+- **Phase 4F**: Sampled evaluation mode — DONE
+- **Phase 5A**: P3 scale to 1000 — DONE
+- **Phase 5B**: P2 scale to 101 — DONE

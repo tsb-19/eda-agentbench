@@ -1,4 +1,4 @@
-"""P2 Testbench/SVA Generation task generator — 5 design templates, mutation-based grading."""
+"""P2 Testbench/SVA Generation task generator — 10 design templates, mutation-based grading."""
 
 from __future__ import annotations
 
@@ -513,6 +513,552 @@ endmodule
     }
 
 
+def _template_pulse_detector():
+    return {
+        "name": "pulse_detector",
+        "difficulty": "easy",
+        "module_name": "pulse_detect",
+        "golden": """\
+module pulse_detect (
+    input  wire clk, rst_n, sig,
+    output reg  pulse
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            sig_d <= 0;
+            pulse <= 0;
+        end else begin
+            pulse <= sig & ~sig_d;
+            sig_d <= sig;
+        end
+    end
+endmodule
+""",
+        "mutants": [
+            {
+                "name": "missing_pulse",
+                "code": """\
+module pulse_detect (
+    input  wire clk, rst_n, sig,
+    output reg  pulse
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            sig_d <= 0;
+            pulse <= 0;
+        end else begin
+            pulse <= 0;
+            sig_d <= sig;
+        end
+    end
+endmodule
+""",
+                "bug_description": "pulse output always 0 — rising-edge detect removed",
+            },
+            {
+                "name": "wrong_edge",
+                "code": """\
+module pulse_detect (
+    input  wire clk, rst_n, sig,
+    output reg  pulse
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            sig_d <= 0;
+            pulse <= 0;
+        end else begin
+            pulse <= ~sig & sig_d;
+            sig_d <= sig;
+        end
+    end
+endmodule
+""",
+                "bug_description": "detects falling edge instead of rising edge",
+            },
+        ],
+        "solution_tb": """\
+module tb;
+    reg clk, rst_n, sig;
+    wire pulse;
+    pulse_detect uut (.clk(clk), .rst_n(rst_n), .sig(sig), .pulse(pulse));
+    always #5 clk = ~clk;
+    integer pass, fail;
+    initial begin
+        pass = 0; fail = 0;
+        clk = 0; rst_n = 0; sig = 0; #20;
+        rst_n = 1; @(posedge clk); #1;
+        if (pulse === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: no edge, pulse should be 0"); end
+        sig = 1; @(posedge clk); #1;
+        if (pulse === 1) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: rising edge, pulse should be 1"); end
+        @(posedge clk); #1;
+        if (pulse === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: steady high, pulse should be 0"); end
+        sig = 0; @(posedge clk); #1;
+        if (pulse === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: falling edge, pulse should be 0"); end
+        sig = 1; @(posedge clk); #1;
+        if (pulse === 1) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: second rising edge, pulse should be 1"); end
+        @(posedge clk); #1;
+        if (pulse === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: steady high again, pulse should be 0"); end
+        if (fail === 0) $display("ALL_TESTS_PASS: %0d/%0d", pass, pass+fail);
+        else $display("TEST_FAIL: %0d/%0d", pass, pass+fail);
+        $finish;
+    end
+endmodule
+""",
+        "ports": "input clk, rst_n, sig; output pulse",
+        "description": "Rising-edge pulse detector: pulse = sig & ~sig_d",
+        "mutant_description": "pulse always zero or wrong edge polarity",
+    }
+
+
+def _template_arbiter():
+    return {
+        "name": "arbiter",
+        "difficulty": "medium",
+        "module_name": "arbiter_rr",
+        "golden": """\
+module arbiter_rr (
+    input  wire       clk, rst_n,
+    input  wire [3:0] req,
+    output reg  [3:0] grant
+);
+    reg [1:0] last;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            grant <= 4'b0000;
+            last  <= 2'd3;
+        end else begin
+            grant <= 4'b0000;
+            if      (req[(last+1) & 2'b11]      ) begin grant[(last+1) & 2'b11] <= 1; last <= (last+1) & 2'b11; end
+            else if (req[(last+2) & 2'b11]      ) begin grant[(last+2) & 2'b11] <= 1; last <= (last+2) & 2'b11; end
+            else if (req[(last+3) & 2'b11]      ) begin grant[(last+3) & 2'b11] <= 1; last <= (last+3) & 2'b11; end
+            else if (req[last]                   ) begin grant[last] <= 1; end
+        end
+    end
+endmodule
+""",
+        "mutants": [
+            {
+                "name": "fixed_priority",
+                "code": """\
+module arbiter_rr (
+    input  wire       clk, rst_n,
+    input  wire [3:0] req,
+    output reg  [3:0] grant
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            grant <= 4'b0000;
+        end else begin
+            grant <= 4'b0000;
+            if      (req[0]) grant[0] <= 1;
+            else if (req[1]) grant[1] <= 1;
+            else if (req[2]) grant[2] <= 1;
+            else if (req[3]) grant[3] <= 1;
+        end
+    end
+endmodule
+""",
+                "bug_description": "fixed priority instead of round-robin — always grants bit 0 first",
+            },
+            {
+                "name": "grant_two_bits",
+                "code": """\
+module arbiter_rr (
+    input  wire       clk, rst_n,
+    input  wire [3:0] req,
+    output reg  [3:0] grant
+);
+    reg [1:0] last;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            grant <= 4'b0000;
+            last  <= 2'd3;
+        end else begin
+            grant <= 4'b0000;
+            if      (req[(last+1) & 2'b11]      ) begin grant[(last+1) & 2'b11] <= 1; grant[last] <= 1; last <= (last+1) & 2'b11; end
+            else if (req[(last+2) & 2'b11]      ) begin grant[(last+2) & 2'b11] <= 1; last <= (last+2) & 2'b11; end
+            else if (req[(last+3) & 2'b11]      ) begin grant[(last+3) & 2'b11] <= 1; last <= (last+3) & 2'b11; end
+            else if (req[last]                   ) begin grant[last] <= 1; end
+        end
+    end
+endmodule
+""",
+                "bug_description": "grants two bits simultaneously — also asserts grant[last] on round-robin",
+            },
+        ],
+        "solution_tb": """\
+module tb;
+    reg clk, rst_n;
+    reg [3:0] req;
+    wire [3:0] grant;
+    arbiter_rr uut (.clk(clk), .rst_n(rst_n), .req(req), .grant(grant));
+    always #5 clk = ~clk;
+    integer pass, fail;
+    task check_grant(input [3:0] exp);
+        @(posedge clk); #1;
+        if (grant === exp) begin pass=pass+1; end
+        else begin fail=fail+1; $display("FAIL: grant=%b expected %b", grant, exp); end
+    endtask
+    initial begin
+        pass = 0; fail = 0;
+        clk = 0; rst_n = 0; req = 0; #20;
+        rst_n = 1; @(posedge clk); #1;
+        req = 4'b1111;
+        check_grant(4'b0001);
+        check_grant(4'b0010);
+        check_grant(4'b0100);
+        check_grant(4'b1000);
+        check_grant(4'b0001);
+        req = 4'b0100;
+        check_grant(4'b0100);
+        req = 4'b1010;
+        check_grant(4'b1000);
+        check_grant(4'b0010);
+        if (fail === 0) $display("ALL_TESTS_PASS: %0d/%0d", pass, pass+fail);
+        else $display("TEST_FAIL: %0d/%0d", pass, pass+fail);
+        $finish;
+    end
+endmodule
+""",
+        "ports": "input clk, rst_n, [3:0] req; output [3:0] grant",
+        "description": "4-bit round-robin arbiter: rotates priority after each grant",
+        "mutant_description": "fixed priority or multiple grants simultaneously",
+    }
+
+
+def _template_edge_detector():
+    return {
+        "name": "edge_detector",
+        "difficulty": "easy",
+        "module_name": "edge_detect",
+        "golden": """\
+module edge_detect (
+    input  wire clk, rst_n, sig,
+    output wire rising,
+    output wire falling
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) sig_d <= 0;
+        else        sig_d <= sig;
+    assign rising  = sig & ~sig_d;
+    assign falling = ~sig & sig_d;
+endmodule
+""",
+        "mutants": [
+            {
+                "name": "rising_falling_swapped",
+                "code": """\
+module edge_detect (
+    input  wire clk, rst_n, sig,
+    output wire rising,
+    output wire falling
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) sig_d <= 0;
+        else        sig_d <= sig;
+    assign rising  = ~sig & sig_d;
+    assign falling = sig & ~sig_d;
+endmodule
+""",
+                "bug_description": "rising and falling outputs swapped",
+            },
+            {
+                "name": "registered_output",
+                "code": """\
+module edge_detect (
+    input  wire clk, rst_n, sig,
+    output reg  rising,
+    output reg  falling
+);
+    reg sig_d;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) begin sig_d <= 0; rising <= 0; falling <= 0; end
+        else begin
+            sig_d <= sig;
+            rising  <= sig & ~sig_d;
+            falling <= ~sig & sig_d;
+        end
+endmodule
+""",
+                "bug_description": "outputs registered (one-cycle delayed) instead of combinational",
+            },
+        ],
+        "solution_tb": """\
+module tb;
+    reg clk, rst_n, sig;
+    wire rising, falling;
+    edge_detect uut (.clk(clk), .rst_n(rst_n), .sig(sig), .rising(rising), .falling(falling));
+    always #5 clk = ~clk;
+    integer pass, fail;
+    initial begin
+        pass = 0; fail = 0;
+        clk = 0; rst_n = 0; sig = 0; #20;
+        rst_n = 1; @(posedge clk); #1;
+        sig = 1; #1;
+        if (rising === 1 && falling === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: rising edge: r=%b f=%b", rising, falling); end
+        @(posedge clk); #1;
+        if (rising === 0 && falling === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: steady high: r=%b f=%b", rising, falling); end
+        sig = 0; #1;
+        if (rising === 0 && falling === 1) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: falling edge: r=%b f=%b", rising, falling); end
+        @(posedge clk); #1;
+        if (rising === 0 && falling === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: steady low: r=%b f=%b", rising, falling); end
+        sig = 1; #1;
+        if (rising === 1 && falling === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: second rising edge: r=%b f=%b", rising, falling); end
+        if (fail === 0) $display("ALL_TESTS_PASS: %0d/%0d", pass, pass+fail);
+        else $display("TEST_FAIL: %0d/%0d", pass, pass+fail);
+        $finish;
+    end
+endmodule
+""",
+        "ports": "input clk, rst_n, sig; output rising, falling",
+        "description": "Rising/falling edge detector with combinational outputs",
+        "mutant_description": "edge polarity swapped or outputs delayed one cycle",
+    }
+
+
+def _template_valid_ready_fsm():
+    return {
+        "name": "valid_ready_fsm",
+        "difficulty": "medium",
+        "module_name": "vr_pipe",
+        "golden": """\
+module vr_pipe (
+    input  wire       clk, rst_n,
+    input  wire       valid_in,
+    input  wire       ready_out,
+    input  wire [7:0] data_in,
+    output reg        valid_out,
+    output reg        ready_in,
+    output reg [7:0]  data_out
+);
+    localparam S_IDLE=0, S_FULL=1;
+    reg state, next;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) state <= S_IDLE;
+        else        state <= next;
+    always @(*) begin
+        next = state;
+        valid_out = 0;
+        ready_in  = 0;
+        case (state)
+            S_IDLE: begin
+                ready_in = 1;
+                if (valid_in) next = S_FULL;
+            end
+            S_FULL: begin
+                valid_out = 1;
+                if (ready_out) next = S_IDLE;
+            end
+        endcase
+    end
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) data_out <= 8'd0;
+        else if (state == S_IDLE && valid_in) data_out <= data_in;
+endmodule
+""",
+        "mutants": [
+            {
+                "name": "ready_inverted",
+                "code": """\
+module vr_pipe (
+    input  wire       clk, rst_n,
+    input  wire       valid_in,
+    input  wire       ready_out,
+    input  wire [7:0] data_in,
+    output reg        valid_out,
+    output reg        ready_in,
+    output reg [7:0]  data_out
+);
+    localparam S_IDLE=0, S_FULL=1;
+    reg state, next;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) state <= S_IDLE;
+        else        state <= next;
+    always @(*) begin
+        next = state;
+        valid_out = 0;
+        ready_in  = 0;
+        case (state)
+            S_IDLE: begin
+                ready_in = 0;
+                if (valid_in) next = S_FULL;
+            end
+            S_FULL: begin
+                valid_out = 1;
+                if (ready_out) next = S_IDLE;
+            end
+        endcase
+    end
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) data_out <= 8'd0;
+        else if (state == S_IDLE && valid_in) data_out <= data_in;
+endmodule
+""",
+                "bug_description": "ready_in never asserted — upstream cannot send data",
+            },
+            {
+                "name": "data_not_latched",
+                "code": """\
+module vr_pipe (
+    input  wire       clk, rst_n,
+    input  wire       valid_in,
+    input  wire       ready_out,
+    input  wire [7:0] data_in,
+    output reg        valid_out,
+    output reg        ready_in,
+    output reg [7:0]  data_out
+);
+    localparam S_IDLE=0, S_FULL=1;
+    reg state, next;
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) state <= S_IDLE;
+        else        state <= next;
+    always @(*) begin
+        next = state;
+        valid_out = 0;
+        ready_in  = 0;
+        case (state)
+            S_IDLE: begin
+                ready_in = 1;
+                if (valid_in) next = S_FULL;
+            end
+            S_FULL: begin
+                valid_out = 1;
+                if (ready_out) next = S_IDLE;
+            end
+        endcase
+    end
+    always @(posedge clk or negedge rst_n)
+        if (!rst_n) data_out <= 8'd0;
+        else data_out <= 8'd0;
+endmodule
+""",
+                "bug_description": "data_out always zero — data never latched from data_in",
+            },
+        ],
+        "solution_tb": """\
+module tb;
+    reg clk, rst_n, valid_in, ready_out;
+    reg [7:0] data_in;
+    wire valid_out, ready_in;
+    wire [7:0] data_out;
+    vr_pipe uut (.clk(clk), .rst_n(rst_n), .valid_in(valid_in),
+        .ready_out(ready_out), .data_in(data_in),
+        .valid_out(valid_out), .ready_in(ready_in), .data_out(data_out));
+    always #5 clk = ~clk;
+    integer pass, fail;
+    initial begin
+        pass = 0; fail = 0;
+        clk = 0; rst_n = 0; valid_in = 0; ready_out = 0; data_in = 0; #20;
+        rst_n = 1; @(posedge clk); #1;
+        if (ready_in === 1 && valid_out === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: idle state"); end
+        data_in = 8'hAB; valid_in = 1; @(posedge clk); #1; valid_in = 0;
+        if (ready_in === 0 && valid_out === 1) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: pipe full"); end
+        if (data_out === 8'hAB) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: data expected AB, got %h", data_out); end
+        ready_out = 1; @(posedge clk); #1; ready_out = 0;
+        if (ready_in === 1 && valid_out === 0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: back to idle"); end
+        data_in = 8'h55; valid_in = 1; @(posedge clk); #1; valid_in = 0;
+        if (valid_out === 1 && data_out === 8'h55) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: second data expected 55, got %h", data_out); end
+        if (fail === 0) $display("ALL_TESTS_PASS: %0d/%0d", pass, pass+fail);
+        else $display("TEST_FAIL: %0d/%0d", pass, pass+fail);
+        $finish;
+    end
+endmodule
+""",
+        "ports": "input clk, rst_n, valid_in, ready_out, [7:0] data_in; output valid_out, ready_in, [7:0] data_out",
+        "description": "Valid/ready pipeline register: single-stage pipe with handshake",
+        "mutant_description": "ready never asserted or data not latched",
+    }
+
+
+def _template_fifo_status():
+    return {
+        "name": "fifo_status",
+        "difficulty": "easy",
+        "module_name": "fifo_status",
+        "golden": """\
+module fifo_status (
+    input  wire [3:0] count,
+    output wire empty,
+    output wire almost_full,
+    output wire full
+);
+    assign empty        = (count == 4'd0);
+    assign almost_full  = (count >= 4'd6);
+    assign full         = (count >= 4'd8);
+endmodule
+""",
+        "mutants": [
+            {
+                "name": "empty_inverted",
+                "code": """\
+module fifo_status (
+    input  wire [3:0] count,
+    output wire empty,
+    output wire almost_full,
+    output wire full
+);
+    assign empty        = (count != 4'd0);
+    assign almost_full  = (count >= 4'd6);
+    assign full         = (count >= 4'd8);
+endmodule
+""",
+                "bug_description": "empty inverted: asserts when FIFO has entries",
+            },
+            {
+                "name": "wrong_threshold",
+                "code": """\
+module fifo_status (
+    input  wire [3:0] count,
+    output wire empty,
+    output wire almost_full,
+    output wire full
+);
+    assign empty        = (count == 4'd0);
+    assign almost_full  = (count >= 4'd4);
+    assign full         = (count >= 4'd8);
+endmodule
+""",
+                "bug_description": "almost_full threshold at 4 instead of 6",
+            },
+        ],
+        "solution_tb": """\
+module tb;
+    reg [3:0] count;
+    wire empty, almost_full, full;
+    fifo_status uut (.count(count), .empty(empty), .almost_full(almost_full), .full(full));
+    integer pass, fail;
+    initial begin
+        pass = 0; fail = 0;
+        count = 4'd0; #10;
+        if (empty===1 && almost_full===0 && full===0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=0: e=%b af=%b f=%b", empty, almost_full, full); end
+        count = 4'd3; #10;
+        if (empty===0 && almost_full===0 && full===0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=3: e=%b af=%b f=%b", empty, almost_full, full); end
+        count = 4'd5; #10;
+        if (empty===0 && almost_full===0 && full===0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=5: e=%b af=%b f=%b", empty, almost_full, full); end
+        count = 4'd6; #10;
+        if (empty===0 && almost_full===1 && full===0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=6: e=%b af=%b f=%b", empty, almost_full, full); end
+        count = 4'd7; #10;
+        if (empty===0 && almost_full===1 && full===0) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=7: e=%b af=%b f=%b", empty, almost_full, full); end
+        count = 4'd8; #10;
+        if (empty===0 && almost_full===1 && full===1) begin pass=pass+1; end else begin fail=fail+1; $display("FAIL: count=8: e=%b af=%b f=%b", empty, almost_full, full); end
+        if (fail === 0) $display("ALL_TESTS_PASS: %0d/%0d", pass, pass+fail);
+        else $display("TEST_FAIL: %0d/%0d", pass, pass+fail);
+        $finish;
+    end
+endmodule
+""",
+        "ports": "input [3:0] count; output empty, almost_full, full",
+        "description": "FIFO status flags: empty, almost_full (>=6), full (>=8) for 8-deep FIFO",
+        "mutant_description": "empty polarity inverted or almost_full threshold wrong",
+    }
+
+
 # Registry of all design templates
 DESIGN_TEMPLATES = [
     _template_mux2,
@@ -520,7 +1066,15 @@ DESIGN_TEMPLATES = [
     _template_fsm,
     _template_handshake,
     _template_priority_encoder,
+    _template_pulse_detector,
+    _template_arbiter,
+    _template_edge_detector,
+    _template_valid_ready_fsm,
+    _template_fifo_status,
 ]
+
+# Number of generated tasks per batch (100 = 10 templates x 10 tasks each)
+GENERATED_TASK_COUNT = 100
 
 EXPECTED_TEMPLATE_NAMES = [fn()["name"] for fn in DESIGN_TEMPLATES]
 

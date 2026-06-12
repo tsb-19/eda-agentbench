@@ -5,7 +5,7 @@
 | Track | ID | Count | Tool(s) | Purpose | Scoring |
 |-------|----|-------|---------|---------|---------|
 | P1 RTL Debug | `p1_rtl_debug` | 1001 | VCS | Code repair using simulation feedback | Compile + public test + hidden test + explanation |
-| P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 21 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
+| P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 101 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | `p3_timing_report_qa` | 1000 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 10 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
@@ -82,7 +82,7 @@
 
 **Note**: Track ID was renamed from `p2_rtl_gen` to `p2_tb_sva_gen` in Phase 4E. Old metadata referencing `rtl_gen.RTLGenEvaluator` is still accepted via compatibility shim.
 
-**Validation**: Solution mode scores 1.00; buggy mode scores 0.20 for all 21 tasks.
+**Validation**: Solution mode scores 1.00; buggy mode scores 0.20 for all 101 tasks.
 
 ## P3: Timing Report QA
 

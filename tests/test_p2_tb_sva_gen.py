@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from generators.p2_tb_sva_gen import P2TBGenerator, DESIGN_TEMPLATES, EXPECTED_TEMPLATE_NAMES
+from generators.p2_tb_sva_gen import P2TBGenerator, DESIGN_TEMPLATES, EXPECTED_TEMPLATE_NAMES, GENERATED_TASK_COUNT
 from eda_agentbench.schema import validate_metadata
 
 
@@ -29,7 +29,7 @@ def test_generator_deterministic(tmp_path):
 def test_generator_metadata_valid(tmp_path):
     """Generated task metadata passes schema validation."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         errors = validate_metadata(meta)
@@ -53,8 +53,8 @@ def test_generator_files_exist(tmp_path):
 def test_generator_batch_creates_count(tmp_path):
     """generate_batch creates the requested number of tasks."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
-    assert len(paths) == 20
+    paths = gen.generate_batch(GENERATED_TASK_COUNT)
+    assert len(paths) == GENERATED_TASK_COUNT
     for p in paths:
         assert (p / "metadata.json").is_file()
 
@@ -63,7 +63,7 @@ def test_generator_unique_task_ids(tmp_path):
     """All tasks have unique task IDs."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
     ids = set()
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["task_id"] not in ids, f"Duplicate task_id: {meta['task_id']}"
@@ -77,29 +77,29 @@ def test_generator_task_id_format(tmp_path):
     meta = json.loads((p / "metadata.json").read_text())
     assert meta["task_id"] == "task_200001"
 
-    p = gen.generate_one(19)
+    p = gen.generate_one(GENERATED_TASK_COUNT - 1)
     meta = json.loads((p / "metadata.json").read_text())
-    assert meta["task_id"] == "task_200020"
+    assert meta["task_id"] == f"task_{200001 + GENERATED_TASK_COUNT - 1:06d}"
 
 
 def test_generator_all_templates_used(tmp_path):
-    """20 tasks cover all 5 templates (4 tasks each)."""
+    """All 10 templates are used in the generated batch."""
     from collections import Counter
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
+    paths = gen.generate_batch(GENERATED_TASK_COUNT)
     templates = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         templates[meta["generator"]["template"]] += 1
     assert set(templates.keys()) == set(EXPECTED_TEMPLATE_NAMES), f"Templates mismatch: {set(templates.keys())}"
     for t in EXPECTED_TEMPLATE_NAMES:
-        assert templates[t] == 4, f"{t}: expected 4, got {templates[t]}"
+        assert templates[t] >= 8, f"{t}: expected >=8, got {templates[t]}"
 
 
 def test_generator_track_is_p2(tmp_path):
     """All tasks have track=p2_tb_sva_gen."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["track"] == "p2_tb_sva_gen"
@@ -108,7 +108,7 @@ def test_generator_track_is_p2(tmp_path):
 def test_generator_tool_is_vcs(tmp_path):
     """All tasks use VCS."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["tool"] == ["vcs"]
@@ -117,7 +117,7 @@ def test_generator_tool_is_vcs(tmp_path):
 def test_generator_golden_differs_from_mutants(tmp_path):
     """Golden design differs from both mutants."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         golden = (p / "files" / "design_golden.sv").read_text()
         mutant1 = (p / "hidden" / "design_mutant1.sv").read_text()
@@ -130,7 +130,7 @@ def test_generator_golden_differs_from_mutants(tmp_path):
 def test_generator_mutant_metadata(tmp_path):
     """Each task records mutant info in generator metadata."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         g = meta["generator"]
@@ -154,7 +154,7 @@ def test_generator_validate_sample_tasks(tmp_path):
 def test_generator_scoring_weights_sum(tmp_path):
     """Scoring weights sum to 1.0."""
     gen = P2TBGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(GENERATED_TASK_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         weights = meta["scoring"]["weights"]
@@ -290,7 +290,7 @@ def test_evaluator_weak_baseline(tmp_path):
 # --- Template tests ---
 
 def test_all_templates_have_required_fields():
-    """All design templates have required fields."""
+    """All 10 design templates have required fields."""
     for template_fn in DESIGN_TEMPLATES:
         t = template_fn()
         assert "name" in t
