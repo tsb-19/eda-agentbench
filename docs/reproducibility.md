@@ -80,6 +80,7 @@ Smoke tests verify the end-to-end evaluation pipeline for each track:
 | `scripts/run_smoke.sh` | P1 RTL Debug: compile, public test, hidden test |
 | `scripts/run_spice_smoke.sh` | P4 HSPICE: tool run, metric extraction |
 | `scripts/run_spectre_smoke.sh` | P4 Spectre: tool run, metric extraction |
+| `scripts/run_pt_report_smoke.sh` | P3 PT Prototype: handcrafted task generation, validation, scoring (skips if PT unavailable) |
 | `scripts/evaluate_dataset_smoke.sh` | All tracks: solution and buggy mode on small subsets |
 
 Run all smoke tests:

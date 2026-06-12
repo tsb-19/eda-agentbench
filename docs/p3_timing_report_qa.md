@@ -71,6 +71,46 @@ Options:
 bash scripts/run_p3_smoke.sh
 ```
 
+## PrimeTime Prototype (Phase 5E)
+
+A small set of prototype tasks backed by real or handcrafted PrimeTime reports.
+Stored under `tasks/p3_timing_report_qa/pt_prototype/` (8 tasks, IDs 900000–900007).
+
+These tasks use the same schema, evaluator, and parser as synthetic P3 tasks.
+The difference is that reports include realistic PrimeTime informational lines
+and are sanitized via `LogSanitizer` before storage.
+
+### Generation
+
+```bash
+# Handcrafted (no PrimeTime required)
+python3 scripts/generate_pt_report_prototypes.py --mode handcrafted --seed 42
+
+# Real PrimeTime (requires pt_shell)
+python3 scripts/generate_pt_report_prototypes.py --mode real --seed 42
+```
+
+### Smoke Test
+
+```bash
+bash scripts/run_pt_report_smoke.sh
+```
+
+The smoke script checks PrimeTime availability and skips gracefully if unavailable.
+
+### Question Types Covered
+
+| Index | Scenario | Question Type |
+|-------|----------|---------------|
+| 900000 | Simple reg2reg setup path | wns |
+| 900001 | Multi-path, 3 violating | tns |
+| 900002 | Combinational in2reg path | worst_endpoint |
+| 900003 | Clock domain crossing | worst_startpoint |
+| 900004 | Hold violation path | violating_paths |
+| 900005 | Reg2out path group | path_group |
+| 900006 | Multi-clock design | clock_name |
+| 900007 | Deep combinational path | arrival_time |
+
 ## MVP Scope
 
 - No PrimeTime invocation (synthetic normalized reports only)

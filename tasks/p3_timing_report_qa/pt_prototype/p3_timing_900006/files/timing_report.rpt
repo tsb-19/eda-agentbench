@@ -1,0 +1,40 @@
+Information: Timer using 'POSIX' clock source. (TIM-211)
+
+**** Report : timing
+        -path_type full
+        -delay_type max
+        -max_paths 4
+
+Startpoint: u_mem/wr_addr_reg
+Endpoint: u_mem/rd_data_reg
+Path Group: mem_clk
+Clock: mem_clk
+----------------------------------------
+Slack:                     0.7195
+Arrival Time:              0.5980
+Required Time:             1.3175
+Data Type: setup
+
+Startpoint: u_cpu/exe_reg
+Endpoint: u_cpu/wb_reg
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                     0.2750
+Arrival Time:              0.5550
+Required Time:             0.8300
+Data Type: setup
+
+Startpoint: u_cpu/exe_reg
+Endpoint: u_mem/wr_data_reg
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                     0.8350
+Arrival Time:              0.4000
+Required Time:             1.2350
+Data Type: setup
+
+wns: 0.2750
+tns: 0.0000
+violating_path_count: 0
