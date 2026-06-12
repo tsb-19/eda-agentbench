@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.3-phase5f-2312`  
-**Total tasks:** 2312  
-**Tracks:** 5  
+**Tag:** `v0.3-phase6b-2363`  
+**Total tasks:** 2363  
+**Tracks:** 6  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -14,12 +14,14 @@
 | P3 Timing Report QA | 1008 |
 | P4 SPICE Sim | 102 |
 | P5 SPICE Deck Debug | 100 |
-| **Total** | **2312** |
+| P6 DC Synthesis QA | 51 |
+| **Total** | **2363** |
 
 ## Tool Distribution
 
 | Tool | Task Count |
 |------|----------:|
+| dc | 51 |
 | hspice | 151 |
 | pt | 1008 |
 | spectre | 51 |
@@ -29,9 +31,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1068 |
-| hard | 400 |
-| medium | 844 |
+| easy | 1094 |
+| hard | 405 |
+| medium | 864 |
 
 ## Data Type Distribution
 
@@ -39,7 +41,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1110 |
+| template_synthetic | 1161 |
 
 ## Scoring Methodology
 
@@ -54,6 +56,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P3 Timing Report QA | `answer_match:1.0` |
 | P4 SPICE Sim | `explanation:0.1|hidden_metric:0.2|output_generated:0.2|public_metric:0.2|tool_run:0.3` |
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
+| P6 DC Synthesis QA | `answer_match:1.0` |
 
 ## Public / Private Split
 
@@ -94,10 +97,11 @@ P5 tasks are flow_synthetic — they originate from real HSPICE error logs.
 
 ## Validation Status
 
-- **pytest:** 189/189 passing
-- **Smoke scripts:** all 5 tracks pass end-to-end smoke tests
+- **pytest:** 265/265 passing
+- **Smoke scripts:** all 6 tracks pass end-to-end smoke tests
 - **Sampled evaluation:** fast eval (5 tasks/track) passes for solution mode
 - **P5 full batch:** 100/100 solution tasks score 1.0; 100/100 buggy tasks score < 1.0
+- **P6 prototype:** 51 tasks, all solution mode pass, DC detected on system
 
 ## Known Limitations
 
@@ -106,7 +110,7 @@ P5 tasks are flow_synthetic — they originate from real HSPICE error logs.
 - P4 tasks are RC-filter circuits only; no complex analog designs
 - P5 is limited to 100 tasks (imported from external bundle)
 - P3 synthetic reports are template-based, not from real synthesis runs
-- No P6 (lint) or P7 (physical) tracks yet
+- P6 DC Synthesis QA is a prototype (51 tasks); P7 (physical) not yet started
 
 ## Generated Artifacts
 

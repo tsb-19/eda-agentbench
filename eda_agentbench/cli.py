@@ -190,8 +190,10 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         raise RuntimeError(f"Anti-cheat fail: submission contains forbidden files: {violations}")
 
     is_p3 = meta.get("track") == "p3_timing_report_qa"
+    is_p6 = meta.get("track") == "p6_dc_synthesis_qa"
+    is_report_qa = is_p3 or is_p6
 
-    # Detect tools (skip for P3 QA tasks which don't need EDA tools)
+    # Detect tools (skip for report QA tasks which don't need EDA tools)
     detector = ToolEnvironmentDetector()
     required_tools = meta["tool"]
     detected = []
@@ -199,7 +201,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         t = detector.detect_one(tool_name)
         if t and t.available:
             detected.append(t)
-        elif not is_p3:
+        elif not is_report_qa:
             raise RuntimeError(f"Required tool '{tool_name}' not available")
 
     env_shim = EnvShim(detected)
@@ -265,9 +267,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             raw_hid_log = ""
             san_pub_log = sanitizer.sanitize(run_log)
             san_hid_log = ""
-        elif is_p3:
-            # P3: no tool execution needed, just evaluate answer file
-            raw_pub_log = "P3 QA task - no tool execution"
+        elif is_p3 or is_p6:
+            # P3/P6: no tool execution needed, just evaluate answer file
+            raw_pub_log = f"{meta['track']} QA task - no tool execution"
             raw_hid_log = ""
             san_pub_log = raw_pub_log
             san_hid_log = ""
@@ -302,6 +304,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "timing_report_qa.TimingReportQAEvaluator":
             from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
             evaluator = TimingReportQAEvaluator(task_path, meta)
+        elif evaluator_spec == "dc_synthesis_qa.DCSynthesisQAEvaluator":
+            from eda_agentbench.evaluator.dc_synthesis_qa import DCSynthesisQAEvaluator
+            evaluator = DCSynthesisQAEvaluator(task_path, meta)
         elif evaluator_spec in ("tb_sva_gen.TBSVAGenEvaluator", "rtl_gen.RTLGenEvaluator"):
             from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
             evaluator = TBSVAGenEvaluator(task_path, meta)
@@ -475,6 +480,7 @@ def cmd_evaluate_dataset(args) -> None:
         # Determine submission path
         is_p5 = meta.get("track") == "p5_spice_deck_debug"
         is_p3 = meta.get("track") == "p3_timing_report_qa"
+        is_p6 = meta.get("track") == "p6_dc_synthesis_qa"
         if submission_mode == "solution":
             if is_p5:
                 # P5: solution is hidden/ (the fixed deck)
@@ -494,8 +500,8 @@ def cmd_evaluate_dataset(args) -> None:
         else:
             # Buggy mode: create temp dir with wrong answer
             buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
-            if is_p3:
-                # P3: write a deliberately wrong answer
+            if is_p3 or is_p6:
+                # P3/P6: write a deliberately wrong answer
                 (buggy_dir / "answer.txt").write_text("WRONG_ANSWER\n")
             else:
                 editable_files = meta["files"]["editable"]

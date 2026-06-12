@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 5F — P5 scaled to 100
+**Phase**: 6B — P6 DC Synthesis QA prototype
 
 ## Task Inventory
 
@@ -11,7 +11,8 @@
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
-| **Total** | **2312** | | |
+| P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
+| **Total** | **2363** | | |
 
 ## P1 Bug Type Distribution
 
@@ -66,6 +67,17 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 ## P5 Error Category Distribution
 
+## P6 DC Synthesis QA (Prototype)
+
+51 tasks (1 smoke + 50 generated). Parser-based QA on synthetic DC synthesis reports:
+- Agent answers questions about synthesis report fields (area, cell count, timing, etc.)
+- 10 question types with round-robin distribution (5 each)
+- 50 module names, 30 clock names
+- Scoring: answer_match (1.0)
+- No real DC tool required (synthetic reports)
+- Full solution evaluation: 51/51 = 1.00
+- DC detected on system: YES
+
 | Category | Count |
 |----------|-------|
 | missing_model | 15 |
@@ -80,7 +92,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 189 | All passing |
+| pytest tests | 265 | All passing |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |
@@ -92,8 +104,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2312/2312 | 1.00 | N/A |
-| Buggy | 2312/2312 | < 1.00 | 2312/2312 |
+| Solution | 2363/2363 | 1.00 | N/A |
+| Buggy | 2363/2363 | < 1.00 | 2363/2363 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -131,8 +143,9 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
 3. P2 naming was cleaned up in Phase 4E: `p2_tb_sva_gen` track, `tb_sva_gen.TBSVAGenEvaluator`.
 4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
-5. No P6 lint track (no SpyGlass tasks).
-6. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
+5. P6 DC Synthesis QA is a prototype (51 tasks); not yet scaled.
+6. No P6 lint track (no SpyGlass tasks).
+7. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
 7. P4 is RC-filter only (single circuit topology).
 8. P5 has 100 tasks (execution-validated, 7 error categories).
 9. No `generate` CLI command (generation requires running Python scripts directly).
@@ -150,3 +163,4 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 - **Phase 5B**: P2 scale to 101 — DONE
 - **Phase 5E**: PT prototype (8 tasks) — DONE
 - **Phase 5F**: P5 scale to 100 — DONE
+- **Phase 6B**: P6 DC Synthesis QA prototype (51 tasks) — DONE

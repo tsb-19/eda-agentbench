@@ -1,0 +1,50 @@
+{
+  "task_id": "p6_dc_syn_000004",
+  "track": "p6_dc_synthesis_qa",
+  "tool": [
+    "dc"
+  ],
+  "difficulty": "easy",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 5,
+  "max_patch_attempts": 1,
+  "max_output_tokens": 4000,
+  "files": {
+    "visible": [
+      "synthesis_report.rpt",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "synthesis_report.rpt"
+    ]
+  },
+  "run_command": "echo 'P6 QA task - no tool execution needed'",
+  "scoring": {
+    "weights": {
+      "answer_match": 1.0
+    },
+    "evaluator": "dc_synthesis_qa.DCSynthesisQAEvaluator"
+  },
+  "answer": {
+    "type": "numeric",
+    "expected": "22559",
+    "tolerance": 0.0,
+    "question_type": "cell_count"
+  },
+  "generator": {
+    "script": "p6_dc_synthesis_qa_gen.py",
+    "seed": 42,
+    "question_type": "cell_count",
+    "task_index": 3,
+    "internal_index": 4,
+    "top_module": "fft_engine",
+    "clock_name": "cpu_clk"
+  },
+  "version": "1.0.0"
+}

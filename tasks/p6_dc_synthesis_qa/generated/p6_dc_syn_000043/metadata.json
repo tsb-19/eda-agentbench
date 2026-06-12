@@ -1,0 +1,50 @@
+{
+  "task_id": "p6_dc_syn_000043",
+  "track": "p6_dc_synthesis_qa",
+  "tool": [
+    "dc"
+  ],
+  "difficulty": "medium",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 5,
+  "max_patch_attempts": 1,
+  "max_output_tokens": 4000,
+  "files": {
+    "visible": [
+      "synthesis_report.rpt",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "synthesis_report.rpt"
+    ]
+  },
+  "run_command": "echo 'P6 QA task - no tool execution needed'",
+  "scoring": {
+    "weights": {
+      "answer_match": 1.0
+    },
+    "evaluator": "dc_synthesis_qa.DCSynthesisQAEvaluator"
+  },
+  "answer": {
+    "type": "numeric",
+    "expected": "153056.72",
+    "tolerance": 0.01,
+    "question_type": "sequential_area"
+  },
+  "generator": {
+    "script": "p6_dc_synthesis_qa_gen.py",
+    "seed": 42,
+    "question_type": "sequential_area",
+    "task_index": 42,
+    "internal_index": 43,
+    "top_module": "ecc_encoder",
+    "clock_name": "clk_core"
+  },
+  "version": "1.0.0"
+}

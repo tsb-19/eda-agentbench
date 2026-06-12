@@ -11,9 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 5F — P5 scaled to 100)
+## Current Status (Phase 6B — P6 DC Synthesis QA prototype)
 
-Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
+Phase 6B added P6 DC Synthesis QA prototype. 2363 total tasks across 6 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
@@ -22,12 +22,14 @@ Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
+| P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
 
 Key results:
-- pytest: 189/189 pass
-- Solution mode: 2312/2312 = 1.00
-- Buggy mode: 2312/2312 all < 1.0
+- pytest: 265/265 pass
+- Solution mode: 2363/2363 = 1.00
+- Buggy mode: 2363/2363 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
+- P6 is parser-based QA, no DC execution required
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
 P2 scaled to 101 tasks (10 templates, 20 mutant variants) in Phase 5B.
