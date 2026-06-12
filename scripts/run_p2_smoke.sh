@@ -29,14 +29,14 @@ pip install -e . 2>&1 | tail -3
 echo ""
 
 echo "=== Step 2: Validate task ==="
-VALIDATE_OUT=$(eda-bench validate-task tasks/p2_rtl_gen/smoke/task_200000 2>&1)
+VALIDATE_OUT=$(eda-bench validate-task tasks/p2_tb_sva_gen/smoke/task_200000 2>&1)
 echo "$VALIDATE_OUT"
 echo "$VALIDATE_OUT" | grep -q "VALID" && check "Task validation" "PASS" || check "Task validation" "FAIL"
 echo ""
 
 echo "=== Step 3: Evaluate with correct solution ==="
-eda-bench evaluate-task tasks/p2_rtl_gen/smoke/task_200000 \
-    --submission tasks/p2_rtl_gen/smoke/task_200000/solution 2>&1
+eda-bench evaluate-task tasks/p2_tb_sva_gen/smoke/task_200000 \
+    --submission tasks/p2_tb_sva_gen/smoke/task_200000/solution 2>&1
 
 SOLUTION_SCORE=$(ls -t runs/task_200000/*/score.json 2>/dev/null | head -1)
 SOLUTION_TOTAL=$(python3 -c "import json; d=json.load(open('$SOLUTION_SCORE')); print(d['total_score'])")
@@ -57,8 +57,8 @@ assert comps.get('mutant_2', 0) == 1.0, f'mutant_2: {comps.get(\"mutant_2\")}'
 echo ""
 
 echo "=== Step 4: Evaluate with buggy (empty) submission ==="
-eda-bench evaluate-task tasks/p2_rtl_gen/smoke/task_200000 \
-    --submission tasks/p2_rtl_gen/smoke/task_200000/buggy_submission 2>&1
+eda-bench evaluate-task tasks/p2_tb_sva_gen/smoke/task_200000 \
+    --submission tasks/p2_tb_sva_gen/smoke/task_200000/buggy_submission 2>&1
 
 BUGGY_SCORE=$(ls -t runs/task_200000/*/score.json 2>/dev/null | head -1)
 BUGGY_TOTAL=$(python3 -c "import json; d=json.load(open('$BUGGY_SCORE')); print(d['total_score'])")
@@ -74,8 +74,8 @@ assert ts < 1.0, f'Expected < 1.0, got {ts}'
 echo ""
 
 echo "=== Step 5: Anti-cheat check ==="
-AC_OUT=$(eda-bench evaluate-task tasks/p2_rtl_gen/smoke/task_200000 \
-    --submission tasks/p2_rtl_gen/smoke/task_200000/files 2>&1 || true)
+AC_OUT=$(eda-bench evaluate-task tasks/p2_tb_sva_gen/smoke/task_200000 \
+    --submission tasks/p2_tb_sva_gen/smoke/task_200000/files 2>&1 || true)
 echo "$AC_OUT" | grep -q "ANTI-CHEAT FAIL" && check "Forbidden file submission blocked" "PASS" || check "Forbidden file submission blocked" "FAIL"
 
 echo ""

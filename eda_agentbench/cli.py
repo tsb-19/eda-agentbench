@@ -296,9 +296,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "timing_report_qa.TimingReportQAEvaluator":
             from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
             evaluator = TimingReportQAEvaluator(task_path, meta)
-        elif evaluator_spec == "rtl_gen.RTLGenEvaluator":
-            from eda_agentbench.evaluator.rtl_gen import RTLGenEvaluator
-            evaluator = RTLGenEvaluator(task_path, meta)
+        elif evaluator_spec in ("tb_sva_gen.TBSVAGenEvaluator", "rtl_gen.RTLGenEvaluator"):
+            from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
+            evaluator = TBSVAGenEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
@@ -314,7 +314,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             "hidden_metric": raw_hid_log,
         }
         # P2 TB/SVA: extract per-section logs from hidden log
-        if meta.get("track") == "p2_rtl_gen":
+        if meta.get("track") in ("p2_rtl_gen", "p2_tb_sva_gen"):
             sections = _extract_p2_log_sections(raw_hid_log)
             log_map["golden_pass"] = raw_pub_log
             log_map["mutant_1"] = sections.get("mutant_1", raw_hid_log)

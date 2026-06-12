@@ -80,14 +80,14 @@ python3 scripts/generate_p2_tasks.py --count 20 --seed 42
 bash scripts/run_p2_smoke.sh
 
 # Validate a task
-eda-bench validate-task tasks/p2_rtl_gen/smoke/task_200000
+eda-bench validate-task tasks/p2_tb_sva_gen/smoke/task_200000
 
 # Evaluate with solution
-eda-bench evaluate-task tasks/p2_rtl_gen/smoke/task_200000 \
-    --submission tasks/p2_rtl_gen/smoke/task_200000/solution
+eda-bench evaluate-task tasks/p2_tb_sva_gen/smoke/task_200000 \
+    --submission tasks/p2_tb_sva_gen/smoke/task_200000/solution
 
 # Evaluate dataset
-eda-bench evaluate-dataset tasks --submission-mode solution --track p2_rtl_gen
+eda-bench evaluate-dataset tasks --submission-mode solution --track p2_tb_sva_gen
 ```
 
 ## Testbench Requirements

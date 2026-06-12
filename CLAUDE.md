@@ -29,7 +29,7 @@ Key results:
 - Buggy mode: 1235/1235 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
-Known naming issue: P2 track is `p2_rtl_gen` in code but semantics are testbench/SVA generation.
+P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
 
 ## Available EDA Tool Roots
 

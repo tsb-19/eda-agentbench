@@ -634,7 +634,7 @@ Your testbench should:
         mutant_weight = round(0.4 / n_mutants, 4)
         meta = {
             "task_id": task_id,
-            "track": "p2_rtl_gen",
+            "track": "p2_tb_sva_gen",
             "tool": ["vcs"],
             "difficulty": template["difficulty"],
             "data_type": "mutation_synthetic",
@@ -658,7 +658,7 @@ Your testbench should:
                     "mutant_1": mutant_weight,
                     "mutant_2": mutant_weight,
                 },
-                "evaluator": "rtl_gen.RTLGenEvaluator",
+                "evaluator": "tb_sva_gen.TBSVAGenEvaluator",
                 "explanation_weight": 0.0,
             },
             "sanitizer": {"enabled": True},

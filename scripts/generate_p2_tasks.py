@@ -13,7 +13,7 @@ def main():
     parser = argparse.ArgumentParser(description="Generate P2 TB/SVA Generation tasks")
     parser.add_argument("--count", type=int, default=20)
     parser.add_argument("--seed", type=int, default=42)
-    parser.add_argument("--output-dir", default="tasks/p2_rtl_gen/generated")
+    parser.add_argument("--output-dir", default="tasks/p2_tb_sva_gen/generated")
     args = parser.parse_args()
 
     out = Path(args.output_dir)

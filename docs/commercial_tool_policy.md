@@ -16,7 +16,7 @@ EDA-AgentBench is designed exclusively for commercial EDA tools. It does not use
 
 | Tool | Vendor | Planned Track |
 |------|--------|---------------|
-| Xcelium | Cadence | P2 RTL Generation |
+| Xcelium | Cadence | P2 Testbench/SVA Generation |
 | Design Compiler | Synopsys | P3 Timing Report QA |
 | PrimeTime | Synopsys | P3 Timing Report QA |
 | SpyGlass | Synopsys | P6 Lint |

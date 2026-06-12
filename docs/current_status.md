@@ -113,7 +113,7 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 
 1. No agentic runner (submission/workspace mode only; agent cannot run tools during evaluation).
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
-3. P2 track name is `p2_rtl_gen` in code but semantics are testbench/SVA generation (naming drift).
+3. P2 naming was cleaned up in Phase 4E: `p2_tb_sva_gen` track, `tb_sva_gen.TBSVAGenEvaluator`.
 4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
 5. No P6 lint track (no SpyGlass tasks).
 6. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).

@@ -15,7 +15,7 @@ Unique identifier for the task. Six digits, zero-padded.
 ### track
 
 - Type: `string`
-- Allowed values: `p1_rtl_debug`, `p2_rtl_gen`, `p3_log_diagnosis`, `p4_spice_sim`, `p5_timing`, `p6_lint`, `p7_physical`
+- Allowed values: `p1_rtl_debug`, `p2_rtl_gen`, `p2_tb_sva_gen`, `p3_timing_report_qa`, `p4_spice_sim`, `p5_spice_deck_debug`, `p6_lint`, `p7_physical`
 
 The benchmark track this task belongs to.
 

@@ -15,7 +15,7 @@ METADATA_SCHEMA = {
         "task_id": {"type": "string", "pattern": "^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6})$"},
         "track": {
             "type": "string",
-            "enum": ["p1_rtl_debug", "p2_rtl_gen", "p3_timing_report_qa",
+            "enum": ["p1_rtl_debug", "p2_rtl_gen", "p2_tb_sva_gen", "p3_timing_report_qa",
                       "p4_spice_sim", "p5_spice_deck_debug", "p6_lint", "p7_physical"],
         },
         "tool": {

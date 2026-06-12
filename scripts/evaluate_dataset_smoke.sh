@@ -19,7 +19,7 @@ check_pass() {
 }
 
 # --- Per-track solution mode (single task each) ---
-for TRACK_DIR in tasks/p1_rtl_debug tasks/p2_rtl_gen tasks/p4_spice_sim tasks/p5_spice_deck_debug; do
+for TRACK_DIR in tasks/p1_rtl_debug tasks/p2_tb_sva_gen tasks/p4_spice_sim tasks/p5_spice_deck_debug; do
     TRACK=$(basename "$TRACK_DIR")
     echo ""
     echo "--- $TRACK solution mode (single task) ---"
