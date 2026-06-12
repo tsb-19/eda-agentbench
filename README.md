@@ -110,6 +110,24 @@ eda-bench evaluate-dataset tasks --submission-mode buggy
 eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
 ```
 
+### Fast Sampled Evaluation
+
+For quick integration checks (runs in ~2 minutes instead of ~50 minutes):
+
+```bash
+# Sample 1 task per track (covers all 5 tracks)
+eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
+eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode buggy
+
+# Evaluate at most 10 tasks total
+eda-bench evaluate-dataset tasks --limit 10 --seed 42 --submission-mode solution
+
+# Full integration smoke (solution + buggy sampled)
+bash scripts/evaluate_dataset_fast.sh
+```
+
+**Warning:** Sampled evaluation is not a substitute for full evaluation. Use it for fast iteration during development; run full evaluation before final validation.
+
 ### Report
 
 ```bash

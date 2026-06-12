@@ -74,7 +74,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 180 | All passing |
+| pytest tests | 189 | All passing |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |

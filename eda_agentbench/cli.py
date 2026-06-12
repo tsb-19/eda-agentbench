@@ -44,6 +44,12 @@ def main(argv: list[str] | None = None) -> None:
     p_ds.add_argument("--track", default=None, help="Filter by track (e.g., p1_rtl_debug)")
     p_ds.add_argument("--timeout", type=int, default=None, help="Override timeout per task")
     p_ds.add_argument("--run-id", default=None, help="Custom run ID (default: dataset_<timestamp>)")
+    p_ds.add_argument("--limit", type=int, default=None,
+                       help="Evaluate at most N tasks total")
+    p_ds.add_argument("--sample-per-track", type=int, default=None,
+                       help="Evaluate at most N tasks per track")
+    p_ds.add_argument("--seed", type=int, default=42,
+                       help="Deterministic sampling seed (default: 42)")
 
     # report
     p_rep = sub.add_parser("report", help="Generate report from evaluation results")
@@ -367,6 +373,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
 
 
 def cmd_evaluate_dataset(args) -> None:
+    import random
     from eda_agentbench.task.loader import TaskLoader, TaskValidationError
 
     tasks_root = Path(args.tasks_root).resolve()
@@ -377,6 +384,9 @@ def cmd_evaluate_dataset(args) -> None:
     submission_mode = args.submission_mode
     track_filter = args.track
     timeout_override = args.timeout
+    limit = args.limit
+    sample_per_track = args.sample_per_track
+    seed = args.seed
     run_id = args.run_id or f"dataset_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
     dataset_runs_root = RUNS_ROOT / run_id
 
@@ -387,12 +397,61 @@ def cmd_evaluate_dataset(args) -> None:
         print(f"ERROR: No tasks found under {tasks_root}", file=sys.stderr)
         sys.exit(1)
 
+    total_candidates = len(task_paths)
+
+    # Apply sampling if requested
+    sampled = sample_per_track is not None or limit is not None
+    selected_task_ids: list[str] = []
+
+    if sample_per_track is not None:
+        # Group by track, sample N per track
+        by_track: dict[str, list[Path]] = {}
+        for tp in task_paths:
+            try:
+                meta = loader.load(tp)
+                track = meta.get("track", "unknown")
+            except TaskValidationError:
+                track = "unknown"
+            by_track.setdefault(track, []).append(tp)
+
+        rng = random.Random(seed)
+        sampled_paths: list[Path] = []
+        for track in sorted(by_track):
+            candidates = by_track[track]
+            n = min(sample_per_track, len(candidates))
+            selected = rng.sample(candidates, n)
+            sampled_paths.extend(selected)
+        task_paths = sampled_paths
+    elif limit is not None:
+        # Global limit with deterministic shuffle
+        rng = random.Random(seed)
+        shuffled = list(task_paths)
+        rng.shuffle(shuffled)
+        task_paths = shuffled[:limit]
+
+    # Collect selected task IDs for report
+    for tp in task_paths:
+        try:
+            meta = loader.load(tp)
+            selected_task_ids.append(meta.get("task_id", tp.name))
+        except TaskValidationError:
+            selected_task_ids.append(tp.name)
+
     print(f"=== Dataset Evaluation ===")
     print(f"  Tasks root:      {tasks_root}")
     print(f"  Submission mode: {submission_mode}")
     print(f"  Track filter:    {track_filter or 'all'}")
     print(f"  Run ID:          {run_id}")
-    print(f"  Tasks found:     {len(task_paths)}")
+    print(f"  Total candidates: {total_candidates}")
+    if sampled:
+        print(f"  Sampled:         YES (seed={seed})")
+        if sample_per_track is not None:
+            print(f"  Sample per track: {sample_per_track}")
+        if limit is not None:
+            print(f"  Limit:           {limit}")
+    else:
+        print(f"  Sampled:         NO (full evaluation)")
+    print(f"  Tasks selected:  {len(task_paths)}")
     print()
 
     results: list[dict] = []
@@ -492,7 +551,13 @@ def cmd_evaluate_dataset(args) -> None:
                 shutil.rmtree(submission_path, ignore_errors=True)
 
     # Write summary
-    summary = _build_dataset_summary(results, run_id, submission_mode, track_filter)
+    summary = _build_dataset_summary(
+        results, run_id, submission_mode, track_filter,
+        sampled=sampled, sample_per_track=sample_per_track,
+        limit=limit, seed=seed,
+        total_candidates=total_candidates,
+        selected_task_ids=selected_task_ids,
+    )
     summary_path = dataset_runs_root / "summary.json"
     summary_path.parent.mkdir(parents=True, exist_ok=True)
     summary_path.write_text(json.dumps(summary, indent=2))
@@ -506,11 +571,17 @@ def cmd_evaluate_dataset(args) -> None:
     print(f"  Errors:      {summary['errors']}")
     print(f"  Avg score:   {summary['avg_score']:.4f}")
     print(f"  Avg obj:     {summary['avg_objective']:.4f}")
+    if summary.get("sampled"):
+        print(f"  Sampled:     YES (seed={summary.get('seed')})")
     print(f"\nSummary written to: {summary_path}")
 
 
 def _build_dataset_summary(results: list[dict], run_id: str, submission_mode: str,
-                            track_filter: str | None) -> dict:
+                            track_filter: str | None, *,
+                            sampled: bool = False, sample_per_track: int | None = None,
+                            limit: int | None = None, seed: int = 42,
+                            total_candidates: int = 0,
+                            selected_task_ids: list[str] | None = None) -> dict:
     """Build a dataset summary dict from per-task results."""
     evaluated = [r for r in results if r["status"] in ("pass", "fail")]
     passed = [r for r in results if r["status"] == "pass"]
@@ -604,6 +675,13 @@ def _build_dataset_summary(results: list[dict], run_id: str, submission_mode: st
              "reason": r.get("reason", "")}
             for r in failed + errors
         ],
+        "sampled": sampled,
+        "sample_per_track": sample_per_track,
+        "limit": limit,
+        "seed": seed if sampled else None,
+        "total_candidates": total_candidates,
+        "selected_task_count": len(results),
+        "selected_task_ids": selected_task_ids if sampled else None,
         "results": results,
     }
 

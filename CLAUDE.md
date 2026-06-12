@@ -24,7 +24,7 @@ Phase 4D integration audit complete. 1235 total tasks across 5 tracks:
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
 
 Key results:
-- pytest: 180/180 pass
+- pytest: 189/189 pass
 - Solution mode: 1235/1235 = 1.00
 - Buggy mode: 1235/1235 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
@@ -357,4 +357,5 @@ All first-milestone items are complete:
 * benchmark summary report script
 * prompt diversification infrastructure
 * P5 SPICE Deck Debug (imported)
+* sampled evaluation mode (--sample-per-track, --limit, --seed)
 

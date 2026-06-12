@@ -96,9 +96,26 @@ bash scripts/evaluate_dataset_smoke.sh
 | Script | Purpose |
 |--------|---------|
 | `scripts/evaluate_dataset_smoke.sh` | Quick smoke across all tracks (small subset) |
+| `scripts/evaluate_dataset_fast.sh` | Fast sampled evaluation (all tracks, ~2 min) |
 | `scripts/evaluate_p1_generated.sh` | Full P1 generated task evaluation |
 | `scripts/evaluate_p5_spice_deck_debug.sh` | Full P5 evaluation |
 | `scripts/evaluate_large_dataset.sh` | Full dataset evaluation (all tracks) |
+
+## Sampled Evaluation
+
+For fast integration checks, the CLI supports sampled evaluation:
+
+```bash
+# Sample N tasks per track (deterministic with seed)
+eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
+
+# Evaluate at most N tasks total
+eda-bench evaluate-dataset tasks --limit 10 --seed 42 --submission-mode solution
+```
+
+Sampled evaluation is deterministic: the same seed and task tree always produce the same selection. The summary JSON includes `sampled: true`, `seed`, `total_candidates`, and `selected_task_ids` for transparency.
+
+**Warning:** Sampled evaluation is not a substitute for full evaluation. Use it for fast iteration during development; run full evaluation before final validation.
 
 ## Anti-Cheat Verification
 
