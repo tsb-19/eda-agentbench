@@ -6,7 +6,7 @@
 |-------|----|-------|---------|---------|---------|
 | P1 RTL Debug | `p1_rtl_debug` | 1001 | VCS | Code repair using simulation feedback | Compile + public test + hidden test + explanation |
 | P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 101 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
-| P3 Timing Report QA | `p3_timing_report_qa` | 1000 | pt (synthetic) | Timing report field extraction and QA | Answer match |
+| P3 Timing Report QA | `p3_timing_report_qa` | 1008 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 10 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
 

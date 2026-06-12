@@ -10,10 +10,10 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 |-------|-------|---------|-----------|----------------|
 | P1 RTL Debug | 1001 | VCS | mutation_synthetic | compile + public test + hidden test + explanation |
 | P2 Testbench/SVA Gen | 101 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
-| P3 Timing Report QA | 1000 | pt (synthetic) | template_synthetic | answer_match |
+| P3 Timing Report QA | 1008 | pt (synthetic) | template_synthetic | answer_match |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 10 | HSPICE | mutation_synthetic | execution-based (exit code + no fatal errors) + explanation |
-| **Total** | **2214** | | | |
+| **Total** | **2222** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -43,9 +43,9 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 - Agent writes a testbench that passes on golden design and catches both mutants
 - Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
 
-### P3 Timing Report QA (1000 tasks)
+### P3 Timing Report QA (1008 tasks)
 
-- 1 smoke task + 999 generated tasks
+- 1 smoke task + 999 generated tasks + 8 PT prototype tasks
 - Data type: `template_synthetic` (synthetic normalized timing reports)
 - Agent answers questions about timing report fields (WNS, TNS, slack, etc.)
 - 10 question types with round-robin distribution (99–100 each)
@@ -89,8 +89,8 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2214/2214 | 1.00 | N/A |
-| Buggy | 2214/2214 | < 1.00 | 2214/2214 |
+| Solution | 2222/2222 | 1.00 | N/A |
+| Buggy | 2222/2222 | < 1.00 | 2222/2222 |
 
 ## Test Suite
 

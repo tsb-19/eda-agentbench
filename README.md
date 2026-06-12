@@ -12,20 +12,20 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (Phase 5B — P2/P3 scaled)
+## Current Coverage (Phase 5E — P2/P3 scaled + PT prototype)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
 | P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
 | P2 Testbench/SVA Gen | 101 | VCS | Write testbenches that catch RTL mutants |
-| P3 Timing Report QA | 1000 | pt (synthetic) | Answer questions about timing reports |
+| P3 Timing Report QA | 1008 | pt (synthetic) | Answer questions about timing reports |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | Fix RC filter rise/fall time |
 | P5 SPICE Deck Debug | 10 | HSPICE | Fix broken SPICE simulation decks |
-| **Total** | **2214** | | |
+| **Total** | **2222** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
 - 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
-- 1000 P3 tasks: 1 smoke + 999 generated (30 clocks, 15 path groups, 10 question types)
+- 1008 P3 tasks: 1 smoke + 999 synthetic + 8 PT prototype (30 clocks, 15 path groups, 10 question types)
 - 102 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 100 generated (50 HSPICE, 50 Spectre)
 - 10 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
 
@@ -139,8 +139,8 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | Mode | Tasks | Avg Score | Notes |
 |------|-------|-----------|-------|
-| Solution | 2214/2214 | 1.00 | Correct answer always scores perfect |
-| Buggy | 2214/2214 | < 1.00 | Buggy baseline always scores < 1.00 |
+| Solution | 2222/2222 | 1.00 | Correct answer always scores perfect |
+| Buggy | 2222/2222 | < 1.00 | Buggy baseline always scores < 1.00 |
 
 ## Task Structure
 

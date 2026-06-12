@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 5B — P2 scaled to 101, P3 scaled to 1000
+**Phase**: 5E — P2 scaled to 101, P3 scaled to 1008 (1000 synthetic + 8 PT prototype)
 
 ## Task Inventory
 
@@ -8,10 +8,10 @@
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated |
-| P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
+| P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **2214** | | |
+| **Total** | **2222** | | |
 
 ## P1 Bug Type Distribution
 
@@ -40,14 +40,15 @@
 
 ## P3 Timing Report QA
 
-1000 tasks (1 smoke + 999 generated). Synthetic normalized reports:
+1008 tasks (1 smoke + 999 synthetic + 8 PT prototype). Synthetic normalized reports:
 - Agent answers questions about timing report fields (WNS, TNS, slack, etc.)
 - 10 question types with round-robin distribution (99–100 each)
 - 30 unique clocks, 15 path groups, ~30% multi-clock reports
 - Path counts 3–50, WNS range -5.0 to -0.01, TNS range -75 to -0.3
 - Scoring: answer_match (1.0)
-- No real PrimeTime tool required (uses synthetic reports)
-- Full solution evaluation: 1000/1000 = 1.00
+- No real PrimeTime tool required for synthetic tasks (uses synthetic reports)
+- 8 PT prototype tasks: handcrafted or real PrimeTime-backed reports (IDs 900000–900007)
+- Full solution evaluation: 1008/1008 = 1.00
 
 ## P4 Configuration Distribution
 
@@ -91,8 +92,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2214/2214 | 1.00 | N/A |
-| Buggy | 2214/2214 | < 1.00 | 2214/2214 |
+| Solution | 2222/2222 | 1.00 | N/A |
+| Buggy | 2222/2222 | < 1.00 | 2222/2222 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -137,3 +138,4 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 - **Phase 4F**: Sampled evaluation mode — DONE
 - **Phase 5A**: P3 scale to 1000 — DONE
 - **Phase 5B**: P2 scale to 101 — DONE
+- **Phase 5E**: PT prototype (8 tasks) — DONE

@@ -11,22 +11,22 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 5B — P2/P3 scaled)
+## Current Status (Phase 5E — P2/P3 scaled + PT prototype)
 
-Phase 5B scaled P2 to 101 tasks and P3 to 1000 tasks. 2214 total tasks across 5 tracks:
+Phase 5E added 8 PrimeTime prototype tasks. 2222 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated (10 templates) |
-| P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
+| P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
 
 Key results:
 - pytest: 189/189 pass
-- Solution mode: 2214/2214 = 1.00
-- Buggy mode: 2214/2214 all < 1.0
+- Solution mode: 2222/2222 = 1.00
+- Buggy mode: 2222/2222 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
@@ -89,6 +89,7 @@ Always implement environment detection instead of hardcoding one shell setup.
 7. Phase 4C: Docs/Datacard/Release Policy — DONE
 8. Phase 5A: P3 scale to 1000 — DONE
 9. Phase 5B: P2 scale to 101 — DONE
+10. Phase 5E: PT prototype (8 tasks) — DONE
 
 ### Later
 
