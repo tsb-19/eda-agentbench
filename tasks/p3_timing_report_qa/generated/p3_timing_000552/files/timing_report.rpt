@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -4.7965
+tns: -16.7893
+violating_path_count: 4
+
+Startpoint: u_dma/dma_d[46]
+Endpoint: u_bus/sampler_b
+Path Group: reg2reg
+Clock: clk_200m
+----------------------------------------
+Slack:                    -4.7965
+Arrival Time:              8.5938
+Required Time:             3.7973
+Data Type: setup
+
+Startpoint: u_cache/uart_sel
+Endpoint: u_cluster/l2/cache_q
+Path Group: reg2reg
+Clock: clk_200m
+----------------------------------------
+Slack:                    -4.0242
+Arrival Time:              8.8339
+Required Time:             4.8096
+Data Type: setup
+
+Startpoint: u_arb/pipeline_next
+Endpoint: u_ddrc/crc_state
+Path Group: reg2reg
+Clock: clk_200m
+----------------------------------------
+Slack:                    -3.9961
+Arrival Time:              8.4545
+Required Time:             4.4583
+Data Type: setup
+
+Startpoint: u_pciesub/rom_ctrl_val
+Endpoint: u_subsys/cpu/fifo_sync_b[6]
+Path Group: reg2reg
+Clock: clk_200m
+----------------------------------------
+Slack:                    -3.9725
+Arrival Time:              6.1293
+Required Time:             2.1567
+Data Type: setup

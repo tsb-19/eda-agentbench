@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -3.0634
+tns: -13.2093
+violating_path_count: 9
+
+Startpoint: u_cache/i2c_data
+Endpoint: u_bus/decoder_in
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -3.0634
+Arrival Time:              4.5055
+Required Time:             1.4421
+Data Type: hold
+
+Startpoint: u_mem/sync_z
+Endpoint: u_subsys/cpu/buffer_in[24]
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -2.4858
+Arrival Time:              7.9258
+Required Time:             5.4400
+Data Type: hold
+
+Startpoint: u_cluster/l2/regfile_reg
+Endpoint: u_buf/fifo_sync_z[63]
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -2.1374
+Arrival Time:              5.3852
+Required Time:             3.2479
+Data Type: hold
+
+Startpoint: u_serdes/mux_data[13]
+Endpoint: u_ddrc/crc_q
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.8718
+Arrival Time:              6.4584
+Required Time:             4.5867
+Data Type: hold
+
+Startpoint: u_noc/comparator_en
+Endpoint: u_ctrl/encoder_z[59]
+Path Group: i2c_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.9118
+Arrival Time:              2.8593
+Required Time:             1.9475
+Data Type: hold
+
+Startpoint: u_noc/adder_z
+Endpoint: u_ddrc/buffer_val[37]
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.8031
+Arrival Time:              3.2859
+Required Time:             2.4828
+Data Type: hold
+
+Startpoint: u_subsys/dma/descrambler_sel
+Endpoint: u_ctrl/shifter_cmd
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.7166
+Arrival Time:              2.9448
+Required Time:             2.2282
+Data Type: hold
+
+Startpoint: u_buf/descrambler_data[52]
+Endpoint: u_noc/descrambler_z
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0018
+Arrival Time:              3.7080
+Required Time:             3.7063
+Data Type: hold
+
+Startpoint: u_buf/scrambler_b
+Endpoint: u_subsys/dma/serdes_prev[45]
+Path Group: clk_bus
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.2176
+Arrival Time:              4.8388
+Required Time:             3.6211
+Data Type: hold

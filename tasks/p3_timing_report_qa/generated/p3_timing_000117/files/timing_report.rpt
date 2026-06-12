@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -4.6013
+tns: -18.3794
+violating_path_count: 5
+
+Startpoint: u_top/async_in[10]
+Endpoint: u_ddrc/adder_cmd
+Path Group: reg2reg
+Clock: clk
+----------------------------------------
+Slack:                    -4.6013
+Arrival Time:              9.0388
+Required Time:             4.4375
+Data Type: setup
+
+Startpoint: u_dma/rom_ctrl_addr
+Endpoint: u_vpu/fifo_state
+Path Group: reg2reg
+Clock: clk
+----------------------------------------
+Slack:                    -3.7595
+Arrival Time:              10.2090
+Required Time:             6.4495
+Data Type: setup
+
+Startpoint: u_arb/watchdog_z
+Endpoint: u_mem/multiplier_next
+Path Group: reg2reg
+Clock: clk
+----------------------------------------
+Slack:                    -3.8759
+Arrival Time:              9.7989
+Required Time:             5.9230
+Data Type: setup
+
+Startpoint: u_top/shifter_q
+Endpoint: u_pciesub/serdes_cmd[5]
+Path Group: reg2reg
+Clock: clk
+----------------------------------------
+Slack:                    -2.6403
+Arrival Time:              9.3917
+Required Time:             6.7514
+Data Type: setup
+
+Startpoint: u_cluster/core0/arbiter_in[58]
+Endpoint: u_dma/latch_next
+Path Group: reg2reg
+Clock: clk
+----------------------------------------
+Slack:                    -3.5024
+Arrival Time:              4.5783
+Required Time:             1.0759
+Data Type: setup

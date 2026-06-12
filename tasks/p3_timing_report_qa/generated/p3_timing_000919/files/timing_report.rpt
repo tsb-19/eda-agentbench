@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.7407
+tns: -10.8895
+violating_path_count: 5
+
+Startpoint: u_top/dma_ctrl_p[42]
+Endpoint: u_arb/regfile_d
+Path Group: clk_200m
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.7407
+Arrival Time:              3.8866
+Required Time:             1.1459
+Data Type: hold
+
+Startpoint: u_arb/alu_n
+Endpoint: u_arb/scrambler_z
+Path Group: clk_200m
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.6377
+Arrival Time:              8.0457
+Required Time:             5.4081
+Data Type: hold
+
+Startpoint: u_cluster/core0/filter_cnt[18]
+Endpoint: u_vpu/comparator
+Path Group: clk_200m
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.5741
+Arrival Time:              4.8347
+Required Time:             2.2606
+Data Type: hold
+
+Startpoint: u_dma/decoder_reg
+Endpoint: u_bus/pcs_q[40]
+Path Group: clk_200m
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.7434
+Arrival Time:              5.1741
+Required Time:             4.4307
+Data Type: hold
+
+Startpoint: u_bus/datapath_val
+Endpoint: u_core/interrupt_ctrl_sel[26]
+Path Group: clk_200m
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.1936
+Arrival Time:              7.7199
+Required Time:             5.5262
+Data Type: hold

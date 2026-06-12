@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -0.6626
+tns: -0.7263
+violating_path_count: 2
+
+Startpoint: u_gpu/pipeline_d
+Endpoint: u_subsys/io/alu_b[18]
+Path Group: clk_bus
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.6626
+Arrival Time:              8.1854
+Required Time:             7.5228
+Data Type: setup
+
+Startpoint: u_ctrl/dac_p
+Endpoint: u_mac/dma_out
+Path Group: clk_bus
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.0637
+Arrival Time:              3.6817
+Required Time:             3.6180
+Data Type: setup
+
+Startpoint: u_serdes/adder_reg
+Endpoint: u_vpu/buffer_prev
+Path Group: clk_bus
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.7487
+Arrival Time:              3.6365
+Required Time:             4.3852
+Data Type: setup

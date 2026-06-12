@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -0.2614
+tns: -0.5535
+violating_path_count: 3
+
+Startpoint: u_dma/i2c_b[52]
+Endpoint: u_gpu/phy_state
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.2614
+Arrival Time:              4.4154
+Required Time:             4.1540
+Data Type: setup
+
+Startpoint: u_io/pma_cnt[47]
+Endpoint: u_cluster/core0/ecc_d
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.1969
+Arrival Time:              4.5293
+Required Time:             4.3324
+Data Type: setup
+
+Startpoint: u_mem/dcfifo_sel
+Endpoint: u_bus/ecc_n[42]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0406
+Arrival Time:              1.8777
+Required Time:             1.9183
+Data Type: setup
+
+Startpoint: u_subsys/mem/spi_next
+Endpoint: u_arb/decoder_en
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.1477
+Arrival Time:              7.0218
+Required Time:             7.1695
+Data Type: setup
+
+Startpoint: u_cluster/core1/crc_b
+Endpoint: u_dma/dll_q[3]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.1004
+Arrival Time:              0.9258
+Required Time:             1.0262
+Data Type: setup
+
+Startpoint: u_subsys/dma/datapath_reg
+Endpoint: u_subsys/io/alu_b
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.1417
+Arrival Time:              3.1979
+Required Time:             3.3396
+Data Type: setup
+
+Startpoint: u_cluster/core1/interleaver_in
+Endpoint: u_pll/bridge_n[38]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0052
+Arrival Time:              1.9749
+Required Time:             1.9802
+Data Type: setup
+
+Startpoint: u_serdes/adder_data
+Endpoint: u_cache/watchdog_sel
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.2258
+Arrival Time:              7.6934
+Required Time:             7.9192
+Data Type: setup
+
+Startpoint: u_mac/spi_next
+Endpoint: u_bus/sampler_in[21]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0651
+Arrival Time:              3.2143
+Required Time:             3.2794
+Data Type: setup
+
+Startpoint: u_mac/datapath[3]
+Endpoint: u_phy/dma_state[11]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.0952
+Arrival Time:              4.9475
+Required Time:             4.8524
+Data Type: setup
+
+Startpoint: u_top/serdes_n[25]
+Endpoint: u_cluster/core1/interleaver_data[43]
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.2359
+Arrival Time:              7.0816
+Required Time:             7.3175
+Data Type: setup
+
+Startpoint: u_core/shifter_cmd[20]
+Endpoint: u_vpu/pipeline_out
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.2898
+Arrival Time:              4.8897
+Required Time:             5.1795
+Data Type: setup
+
+Startpoint: u_noc/mac_prev[30]
+Endpoint: u_top/ecc_data
+Path Group: reg2out
+Clock: clk_dsp
+----------------------------------------
+Slack:                    1.4265
+Arrival Time:              2.7560
+Required Time:             4.1825
+Data Type: setup

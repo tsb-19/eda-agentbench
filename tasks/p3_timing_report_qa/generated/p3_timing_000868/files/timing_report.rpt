@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.3457
+tns: -8.5202
+violating_path_count: 5
+
+Startpoint: u_dma/pipeline_p
+Endpoint: u_io/dcfifo_prev
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.3457
+Arrival Time:              6.1367
+Required Time:             3.7910
+Data Type: setup
+
+Startpoint: u_arb/fifo_val
+Endpoint: u_pll/scrambler_z
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.5521
+Arrival Time:              4.0668
+Required Time:             2.5147
+Data Type: setup
+
+Startpoint: u_subsys/cpu/fifo_sync_out
+Endpoint: u_gpu/fifo_async[30]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.8067
+Arrival Time:              5.0068
+Required Time:             3.2001
+Data Type: setup
+
+Startpoint: u_ctrl/spi_prev
+Endpoint: u_arb/dcfifo_d[1]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.6829
+Arrival Time:              8.6770
+Required Time:             7.9941
+Data Type: setup
+
+Startpoint: u_core/i2c_next[17]
+Endpoint: u_subsys/cpu/latch_in[39]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.1328
+Arrival Time:              6.3415
+Required Time:             4.2087
+Data Type: setup
+
+Startpoint: u_arb/pipeline_cnt
+Endpoint: u_dma/filter_z
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1156
+Arrival Time:              2.0060
+Required Time:             2.1216
+Data Type: setup
+
+Startpoint: u_ddrc/encoder_state[46]
+Endpoint: u_dma/interleaver_d[17]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.9626
+Arrival Time:              4.4179
+Required Time:             5.3805
+Data Type: setup

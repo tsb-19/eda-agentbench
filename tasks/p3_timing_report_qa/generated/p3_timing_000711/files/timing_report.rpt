@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.7964
+tns: -13.9629
+violating_path_count: 5
+
+Startpoint: u_cache/pma_cmd
+Endpoint: u_dsp/scrambler_en[0]
+Path Group: clk_200m
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.7964
+Arrival Time:              10.6436
+Required Time:             6.8472
+Data Type: setup
+
+Startpoint: u_io/dma_prev
+Endpoint: u_ctrl/dcfifo_state[28]
+Path Group: clk_200m
+Clock: noc_clk
+----------------------------------------
+Slack:                    -2.8671
+Arrival Time:              5.4215
+Required Time:             2.5543
+Data Type: setup
+
+Startpoint: u_pll/pma_cmd
+Endpoint: u_ctrl/converter
+Path Group: clk_200m
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.1483
+Arrival Time:              5.2784
+Required Time:             2.1301
+Data Type: setup
+
+Startpoint: u_gpu/comparator_prev
+Endpoint: u_cluster/core1/rom_ctrl_cmd
+Path Group: clk_200m
+Clock: noc_clk
+----------------------------------------
+Slack:                    -2.5098
+Arrival Time:              6.8499
+Required Time:             4.3401
+Data Type: setup
+
+Startpoint: u_subsys/mem/scrambler_out[8]
+Endpoint: u_arb/alu_state[60]
+Path Group: clk_200m
+Clock: noc_clk
+----------------------------------------
+Slack:                    -1.6413
+Arrival Time:              3.7191
+Required Time:             2.0778
+Data Type: setup

@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.8049
+tns: -8.6464
+violating_path_count: 4
+
+Startpoint: u_core/ram_ctrl_cnt
+Endpoint: u_cluster/core0/arbiter_state[53]
+Path Group: clk_core
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8049
+Arrival Time:              10.4241
+Required Time:             7.6192
+Data Type: hold
+
+Startpoint: u_subsys/io/adder
+Endpoint: u_noc/multiplier_reg
+Path Group: clk_core
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.9837
+Arrival Time:              7.6532
+Required Time:             5.6695
+Data Type: hold
+
+Startpoint: u_ctrl/fifo_en
+Endpoint: u_dma/datapath_prev[0]
+Path Group: clk_core
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.7099
+Arrival Time:              6.5746
+Required Time:             4.8647
+Data Type: hold
+
+Startpoint: u_mac/latch_reg
+Endpoint: u_gpu/mux
+Path Group: clk_core
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.1479
+Arrival Time:              5.2791
+Required Time:             3.1311
+Data Type: hold

@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -1.3037
+tns: -2.9180
+violating_path_count: 4
+
+Startpoint: u_bus/sync_state
+Endpoint: u_pll/cache_prev[24]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -1.3037
+Arrival Time:              7.4586
+Required Time:             6.1549
+Data Type: setup
+
+Startpoint: u_arb/filter_out
+Endpoint: u_subsys/cpu/controller_out[31]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.3745
+Arrival Time:              2.8694
+Required Time:             2.4949
+Data Type: setup
+
+Startpoint: u_subsys/io/sampler
+Endpoint: u_vpu/spi_b[15]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.5495
+Arrival Time:              8.1430
+Required Time:             7.5935
+Data Type: setup
+
+Startpoint: u_subsys/cpu/demux_in[15]
+Endpoint: u_io/cache_b
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    0.1965
+Arrival Time:              3.3965
+Required Time:             3.5930
+Data Type: setup
+
+Startpoint: u_top/ecc
+Endpoint: u_ctrl/controller_next[8]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    0.1197
+Arrival Time:              5.5188
+Required Time:             5.6385
+Data Type: setup
+
+Startpoint: u_vpu/dma_z
+Endpoint: u_cluster/core1/filter_q[19]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.6903
+Arrival Time:              7.3283
+Required Time:             6.6380
+Data Type: setup
+
+Startpoint: u_subsys/mem/serdes_b
+Endpoint: u_noc/decoder_val[40]
+Path Group: mem_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    0.6936
+Arrival Time:              3.1555
+Required Time:             3.8491
+Data Type: setup

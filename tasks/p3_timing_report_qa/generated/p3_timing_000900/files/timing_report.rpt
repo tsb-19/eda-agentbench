@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -3.1696
+tns: -21.3857
+violating_path_count: 13
+
+Startpoint: u_subsys/mem/async_prev[16]
+Endpoint: u_cluster/core0/i2c_z
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.1696
+Arrival Time:              5.8696
+Required Time:             2.7000
+Data Type: setup
+
+Startpoint: u_core/cache_n
+Endpoint: u_subsys/cpu/fifo_async_b
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.9448
+Arrival Time:              7.2897
+Required Time:             4.3448
+Data Type: setup
+
+Startpoint: u_arb/interrupt_ctrl_addr
+Endpoint: u_ddrc/arbiter_p
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.6565
+Arrival Time:              6.5794
+Required Time:             3.9229
+Data Type: setup
+
+Startpoint: u_vpu/fifo_async
+Endpoint: u_noc/interrupt_ctrl_data[13]
+Path Group: i2c_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.2774
+Arrival Time:              5.4569
+Required Time:             4.1794
+Data Type: setup
+
+Startpoint: u_io/adder_sel
+Endpoint: u_cluster/core1/descrambler
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8507
+Arrival Time:              8.8471
+Required Time:             5.9964
+Data Type: setup
+
+Startpoint: u_arb/pcs_sel[3]
+Endpoint: u_gpu/controller_n
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.1722
+Arrival Time:              5.7214
+Required Time:             3.5492
+Data Type: setup
+
+Startpoint: u_vpu/buffer_n
+Endpoint: u_subsys/cpu/dll_val
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.9730
+Arrival Time:              4.2316
+Required Time:             3.2586
+Data Type: setup
+
+Startpoint: u_arb/demux_data
+Endpoint: u_arb/phy_z
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.1945
+Arrival Time:              3.8987
+Required Time:             3.7042
+Data Type: setup
+
+Startpoint: u_subsys/dma/fifo_b
+Endpoint: u_subsys/io/rom_ctrl_addr[0]
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.1134
+Arrival Time:              3.1940
+Required Time:             3.0806
+Data Type: setup
+
+Startpoint: u_gpu/datapath
+Endpoint: u_gpu/fifo_q
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.4485
+Arrival Time:              7.5197
+Required Time:             6.0712
+Data Type: setup
+
+Startpoint: u_pciesub/buffer_reg
+Endpoint: u_subsys/dma/dcfifo_cmd
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -1.3405
+Arrival Time:              3.6248
+Required Time:             2.2843
+Data Type: setup
+
+Startpoint: u_phy/adder_val
+Endpoint: u_bus/crc_cmd
+Path Group: cpu_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.1073
+Arrival Time:              4.7700
+Required Time:             4.6628
+Data Type: setup
+
+Startpoint: u_cluster/core1/comparator_cnt[10]
+Endpoint: u_pciesub/adc_in
+Path Group: i2c_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.1373
+Arrival Time:              6.5566
+Required Time:             4.4193
+Data Type: setup

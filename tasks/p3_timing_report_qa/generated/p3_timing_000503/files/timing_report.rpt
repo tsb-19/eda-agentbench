@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -0.1281
+tns: -0.2255
+violating_path_count: 2
+
+Startpoint: u_subsys/dma/fifo_sync_p
+Endpoint: u_cluster/core0/buffer_b
+Path Group: clk_mem
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.1281
+Arrival Time:              8.0035
+Required Time:             7.8754
+Data Type: hold
+
+Startpoint: u_noc/interrupt_ctrl_p[47]
+Endpoint: u_subsys/mem/mac_addr
+Path Group: clk_mem
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.0974
+Arrival Time:              4.2148
+Required Time:             4.1175
+Data Type: hold
+
+Startpoint: u_ctrl/filter_sel
+Endpoint: u_ddrc/pll_sel[24]
+Path Group: clk_mem
+Clock: clk_mem
+----------------------------------------
+Slack:                    0.6123
+Arrival Time:              0.6810
+Required Time:             1.2933
+Data Type: hold

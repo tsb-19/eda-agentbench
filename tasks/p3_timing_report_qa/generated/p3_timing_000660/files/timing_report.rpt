@@ -1,0 +1,168 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 16
+
+wns: -4.7018
+tns: -37.6373
+violating_path_count: 15
+
+Startpoint: u_cluster/core1/mux_q
+Endpoint: u_top/dll_q[54]
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -4.7018
+Arrival Time:              6.9853
+Required Time:             2.2835
+Data Type: hold
+
+Startpoint: u_vpu/converter_b
+Endpoint: u_subsys/io/adder_state
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.8344
+Arrival Time:              8.1441
+Required Time:             4.3097
+Data Type: hold
+
+Startpoint: u_ddrc/serdes_prev[38]
+Endpoint: u_arb/fifo_en[24]
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.6545
+Arrival Time:              10.5242
+Required Time:             6.8697
+Data Type: hold
+
+Startpoint: u_cache/phy_addr[35]
+Endpoint: u_ctrl/fifo_async_data
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.7660
+Arrival Time:              9.4060
+Required Time:             5.6400
+Data Type: hold
+
+Startpoint: u_cluster/core1/mux_z
+Endpoint: u_top/dac_z
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.2585
+Arrival Time:              9.3859
+Required Time:             6.1274
+Data Type: hold
+
+Startpoint: u_serdes/scrambler_p
+Endpoint: u_io/filter_in
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.2509
+Arrival Time:              9.4379
+Required Time:             7.1870
+Data Type: hold
+
+Startpoint: u_subsys/io/arbiter_out
+Endpoint: u_noc/adc_addr
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.1432
+Arrival Time:              5.1339
+Required Time:             1.9907
+Data Type: hold
+
+Startpoint: u_mem/mux_state
+Endpoint: u_cluster/core0/pma_cnt
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3154
+Arrival Time:              5.6062
+Required Time:             4.2908
+Data Type: hold
+
+Startpoint: u_noc/pcs_sel
+Endpoint: u_ddrc/latch_sel[38]
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.0929
+Arrival Time:              5.5885
+Required Time:             4.4956
+Data Type: hold
+
+Startpoint: u_subsys/io/pipeline_en
+Endpoint: u_cluster/core0/crc_next
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.7587
+Arrival Time:              8.6156
+Required Time:             6.8569
+Data Type: hold
+
+Startpoint: u_serdes/dll_cmd[20]
+Endpoint: u_subsys/dma/descrambler_val
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    -4.1858
+Arrival Time:              12.1290
+Required Time:             7.9432
+Data Type: hold
+
+Startpoint: u_dma/rom_ctrl_in
+Endpoint: u_mem/comparator_en
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.5036
+Arrival Time:              6.8872
+Required Time:             5.3836
+Data Type: hold
+
+Startpoint: u_buf/decoder_d
+Endpoint: u_pciesub/pcs_in
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0221
+Arrival Time:              6.0961
+Required Time:             6.1181
+Data Type: hold
+
+Startpoint: u_cluster/l2/i2c_n[8]
+Endpoint: u_subsys/cpu/pll_n
+Path Group: clk_bus
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.0550
+Arrival Time:              4.2251
+Required Time:             3.1700
+Data Type: hold
+
+Startpoint: u_mac/i2c_state
+Endpoint: u_core/adder_val
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.9900
+Arrival Time:              9.5544
+Required Time:             7.5644
+Data Type: hold
+
+Startpoint: u_cluster/l2/scrambler_en
+Endpoint: u_ctrl/timer_sel[34]
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.1266
+Arrival Time:              7.4527
+Required Time:             7.3261
+Data Type: hold

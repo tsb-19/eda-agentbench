@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the WNS (Worst Negative Slack) in the timing report?
+What is the slack of the timing path ending at 'u_bus/controller_q[44]'?
 
 ## Instructions
 

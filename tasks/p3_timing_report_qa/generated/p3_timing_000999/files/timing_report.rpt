@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.7922
+tns: -10.1215
+violating_path_count: 3
+
+Startpoint: u_vpu/adc_cnt
+Endpoint: u_cluster/l2/scrambler_sel
+Path Group: clk_io
+Clock: clk
+----------------------------------------
+Slack:                    -3.7922
+Arrival Time:              5.4811
+Required Time:             1.6889
+Data Type: hold
+
+Startpoint: u_buf/mux_p
+Endpoint: u_ddrc/ram_ctrl_d
+Path Group: clk_io
+Clock: clk
+----------------------------------------
+Slack:                    -3.4567
+Arrival Time:              5.3242
+Required Time:             1.8676
+Data Type: hold
+
+Startpoint: u_subsys/cpu/rom_ctrl_b
+Endpoint: u_pll/latch_sel
+Path Group: clk_io
+Clock: clk
+----------------------------------------
+Slack:                    -2.8726
+Arrival Time:              4.4238
+Required Time:             1.5512
+Data Type: hold

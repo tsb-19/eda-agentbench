@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.9265
+tns: -13.6173
+violating_path_count: 7
+
+Startpoint: u_top/ram_ctrl_in
+Endpoint: u_serdes/filter_cnt
+Path Group: mem_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.9265
+Arrival Time:              4.6015
+Required Time:             1.6750
+Data Type: hold
+
+Startpoint: u_serdes/dll_d[19]
+Endpoint: u_subsys/mem/pipeline_n[44]
+Path Group: mem_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.9932
+Arrival Time:              6.3754
+Required Time:             4.3822
+Data Type: hold
+
+Startpoint: u_dsp/interleaver_sel
+Endpoint: u_cache/buffer_in[45]
+Path Group: mem_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.4477
+Arrival Time:              6.9813
+Required Time:             4.5336
+Data Type: hold
+
+Startpoint: u_mac/fifo_async_p
+Endpoint: u_cluster/core1/datapath_cmd
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -1.6236
+Arrival Time:              3.9017
+Required Time:             2.2781
+Data Type: hold
+
+Startpoint: u_ctrl/pipeline_state
+Endpoint: u_subsys/mem/interrupt_ctrl_q[32]
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    -0.5311
+Arrival Time:              5.8669
+Required Time:             5.3358
+Data Type: hold
+
+Startpoint: u_subsys/mem/filter_next
+Endpoint: u_cluster/core1/fifo_async_cnt
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -2.1530
+Arrival Time:              6.6742
+Required Time:             4.5212
+Data Type: hold
+
+Startpoint: u_phy/rom_ctrl_n[50]
+Endpoint: u_cluster/core1/mac_cmd[30]
+Path Group: mem_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.9422
+Arrival Time:              7.6835
+Required Time:             5.7413
+Data Type: hold

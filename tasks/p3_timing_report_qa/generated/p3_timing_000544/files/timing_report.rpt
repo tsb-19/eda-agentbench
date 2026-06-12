@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -4.0402
+tns: -17.5419
+violating_path_count: 5
+
+Startpoint: u_io/cache_data[2]
+Endpoint: u_cluster/core0/uart_sel
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.0402
+Arrival Time:              6.4354
+Required Time:             2.3952
+Data Type: setup
+
+Startpoint: u_cache/fifo_async_q
+Endpoint: u_gpu/pcs
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.5532
+Arrival Time:              6.5698
+Required Time:             3.0167
+Data Type: setup
+
+Startpoint: u_arb/dll_data
+Endpoint: u_mem/pipeline_data[63]
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.2759
+Arrival Time:              4.2776
+Required Time:             1.0017
+Data Type: setup
+
+Startpoint: u_subsys/dma/mux_n[41]
+Endpoint: u_vpu/alu_n[9]
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.1366
+Arrival Time:              8.9206
+Required Time:             5.7839
+Data Type: setup
+
+Startpoint: u_pll/crc_en
+Endpoint: u_phy/async_q
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.5360
+Arrival Time:              4.9627
+Required Time:             1.4267
+Data Type: setup

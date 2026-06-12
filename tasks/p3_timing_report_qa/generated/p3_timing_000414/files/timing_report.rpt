@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.9184
+tns: -9.9606
+violating_path_count: 3
+
+Startpoint: u_subsys/io/ram_ctrl_z[58]
+Endpoint: u_bus/multiplier_cnt[34]
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.9184
+Arrival Time:              5.8777
+Required Time:             1.9593
+Data Type: setup
+
+Startpoint: u_subsys/cpu/arbiter_in
+Endpoint: u_subsys/dma/shifter_p[1]
+Path Group: clk_dsp
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -3.0273
+Arrival Time:              7.5193
+Required Time:             4.4920
+Data Type: setup
+
+Startpoint: u_mem/fifo_sync_out
+Endpoint: u_cluster/core0/pll_cnt
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.0149
+Arrival Time:              7.8654
+Required Time:             4.8505
+Data Type: setup

@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -3.8680
+tns: -14.2885
+violating_path_count: 4
+
+Startpoint: u_vpu/dll_addr
+Endpoint: u_serdes/comparator_z
+Path Group: mem_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -3.8680
+Arrival Time:              6.2635
+Required Time:             2.3955
+Data Type: hold
+
+Startpoint: u_arb/spi_q
+Endpoint: u_dma/uart_val
+Path Group: mem_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.9064
+Arrival Time:              5.7862
+Required Time:             2.8798
+Data Type: hold
+
+Startpoint: u_top/regfile_z
+Endpoint: u_pll/ecc_sel
+Path Group: mem_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -3.7383
+Arrival Time:              9.2515
+Required Time:             5.5132
+Data Type: hold
+
+Startpoint: u_phy/regfile_data
+Endpoint: u_dsp/rom_ctrl_p
+Path Group: mem_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -3.7758
+Arrival Time:              10.7652
+Required Time:             6.9894
+Data Type: hold

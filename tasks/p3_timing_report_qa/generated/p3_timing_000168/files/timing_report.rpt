@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -0.3496
+tns: -0.5354
+violating_path_count: 2
+
+Startpoint: u_vpu/mux_sel[30]
+Endpoint: u_ddrc/fifo_sync_state
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.3496
+Arrival Time:              6.1882
+Required Time:             5.8386
+Data Type: hold
+
+Startpoint: u_serdes/i2c_cmd
+Endpoint: u_ddrc/controller_val
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.1858
+Arrival Time:              7.2800
+Required Time:             7.0942
+Data Type: hold
+
+Startpoint: u_core/encoder_p
+Endpoint: u_subsys/mem/scrambler_prev
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.6338
+Arrival Time:              2.2317
+Required Time:             2.8656
+Data Type: hold

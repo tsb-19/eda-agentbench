@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -2.0720
+tns: -4.9280
+violating_path_count: 3
+
+Startpoint: u_subsys/dma/sync
+Endpoint: u_buf/watchdog_cnt[39]
+Path Group: clk_core
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.0720
+Arrival Time:              4.5146
+Required Time:             2.4426
+Data Type: hold
+
+Startpoint: u_dma/alu_d[20]
+Endpoint: u_pciesub/pipeline_q[16]
+Path Group: clk_core
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.2676
+Arrival Time:              2.2807
+Required Time:             1.0131
+Data Type: hold
+
+Startpoint: u_subsys/io/interleaver_cnt
+Endpoint: u_buf/pipeline_state[29]
+Path Group: clk_core
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.5884
+Arrival Time:              6.2548
+Required Time:             4.6663
+Data Type: hold

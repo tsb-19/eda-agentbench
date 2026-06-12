@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.6735
+tns: -21.6732
+violating_path_count: 8
+
+Startpoint: u_mac/async_en[25]
+Endpoint: u_cluster/core1/fifo_async_cmd
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -3.6735
+Arrival Time:              9.2179
+Required Time:             5.5444
+Data Type: setup
+
+Startpoint: u_serdes/uart_data
+Endpoint: u_mem/interrupt_ctrl_reg
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -2.7187
+Arrival Time:              7.3914
+Required Time:             4.6727
+Data Type: setup
+
+Startpoint: u_subsys/io/timer_addr
+Endpoint: u_core/decoder_state
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -3.3141
+Arrival Time:              8.2669
+Required Time:             4.9528
+Data Type: setup
+
+Startpoint: u_buf/adc_b[3]
+Endpoint: u_mac/adder_sel
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -2.9194
+Arrival Time:              9.9221
+Required Time:             7.0027
+Data Type: setup
+
+Startpoint: u_io/i2c_b
+Endpoint: u_io/multiplier_out
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.9821
+Arrival Time:              6.1448
+Required Time:             4.1627
+Data Type: setup
+
+Startpoint: u_mem/filter_n
+Endpoint: u_pciesub/mux_z
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -2.8515
+Arrival Time:              3.9536
+Required Time:             1.1021
+Data Type: setup
+
+Startpoint: u_buf/async_next
+Endpoint: u_core/sync
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -2.9063
+Arrival Time:              6.8251
+Required Time:             3.9187
+Data Type: setup
+
+Startpoint: u_vpu/fifo_async_val
+Endpoint: u_vpu/async_q
+Path Group: sys_clk
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.3076
+Arrival Time:              9.2675
+Required Time:             7.9599
+Data Type: setup

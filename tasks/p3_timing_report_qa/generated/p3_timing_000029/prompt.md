@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the slack of the timing path ending at 'u_mem/demux_in'?
+What is the arrival time of the worst timing path?
 
 ## Instructions
 

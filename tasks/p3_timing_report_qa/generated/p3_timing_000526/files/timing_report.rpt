@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.1196
+tns: -7.8910
+violating_path_count: 3
+
+Startpoint: u_pciesub/bridge_z
+Endpoint: u_subsys/mem/watchdog_b
+Path Group: clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.1196
+Arrival Time:              6.3728
+Required Time:             3.2532
+Data Type: setup
+
+Startpoint: u_subsys/dma/latch_val
+Endpoint: u_pll/async_addr[16]
+Path Group: clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.0962
+Arrival Time:              6.6591
+Required Time:             3.5630
+Data Type: setup
+
+Startpoint: u_core/phy_z
+Endpoint: u_subsys/io/dac
+Path Group: clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -1.6752
+Arrival Time:              9.0296
+Required Time:             7.3544
+Data Type: setup

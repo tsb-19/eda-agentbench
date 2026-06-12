@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.3079
+tns: -5.9063
+violating_path_count: 4
+
+Startpoint: u_bus/fifo_d
+Endpoint: u_subsys/mem/interrupt_ctrl_cmd[37]
+Path Group: in2reg
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.3079
+Arrival Time:              5.1328
+Required Time:             2.8249
+Data Type: setup
+
+Startpoint: u_serdes/ram_ctrl_z
+Endpoint: u_vpu/interleaver
+Path Group: in2reg
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.5001
+Arrival Time:              2.5327
+Required Time:             1.0326
+Data Type: setup
+
+Startpoint: u_mac/ecc_cmd
+Endpoint: u_arb/adc_z[45]
+Path Group: in2reg
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.5244
+Arrival Time:              3.1076
+Required Time:             1.5832
+Data Type: setup
+
+Startpoint: u_cluster/l2/multiplier_n
+Endpoint: u_ddrc/multiplier_d
+Path Group: in2reg
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.5739
+Arrival Time:              2.7685
+Required Time:             2.1946
+Data Type: setup

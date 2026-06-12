@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -4.3148
+tns: -28.8867
+violating_path_count: 9
+
+Startpoint: u_subsys/cpu/rom_ctrl_b
+Endpoint: u_subsys/mem/cache_next
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -4.3148
+Arrival Time:              7.8622
+Required Time:             3.5474
+Data Type: setup
+
+Startpoint: u_ddrc/interleaver_q
+Endpoint: u_subsys/io/ecc_q
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    -4.0513
+Arrival Time:              7.9299
+Required Time:             3.8786
+Data Type: setup
+
+Startpoint: u_subsys/cpu/async_out
+Endpoint: u_cluster/l2/filter_val[4]
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -3.3617
+Arrival Time:              9.6385
+Required Time:             6.2768
+Data Type: setup
+
+Startpoint: u_subsys/mem/dma_ctrl_cnt
+Endpoint: u_subsys/dma/adder_b
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -3.2405
+Arrival Time:              9.5700
+Required Time:             6.3295
+Data Type: setup
+
+Startpoint: u_cluster/core0/sync_sel[42]
+Endpoint: u_subsys/mem/multiplier_q
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -3.7062
+Arrival Time:              8.3290
+Required Time:             4.6228
+Data Type: setup
+
+Startpoint: u_ddrc/spi_z[15]
+Endpoint: u_serdes/dcfifo_b[49]
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.4314
+Arrival Time:              6.7859
+Required Time:             4.3545
+Data Type: setup
+
+Startpoint: u_io/filter
+Endpoint: u_cache/pll_z
+Path Group: clk_mem
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.3656
+Arrival Time:              9.5411
+Required Time:             6.1755
+Data Type: setup
+
+Startpoint: u_noc/dcfifo_p
+Endpoint: u_subsys/dma/rom_ctrl_next[23]
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3389
+Arrival Time:              7.5602
+Required Time:             7.2213
+Data Type: setup
+
+Startpoint: u_arb/filter_q
+Endpoint: u_cluster/l2/latch_in
+Path Group: mem_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -4.0763
+Arrival Time:              9.4606
+Required Time:             5.3843
+Data Type: setup

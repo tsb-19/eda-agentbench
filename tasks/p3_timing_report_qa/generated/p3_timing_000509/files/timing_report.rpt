@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -1.4065
+tns: -4.4507
+violating_path_count: 4
+
+Startpoint: u_vpu/fifo_sync_state
+Endpoint: u_pciesub/dma_ctrl_z
+Path Group: clk_mem
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.4065
+Arrival Time:              7.2723
+Required Time:             5.8658
+Data Type: hold
+
+Startpoint: u_serdes/pma_z
+Endpoint: u_dma/demux_addr[32]
+Path Group: clk_mem
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.9897
+Arrival Time:              4.0960
+Required Time:             3.1063
+Data Type: hold
+
+Startpoint: u_noc/descrambler_p
+Endpoint: u_cluster/core1/dll_data
+Path Group: clk_mem
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3333
+Arrival Time:              7.9137
+Required Time:             6.5804
+Data Type: hold
+
+Startpoint: u_cache/interrupt_ctrl_state
+Endpoint: u_gpu/serdes_state
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    0.2005
+Arrival Time:              6.1214
+Required Time:             6.3219
+Data Type: hold
+
+Startpoint: u_dsp/pipeline[22]
+Endpoint: u_gpu/shifter_in[1]
+Path Group: clk_mem
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0369
+Arrival Time:              4.0496
+Required Time:             4.0866
+Data Type: hold
+
+Startpoint: u_serdes/dma_ctrl_data[45]
+Endpoint: u_noc/dll_sel
+Path Group: clk_100m
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.0348
+Arrival Time:              5.2682
+Required Time:             5.3030
+Data Type: hold
+
+Startpoint: u_bus/pll_sel
+Endpoint: u_subsys/io/demux_b[45]
+Path Group: clk_100m
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.7212
+Arrival Time:              3.0896
+Required Time:             2.3683
+Data Type: hold

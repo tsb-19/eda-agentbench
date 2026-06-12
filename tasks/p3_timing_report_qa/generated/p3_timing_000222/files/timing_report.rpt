@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -3.4822
+tns: -19.7884
+violating_path_count: 9
+
+Startpoint: u_bus/buffer_out
+Endpoint: u_ctrl/dll_cnt
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -3.4822
+Arrival Time:              6.5152
+Required Time:             3.0330
+Data Type: hold
+
+Startpoint: u_vpu/dma_ctrl_data
+Endpoint: u_arb/scrambler_out
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.7896
+Arrival Time:              7.7108
+Required Time:             4.9213
+Data Type: hold
+
+Startpoint: u_vpu/sync_sel[13]
+Endpoint: u_pll/dcfifo_cnt
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.2568
+Arrival Time:              7.7024
+Required Time:             5.4456
+Data Type: hold
+
+Startpoint: u_mac/interrupt_ctrl_d[56]
+Endpoint: u_cluster/core1/fifo_sync_z
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.2159
+Arrival Time:              4.3944
+Required Time:             2.1785
+Data Type: hold
+
+Startpoint: u_mem/multiplier_sel
+Endpoint: u_cluster/l2/spi_val[50]
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.9689
+Arrival Time:              5.3899
+Required Time:             2.4210
+Data Type: hold
+
+Startpoint: u_subsys/dma/filter_in
+Endpoint: u_dsp/arbiter_cmd
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.8515
+Arrival Time:              7.9884
+Required Time:             7.1369
+Data Type: hold
+
+Startpoint: u_arb/buffer_sel
+Endpoint: u_mem/alu_p
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.4645
+Arrival Time:              9.4418
+Required Time:             7.9772
+Data Type: hold
+
+Startpoint: u_serdes/encoder_sel
+Endpoint: u_cluster/core1/uart_addr
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.9923
+Arrival Time:              4.2610
+Required Time:             2.2687
+Data Type: hold
+
+Startpoint: u_gpu/dma_ctrl_q
+Endpoint: u_gpu/crc_next
+Path Group: clk_bus
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.7667
+Arrival Time:              4.6860
+Required Time:             2.9193
+Data Type: hold

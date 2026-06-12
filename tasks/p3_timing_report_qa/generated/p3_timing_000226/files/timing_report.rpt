@@ -1,0 +1,478 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 47
+
+wns: -1.3272
+tns: -6.6078
+violating_path_count: 17
+
+Startpoint: u_dsp/controller_cmd
+Endpoint: u_cluster/core1/ram_ctrl_z
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.3272
+Arrival Time:              6.2920
+Required Time:             4.9648
+Data Type: setup
+
+Startpoint: u_arb/mux_reg
+Endpoint: u_vpu/interleaver
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.8001
+Arrival Time:              4.0007
+Required Time:             3.2006
+Data Type: setup
+
+Startpoint: u_cache/multiplier_in[4]
+Endpoint: u_cache/multiplier_b
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.7752
+Arrival Time:              7.4367
+Required Time:             6.6615
+Data Type: setup
+
+Startpoint: u_dsp/timer_b
+Endpoint: u_subsys/mem/ram_ctrl_data
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2473
+Arrival Time:              4.7974
+Required Time:             5.0448
+Data Type: setup
+
+Startpoint: u_subsys/cpu/filter_next[6]
+Endpoint: u_core/interrupt_ctrl_en
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1747
+Arrival Time:              4.0169
+Required Time:             4.1916
+Data Type: setup
+
+Startpoint: u_cluster/l2/descrambler_addr[47]
+Endpoint: u_subsys/cpu/decoder_data
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0415
+Arrival Time:              7.8953
+Required Time:             7.9368
+Data Type: setup
+
+Startpoint: u_mac/dac_n
+Endpoint: u_ctrl/crc_cnt
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.1541
+Arrival Time:              6.7104
+Required Time:             6.8646
+Data Type: setup
+
+Startpoint: u_ddrc/filter_d[58]
+Endpoint: u_cluster/l2/decoder_sel
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.4138
+Arrival Time:              4.1660
+Required Time:             3.7522
+Data Type: setup
+
+Startpoint: u_cluster/core0/i2c_n
+Endpoint: u_pll/latch_n
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0921
+Arrival Time:              2.6767
+Required Time:             2.5847
+Data Type: setup
+
+Startpoint: u_mac/sampler_d[37]
+Endpoint: u_io/alu_cmd
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0507
+Arrival Time:              2.1490
+Required Time:             2.0982
+Data Type: setup
+
+Startpoint: u_cluster/l2/datapath_cmd[11]
+Endpoint: u_gpu/rom_ctrl_val
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2217
+Arrival Time:              3.9351
+Required Time:             4.1568
+Data Type: setup
+
+Startpoint: u_core/timer[34]
+Endpoint: u_subsys/mem/regfile_d
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0355
+Arrival Time:              6.8792
+Required Time:             6.9147
+Data Type: setup
+
+Startpoint: u_cache/controller_cnt
+Endpoint: u_mem/cache_state
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0713
+Arrival Time:              2.2867
+Required Time:             2.2154
+Data Type: setup
+
+Startpoint: u_cluster/core1/encoder_sel
+Endpoint: u_subsys/mem/serdes_reg[46]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2519
+Arrival Time:              5.1543
+Required Time:             5.4063
+Data Type: setup
+
+Startpoint: u_ddrc/dma_ctrl_prev
+Endpoint: u_ctrl/decoder_en
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.3355
+Arrival Time:              7.8078
+Required Time:             7.4723
+Data Type: setup
+
+Startpoint: u_arb/encoder_in
+Endpoint: u_ctrl/regfile_state
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1749
+Arrival Time:              6.4905
+Required Time:             6.6655
+Data Type: setup
+
+Startpoint: u_pciesub/dac_en
+Endpoint: u_ctrl/crc_data
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.9144
+Arrival Time:              7.4976
+Required Time:             6.5833
+Data Type: setup
+
+Startpoint: u_cache/pma_d
+Endpoint: u_dma/fifo_cmd[29]
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0960
+Arrival Time:              1.4670
+Required Time:             1.3710
+Data Type: setup
+
+Startpoint: u_mem/phy_cnt
+Endpoint: u_top/scrambler_z[25]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.9324
+Arrival Time:              6.8166
+Required Time:             5.8842
+Data Type: setup
+
+Startpoint: u_cache/controller_out
+Endpoint: u_subsys/dma/arbiter_cnt
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2552
+Arrival Time:              6.4661
+Required Time:             6.7213
+Data Type: setup
+
+Startpoint: u_io/datapath_val[13]
+Endpoint: u_bus/sampler_n
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0161
+Arrival Time:              5.9495
+Required Time:             5.9656
+Data Type: setup
+
+Startpoint: u_subsys/cpu/demux[26]
+Endpoint: u_subsys/dma/dma_ctrl_z
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1158
+Arrival Time:              2.4182
+Required Time:             2.5340
+Data Type: setup
+
+Startpoint: u_vpu/adder_state
+Endpoint: u_ddrc/interrupt_ctrl_val
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0892
+Arrival Time:              7.5706
+Required Time:             7.4814
+Data Type: setup
+
+Startpoint: u_pciesub/ram_ctrl_p
+Endpoint: u_gpu/cache_reg
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2513
+Arrival Time:              5.0853
+Required Time:             5.3366
+Data Type: setup
+
+Startpoint: u_cluster/core0/timer_val
+Endpoint: u_core/scrambler_n
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2275
+Arrival Time:              7.6296
+Required Time:             7.8571
+Data Type: setup
+
+Startpoint: u_cluster/core1/mux_prev[60]
+Endpoint: u_mem/dac_cnt
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1604
+Arrival Time:              1.2733
+Required Time:             1.4337
+Data Type: setup
+
+Startpoint: u_bus/dcfifo_addr[9]
+Endpoint: u_io/ecc_prev
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0874
+Arrival Time:              8.0794
+Required Time:             7.9921
+Data Type: setup
+
+Startpoint: u_noc/pma_z
+Endpoint: u_subsys/io/dma_ctrl_prev
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.0874
+Arrival Time:              1.5963
+Required Time:             1.5090
+Data Type: setup
+
+Startpoint: u_ddrc/dma_ctrl_val[32]
+Endpoint: u_mac/comparator_prev
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.4127
+Arrival Time:              4.6260
+Required Time:             4.2133
+Data Type: setup
+
+Startpoint: u_cluster/l2/pcs_en
+Endpoint: u_cluster/core1/latch_en
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0624
+Arrival Time:              1.8747
+Required Time:             1.9371
+Data Type: setup
+
+Startpoint: u_buf/sync_b
+Endpoint: u_bus/i2c_addr
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1745
+Arrival Time:              6.3289
+Required Time:             6.5034
+Data Type: setup
+
+Startpoint: u_core/alu_n
+Endpoint: u_noc/pll_b
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2512
+Arrival Time:              0.8255
+Required Time:             1.0766
+Data Type: setup
+
+Startpoint: u_dma/datapath_sel
+Endpoint: u_dsp/mux_reg
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0194
+Arrival Time:              6.4913
+Required Time:             6.5106
+Data Type: setup
+
+Startpoint: u_io/dll_val
+Endpoint: u_arb/multiplier_n
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2858
+Arrival Time:              5.5081
+Required Time:             5.7940
+Data Type: setup
+
+Startpoint: u_pll/pma_en
+Endpoint: u_vpu/serdes_d[60]
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.0969
+Arrival Time:              1.9050
+Required Time:             2.0019
+Data Type: setup
+
+Startpoint: u_cache/pcs_next
+Endpoint: u_subsys/mem/comparator_p[42]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2172
+Arrival Time:              6.5095
+Required Time:             6.7267
+Data Type: setup
+
+Startpoint: u_io/interrupt_ctrl_cnt
+Endpoint: u_top/phy_q
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1779
+Arrival Time:              3.2508
+Required Time:             3.4287
+Data Type: setup
+
+Startpoint: u_gpu/scrambler_z
+Endpoint: u_ddrc/fifo_sync_en[18]
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2402
+Arrival Time:              1.7002
+Required Time:             1.9404
+Data Type: setup
+
+Startpoint: u_top/comparator_p
+Endpoint: u_cache/fifo_sync_sel
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2421
+Arrival Time:              6.1011
+Required Time:             6.3432
+Data Type: setup
+
+Startpoint: u_pll/rom_ctrl_addr
+Endpoint: u_phy/encoder_cmd
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1769
+Arrival Time:              7.1856
+Required Time:             7.3626
+Data Type: setup
+
+Startpoint: u_cluster/core1/alu_reg
+Endpoint: u_pciesub/pipeline
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2598
+Arrival Time:              7.2178
+Required Time:             7.4777
+Data Type: setup
+
+Startpoint: u_buf/pll_addr[49]
+Endpoint: u_subsys/mem/bridge_b
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0533
+Arrival Time:              2.1442
+Required Time:             2.0910
+Data Type: setup
+
+Startpoint: u_top/dma_ctrl_val[41]
+Endpoint: u_subsys/dma/mac_cnt[0]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0060
+Arrival Time:              4.6588
+Required Time:             4.6648
+Data Type: setup
+
+Startpoint: u_ddrc/fifo_async_p
+Endpoint: u_ddrc/timer_z
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2821
+Arrival Time:              3.5405
+Required Time:             3.8225
+Data Type: setup
+
+Startpoint: u_subsys/dma/controller_next
+Endpoint: u_mac/shifter_in[41]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0691
+Arrival Time:              6.8636
+Required Time:             6.7945
+Data Type: setup
+
+Startpoint: u_pll/regfile_cmd
+Endpoint: u_dma/shifter_addr[3]
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1764
+Arrival Time:              6.2762
+Required Time:             6.4526
+Data Type: setup
+
+Startpoint: u_subsys/cpu/multiplier_out
+Endpoint: u_ctrl/dma_addr
+Path Group: clk_200m
+Clock: uart_clk
+----------------------------------------
+Slack:                    6.2643
+Arrival Time:              0.0968
+Required Time:             6.3611
+Data Type: setup

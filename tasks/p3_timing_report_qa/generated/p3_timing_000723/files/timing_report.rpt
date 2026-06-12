@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -2.2993
+tns: -5.1578
+violating_path_count: 3
+
+Startpoint: u_gpu/spi_data
+Endpoint: u_top/timer_addr
+Path Group: reg2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.2993
+Arrival Time:              4.9714
+Required Time:             2.6721
+Data Type: hold
+
+Startpoint: u_arb/fifo_async_z[1]
+Endpoint: u_gpu/pma_state
+Path Group: reg2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.7888
+Arrival Time:              3.1835
+Required Time:             1.3947
+Data Type: hold
+
+Startpoint: u_arb/pcs_in
+Endpoint: u_bus/ecc_z
+Path Group: reg2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.0697
+Arrival Time:              7.0194
+Required Time:             5.9497
+Data Type: hold

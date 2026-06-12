@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.9291
+tns: -20.0391
+violating_path_count: 6
+
+Startpoint: u_cluster/l2/multiplier_prev[11]
+Endpoint: u_ctrl/serdes
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.9291
+Arrival Time:              11.7773
+Required Time:             7.8482
+Data Type: setup
+
+Startpoint: u_bus/adder_val[35]
+Endpoint: u_cluster/core0/converter_prev[59]
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.8723
+Arrival Time:              8.3313
+Required Time:             4.4590
+Data Type: setup
+
+Startpoint: u_cluster/core1/multiplier_state
+Endpoint: u_phy/fifo_state[62]
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.6461
+Arrival Time:              10.2502
+Required Time:             7.6042
+Data Type: setup
+
+Startpoint: u_pciesub/mux_val
+Endpoint: u_bus/adc_cmd
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.2690
+Arrival Time:              10.9027
+Required Time:             7.6337
+Data Type: setup
+
+Startpoint: u_cluster/core0/uart_data
+Endpoint: u_mac/filter_z[52]
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8558
+Arrival Time:              10.7168
+Required Time:             7.8610
+Data Type: setup
+
+Startpoint: u_subsys/dma/interleaver_q[37]
+Endpoint: u_io/latch_cmd[5]
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.4668
+Arrival Time:              6.1096
+Required Time:             2.6427
+Data Type: setup

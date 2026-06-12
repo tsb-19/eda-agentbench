@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -2.6668
+tns: -12.3478
+violating_path_count: 8
+
+Startpoint: u_pciesub/dcfifo_d[17]
+Endpoint: u_ddrc/fifo_en
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.6668
+Arrival Time:              8.1103
+Required Time:             5.4435
+Data Type: hold
+
+Startpoint: u_core/sampler_in
+Endpoint: u_arb/fifo_in
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.1596
+Arrival Time:              7.9052
+Required Time:             5.7456
+Data Type: hold
+
+Startpoint: u_mac/scrambler_prev
+Endpoint: u_subsys/mem/pipeline_val[36]
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.6658
+Arrival Time:              6.6655
+Required Time:             4.9997
+Data Type: hold
+
+Startpoint: u_core/pll_next[30]
+Endpoint: u_subsys/dma/pcs_out
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.2616
+Arrival Time:              6.6106
+Required Time:             5.3490
+Data Type: hold
+
+Startpoint: u_pll/scrambler_p
+Endpoint: u_pll/filter
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.5604
+Arrival Time:              7.2013
+Required Time:             5.6409
+Data Type: hold
+
+Startpoint: u_subsys/cpu/encoder_d
+Endpoint: u_mem/dma_d[29]
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.8512
+Arrival Time:              6.2257
+Required Time:             4.3745
+Data Type: hold
+
+Startpoint: u_serdes/dcfifo_reg
+Endpoint: u_cluster/core1/dma_n
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.8499
+Arrival Time:              3.5782
+Required Time:             2.7283
+Data Type: hold
+
+Startpoint: u_subsys/cpu/controller_next
+Endpoint: u_subsys/dma/multiplier_in[27]
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    0.2143
+Arrival Time:              6.0562
+Required Time:             6.2705
+Data Type: hold
+
+Startpoint: u_mac/encoder_cmd
+Endpoint: u_pciesub/descrambler_sel
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    0.2765
+Arrival Time:              1.6312
+Required Time:             1.9077
+Data Type: hold
+
+Startpoint: u_serdes/mac_state[13]
+Endpoint: u_subsys/mem/fifo_async_b
+Path Group: clk_io
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.3325
+Arrival Time:              3.0982
+Required Time:             2.7658
+Data Type: hold

@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -3.5462
+tns: -24.0718
+violating_path_count: 10
+
+Startpoint: u_buf/filter_prev
+Endpoint: u_cluster/core0/multiplier_cmd
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.5462
+Arrival Time:              5.7261
+Required Time:             2.1799
+Data Type: hold
+
+Startpoint: u_cluster/l2/adder[15]
+Endpoint: u_subsys/io/ram_ctrl_cnt
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.3007
+Arrival Time:              4.5198
+Required Time:             1.2190
+Data Type: hold
+
+Startpoint: u_subsys/dma/adder_val
+Endpoint: u_phy/comparator_n
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.3597
+Arrival Time:              6.4742
+Required Time:             3.1144
+Data Type: hold
+
+Startpoint: u_serdes/pll_d
+Endpoint: u_noc/adder_state[30]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.9213
+Arrival Time:              6.0272
+Required Time:             3.1060
+Data Type: hold
+
+Startpoint: u_pciesub/i2c_in
+Endpoint: u_gpu/serdes_n[1]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.3000
+Arrival Time:              4.6856
+Required Time:             2.3856
+Data Type: hold
+
+Startpoint: u_dma/fifo_sync_state
+Endpoint: u_phy/adc_out
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -1.4075
+Arrival Time:              5.6953
+Required Time:             4.2878
+Data Type: hold
+
+Startpoint: u_cluster/core1/pcs[58]
+Endpoint: u_ddrc/dcfifo_out[45]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.0372
+Arrival Time:              8.9091
+Required Time:             5.8718
+Data Type: hold
+
+Startpoint: u_io/fifo_sync_en
+Endpoint: u_pll/multiplier_out
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -1.0070
+Arrival Time:              3.5296
+Required Time:             2.5226
+Data Type: hold
+
+Startpoint: u_cluster/core0/async_sel
+Endpoint: u_cluster/core0/i2c_reg[28]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    0.1450
+Arrival Time:              3.7147
+Required Time:             3.8597
+Data Type: hold
+
+Startpoint: u_bus/ram_ctrl_b[48]
+Endpoint: u_cluster/core1/mac_z
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    0.1034
+Arrival Time:              2.9247
+Required Time:             3.0281
+Data Type: hold
+
+Startpoint: u_subsys/cpu/mux_state[56]
+Endpoint: u_bus/ecc_out[16]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.2384
+Arrival Time:              3.4937
+Required Time:             3.2553
+Data Type: hold
+
+Startpoint: u_gpu/mux_sel
+Endpoint: u_top/phy_state
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    0.0760
+Arrival Time:              3.8918
+Required Time:             3.9678
+Data Type: hold
+
+Startpoint: u_ctrl/decoder_sel
+Endpoint: u_dma/pll_addr[30]
+Path Group: in2out
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.9538
+Arrival Time:              5.4325
+Required Time:             2.4787
+Data Type: hold

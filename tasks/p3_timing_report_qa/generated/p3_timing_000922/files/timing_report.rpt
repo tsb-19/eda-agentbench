@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -4.9519
+tns: -27.1342
+violating_path_count: 7
+
+Startpoint: u_subsys/io/adder_sel
+Endpoint: u_buf/demux_out
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -4.9519
+Arrival Time:              6.4985
+Required Time:             1.5466
+Data Type: hold
+
+Startpoint: u_bus/buffer_reg
+Endpoint: u_subsys/cpu/fifo_async_out[39]
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -4.7885
+Arrival Time:              9.9937
+Required Time:             5.2052
+Data Type: hold
+
+Startpoint: u_phy/fifo_cmd
+Endpoint: u_io/phy_cmd
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -4.5684
+Arrival Time:              12.2134
+Required Time:             7.6451
+Data Type: hold
+
+Startpoint: u_dma/fifo_sync_p[56]
+Endpoint: u_ctrl/bridge_d[40]
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -3.6949
+Arrival Time:              6.6964
+Required Time:             3.0014
+Data Type: hold
+
+Startpoint: u_phy/comparator_sel
+Endpoint: u_buf/timer_q[0]
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -2.7784
+Arrival Time:              6.7952
+Required Time:             4.0168
+Data Type: hold
+
+Startpoint: u_dma/async_addr[52]
+Endpoint: u_gpu/uart_en
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -3.9172
+Arrival Time:              9.1501
+Required Time:             5.2329
+Data Type: hold
+
+Startpoint: u_serdes/async_en[2]
+Endpoint: u_core/mux_n
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -2.4349
+Arrival Time:              9.3088
+Required Time:             6.8739
+Data Type: hold

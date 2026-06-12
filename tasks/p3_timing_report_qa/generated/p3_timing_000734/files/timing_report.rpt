@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -2.5150
+tns: -11.7081
+violating_path_count: 7
+
+Startpoint: u_subsys/mem/dac_cmd[59]
+Endpoint: u_mem/fifo_sync_n
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -2.5150
+Arrival Time:              4.5783
+Required Time:             2.0633
+Data Type: setup
+
+Startpoint: u_arb/dac_next[47]
+Endpoint: u_cluster/l2/i2c_prev
+Path Group: uart_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.6502
+Arrival Time:              9.2407
+Required Time:             7.5905
+Data Type: setup
+
+Startpoint: u_noc/async_data
+Endpoint: u_phy/regfile_prev[9]
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -1.2030
+Arrival Time:              7.4528
+Required Time:             6.2499
+Data Type: setup
+
+Startpoint: u_cluster/core1/async_d
+Endpoint: u_phy/dma_ctrl_prev
+Path Group: uart_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.3254
+Arrival Time:              6.8659
+Required Time:             4.5405
+Data Type: setup
+
+Startpoint: u_pll/watchdog_n[38]
+Endpoint: u_serdes/watchdog_val
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -2.1453
+Arrival Time:              6.4927
+Required Time:             4.3474
+Data Type: setup
+
+Startpoint: u_phy/interrupt_ctrl_addr
+Endpoint: u_mem/descrambler_en[50]
+Path Group: i2c_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.1143
+Arrival Time:              4.5647
+Required Time:             4.4504
+Data Type: setup
+
+Startpoint: u_pll/serdes_b[10]
+Endpoint: u_top/comparator_en[6]
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -1.7549
+Arrival Time:              6.2252
+Required Time:             4.4703
+Data Type: setup
+
+Startpoint: u_core/filter_b
+Endpoint: u_dsp/ecc
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.2699
+Arrival Time:              1.9831
+Required Time:             2.2530
+Data Type: setup
+
+Startpoint: u_mac/encoder_addr[10]
+Endpoint: u_top/ram_ctrl_val
+Path Group: uart_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.7578
+Arrival Time:              5.1355
+Required Time:             5.8932
+Data Type: setup

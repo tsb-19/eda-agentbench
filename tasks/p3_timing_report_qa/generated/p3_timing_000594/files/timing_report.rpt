@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -1.5603
+tns: -5.7729
+violating_path_count: 7
+
+Startpoint: u_subsys/dma/comparator
+Endpoint: u_cluster/core1/ram_ctrl_p
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.5603
+Arrival Time:              3.9744
+Required Time:             2.4141
+Data Type: setup
+
+Startpoint: u_pll/dcfifo_q
+Endpoint: u_cluster/l2/cache_z[59]
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.9663
+Arrival Time:              6.3859
+Required Time:             5.4196
+Data Type: setup
+
+Startpoint: u_ctrl/multiplier_out
+Endpoint: u_vpu/regfile_state[15]
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.1936
+Arrival Time:              5.6933
+Required Time:             4.4997
+Data Type: setup
+
+Startpoint: u_ddrc/spi_addr
+Endpoint: u_dsp/dll_p
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.2367
+Arrival Time:              4.7460
+Required Time:             3.5093
+Data Type: setup
+
+Startpoint: u_subsys/mem/ecc_cmd
+Endpoint: u_cluster/core0/multiplier_cmd
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.0529
+Arrival Time:              3.4333
+Required Time:             3.3805
+Data Type: setup
+
+Startpoint: u_buf/spi_val
+Endpoint: u_mem/ram_ctrl_val
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.7469
+Arrival Time:              7.0914
+Required Time:             6.3445
+Data Type: setup
+
+Startpoint: u_core/dcfifo_sel[52]
+Endpoint: u_cache/adc_reg
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    0.2025
+Arrival Time:              2.6891
+Required Time:             2.8916
+Data Type: setup
+
+Startpoint: u_serdes/async_cmd
+Endpoint: u_subsys/io/alu_val
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    0.0716
+Arrival Time:              6.2558
+Required Time:             6.3274
+Data Type: setup
+
+Startpoint: u_cluster/core0/filter_prev[48]
+Endpoint: u_dsp/demux_val
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.0162
+Arrival Time:              5.1009
+Required Time:             5.0846
+Data Type: setup
+
+Startpoint: u_serdes/phy_n[48]
+Endpoint: u_subsys/io/bridge_addr
+Path Group: in2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    3.1764
+Arrival Time:              0.7505
+Required Time:             3.9268
+Data Type: setup

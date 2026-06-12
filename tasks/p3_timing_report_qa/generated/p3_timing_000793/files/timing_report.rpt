@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -0.0694
+tns: -0.0694
+violating_path_count: 1
+
+Startpoint: u_vpu/comparator_q
+Endpoint: u_buf/filter_n
+Path Group: clk_dsp
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.0694
+Arrival Time:              7.2180
+Required Time:             7.1486
+Data Type: hold
+
+Startpoint: u_subsys/mem/arbiter_z[13]
+Endpoint: u_gpu/latch_p
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2960
+Arrival Time:              5.1604
+Required Time:             5.4563
+Data Type: hold
+
+Startpoint: u_cluster/core1/adder_en
+Endpoint: u_subsys/cpu/pipeline_z
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    0.0183
+Arrival Time:              1.1675
+Required Time:             1.1858
+Data Type: hold
+
+Startpoint: u_subsys/cpu/interrupt_ctrl_sel
+Endpoint: u_core/converter_out[55]
+Path Group: clk_dsp
+Clock: pcie_clk
+----------------------------------------
+Slack:                    0.0564
+Arrival Time:              3.4738
+Required Time:             3.5302
+Data Type: hold
+
+Startpoint: u_phy/sampler_data
+Endpoint: u_vpu/crc_q[32]
+Path Group: clk
+Clock: clk
+----------------------------------------
+Slack:                    0.1643
+Arrival Time:              0.8940
+Required Time:             1.0583
+Data Type: hold
+
+Startpoint: u_gpu/i2c_val
+Endpoint: u_dsp/regfile_en
+Path Group: clk_dsp
+Clock: pcie_clk
+----------------------------------------
+Slack:                    0.9677
+Arrival Time:              6.5430
+Required Time:             7.5107
+Data Type: hold

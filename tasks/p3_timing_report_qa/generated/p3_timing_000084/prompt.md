@@ -2,7 +2,7 @@
 
 ## Question
 
-How many violating paths (negative slack) are in the timing report?
+What is the startpoint of the worst (most negative slack) timing path?
 
 ## Instructions
 

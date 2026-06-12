@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.9313
+tns: -20.7862
+violating_path_count: 8
+
+Startpoint: u_vpu/pll_cnt
+Endpoint: u_mem/adc_reg
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -3.9313
+Arrival Time:              11.3320
+Required Time:             7.4007
+Data Type: setup
+
+Startpoint: u_buf/scrambler_next[37]
+Endpoint: u_core/adc_z
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -3.7386
+Arrival Time:              11.6789
+Required Time:             7.9403
+Data Type: setup
+
+Startpoint: u_io/adc_b[2]
+Endpoint: u_buf/watchdog_sel[3]
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -3.1985
+Arrival Time:              9.0332
+Required Time:             5.8346
+Data Type: setup
+
+Startpoint: u_subsys/mem/dma_ctrl_d
+Endpoint: u_cluster/core0/buffer_cnt
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -2.7350
+Arrival Time:              8.3985
+Required Time:             5.6635
+Data Type: setup
+
+Startpoint: u_arb/demux_p[46]
+Endpoint: u_cluster/core1/pll_data
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.7547
+Arrival Time:              4.5010
+Required Time:             2.7463
+Data Type: setup
+
+Startpoint: u_core/alu_z[3]
+Endpoint: u_cluster/l2/async_out
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -2.1571
+Arrival Time:              4.5803
+Required Time:             2.4232
+Data Type: setup
+
+Startpoint: u_gpu/decoder_reg
+Endpoint: u_cluster/core0/fifo_d[45]
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.9948
+Arrival Time:              8.5622
+Required Time:             7.5674
+Data Type: setup
+
+Startpoint: u_mac/ecc_val
+Endpoint: u_vpu/pll_prev[60]
+Path Group: clk_200m
+Clock: clk_io
+----------------------------------------
+Slack:                    -2.2762
+Arrival Time:              3.4381
+Required Time:             1.1620
+Data Type: setup

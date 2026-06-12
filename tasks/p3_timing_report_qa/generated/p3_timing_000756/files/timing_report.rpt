@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.2815
+tns: -10.9871
+violating_path_count: 5
+
+Startpoint: u_pciesub/sampler_q[52]
+Endpoint: u_cluster/l2/timer_cnt[11]
+Path Group: cpu_clk
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.2815
+Arrival Time:              9.8217
+Required Time:             6.5402
+Data Type: setup
+
+Startpoint: u_dsp/interrupt_ctrl_d
+Endpoint: u_subsys/mem/ram_ctrl_p
+Path Group: cpu_clk
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.3764
+Arrival Time:              5.8442
+Required Time:             3.4678
+Data Type: setup
+
+Startpoint: u_bus/demux_data[9]
+Endpoint: u_cache/descrambler_val
+Path Group: cpu_clk
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.0673
+Arrival Time:              6.7626
+Required Time:             4.6953
+Data Type: setup
+
+Startpoint: u_cluster/l2/descrambler_n
+Endpoint: u_arb/cache_z
+Path Group: cpu_clk
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.4786
+Arrival Time:              3.5276
+Required Time:             1.0490
+Data Type: setup
+
+Startpoint: u_pciesub/mac_p
+Endpoint: u_subsys/io/cache_q[16]
+Path Group: cpu_clk
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.7833
+Arrival Time:              1.8589
+Required Time:             1.0756
+Data Type: setup

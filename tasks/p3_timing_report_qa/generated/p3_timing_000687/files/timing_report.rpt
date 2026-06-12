@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.0335
+tns: -5.1490
+violating_path_count: 4
+
+Startpoint: u_gpu/phy_prev
+Endpoint: u_cluster/core1/dac_b
+Path Group: clk_bus
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.0335
+Arrival Time:              6.8446
+Required Time:             4.8111
+Data Type: setup
+
+Startpoint: u_cluster/core1/mac_sel[60]
+Endpoint: u_cluster/l2/decoder_q
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -1.3429
+Arrival Time:              6.7964
+Required Time:             5.4535
+Data Type: setup
+
+Startpoint: u_phy/fifo_data
+Endpoint: u_subsys/dma/sync_cnt
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -1.2794
+Arrival Time:              3.4549
+Required Time:             2.1755
+Data Type: setup
+
+Startpoint: u_cluster/l2/dma_cmd
+Endpoint: u_subsys/mem/phy_q[60]
+Path Group: clk_bus
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.4932
+Arrival Time:              4.9808
+Required Time:             4.4876
+Data Type: setup

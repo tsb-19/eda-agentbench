@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.0523
+tns: -9.2771
+violating_path_count: 7
+
+Startpoint: u_dma/adder_d
+Endpoint: u_dma/fifo_state[19]
+Path Group: in2out
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -2.0523
+Arrival Time:              3.7651
+Required Time:             1.7128
+Data Type: hold
+
+Startpoint: u_arb/rom_ctrl_en
+Endpoint: u_phy/dac_q
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.6821
+Arrival Time:              8.7973
+Required Time:             7.1152
+Data Type: hold
+
+Startpoint: u_dsp/pcs_p
+Endpoint: u_cluster/core0/comparator_state
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.0553
+Arrival Time:              5.3162
+Required Time:             4.2609
+Data Type: hold
+
+Startpoint: u_dsp/controller_sel
+Endpoint: u_io/demux_sel
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -1.7260
+Arrival Time:              5.7153
+Required Time:             3.9893
+Data Type: hold
+
+Startpoint: u_subsys/mem/datapath_addr
+Endpoint: u_ddrc/pcs_cnt
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.1965
+Arrival Time:              8.1772
+Required Time:             7.9807
+Data Type: hold
+
+Startpoint: u_cluster/l2/rom_ctrl_cmd
+Endpoint: u_buf/i2c_cmd[1]
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.0620
+Arrival Time:              4.9503
+Required Time:             3.8882
+Data Type: hold
+
+Startpoint: u_noc/interleaver_z[61]
+Endpoint: u_mac/fifo_sync_next
+Path Group: in2out
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -1.5029
+Arrival Time:              6.4141
+Required Time:             4.9113
+Data Type: hold

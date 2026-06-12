@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.6826
+tns: -10.8774
+violating_path_count: 5
+
+Startpoint: u_dma/descrambler_reg
+Endpoint: u_cache/scrambler_cnt
+Path Group: clk_mem
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -2.6826
+Arrival Time:              6.5377
+Required Time:             3.8551
+Data Type: hold
+
+Startpoint: u_mem/cache_out[41]
+Endpoint: u_cluster/l2/filter_d
+Path Group: clk_mem
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -2.4757
+Arrival Time:              6.9816
+Required Time:             4.5059
+Data Type: hold
+
+Startpoint: u_buf/descrambler_out[9]
+Endpoint: u_top/interleaver_out
+Path Group: clk_mem
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -2.4306
+Arrival Time:              5.3253
+Required Time:             2.8947
+Data Type: hold
+
+Startpoint: u_subsys/mem/adc_cmd
+Endpoint: u_cache/demux_cmd
+Path Group: clk_mem
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -1.7347
+Arrival Time:              4.9163
+Required Time:             3.1816
+Data Type: hold
+
+Startpoint: u_phy/adc_next
+Endpoint: u_serdes/shifter_addr[38]
+Path Group: clk_mem
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -1.5538
+Arrival Time:              5.9671
+Required Time:             4.4133
+Data Type: hold

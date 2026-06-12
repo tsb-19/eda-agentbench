@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -0.1504
+tns: -0.2106
+violating_path_count: 2
+
+Startpoint: u_mac/datapath_cnt
+Endpoint: u_cluster/core1/buffer
+Path Group: in2out
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.1504
+Arrival Time:              7.0322
+Required Time:             6.8818
+Data Type: hold
+
+Startpoint: u_ctrl/dac_reg
+Endpoint: u_gpu/descrambler_val
+Path Group: in2out
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1840
+Arrival Time:              5.0003
+Required Time:             5.1844
+Data Type: hold
+
+Startpoint: u_subsys/mem/adder_z
+Endpoint: u_mem/crc_cnt
+Path Group: in2out
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1821
+Arrival Time:              1.0802
+Required Time:             1.2623
+Data Type: hold
+
+Startpoint: u_vpu/uart_b[62]
+Endpoint: u_mem/crc_p
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0450
+Arrival Time:              7.3925
+Required Time:             7.4375
+Data Type: hold
+
+Startpoint: u_bus/multiplier_prev
+Endpoint: u_mac/timer_cmd[4]
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0602
+Arrival Time:              4.3233
+Required Time:             4.2630
+Data Type: hold
+
+Startpoint: u_mem/descrambler_cmd
+Endpoint: u_phy/i2c_data
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2692
+Arrival Time:              2.5461
+Required Time:             2.8153
+Data Type: hold
+
+Startpoint: u_subsys/cpu/i2c_next
+Endpoint: u_pll/dll_cnt
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1068
+Arrival Time:              2.4784
+Required Time:             2.5852
+Data Type: hold

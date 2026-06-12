@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -2.8951
+tns: -8.4175
+violating_path_count: 3
+
+Startpoint: u_mem/demux_sel[19]
+Endpoint: u_ctrl/arbiter_addr
+Path Group: in2reg
+Clock: clk
+----------------------------------------
+Slack:                    -2.8951
+Arrival Time:              6.1519
+Required Time:             3.2568
+Data Type: setup
+
+Startpoint: u_ctrl/rom_ctrl_val
+Endpoint: u_subsys/io/decoder_reg
+Path Group: in2reg
+Clock: clk
+----------------------------------------
+Slack:                    -2.7035
+Arrival Time:              4.9875
+Required Time:             2.2840
+Data Type: setup
+
+Startpoint: u_gpu/fifo_d
+Endpoint: u_top/dac_data
+Path Group: in2reg
+Clock: clk
+----------------------------------------
+Slack:                    -2.8189
+Arrival Time:              9.7980
+Required Time:             6.9791
+Data Type: setup

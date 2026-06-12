@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -4.9130
+tns: -21.4574
+violating_path_count: 5
+
+Startpoint: u_cluster/l2/descrambler_next
+Endpoint: u_noc/rom_ctrl_z
+Path Group: clk_core
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.9130
+Arrival Time:              10.7145
+Required Time:             5.8015
+Data Type: hold
+
+Startpoint: u_phy/dma_ctrl_n
+Endpoint: u_noc/fifo_async_sel
+Path Group: clk_core
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.6553
+Arrival Time:              10.2284
+Required Time:             5.5732
+Data Type: hold
+
+Startpoint: u_cluster/core0/watchdog_cmd[22]
+Endpoint: u_subsys/io/pma_data
+Path Group: clk_core
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.5913
+Arrival Time:              9.8142
+Required Time:             6.2228
+Data Type: hold
+
+Startpoint: u_subsys/dma/datapath_sel
+Endpoint: u_vpu/controller_b
+Path Group: clk_core
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.3288
+Arrival Time:              6.7176
+Required Time:             2.3888
+Data Type: hold
+
+Startpoint: u_subsys/mem/fifo_b
+Endpoint: u_phy/fifo_sync_z[25]
+Path Group: clk_core
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.9690
+Arrival Time:              7.0885
+Required Time:             3.1195
+Data Type: hold

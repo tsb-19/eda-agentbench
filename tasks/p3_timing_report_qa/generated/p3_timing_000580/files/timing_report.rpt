@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -3.9223
+tns: -21.4125
+violating_path_count: 7
+
+Startpoint: u_phy/fifo_async_val
+Endpoint: u_subsys/dma/dma_ctrl_val[25]
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.9223
+Arrival Time:              5.5074
+Required Time:             1.5851
+Data Type: hold
+
+Startpoint: u_noc/sync_val[59]
+Endpoint: u_mem/datapath_val
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.1893
+Arrival Time:              4.8618
+Required Time:             1.6725
+Data Type: hold
+
+Startpoint: u_subsys/mem/dcfifo_prev
+Endpoint: u_subsys/mem/cache_b
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -2.4711
+Arrival Time:              6.1191
+Required Time:             3.6480
+Data Type: hold
+
+Startpoint: u_phy/latch_cmd
+Endpoint: u_io/regfile_in
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.0129
+Arrival Time:              10.7118
+Required Time:             7.6989
+Data Type: hold
+
+Startpoint: u_serdes/scrambler_cmd
+Endpoint: u_pciesub/serdes_in[29]
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.1848
+Arrival Time:              5.0550
+Required Time:             1.8701
+Data Type: hold
+
+Startpoint: u_subsys/io/spi_addr
+Endpoint: u_dma/regfile_d[60]
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -2.4025
+Arrival Time:              3.7062
+Required Time:             1.3037
+Data Type: hold
+
+Startpoint: u_noc/demux_sel[6]
+Endpoint: u_subsys/io/mux_z
+Path Group: clk_bus
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.2296
+Arrival Time:              9.7629
+Required Time:             6.5333
+Data Type: hold

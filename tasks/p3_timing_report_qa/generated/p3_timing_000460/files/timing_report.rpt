@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -4.7312
+tns: -28.3487
+violating_path_count: 8
+
+Startpoint: u_subsys/cpu/serdes_addr
+Endpoint: u_dsp/pipeline_state[52]
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -4.7312
+Arrival Time:              7.2365
+Required Time:             2.5053
+Data Type: setup
+
+Startpoint: u_cluster/l2/decoder_in
+Endpoint: u_gpu/pma_sel
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -4.2501
+Arrival Time:              10.1357
+Required Time:             5.8856
+Data Type: setup
+
+Startpoint: u_ddrc/scrambler_addr[7]
+Endpoint: u_cluster/core1/timer_reg
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.2846
+Arrival Time:              9.1146
+Required Time:             5.8301
+Data Type: setup
+
+Startpoint: u_subsys/io/adder_data
+Endpoint: u_dsp/sampler_sel
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.8196
+Arrival Time:              7.3317
+Required Time:             3.5121
+Data Type: setup
+
+Startpoint: u_subsys/dma/dcfifo_state
+Endpoint: u_cluster/core1/crc_val
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.5133
+Arrival Time:              9.7165
+Required Time:             7.2032
+Data Type: setup
+
+Startpoint: u_pciesub/mux_p
+Endpoint: u_arb/demux_val[2]
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.7100
+Arrival Time:              3.7403
+Required Time:             1.0303
+Data Type: setup
+
+Startpoint: u_dma/cache_n[36]
+Endpoint: u_ctrl/dma_ctrl_val
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.3477
+Arrival Time:              7.8561
+Required Time:             4.5084
+Data Type: setup
+
+Startpoint: u_dma/async_next[33]
+Endpoint: u_dsp/fifo_sync[48]
+Path Group: mem_clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.6922
+Arrival Time:              8.7226
+Required Time:             5.0304
+Data Type: setup

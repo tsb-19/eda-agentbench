@@ -1,158 +1,338 @@
 **** Report : timing
     -path_type full
     -delay_type max
-    -max_paths 15
+    -max_paths 33
 
-wns: -1.2144
-tns: -2.7124
-violating_path_count: 7
+wns: -3.7183
+tns: -43.3470
+violating_path_count: 23
 
-Startpoint: u_io/fifo
-Endpoint: u_mem/regfile_en
-Path Group: clk
-Clock: clk_core
+Startpoint: u_bus/pipeline_cnt
+Endpoint: u_subsys/io/phy[39]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -1.2144
-Arrival Time:              5.8496
-Required Time:             4.6352
-Data Type: setup
+Slack:                    -3.7183
+Arrival Time:              10.7782
+Required Time:             7.0599
+Data Type: hold
 
-Startpoint: u_top/spi_d
-Endpoint: u_top/encoder_in
-Path Group: clk
-Clock: clk_core
+Startpoint: u_subsys/mem/scrambler_val[18]
+Endpoint: u_serdes/i2c_data
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.4429
-Arrival Time:              5.4415
-Required Time:             4.9986
-Data Type: setup
+Slack:                    -3.1226
+Arrival Time:              7.6399
+Required Time:             4.5173
+Data Type: hold
 
-Startpoint: u_top/multiplier
-Endpoint: u_mem/demux
-Path Group: clk
-Clock: clk_core
+Startpoint: u_gpu/crc_sel
+Endpoint: u_top/pll_en[58]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.2669
-Arrival Time:              1.4288
-Required Time:             1.6957
-Data Type: setup
+Slack:                    -3.3254
+Arrival Time:              6.6277
+Required Time:             3.3022
+Data Type: hold
 
-Startpoint: u_io/demux_in
-Endpoint: u_core/demux_in
-Path Group: clk
-Clock: clk_core
+Startpoint: u_cluster/core1/shifter_data
+Endpoint: u_cluster/core1/demux_addr[55]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.0305
-Arrival Time:              2.3584
-Required Time:             2.3279
-Data Type: setup
+Slack:                    -2.9986
+Arrival Time:              9.8971
+Required Time:             6.8985
+Data Type: hold
 
-Startpoint: u_mem/adder_en
-Endpoint: u_top/datapath_q
-Path Group: clk
-Clock: clk_core
+Startpoint: u_dsp/pcs_p[5]
+Endpoint: u_phy/mux_val
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.1252
-Arrival Time:              2.0336
-Required Time:             2.1588
-Data Type: setup
+Slack:                    -2.5466
+Arrival Time:              9.9225
+Required Time:             7.3758
+Data Type: hold
 
-Startpoint: u_top/alu_in
-Endpoint: u_mem/alu_en
-Path Group: clk
-Clock: clk_core
+Startpoint: u_io/pcs_next
+Endpoint: u_pll/dll_n[47]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.8890
-Arrival Time:              3.2032
-Required Time:             2.3142
-Data Type: setup
+Slack:                    -2.0774
+Arrival Time:              7.7440
+Required Time:             5.6666
+Data Type: hold
 
-Startpoint: u_top/mux_q
-Endpoint: u_core/i2c_in
-Path Group: clk
-Clock: clk_core
+Startpoint: u_cluster/core0/adc_state
+Endpoint: u_dsp/regfile_next
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.0194
-Arrival Time:              1.9761
-Required Time:             1.9567
-Data Type: setup
+Slack:                    -3.3858
+Arrival Time:              5.1224
+Required Time:             1.7366
+Data Type: hold
 
-Startpoint: u_io/uart_en
-Endpoint: u_mem/multiplier_q
-Path Group: clk
-Clock: clk_core
+Startpoint: u_subsys/io/mac_sel
+Endpoint: u_subsys/dma/converter_next
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.0433
-Arrival Time:              1.9316
-Required Time:             1.8882
-Data Type: setup
+Slack:                    -1.8266
+Arrival Time:              3.3390
+Required Time:             1.5124
+Data Type: hold
 
-Startpoint: u_mem/datapath_reg
-Endpoint: u_io/dma_reg
-Path Group: clk
-Clock: clk_core
+Startpoint: u_bus/comparator_sel
+Endpoint: u_io/dma_n
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.0290
-Arrival Time:              4.8865
-Required Time:             4.9155
-Data Type: setup
+Slack:                    -3.5809
+Arrival Time:              5.3837
+Required Time:             1.8028
+Data Type: hold
 
-Startpoint: u_io/decoder_reg
-Endpoint: u_top/buffer_en
-Path Group: clk
-Clock: clk_core
+Startpoint: u_pciesub/adder_reg[2]
+Endpoint: u_vpu/cache_reg[50]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.1774
-Arrival Time:              4.5735
-Required Time:             4.7510
-Data Type: setup
+Slack:                    -0.1218
+Arrival Time:              4.1858
+Required Time:             4.0641
+Data Type: hold
 
-Startpoint: u_core/multiplier_out
-Endpoint: u_core/dma_in
-Path Group: clk
-Clock: clk_core
+Startpoint: u_core/mac_val[45]
+Endpoint: u_dsp/pipeline_d
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.0178
-Arrival Time:              2.1042
-Required Time:             2.1220
-Data Type: setup
+Slack:                    -2.7003
+Arrival Time:              8.4001
+Required Time:             5.6997
+Data Type: hold
 
-Startpoint: u_core/datapath_d
-Endpoint: u_io/uart_d
-Path Group: clk
-Clock: clk_core
+Startpoint: u_top/interrupt_ctrl_b
+Endpoint: u_subsys/io/phy_out
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.2235
-Arrival Time:              3.4163
-Required Time:             3.6398
-Data Type: setup
+Slack:                    -0.4684
+Arrival Time:              4.5628
+Required Time:             4.0944
+Data Type: hold
 
-Startpoint: u_core/mux_out
-Endpoint: u_core/encoder_d
-Path Group: clk
-Clock: clk_core
+Startpoint: u_core/spi_data
+Endpoint: u_phy/async_prev[2]
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    0.0278
-Arrival Time:              3.6988
-Required Time:             3.7267
-Data Type: setup
+Slack:                    -1.6243
+Arrival Time:              2.9912
+Required Time:             1.3669
+Data Type: hold
 
-Startpoint: u_core/alu_q
-Endpoint: u_mem/controller_reg
-Path Group: clk
-Clock: clk_core
+Startpoint: u_cache/buffer_en[12]
+Endpoint: u_cluster/core1/phy_reg
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    -0.0729
-Arrival Time:              2.4712
-Required Time:             2.3983
-Data Type: setup
+Slack:                    -0.6856
+Arrival Time:              8.6106
+Required Time:             7.9250
+Data Type: hold
 
-Startpoint: u_mem/datapath_out
-Endpoint: u_io/adder_out
-Path Group: clk
-Clock: clk_core
+Startpoint: u_cluster/l2/comparator_state
+Endpoint: u_ctrl/watchdog_next
+Path Group: reg2reg
+Clock: eth_clk
 ----------------------------------------
-Slack:                    2.0201
-Arrival Time:              0.0621
-Required Time:             2.0822
-Data Type: setup
+Slack:                    -3.2448
+Arrival Time:              7.8323
+Required Time:             4.5875
+Data Type: hold
+
+Startpoint: u_phy/pipeline_out
+Endpoint: u_dsp/alu_data
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.4610
+Arrival Time:              4.4562
+Required Time:             3.9952
+Data Type: hold
+
+Startpoint: u_phy/i2c_val
+Endpoint: u_arb/uart_en
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.4485
+Arrival Time:              5.9379
+Required Time:             2.4894
+Data Type: hold
+
+Startpoint: u_mem/pma_n
+Endpoint: u_gpu/mux_val
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2070
+Arrival Time:              4.2900
+Required Time:             4.4970
+Data Type: hold
+
+Startpoint: u_subsys/mem/adc_in
+Endpoint: u_subsys/cpu/dll_state
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2926
+Arrival Time:              5.5816
+Required Time:             5.8742
+Data Type: hold
+
+Startpoint: u_gpu/interleaver_data
+Endpoint: u_subsys/dma/controller_b
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0730
+Arrival Time:              1.1965
+Required Time:             1.1235
+Data Type: hold
+
+Startpoint: u_mem/shifter_prev
+Endpoint: u_cluster/core0/datapath_z[17]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0070
+Arrival Time:              5.3214
+Required Time:             5.3144
+Data Type: hold
+
+Startpoint: u_ctrl/dma_ctrl_d[56]
+Endpoint: u_subsys/dma/latch_in[5]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0186
+Arrival Time:              2.0430
+Required Time:             2.0617
+Data Type: hold
+
+Startpoint: u_dma/dll_q[42]
+Endpoint: u_cache/datapath_next
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2910
+Arrival Time:              5.2453
+Required Time:             5.5363
+Data Type: hold
+
+Startpoint: u_subsys/mem/pcs_prev
+Endpoint: u_buf/fifo_async_state[0]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1660
+Arrival Time:              2.5724
+Required Time:             2.7384
+Data Type: hold
+
+Startpoint: u_ctrl/spi_in
+Endpoint: u_bus/dma_reg
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.6767
+Arrival Time:              7.1182
+Required Time:             4.4415
+Data Type: hold
+
+Startpoint: u_io/filter_sel
+Endpoint: u_subsys/dma/buffer_prev
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2727
+Arrival Time:              2.3814
+Required Time:             2.6542
+Data Type: hold
+
+Startpoint: u_subsys/cpu/buffer_val
+Endpoint: u_pciesub/dma_cmd
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0212
+Arrival Time:              5.0137
+Required Time:             5.0350
+Data Type: hold
+
+Startpoint: u_ddrc/watchdog_addr
+Endpoint: u_cluster/l2/dac[48]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.1365
+Arrival Time:              5.2262
+Required Time:             4.0896
+Data Type: hold
+
+Startpoint: u_dma/timer_n[22]
+Endpoint: u_mac/bridge_sel
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0667
+Arrival Time:              7.4119
+Required Time:             7.3452
+Data Type: hold
+
+Startpoint: u_cache/encoder[24]
+Endpoint: u_core/alu_b
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1249
+Arrival Time:              4.2411
+Required Time:             4.3659
+Data Type: hold
+
+Startpoint: u_buf/pll_cmd
+Endpoint: u_dma/dma_ctrl_p[4]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0618
+Arrival Time:              3.8489
+Required Time:             3.9107
+Data Type: hold
+
+Startpoint: u_dsp/buffer_addr
+Endpoint: u_cluster/core0/dll_cmd
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0502
+Arrival Time:              7.5751
+Required Time:             7.5249
+Data Type: hold
+
+Startpoint: u_subsys/io/spi_data
+Endpoint: u_subsys/dma/datapath_prev
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    4.5127
+Arrival Time:              1.3067
+Required Time:             5.8194
+Data Type: hold

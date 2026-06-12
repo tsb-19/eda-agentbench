@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.7352
+tns: -13.9044
+violating_path_count: 6
+
+Startpoint: u_subsys/io/fifo_p
+Endpoint: u_subsys/io/controller_val
+Path Group: reg2out
+Clock: mem_clk
+----------------------------------------
+Slack:                    -3.7352
+Arrival Time:              7.6444
+Required Time:             3.9092
+Data Type: setup
+
+Startpoint: u_pll/adder_val
+Endpoint: u_cluster/core1/serdes_d[12]
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.9184
+Arrival Time:              6.1182
+Required Time:             3.1998
+Data Type: setup
+
+Startpoint: u_ddrc/fifo_async_sel
+Endpoint: u_cluster/core1/pll_state
+Path Group: reg2out
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.4104
+Arrival Time:              8.8410
+Required Time:             6.4305
+Data Type: setup
+
+Startpoint: u_gpu/converter_sel[7]
+Endpoint: u_phy/ecc_b
+Path Group: reg2out
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.9802
+Arrival Time:              7.3705
+Required Time:             5.3903
+Data Type: setup
+
+Startpoint: u_top/latch_q
+Endpoint: u_arb/fifo_sync_sel
+Path Group: reg2out
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.5753
+Arrival Time:              9.2090
+Required Time:             7.6337
+Data Type: setup
+
+Startpoint: u_ctrl/controller_cmd
+Endpoint: u_arb/fifo_async_d
+Path Group: reg2out
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.2849
+Arrival Time:              5.0107
+Required Time:             3.7259
+Data Type: setup

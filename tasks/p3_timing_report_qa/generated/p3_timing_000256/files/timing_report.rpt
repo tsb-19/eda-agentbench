@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -3.5930
+tns: -20.6675
+violating_path_count: 9
+
+Startpoint: u_cluster/l2/encoder_sel[1]
+Endpoint: u_serdes/descrambler_en[61]
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.5930
+Arrival Time:              6.3214
+Required Time:             2.7284
+Data Type: setup
+
+Startpoint: u_buf/watchdog_out
+Endpoint: u_cluster/l2/dma_ctrl_d[16]
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.1848
+Arrival Time:              5.1845
+Required Time:             1.9996
+Data Type: setup
+
+Startpoint: u_serdes/dma_ctrl_sel
+Endpoint: u_subsys/io/adc_in
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.2298
+Arrival Time:              4.7165
+Required Time:             1.4867
+Data Type: setup
+
+Startpoint: u_top/uart_cmd[40]
+Endpoint: u_vpu/converter_q
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.6744
+Arrival Time:              3.4111
+Required Time:             1.7367
+Data Type: setup
+
+Startpoint: u_cluster/l2/uart_p
+Endpoint: u_dma/fifo_reg
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.4598
+Arrival Time:              5.8296
+Required Time:             4.3698
+Data Type: setup
+
+Startpoint: u_dsp/decoder_en
+Endpoint: u_vpu/dll_z
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.9559
+Arrival Time:              4.5922
+Required Time:             1.6363
+Data Type: setup
+
+Startpoint: u_subsys/cpu/converter_en
+Endpoint: u_phy/filter_n
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.0496
+Arrival Time:              4.4647
+Required Time:             3.4152
+Data Type: setup
+
+Startpoint: u_core/multiplier_state
+Endpoint: u_buf/alu_addr
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.0217
+Arrival Time:              4.3882
+Required Time:             3.3666
+Data Type: setup
+
+Startpoint: u_cluster/core0/interrupt_ctrl
+Endpoint: u_vpu/mux_n
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.4985
+Arrival Time:              10.4573
+Required Time:             7.9588
+Data Type: setup
+
+Startpoint: u_subsys/io/buffer_addr[36]
+Endpoint: u_ctrl/decoder_prev[15]
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2242
+Arrival Time:              1.2917
+Required Time:             1.5158
+Data Type: setup
+
+Startpoint: u_top/filter_cnt
+Endpoint: u_pciesub/fifo_async_next
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2188
+Arrival Time:              4.2045
+Required Time:             4.4234
+Data Type: setup

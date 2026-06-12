@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.6698
+tns: -8.1853
+violating_path_count: 4
+
+Startpoint: u_cluster/l2/controller_en
+Endpoint: u_dma/mac_z
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.6698
+Arrival Time:              10.0826
+Required Time:             7.4128
+Data Type: hold
+
+Startpoint: u_bus/ecc_val[26]
+Endpoint: u_gpu/multiplier_d
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.7616
+Arrival Time:              4.1046
+Required Time:             2.3430
+Data Type: hold
+
+Startpoint: u_cluster/l2/interleaver_addr
+Endpoint: u_bus/phy_cnt
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.5171
+Arrival Time:              7.8955
+Required Time:             5.3784
+Data Type: hold
+
+Startpoint: u_subsys/io/alu_p
+Endpoint: u_ctrl/datapath_d[23]
+Path Group: reg2reg
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.2368
+Arrival Time:              6.7653
+Required Time:             5.5285
+Data Type: hold

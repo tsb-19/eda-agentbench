@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -1.5603
+tns: -3.6891
+violating_path_count: 4
+
+Startpoint: u_vpu/encoder
+Endpoint: u_io/decoder_z
+Path Group: reg2reg
+Clock: clk_mem
+----------------------------------------
+Slack:                    -1.5603
+Arrival Time:              3.0081
+Required Time:             1.4478
+Data Type: setup
+
+Startpoint: u_buf/adder_z
+Endpoint: u_vpu/rom_ctrl_cnt[6]
+Path Group: reg2reg
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.7610
+Arrival Time:              6.5495
+Required Time:             5.7886
+Data Type: setup
+
+Startpoint: u_subsys/io/adc_cnt
+Endpoint: u_core/interleaver_val
+Path Group: reg2reg
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.1655
+Arrival Time:              4.7036
+Required Time:             4.5381
+Data Type: setup
+
+Startpoint: u_dma/spi_z
+Endpoint: u_buf/datapath_reg
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -1.2023
+Arrival Time:              3.6963
+Required Time:             2.4940
+Data Type: setup
+
+Startpoint: u_cluster/l2/rom_ctrl
+Endpoint: u_dma/converter_cnt[15]
+Path Group: reg2reg
+Clock: clk_mem
+----------------------------------------
+Slack:                    0.3958
+Arrival Time:              6.2947
+Required Time:             6.6905
+Data Type: setup

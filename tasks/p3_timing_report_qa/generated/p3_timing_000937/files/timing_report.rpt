@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -2.9030
+tns: -19.6813
+violating_path_count: 9
+
+Startpoint: u_cluster/core1/dma_data
+Endpoint: u_core/ecc_data[9]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.9030
+Arrival Time:              9.5941
+Required Time:             6.6911
+Data Type: setup
+
+Startpoint: u_pll/datapath_en[25]
+Endpoint: u_subsys/dma/mac_data[7]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.1037
+Arrival Time:              6.7746
+Required Time:             4.6709
+Data Type: setup
+
+Startpoint: u_cluster/core0/dma_ctrl_b
+Endpoint: u_phy/dcfifo_n[57]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.3840
+Arrival Time:              7.1015
+Required Time:             4.7175
+Data Type: setup
+
+Startpoint: u_pll/fifo_sync_val
+Endpoint: u_core/phy_b
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.3206
+Arrival Time:              10.0362
+Required Time:             7.7156
+Data Type: setup
+
+Startpoint: u_top/controller_en[11]
+Endpoint: u_core/interrupt_ctrl[62]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.6341
+Arrival Time:              9.1540
+Required Time:             6.5199
+Data Type: setup
+
+Startpoint: u_cluster/core0/arbiter_prev
+Endpoint: u_subsys/cpu/scrambler_state[50]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.1743
+Arrival Time:              7.1082
+Required Time:             4.9339
+Data Type: setup
+
+Startpoint: u_phy/async_q[7]
+Endpoint: u_top/mux_d
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.4728
+Arrival Time:              3.0792
+Required Time:             2.6064
+Data Type: setup
+
+Startpoint: u_ctrl/bridge_sel[12]
+Endpoint: u_cluster/core1/multiplier_reg[45]
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.4953
+Arrival Time:              8.8117
+Required Time:             6.3164
+Data Type: setup
+
+Startpoint: u_pciesub/converter[6]
+Endpoint: u_subsys/dma/scrambler_next
+Path Group: cpu_clk
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.1935
+Arrival Time:              8.6939
+Required Time:             6.5004
+Data Type: setup

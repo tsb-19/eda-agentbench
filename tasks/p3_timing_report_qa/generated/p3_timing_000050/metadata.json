@@ -4,7 +4,7 @@
   "tool": [
     "pt"
   ],
-  "difficulty": "easy",
+  "difficulty": "hard",
   "data_type": "template_synthetic",
   "resource_preset": "fast",
   "timeout_sec": 60,
@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "numeric",
-    "expected": "-0.1535",
+    "expected": "-3.1386",
     "tolerance": 0.01,
-    "question_type": "wns"
+    "question_type": "slack_of_named_path"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "wns",
-    "task_index": 50,
-    "num_paths": 13,
-    "clock": "sys_clk",
-    "path_group": "clk_100m"
+    "question_type": "slack_of_named_path",
+    "task_index": 49,
+    "internal_index": 50,
+    "num_paths": 37,
+    "clock": "ref_clk",
+    "path_group": "mem_clk",
+    "multi_clock": true
   },
   "version": "1.0.0"
 }

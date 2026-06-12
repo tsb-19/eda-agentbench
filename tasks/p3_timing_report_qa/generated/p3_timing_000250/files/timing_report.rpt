@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -0.0850
+tns: -0.1603
+violating_path_count: 3
+
+Startpoint: u_subsys/mem/interrupt_ctrl_in
+Endpoint: u_serdes/dcfifo_q[41]
+Path Group: clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -0.0544
+Arrival Time:              6.3217
+Required Time:             6.2673
+Data Type: setup
+
+Startpoint: u_ctrl/dac_n
+Endpoint: u_cluster/core1/multiplier_en
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.0850
+Arrival Time:              4.8145
+Required Time:             4.7295
+Data Type: setup
+
+Startpoint: u_serdes/multiplier_data
+Endpoint: u_subsys/dma/async
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    0.2240
+Arrival Time:              2.6070
+Required Time:             2.8310
+Data Type: setup
+
+Startpoint: u_pll/pma_n
+Endpoint: u_arb/buffer_b
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.0209
+Arrival Time:              3.2789
+Required Time:             3.2580
+Data Type: setup
+
+Startpoint: u_io/scrambler_n
+Endpoint: u_mem/fifo_sync_p
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.0069
+Arrival Time:              5.2510
+Required Time:             5.2579
+Data Type: setup
+
+Startpoint: u_ddrc/descrambler_p
+Endpoint: u_subsys/io/scrambler_next
+Path Group: clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    0.1237
+Arrival Time:              3.4377
+Required Time:             3.5614
+Data Type: setup
+
+Startpoint: u_cluster/core1/uart_b
+Endpoint: u_subsys/io/timer_addr
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.0450
+Arrival Time:              4.6961
+Required Time:             4.7411
+Data Type: setup
+
+Startpoint: u_subsys/io/interrupt_ctrl_cnt
+Endpoint: u_noc/bridge_val
+Path Group: clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    3.3740
+Arrival Time:              -0.8458
+Required Time:             2.5283
+Data Type: setup

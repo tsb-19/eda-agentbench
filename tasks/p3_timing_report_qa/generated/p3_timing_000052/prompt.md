@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the endpoint of the worst (most negative slack) timing path?
+What is the TNS (Total Negative Slack) in the timing report?
 
 ## Instructions
 

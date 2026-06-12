@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.4861
+tns: -5.1757
+violating_path_count: 5
+
+Startpoint: u_pciesub/dcfifo_val
+Endpoint: u_subsys/mem/controller
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -1.4861
+Arrival Time:              4.3592
+Required Time:             2.8731
+Data Type: hold
+
+Startpoint: u_cluster/core0/arbiter_cmd
+Endpoint: u_mac/multiplier_cmd[56]
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.6358
+Arrival Time:              1.8825
+Required Time:             1.2467
+Data Type: hold
+
+Startpoint: u_mac/fifo_async_b[26]
+Endpoint: u_dma/dac_out
+Path Group: sys_clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.4631
+Arrival Time:              7.2208
+Required Time:             6.7577
+Data Type: hold
+
+Startpoint: u_gpu/dma_reg
+Endpoint: u_mac/crc_out
+Path Group: pll_clk
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.2481
+Arrival Time:              8.3484
+Required Time:             7.1003
+Data Type: hold
+
+Startpoint: u_noc/sync_en
+Endpoint: u_dsp/adc_out
+Path Group: pll_clk
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.3426
+Arrival Time:              5.5021
+Required Time:             4.1595
+Data Type: hold
+
+Startpoint: u_gpu/mux
+Endpoint: u_serdes/filter_p[27]
+Path Group: mem_clk
+Clock: mem_clk
+----------------------------------------
+Slack:                    0.2798
+Arrival Time:              4.8595
+Required Time:             5.1393
+Data Type: hold

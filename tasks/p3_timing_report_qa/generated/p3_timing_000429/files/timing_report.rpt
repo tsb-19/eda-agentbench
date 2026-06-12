@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -3.5715
+tns: -32.0152
+violating_path_count: 12
+
+Startpoint: u_cache/async_n
+Endpoint: u_cache/ecc
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.5715
+Arrival Time:              4.8244
+Required Time:             1.2529
+Data Type: setup
+
+Startpoint: u_dsp/fifo_async_q[48]
+Endpoint: u_arb/pma_sel
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.3320
+Arrival Time:              10.0949
+Required Time:             6.7629
+Data Type: setup
+
+Startpoint: u_cluster/l2/pcs_z
+Endpoint: u_noc/adder_out[56]
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.3729
+Arrival Time:              8.6556
+Required Time:             5.2828
+Data Type: setup
+
+Startpoint: u_top/filter
+Endpoint: u_subsys/dma/fifo_out
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.7975
+Arrival Time:              8.1211
+Required Time:             5.3236
+Data Type: setup
+
+Startpoint: u_cluster/core1/adc
+Endpoint: u_noc/rom_ctrl_cmd
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.3011
+Arrival Time:              10.2736
+Required Time:             6.9725
+Data Type: setup
+
+Startpoint: u_cluster/core0/fifo_async_en
+Endpoint: u_subsys/mem/dac_data
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.3956
+Arrival Time:              11.1013
+Required Time:             7.7057
+Data Type: setup
+
+Startpoint: u_vpu/async_d
+Endpoint: u_bus/shifter_data
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.1325
+Arrival Time:              5.4886
+Required Time:             3.3562
+Data Type: setup
+
+Startpoint: u_ctrl/filter_prev[30]
+Endpoint: u_dma/adder_next
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.5146
+Arrival Time:              8.6153
+Required Time:             6.1007
+Data Type: setup
+
+Startpoint: u_subsys/io/buffer_n
+Endpoint: u_cluster/core0/dcfifo_val
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -1.9477
+Arrival Time:              5.0811
+Required Time:             3.1334
+Data Type: setup
+
+Startpoint: u_pll/async_addr[39]
+Endpoint: u_cluster/l2/pma_next[4]
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.0397
+Arrival Time:              2.5145
+Required Time:             2.4748
+Data Type: setup
+
+Startpoint: u_ddrc/encoder_cnt
+Endpoint: u_subsys/mem/uart_state
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.2162
+Arrival Time:              4.2558
+Required Time:             1.0396
+Data Type: setup
+
+Startpoint: u_subsys/cpu/ecc_en[7]
+Endpoint: u_buf/encoder_sel
+Path Group: clk_100m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.3939
+Arrival Time:              8.4771
+Required Time:             6.0832
+Data Type: setup

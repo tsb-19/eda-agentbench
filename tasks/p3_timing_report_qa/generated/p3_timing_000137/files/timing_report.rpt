@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.5230
+tns: -2.8144
+violating_path_count: 5
+
+Startpoint: u_top/fifo_async_data[41]
+Endpoint: u_ctrl/dac_in
+Path Group: clk_mem
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.5230
+Arrival Time:              4.4177
+Required Time:             2.8947
+Data Type: hold
+
+Startpoint: u_bus/adder_n
+Endpoint: u_buf/regfile_out
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.6729
+Arrival Time:              1.8337
+Required Time:             1.1608
+Data Type: hold
+
+Startpoint: u_cluster/l2/adc_cmd
+Endpoint: u_cache/fifo_sync_data[1]
+Path Group: clk_mem
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.5088
+Arrival Time:              5.4884
+Required Time:             4.9796
+Data Type: hold
+
+Startpoint: u_top/fifo_async_prev
+Endpoint: u_subsys/cpu/adder_in
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0200
+Arrival Time:              2.7378
+Required Time:             2.7178
+Data Type: hold
+
+Startpoint: u_mem/rom_ctrl_reg[49]
+Endpoint: u_arb/bridge_z[47]
+Path Group: clk_mem
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0897
+Arrival Time:              7.5849
+Required Time:             7.4951
+Data Type: hold
+
+Startpoint: u_serdes/filter_reg[53]
+Endpoint: u_noc/datapath_en
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2948
+Arrival Time:              6.3768
+Required Time:             6.6716
+Data Type: hold

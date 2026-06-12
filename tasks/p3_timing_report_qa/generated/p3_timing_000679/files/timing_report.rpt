@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -1.4518
+tns: -6.2417
+violating_path_count: 8
+
+Startpoint: u_subsys/cpu/alu_q
+Endpoint: u_subsys/mem/pipeline_n
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.4518
+Arrival Time:              5.2384
+Required Time:             3.7866
+Data Type: hold
+
+Startpoint: u_gpu/filter_cnt[37]
+Endpoint: u_subsys/cpu/fifo_async_q
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.4281
+Arrival Time:              9.0961
+Required Time:             7.6680
+Data Type: hold
+
+Startpoint: u_ctrl/fifo_sync_prev
+Endpoint: u_phy/regfile_out
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.1442
+Arrival Time:              6.2657
+Required Time:             6.1215
+Data Type: hold
+
+Startpoint: u_cluster/core0/shifter_reg
+Endpoint: u_cluster/l2/multiplier_data[41]
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.2297
+Arrival Time:              3.3700
+Required Time:             3.1402
+Data Type: hold
+
+Startpoint: u_pciesub/pll_en
+Endpoint: u_cache/fifo_sync_cmd
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.0302
+Arrival Time:              6.4285
+Required Time:             5.3983
+Data Type: hold
+
+Startpoint: u_subsys/mem/fifo_sync[26]
+Endpoint: u_serdes/arbiter
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0755
+Arrival Time:              7.0313
+Required Time:             7.1068
+Data Type: hold
+
+Startpoint: u_phy/mac_sel[24]
+Endpoint: u_vpu/multiplier
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0839
+Arrival Time:              5.7783
+Required Time:             5.6944
+Data Type: hold
+
+Startpoint: u_bus/dac_z
+Endpoint: u_mac/fifo_en
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.5439
+Arrival Time:              2.9909
+Required Time:             2.4470
+Data Type: hold
+
+Startpoint: u_subsys/dma/crc_z
+Endpoint: u_mem/cache_next[1]
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2140
+Arrival Time:              1.0387
+Required Time:             1.2527
+Data Type: hold
+
+Startpoint: u_gpu/i2c_p
+Endpoint: u_buf/crc_reg[41]
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2467
+Arrival Time:              1.2617
+Required Time:             1.5084
+Data Type: hold
+
+Startpoint: u_phy/pll_z[16]
+Endpoint: u_ctrl/bridge_n
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2924
+Arrival Time:              6.4150
+Required Time:             6.7074
+Data Type: hold
+
+Startpoint: u_serdes/spi_addr[50]
+Endpoint: u_mem/alu_cnt
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3299
+Arrival Time:              7.6277
+Required Time:             6.2977
+Data Type: hold
+
+Startpoint: u_serdes/sampler_data
+Endpoint: u_dsp/dma_en
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.8960
+Arrival Time:              6.0396
+Required Time:             6.9356
+Data Type: hold

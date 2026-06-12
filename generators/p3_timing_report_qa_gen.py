@@ -9,57 +9,98 @@ from generators.base import BaseGenerator
 
 
 # ---------------------------------------------------------------------------
-# Name pools for realistic design elements
+# Name pools for realistic design elements (expanded for diversity)
 # ---------------------------------------------------------------------------
 
-CLOCK_NAMES = ["clk", "clk_100m", "clk_core", "clk_io", "sys_clk", "cpu_clk",
-               "mem_clk", "pci_clk", "usb_clk", "eth_clk"]
+CLOCK_NAMES = [
+    "clk", "clk_100m", "clk_200m", "clk_50m", "clk_33m", "clk_25m",
+    "clk_core", "clk_io", "clk_mem", "clk_bus", "clk_dsp", "clk_gpu",
+    "sys_clk", "cpu_clk", "mem_clk", "pci_clk", "usb_clk", "eth_clk",
+    "spi_clk", "i2c_clk", "uart_clk", "jtag_clk", "ref_clk", "pll_clk",
+    "axi_clk", "ahb_clk", "apb_clk", "noc_clk", "ddr_clk", "pcie_clk",
+]
 
-MODULE_NAMES = ["alu", "fifo", "uart", "spi", "i2c", "dma", "cache", "decoder",
-                "encoder", "arbiter", "mux", "demux", "buffer", "pipeline",
-                "controller", "datapath", "regfile", "adder", "multiplier", "shifter"]
+MODULE_NAMES = [
+    "alu", "fifo", "uart", "spi", "i2c", "dma", "cache", "decoder",
+    "encoder", "arbiter", "mux", "demux", "buffer", "pipeline",
+    "controller", "datapath", "regfile", "adder", "multiplier", "shifter",
+    "comparator", "latch", "sync", "async", "bridge", "converter",
+    "sampler", "filter", "interleaver", "scrambler", "descrambler",
+    "crc", "ecc", "fifo_async", "fifo_sync", "dcfifo", "ram_ctrl",
+    "rom_ctrl", "timer", "watchdog", "interrupt_ctrl", "dma_ctrl",
+    "phy", "mac", "pcs", "pma", "serdes", "pll", "dll", "adc", "dac",
+]
 
-PATH_GROUPS = ["clk", "clk_100m", "clk_core", "clk_io", "reg2reg", "in2reg", "reg2out"]
+INSTANCE_PREFIXES = [
+    "u_core", "u_top", "u_io", "u_mem", "u_bus", "u_dsp", "u_ctrl",
+    "u_phy", "u_mac", "u_dma", "u_cache", "u_arb", "u_buf", "u_pll",
+    "u_serdes", "u_pciesub", "u_ddrc", "u_noc", "u_gpu", "u_vpu",
+    "u_subsys/cpu", "u_subsys/mem", "u_subsys/io", "u_subsys/dma",
+    "u_cluster/core0", "u_cluster/core1", "u_cluster/l2",
+]
+
+PATH_GROUPS = [
+    "clk", "clk_100m", "clk_200m", "clk_core", "clk_io", "clk_mem",
+    "reg2reg", "in2reg", "reg2out", "in2out",
+    "clk_bus", "clk_dsp", "sys_clk", "cpu_clk", "mem_clk",
+]
 
 DATA_TYPES = ["setup", "hold"]
 
+# Hierarchical signal suffix patterns
+SUFFIX_PATTERNS = [
+    "_q", "_d", "_en", "_out", "_in", "_reg", "_next", "_prev",
+    "_val", "_cnt", "_state", "_cmd", "_data", "_addr", "_sel",
+    "", "_b", "_n", "_p", "_z",
+]
+
 
 def _gen_signal_name(rng, prefix: str) -> str:
-    """Generate a realistic signal name."""
+    """Generate a realistic hierarchical signal name."""
     module = rng.choice(MODULE_NAMES)
-    suffix = rng.choice(["_q", "_d", "_en", "_out", "_in", "_reg", ""])
+    suffix = rng.choice(SUFFIX_PATTERNS)
+    # Sometimes add a bit index
+    if rng.random() < 0.3:
+        bit = rng.randint(0, 63)
+        return f"{prefix}/{module}{suffix}[{bit}]"
     return f"{prefix}/{module}{suffix}"
 
 
 def _gen_timing_paths(rng, count: int, clock: str, path_group: str,
-                      wns_target: float, data_type: str = "setup") -> list[dict]:
+                      wns_target: float, data_type: str = "setup",
+                      multi_clock: bool = False,
+                      alt_clocks: list[str] | None = None) -> list[dict]:
     """Generate a list of timing paths with realistic values."""
     paths = []
-    # First path is always the worst
     worst_slack = wns_target
 
     for i in range(count):
         if i == 0:
             slack = worst_slack
         else:
-            # Subsequent paths have progressively better slack
             slack = worst_slack + rng.uniform(0.01, 0.5) * (i + 1)
             if slack > 0 and i < count - 1:
-                # Some paths may be non-violating
                 slack = rng.uniform(-0.1, 0.3)
 
-        required_time = rng.uniform(1.5, 5.0)
+        required_time = rng.uniform(1.0, 8.0)
         arrival_time = required_time - slack
 
-        startpoint = _gen_signal_name(rng, rng.choice(["u_core", "u_top", "u_io", "u_mem"]))
-        endpoint = _gen_signal_name(rng, rng.choice(["u_core", "u_top", "u_io", "u_mem"]))
+        startpoint = _gen_signal_name(rng, rng.choice(INSTANCE_PREFIXES))
+        endpoint = _gen_signal_name(rng, rng.choice(INSTANCE_PREFIXES))
+
+        # For multi-clock reports, vary clock per path
+        path_clock = clock
+        path_pg = path_group
+        if multi_clock and alt_clocks and i > 0 and rng.random() < 0.5:
+            path_clock = rng.choice(alt_clocks)
+            path_pg = path_clock
 
         paths.append({
             "index": i + 1,
             "startpoint": startpoint,
             "endpoint": endpoint,
-            "path_group": path_group,
-            "clock": clock,
+            "path_group": path_pg,
+            "clock": path_clock,
             "slack": round(slack, 4),
             "arrival_time": round(arrival_time, 4),
             "required_time": round(required_time, 4),
@@ -189,7 +230,9 @@ class P3TimingReportQAGenerator(BaseGenerator):
         qtype_idx = task_index % len(QUESTION_TEMPLATES)
         template = QUESTION_TEMPLATES[qtype_idx]
 
-        task_id = f"p3_timing_{task_index:06d}"
+        # ID offset by 1 to avoid collision with smoke task (p3_timing_000000)
+        internal_index = task_index + 1
+        task_id = f"p3_timing_{internal_index:06d}"
         task_dir = self.output_dir / task_id
         task_dir.mkdir(parents=True, exist_ok=True)
 
@@ -198,16 +241,26 @@ class P3TimingReportQAGenerator(BaseGenerator):
         (task_dir / "hidden").mkdir(exist_ok=True)
         (task_dir / "solution").mkdir(exist_ok=True)
 
-        # Generate timing report parameters
+        # Generate timing report parameters with expanded diversity
         clock = self.rng.choice(CLOCK_NAMES)
         path_group = self.rng.choice(PATH_GROUPS)
-        num_paths = self.rng.randint(5, 20)
-        wns_target = round(-self.rng.uniform(0.05, 2.0), 4)
+        num_paths = self.rng.randint(3, 50)
+        wns_target = round(-self.rng.uniform(0.01, 5.0), 4)
         data_type = self.rng.choice(DATA_TYPES)
+
+        # ~30% chance of multi-clock report for extra diversity
+        multi_clock = self.rng.random() < 0.3
+        alt_clocks = None
+        if multi_clock:
+            n_alt = self.rng.randint(1, 3)
+            alt_clocks = self.rng.sample(
+                [c for c in CLOCK_NAMES if c != clock], min(n_alt, len(CLOCK_NAMES) - 1)
+            )
 
         # Generate paths
         paths = _gen_timing_paths(self.rng, num_paths, clock, path_group,
-                                  wns_target, data_type)
+                                  wns_target, data_type,
+                                  multi_clock=multi_clock, alt_clocks=alt_clocks)
 
         # Calculate TNS and violating count
         tns = round(sum(p["slack"] for p in paths if p["slack"] < 0), 4)
@@ -307,9 +360,11 @@ Write your answer to `answer.txt` in this directory. The answer should be:
                 "seed": self.seed,
                 "question_type": template["type"],
                 "task_index": task_index,
+                "internal_index": internal_index,
                 "num_paths": num_paths,
                 "clock": clock,
                 "path_group": path_group,
+                "multi_clock": multi_clock,
             },
             "version": "1.0.0",
         }

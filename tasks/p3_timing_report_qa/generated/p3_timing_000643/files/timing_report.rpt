@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -4.5465
+tns: -23.2840
+violating_path_count: 6
+
+Startpoint: u_subsys/io/timer_out[54]
+Endpoint: u_pll/converter_out[32]
+Path Group: in2out
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.5465
+Arrival Time:              7.4999
+Required Time:             2.9534
+Data Type: setup
+
+Startpoint: u_pll/datapath_cmd[4]
+Endpoint: u_mac/decoder_sel[5]
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.7384
+Arrival Time:              7.9455
+Required Time:             4.2071
+Data Type: setup
+
+Startpoint: u_subsys/io/buffer_addr
+Endpoint: u_ctrl/fifo_p[47]
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.4110
+Arrival Time:              11.2576
+Required Time:             7.8466
+Data Type: setup
+
+Startpoint: u_io/buffer_n
+Endpoint: u_dsp/regfile_state
+Path Group: in2out
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.9521
+Arrival Time:              5.0019
+Required Time:             1.0498
+Data Type: setup
+
+Startpoint: u_noc/shifter_prev
+Endpoint: u_cluster/core1/buffer_b
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.9058
+Arrival Time:              8.8958
+Required Time:             4.9900
+Data Type: setup
+
+Startpoint: u_mem/uart_d[47]
+Endpoint: u_subsys/mem/interleaver_d
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.7302
+Arrival Time:              7.6686
+Required Time:             3.9384
+Data Type: setup

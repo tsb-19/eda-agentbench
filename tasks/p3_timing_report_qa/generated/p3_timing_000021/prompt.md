@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the TNS (Total Negative Slack) in the timing report?
+What is the WNS (Worst Negative Slack) in the timing report?
 
 ## Instructions
 

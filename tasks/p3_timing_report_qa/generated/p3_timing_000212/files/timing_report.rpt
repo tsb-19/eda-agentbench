@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -4.1140
+tns: -10.7282
+violating_path_count: 3
+
+Startpoint: u_core/uart_n
+Endpoint: u_arb/fifo_sync_data[24]
+Path Group: sys_clk
+Clock: clk_50m
+----------------------------------------
+Slack:                    -4.1140
+Arrival Time:              10.8124
+Required Time:             6.6984
+Data Type: setup
+
+Startpoint: u_pciesub/fifo_async_en
+Endpoint: u_dma/mux_en[36]
+Path Group: sys_clk
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.1740
+Arrival Time:              5.9908
+Required Time:             2.8168
+Data Type: setup
+
+Startpoint: u_serdes/comparator[40]
+Endpoint: u_io/pma_val[53]
+Path Group: sys_clk
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.4402
+Arrival Time:              6.4188
+Required Time:             2.9786
+Data Type: setup

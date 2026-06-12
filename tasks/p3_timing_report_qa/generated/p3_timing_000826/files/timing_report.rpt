@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -4.7676
+tns: -23.7382
+violating_path_count: 6
+
+Startpoint: u_ddrc/timer
+Endpoint: u_noc/timer_sel
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -4.7676
+Arrival Time:              9.9733
+Required Time:             5.2057
+Data Type: setup
+
+Startpoint: u_subsys/cpu/crc_d[11]
+Endpoint: u_top/latch_d[15]
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -4.6659
+Arrival Time:              10.2057
+Required Time:             5.5398
+Data Type: setup
+
+Startpoint: u_subsys/io/interrupt_ctrl_cmd[46]
+Endpoint: u_buf/pcs_in[34]
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -4.0362
+Arrival Time:              10.4205
+Required Time:             6.3843
+Data Type: setup
+
+Startpoint: u_gpu/fifo_sync_out
+Endpoint: u_subsys/mem/filter_reg
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.6623
+Arrival Time:              6.0891
+Required Time:             2.4268
+Data Type: setup
+
+Startpoint: u_io/filter_data
+Endpoint: u_dsp/datapath_sel
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.2686
+Arrival Time:              9.7823
+Required Time:             6.5137
+Data Type: setup
+
+Startpoint: u_buf/adc_prev[29]
+Endpoint: u_core/datapath_d[56]
+Path Group: reg2reg
+Clock: noc_clk
+----------------------------------------
+Slack:                    -3.3376
+Arrival Time:              8.8084
+Required Time:             5.4707
+Data Type: setup

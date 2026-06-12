@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -3.5801
+tns: -15.9113
+violating_path_count: 7
+
+Startpoint: u_bus/dll_cmd[26]
+Endpoint: u_vpu/async_data
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.5801
+Arrival Time:              6.5813
+Required Time:             3.0012
+Data Type: hold
+
+Startpoint: u_bus/adc_val
+Endpoint: u_cluster/l2/dac_prev[8]
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.0786
+Arrival Time:              10.6297
+Required Time:             7.5511
+Data Type: hold
+
+Startpoint: u_subsys/cpu/cache_p
+Endpoint: u_pll/buffer_sel
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.0862
+Arrival Time:              4.1164
+Required Time:             2.0302
+Data Type: hold
+
+Startpoint: u_ddrc/filter_out
+Endpoint: u_subsys/mem/fifo_in
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.7245
+Arrival Time:              8.5808
+Required Time:             5.8563
+Data Type: hold
+
+Startpoint: u_io/ram_ctrl
+Endpoint: u_top/dma_ctrl_q
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.3268
+Arrival Time:              6.8703
+Required Time:             4.5435
+Data Type: hold
+
+Startpoint: u_bus/sampler_cmd
+Endpoint: u_subsys/dma/timer_sel
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.0412
+Arrival Time:              7.8582
+Required Time:             6.8170
+Data Type: hold
+
+Startpoint: u_mac/watchdog_z
+Endpoint: u_cache/encoder_next
+Path Group: clk_core
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.0739
+Arrival Time:              6.5216
+Required Time:             5.4477
+Data Type: hold

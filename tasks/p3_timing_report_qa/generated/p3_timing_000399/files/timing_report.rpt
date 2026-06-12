@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.2166
+tns: -6.9945
+violating_path_count: 4
+
+Startpoint: u_subsys/cpu/adder_cnt
+Endpoint: u_pll/dma_q
+Path Group: in2out
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -2.2166
+Arrival Time:              4.9853
+Required Time:             2.7687
+Data Type: setup
+
+Startpoint: u_core/fifo_async_en[55]
+Endpoint: u_vpu/mux_data
+Path Group: in2out
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.6763
+Arrival Time:              7.0570
+Required Time:             5.3807
+Data Type: setup
+
+Startpoint: u_arb/fifo_prev
+Endpoint: u_noc/adc_in[1]
+Path Group: in2out
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.2841
+Arrival Time:              3.2770
+Required Time:             1.9928
+Data Type: setup
+
+Startpoint: u_phy/i2c_prev
+Endpoint: u_top/shifter_sel
+Path Group: in2out
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.8175
+Arrival Time:              4.9987
+Required Time:             3.1812
+Data Type: setup

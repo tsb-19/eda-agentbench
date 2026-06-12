@@ -4,7 +4,7 @@
   "tool": [
     "pt"
   ],
-  "difficulty": "hard",
+  "difficulty": "medium",
   "data_type": "template_synthetic",
   "resource_preset": "fast",
   "timeout_sec": 60,
@@ -32,19 +32,21 @@
     "evaluator": "timing_report_qa.TimingReportQAEvaluator"
   },
   "answer": {
-    "type": "numeric",
-    "expected": "3.8607",
-    "tolerance": 0.01,
-    "question_type": "required_time"
+    "type": "string",
+    "expected": "clk_dsp",
+    "tolerance": 0.0,
+    "question_type": "clock_name"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "required_time",
-    "task_index": 47,
-    "num_paths": 8,
-    "clock": "usb_clk",
-    "path_group": "clk_io"
+    "question_type": "clock_name",
+    "task_index": 46,
+    "internal_index": 47,
+    "num_paths": 49,
+    "clock": "clk_dsp",
+    "path_group": "sys_clk",
+    "multi_clock": false
   },
   "version": "1.0.0"
 }

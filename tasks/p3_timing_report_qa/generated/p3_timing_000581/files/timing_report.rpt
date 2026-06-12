@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.1050
+tns: -8.2980
+violating_path_count: 3
+
+Startpoint: u_cluster/l2/shifter_out
+Endpoint: u_cluster/l2/watchdog_d
+Path Group: reg2out
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.1050
+Arrival Time:              8.1973
+Required Time:             5.0923
+Data Type: setup
+
+Startpoint: u_cache/converter_q[39]
+Endpoint: u_cluster/core0/dac_out
+Path Group: reg2out
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.3287
+Arrival Time:              4.2887
+Required Time:             1.9600
+Data Type: setup
+
+Startpoint: u_io/comparator_cmd
+Endpoint: u_subsys/io/pll_cnt
+Path Group: reg2out
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8643
+Arrival Time:              9.9573
+Required Time:             7.0930
+Data Type: setup

@@ -1,0 +1,158 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 15
+
+wns: -0.9021
+tns: -4.0787
+violating_path_count: 8
+
+Startpoint: u_arb/latch_reg
+Endpoint: u_gpu/descrambler_p
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.9021
+Arrival Time:              8.7879
+Required Time:             7.8858
+Data Type: setup
+
+Startpoint: u_mem/sync_addr
+Endpoint: u_ctrl/sync_z
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.8010
+Arrival Time:              1.9681
+Required Time:             1.1671
+Data Type: setup
+
+Startpoint: u_subsys/mem/dma_state
+Endpoint: u_dma/i2c_in[21]
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2601
+Arrival Time:              4.3755
+Required Time:             4.6356
+Data Type: setup
+
+Startpoint: u_cluster/core1/pll_addr
+Endpoint: u_noc/adc_b
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2075
+Arrival Time:              5.1540
+Required Time:             5.3615
+Data Type: setup
+
+Startpoint: u_cluster/core0/fifo_async_en
+Endpoint: u_phy/crc_cnt[7]
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0140
+Arrival Time:              5.7302
+Required Time:             5.7162
+Data Type: setup
+
+Startpoint: u_phy/dma_ctrl_sel[63]
+Endpoint: u_pll/encoder_in[62]
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0342
+Arrival Time:              4.1983
+Required Time:             4.1640
+Data Type: setup
+
+Startpoint: u_arb/sync_n
+Endpoint: u_noc/cache_d[46]
+Path Group: ref_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    0.0084
+Arrival Time:              4.6019
+Required Time:             4.6103
+Data Type: setup
+
+Startpoint: u_arb/adc_next
+Endpoint: u_cache/uart_sel
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.8197
+Arrival Time:              7.9983
+Required Time:             7.1787
+Data Type: setup
+
+Startpoint: u_vpu/adder_b
+Endpoint: u_ctrl/multiplier_next
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.1231
+Arrival Time:              2.6862
+Required Time:             2.8093
+Data Type: setup
+
+Startpoint: u_cache/adc_sel
+Endpoint: u_io/latch_en[48]
+Path Group: clk_33m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0341
+Arrival Time:              7.7032
+Required Time:             7.7373
+Data Type: setup
+
+Startpoint: u_serdes/interrupt_ctrl_n
+Endpoint: u_subsys/dma/descrambler_out
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    0.1193
+Arrival Time:              6.0159
+Required Time:             6.1352
+Data Type: setup
+
+Startpoint: u_dsp/scrambler_state
+Endpoint: u_pciesub/ram_ctrl_val[32]
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.7559
+Arrival Time:              3.8704
+Required Time:             3.1145
+Data Type: setup
+
+Startpoint: u_dsp/multiplier_addr
+Endpoint: u_ctrl/encoder_b
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0252
+Arrival Time:              1.2942
+Required Time:             1.2690
+Data Type: setup
+
+Startpoint: u_gpu/dma_b[52]
+Endpoint: u_subsys/dma/decoder_in
+Path Group: clk_core
+Clock: clk_core
+----------------------------------------
+Slack:                    0.0042
+Arrival Time:              5.0878
+Required Time:             5.0920
+Data Type: setup
+
+Startpoint: u_serdes/ecc_prev
+Endpoint: u_cache/controller_in
+Path Group: clk_100m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.7266
+Arrival Time:              7.2851
+Required Time:             6.5585
+Data Type: setup

@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -2.3171
+tns: -7.4734
+violating_path_count: 6
+
+Startpoint: u_mac/latch_reg
+Endpoint: u_dsp/converter_z
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -2.3171
+Arrival Time:              3.6530
+Required Time:             1.3359
+Data Type: hold
+
+Startpoint: u_dma/i2c_b
+Endpoint: u_cluster/core0/ram_ctrl_out
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.4568
+Arrival Time:              3.9608
+Required Time:             2.5040
+Data Type: hold
+
+Startpoint: u_dsp/interrupt_ctrl_in
+Endpoint: u_mac/converter_addr
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.3928
+Arrival Time:              6.6831
+Required Time:             5.2902
+Data Type: hold
+
+Startpoint: u_subsys/dma/dll_next[41]
+Endpoint: u_arb/dll_addr[55]
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.4603
+Arrival Time:              8.5733
+Required Time:             7.1129
+Data Type: hold
+
+Startpoint: u_dma/arbiter_state
+Endpoint: u_ctrl/dll_q
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.2864
+Arrival Time:              6.0108
+Required Time:             5.7244
+Data Type: hold
+
+Startpoint: u_dsp/mac_prev[24]
+Endpoint: u_dsp/mac_out
+Path Group: clk_mem
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.5600
+Arrival Time:              1.8189
+Required Time:             1.2589
+Data Type: hold

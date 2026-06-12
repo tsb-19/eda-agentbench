@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -1.3845
+tns: -5.1753
+violating_path_count: 6
+
+Startpoint: u_subsys/mem/i2c_out
+Endpoint: u_pll/spi_reg[59]
+Path Group: clk_core
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.3845
+Arrival Time:              5.8688
+Required Time:             4.4843
+Data Type: hold
+
+Startpoint: u_vpu/alu_b
+Endpoint: u_ddrc/descrambler_cnt[43]
+Path Group: clk_core
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3850
+Arrival Time:              4.1898
+Required Time:             3.8048
+Data Type: hold
+
+Startpoint: u_arb/regfile_n
+Endpoint: u_pciesub/ecc_en
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.9137
+Arrival Time:              8.3428
+Required Time:             7.4290
+Data Type: hold
+
+Startpoint: u_dsp/multiplier_en
+Endpoint: u_dma/comparator_d[33]
+Path Group: clk_core
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.5890
+Arrival Time:              2.4720
+Required Time:             1.8830
+Data Type: hold
+
+Startpoint: u_gpu/decoder_addr
+Endpoint: u_subsys/mem/datapath_in[37]
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.1543
+Arrival Time:              8.5626
+Required Time:             7.4083
+Data Type: hold
+
+Startpoint: u_pll/dma_addr
+Endpoint: u_vpu/phy_q
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1436
+Arrival Time:              5.1999
+Required Time:             5.3435
+Data Type: hold
+
+Startpoint: u_subsys/io/converter_en[55]
+Endpoint: u_top/comparator_in
+Path Group: clk_core
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.7488
+Arrival Time:              3.5559
+Required Time:             2.8072
+Data Type: hold

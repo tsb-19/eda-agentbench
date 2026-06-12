@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.8537
+tns: -6.9844
+violating_path_count: 6
+
+Startpoint: u_buf/dcfifo_cmd[4]
+Endpoint: u_phy/comparator_sel
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.8537
+Arrival Time:              6.8896
+Required Time:             5.0359
+Data Type: hold
+
+Startpoint: u_subsys/io/ecc
+Endpoint: u_bus/arbiter_b
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.6487
+Arrival Time:              9.4587
+Required Time:             7.8100
+Data Type: hold
+
+Startpoint: u_cluster/l2/filter_next[4]
+Endpoint: u_core/crc_addr
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.2551
+Arrival Time:              2.2729
+Required Time:             1.0178
+Data Type: hold
+
+Startpoint: u_cluster/l2/cache_out
+Endpoint: u_pciesub/async_sel
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.3610
+Arrival Time:              4.0333
+Required Time:             2.6723
+Data Type: hold
+
+Startpoint: u_dsp/pcs_out
+Endpoint: u_ddrc/dma_addr
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.3510
+Arrival Time:              2.7673
+Required Time:             2.4163
+Data Type: hold
+
+Startpoint: u_cache/dma_ctrl_val
+Endpoint: u_arb/mac_z
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.5149
+Arrival Time:              4.5089
+Required Time:             3.9939
+Data Type: hold
+
+Startpoint: u_top/dll_reg
+Endpoint: u_phy/adc_prev
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2410
+Arrival Time:              5.0591
+Required Time:             5.3000
+Data Type: hold
+
+Startpoint: u_subsys/io/timer_n
+Endpoint: u_cluster/core1/dcfifo_addr
+Path Group: reg2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    2.0301
+Arrival Time:              0.0065
+Required Time:             2.0366
+Data Type: hold

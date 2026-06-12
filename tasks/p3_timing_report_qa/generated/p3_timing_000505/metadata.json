@@ -1,0 +1,52 @@
+{
+  "task_id": "p3_timing_000505",
+  "track": "p3_timing_report_qa",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "easy",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 5,
+  "max_patch_attempts": 1,
+  "max_output_tokens": 4000,
+  "files": {
+    "visible": [
+      "timing_report.rpt",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "timing_report.rpt"
+    ]
+  },
+  "run_command": "echo 'P3 QA task - no tool execution needed'",
+  "scoring": {
+    "weights": {
+      "answer_match": 1.0
+    },
+    "evaluator": "timing_report_qa.TimingReportQAEvaluator"
+  },
+  "answer": {
+    "type": "numeric",
+    "expected": "20",
+    "tolerance": 0.0,
+    "question_type": "violating_paths"
+  },
+  "generator": {
+    "script": "p3_timing_report_qa_gen.py",
+    "seed": 42,
+    "question_type": "violating_paths",
+    "task_index": 504,
+    "internal_index": 505,
+    "num_paths": 37,
+    "clock": "pci_clk",
+    "path_group": "clk_io",
+    "multi_clock": false
+  },
+  "version": "1.0.0"
+}

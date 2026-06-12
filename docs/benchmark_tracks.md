@@ -6,7 +6,7 @@
 |-------|----|-------|---------|---------|---------|
 | P1 RTL Debug | `p1_rtl_debug` | 1001 | VCS | Code repair using simulation feedback | Compile + public test + hidden test + explanation |
 | P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 21 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
-| P3 Timing Report QA | `p3_timing_report_qa` | 101 | pt (synthetic) | Timing report field extraction and QA | Answer match |
+| P3 Timing Report QA | `p3_timing_report_qa` | 1000 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 10 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
 
@@ -97,6 +97,13 @@
 
 **Key design choice**: Uses synthetic normalized reports instead of real PrimeTime output. This allows the track to work without a PrimeTime license while still testing the same parsing skills.
 
+**Diversity**:
+- 30 unique clock names, 15 path groups, 50 module names, 27 instance prefixes
+- ~30% multi-clock reports (different clocks per path)
+- Path counts: 3–50, WNS range: -5.0 to -0.01, TNS range: -75 to -0.3
+- Signal names with hierarchical depth and optional bit indices
+- 10 question types with round-robin distribution (99–100 each)
+
 **Scoring**:
 ```json
 {
@@ -104,7 +111,7 @@
 }
 ```
 
-**Validation**: Solution mode scores 1.00; buggy mode scores 0.00 for all 101 tasks.
+**Validation**: Solution mode scores 1.00; buggy mode scores 0.00 for all 1000 tasks.
 
 ## P4: SPICE Sim
 

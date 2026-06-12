@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.7289
+tns: -5.7160
+violating_path_count: 6
+
+Startpoint: u_pciesub/async_b[36]
+Endpoint: u_vpu/mac_in
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.7289
+Arrival Time:              8.3614
+Required Time:             6.6325
+Data Type: hold
+
+Startpoint: u_buf/dll_n[55]
+Endpoint: u_subsys/cpu/controller_q[61]
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.1158
+Arrival Time:              4.8950
+Required Time:             3.7792
+Data Type: hold
+
+Startpoint: u_dsp/cache_n
+Endpoint: u_cluster/core0/converter_cmd[42]
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.5166
+Arrival Time:              6.2767
+Required Time:             5.7601
+Data Type: hold
+
+Startpoint: u_dsp/decoder_b[52]
+Endpoint: u_cluster/core0/multiplier_in
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.0162
+Arrival Time:              2.6095
+Required Time:             2.5933
+Data Type: hold
+
+Startpoint: u_dsp/dma_val
+Endpoint: u_gpu/controller_state[39]
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.0110
+Arrival Time:              7.6533
+Required Time:             6.6423
+Data Type: hold
+
+Startpoint: u_subsys/dma/async_b
+Endpoint: u_subsys/dma/adc
+Path Group: clk
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.3275
+Arrival Time:              6.6079
+Required Time:             5.2804
+Data Type: hold

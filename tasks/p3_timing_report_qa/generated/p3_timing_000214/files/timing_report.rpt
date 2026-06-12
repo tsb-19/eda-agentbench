@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.8597
+tns: -10.3408
+violating_path_count: 5
+
+Startpoint: u_subsys/mem/dma_ctrl_in[2]
+Endpoint: u_dsp/alu
+Path Group: sys_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8597
+Arrival Time:              4.1990
+Required Time:             1.3393
+Data Type: hold
+
+Startpoint: u_ddrc/dma_state[20]
+Endpoint: u_gpu/controller_next[49]
+Path Group: sys_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.6496
+Arrival Time:              7.3816
+Required Time:             4.7320
+Data Type: hold
+
+Startpoint: u_top/sync_in
+Endpoint: u_gpu/encoder_cmd[39]
+Path Group: sys_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.6573
+Arrival Time:              5.9119
+Required Time:             4.2546
+Data Type: hold
+
+Startpoint: u_cluster/l2/pcs_sel
+Endpoint: u_mem/dac_prev[28]
+Path Group: sys_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.6215
+Arrival Time:              9.0696
+Required Time:             6.4481
+Data Type: hold
+
+Startpoint: u_arb/fifo_async_n
+Endpoint: u_mac/adc_q
+Path Group: sys_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.5527
+Arrival Time:              2.5320
+Required Time:             1.9793
+Data Type: hold

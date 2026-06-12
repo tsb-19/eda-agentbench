@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -0.2938
+tns: -0.5381
+violating_path_count: 6
+
+Startpoint: u_subsys/dma/cache_d
+Endpoint: u_pciesub/dcfifo_en
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.2938
+Arrival Time:              7.5468
+Required Time:             7.2530
+Data Type: hold
+
+Startpoint: u_subsys/cpu/dll_cmd[10]
+Endpoint: u_cluster/l2/fifo_sync_next
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1626
+Arrival Time:              3.1032
+Required Time:             3.2658
+Data Type: hold
+
+Startpoint: u_io/comparator_cnt[43]
+Endpoint: u_vpu/decoder[30]
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0300
+Arrival Time:              5.3663
+Required Time:             5.3364
+Data Type: hold
+
+Startpoint: u_subsys/cpu/dma_ctrl_cnt
+Endpoint: u_pciesub/sync_data
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2162
+Arrival Time:              3.7197
+Required Time:             3.9359
+Data Type: hold
+
+Startpoint: u_pciesub/sync_z
+Endpoint: u_serdes/buffer_d
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0260
+Arrival Time:              7.1728
+Required Time:             7.1468
+Data Type: hold
+
+Startpoint: u_subsys/io/ram_ctrl_sel
+Endpoint: u_cache/pcs
+Path Group: apb_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0518
+Arrival Time:              6.7842
+Required Time:             6.7324
+Data Type: hold
+
+Startpoint: u_cluster/l2/scrambler_data[2]
+Endpoint: u_bus/i2c_cmd[6]
+Path Group: apb_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0487
+Arrival Time:              7.1134
+Required Time:             7.0646
+Data Type: hold
+
+Startpoint: u_core/dcfifo_q
+Endpoint: u_core/dac_val
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0878
+Arrival Time:              7.6799
+Required Time:             7.5921
+Data Type: hold
+
+Startpoint: u_pciesub/controller_cmd
+Endpoint: u_mac/buffer_data
+Path Group: apb_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.2412
+Arrival Time:              1.2065
+Required Time:             1.4478
+Data Type: hold
+
+Startpoint: u_mem/fifo_async_prev
+Endpoint: u_subsys/mem/fifo_sync_cnt
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.0722
+Arrival Time:              3.6322
+Required Time:             3.7044
+Data Type: hold
+
+Startpoint: u_io/dll_val[17]
+Endpoint: u_cache/decoder_d
+Path Group: clk
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.8120
+Arrival Time:              5.8360
+Required Time:             6.6480
+Data Type: hold

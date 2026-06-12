@@ -4,7 +4,7 @@
   "tool": [
     "pt"
   ],
-  "difficulty": "easy",
+  "difficulty": "medium",
   "data_type": "template_synthetic",
   "resource_preset": "fast",
   "timeout_sec": 60,
@@ -32,19 +32,21 @@
     "evaluator": "timing_report_qa.TimingReportQAEvaluator"
   },
   "answer": {
-    "type": "numeric",
-    "expected": "7",
+    "type": "string",
+    "expected": "u_dsp/converter_in",
     "tolerance": 0.0,
-    "question_type": "violating_paths"
+    "question_type": "worst_startpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "violating_paths",
-    "task_index": 74,
-    "num_paths": 12,
-    "clock": "clk_io",
-    "path_group": "reg2out"
+    "question_type": "worst_startpoint",
+    "task_index": 73,
+    "internal_index": 74,
+    "num_paths": 23,
+    "clock": "ddr_clk",
+    "path_group": "clk",
+    "multi_clock": false
   },
   "version": "1.0.0"
 }

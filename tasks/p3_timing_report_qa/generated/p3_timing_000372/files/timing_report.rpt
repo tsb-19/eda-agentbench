@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -0.4422
+tns: -0.7426
+violating_path_count: 2
+
+Startpoint: u_cluster/core0/regfile_out[35]
+Endpoint: u_ddrc/phy_d[18]
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.4422
+Arrival Time:              4.2715
+Required Time:             3.8293
+Data Type: hold
+
+Startpoint: u_cluster/core1/encoder
+Endpoint: u_noc/dma_d
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.3004
+Arrival Time:              6.4447
+Required Time:             6.1443
+Data Type: hold
+
+Startpoint: u_bus/latch_out
+Endpoint: u_noc/pipeline_out[37]
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.1159
+Arrival Time:              2.6504
+Required Time:             2.7663
+Data Type: hold
+
+Startpoint: u_subsys/cpu/pma_reg[39]
+Endpoint: u_subsys/dma/async_val
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.0379
+Arrival Time:              5.7161
+Required Time:             5.7540
+Data Type: hold
+
+Startpoint: u_cluster/core1/timer_en[43]
+Endpoint: u_cluster/core1/multiplier_cmd
+Path Group: reg2out
+Clock: pci_clk
+----------------------------------------
+Slack:                    1.7005
+Arrival Time:              -0.0965
+Required Time:             1.6040
+Data Type: hold

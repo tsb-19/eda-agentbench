@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.9033
+tns: -10.1070
+violating_path_count: 3
+
+Startpoint: u_subsys/io/buffer_d
+Endpoint: u_buf/async_state
+Path Group: mem_clk
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.9033
+Arrival Time:              8.4622
+Required Time:             4.5589
+Data Type: hold
+
+Startpoint: u_subsys/cpu/spi_n
+Endpoint: u_core/ecc_addr[63]
+Path Group: clk_100m
+Clock: clk_100m
+----------------------------------------
+Slack:                    -3.6062
+Arrival Time:              9.9264
+Required Time:             6.3202
+Data Type: hold
+
+Startpoint: u_gpu/buffer_prev
+Endpoint: u_cluster/core0/filter_out
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.5975
+Arrival Time:              8.6582
+Required Time:             6.0607
+Data Type: hold

@@ -1,0 +1,268 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 26
+
+wns: -3.3735
+tns: -23.3522
+violating_path_count: 14
+
+Startpoint: u_subsys/cpu/encoder
+Endpoint: u_top/adc_state[12]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.3735
+Arrival Time:              10.1563
+Required Time:             6.7828
+Data Type: hold
+
+Startpoint: u_io/filter_out
+Endpoint: u_bus/shifter_z
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.6468
+Arrival Time:              9.0156
+Required Time:             6.3688
+Data Type: hold
+
+Startpoint: u_pciesub/spi_q[21]
+Endpoint: u_subsys/mem/adder_state
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.2540
+Arrival Time:              8.4433
+Required Time:             5.1893
+Data Type: hold
+
+Startpoint: u_serdes/dcfifo_state[51]
+Endpoint: u_cluster/core0/buffer_out
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.3764
+Arrival Time:              6.4563
+Required Time:             5.0800
+Data Type: hold
+
+Startpoint: u_ddrc/sync_prev[31]
+Endpoint: u_ctrl/dma_p
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.9720
+Arrival Time:              8.8283
+Required Time:             6.8562
+Data Type: hold
+
+Startpoint: u_subsys/io/adder_addr
+Endpoint: u_cluster/l2/crc_data
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.1378
+Arrival Time:              9.7066
+Required Time:             7.5688
+Data Type: hold
+
+Startpoint: u_mac/uart_data
+Endpoint: u_cluster/l2/dma_ctrl_cnt[19]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.7009
+Arrival Time:              10.4354
+Required Time:             7.7345
+Data Type: hold
+
+Startpoint: u_ctrl/pipeline_n
+Endpoint: u_ctrl/adc_z[38]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0350
+Arrival Time:              3.2394
+Required Time:             3.2044
+Data Type: hold
+
+Startpoint: u_cache/shifter_addr
+Endpoint: u_cluster/core0/watchdog_p
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0814
+Arrival Time:              7.5523
+Required Time:             7.4708
+Data Type: hold
+
+Startpoint: u_mem/bridge_addr
+Endpoint: u_subsys/cpu/mux_reg[52]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.9093
+Arrival Time:              5.7684
+Required Time:             4.8591
+Data Type: hold
+
+Startpoint: u_ddrc/comparator
+Endpoint: u_cluster/core1/adder_q
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1802
+Arrival Time:              2.7086
+Required Time:             2.8888
+Data Type: hold
+
+Startpoint: u_cache/decoder_en
+Endpoint: u_vpu/interrupt_ctrl_z
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1152
+Arrival Time:              2.9428
+Required Time:             3.0580
+Data Type: hold
+
+Startpoint: u_vpu/async_data
+Endpoint: u_subsys/dma/rom_ctrl_in[61]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.0311
+Arrival Time:              7.6158
+Required Time:             7.6470
+Data Type: hold
+
+Startpoint: u_cluster/core1/dcfifo_addr
+Endpoint: u_core/serdes_d
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1341
+Arrival Time:              0.9880
+Required Time:             1.1220
+Data Type: hold
+
+Startpoint: u_pciesub/async_sel
+Endpoint: u_dsp/descrambler_p
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.2229
+Arrival Time:              2.2262
+Required Time:             1.0033
+Data Type: hold
+
+Startpoint: u_pll/rom_ctrl_reg[20]
+Endpoint: u_core/crc_cnt[17]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.4710
+Arrival Time:              4.6494
+Required Time:             2.1784
+Data Type: hold
+
+Startpoint: u_noc/demux
+Endpoint: u_serdes/crc_d
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.0941
+Arrival Time:              4.7862
+Required Time:             4.8803
+Data Type: hold
+
+Startpoint: u_ddrc/i2c[49]
+Endpoint: u_phy/fifo_sync_state
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2581
+Arrival Time:              6.2149
+Required Time:             6.4730
+Data Type: hold
+
+Startpoint: u_cluster/l2/shifter_state
+Endpoint: u_dma/cache_val[8]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2944
+Arrival Time:              3.0606
+Required Time:             3.3550
+Data Type: hold
+
+Startpoint: u_cache/rom_ctrl_en
+Endpoint: u_cluster/l2/serdes_addr[41]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1719
+Arrival Time:              5.5322
+Required Time:             5.7041
+Data Type: hold
+
+Startpoint: u_io/fifo_sync_addr[12]
+Endpoint: u_dma/interrupt_ctrl_state[49]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2871
+Arrival Time:              6.4273
+Required Time:             6.7144
+Data Type: hold
+
+Startpoint: u_bus/sampler_cmd
+Endpoint: u_buf/decoder_addr[6]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0484
+Arrival Time:              3.7253
+Required Time:             3.6769
+Data Type: hold
+
+Startpoint: u_ctrl/i2c_val[25]
+Endpoint: u_arb/shifter_n[8]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.1228
+Arrival Time:              3.6998
+Required Time:             2.5770
+Data Type: hold
+
+Startpoint: u_mem/mac_cnt[45]
+Endpoint: u_ctrl/fifo_async_q
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.0613
+Arrival Time:              5.0650
+Required Time:             5.1262
+Data Type: hold
+
+Startpoint: u_subsys/dma/i2c_prev[28]
+Endpoint: u_mac/dcfifo_cnt[25]
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1480
+Arrival Time:              2.8041
+Required Time:             2.9521
+Data Type: hold
+
+Startpoint: u_noc/shifter_b
+Endpoint: u_core/decoder_n
+Path Group: clk_bus
+Clock: i2c_clk
+----------------------------------------
+Slack:                    7.9162
+Arrival Time:              -1.4817
+Required Time:             6.4344
+Data Type: hold

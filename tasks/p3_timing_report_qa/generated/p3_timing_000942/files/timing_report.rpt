@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -1.0471
+tns: -3.1817
+violating_path_count: 4
+
+Startpoint: u_buf/crc_prev
+Endpoint: u_ddrc/uart_cmd
+Path Group: clk_200m
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.0471
+Arrival Time:              2.2161
+Required Time:             1.1690
+Data Type: setup
+
+Startpoint: u_buf/fifo_sync
+Endpoint: u_ddrc/cache_addr[37]
+Path Group: clk_200m
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.5167
+Arrival Time:              3.5100
+Required Time:             2.9933
+Data Type: setup
+
+Startpoint: u_core/adder_prev
+Endpoint: u_cluster/core1/datapath_b[56]
+Path Group: clk_200m
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.9270
+Arrival Time:              8.7827
+Required Time:             7.8558
+Data Type: setup
+
+Startpoint: u_ctrl/demux_z[3]
+Endpoint: u_pll/ecc_next
+Path Group: clk_200m
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.6909
+Arrival Time:              6.1836
+Required Time:             5.4927
+Data Type: setup
+
+Startpoint: u_ddrc/comparator_cnt[13]
+Endpoint: u_cluster/core1/datapath_data
+Path Group: clk_200m
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.7354
+Arrival Time:              3.1820
+Required Time:             3.9174
+Data Type: setup

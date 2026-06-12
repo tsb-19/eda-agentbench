@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -0.6192
+tns: -1.0784
+violating_path_count: 3
+
+Startpoint: u_bus/mux_reg[32]
+Endpoint: u_core/phy_data[46]
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.6192
+Arrival Time:              8.1786
+Required Time:             7.5594
+Data Type: setup
+
+Startpoint: u_cache/interleaver_out[55]
+Endpoint: u_phy/fifo_cnt[9]
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.1595
+Arrival Time:              5.9222
+Required Time:             6.0817
+Data Type: setup
+
+Startpoint: u_serdes/converter_val[42]
+Endpoint: u_cluster/l2/watchdog_d
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.1411
+Arrival Time:              4.2941
+Required Time:             4.4352
+Data Type: setup
+
+Startpoint: u_serdes/rom_ctrl_q
+Endpoint: u_buf/scrambler_n[24]
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.1382
+Arrival Time:              2.1922
+Required Time:             2.3304
+Data Type: setup
+
+Startpoint: u_bus/sync_b[44]
+Endpoint: u_buf/datapath_cmd
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.0262
+Arrival Time:              7.0298
+Required Time:             7.0036
+Data Type: setup
+
+Startpoint: u_top/cache_sel[3]
+Endpoint: u_subsys/io/async_reg[53]
+Path Group: clk_100m
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.4330
+Arrival Time:              5.0295
+Required Time:             4.5965
+Data Type: setup

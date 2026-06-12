@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.9335
+tns: -8.2271
+violating_path_count: 6
+
+Startpoint: u_core/cache_d
+Endpoint: u_ctrl/buffer_p
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.9335
+Arrival Time:              3.2303
+Required Time:             1.2968
+Data Type: setup
+
+Startpoint: u_core/controller_state
+Endpoint: u_arb/async
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.2706
+Arrival Time:              6.4078
+Required Time:             5.1373
+Data Type: setup
+
+Startpoint: u_buf/regfile_in
+Endpoint: u_subsys/dma/pipeline
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.4048
+Arrival Time:              7.2317
+Required Time:             5.8269
+Data Type: setup
+
+Startpoint: u_cache/bridge_p
+Endpoint: u_serdes/dma_cmd
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.6780
+Arrival Time:              8.3117
+Required Time:             6.6337
+Data Type: setup
+
+Startpoint: u_cluster/core0/regfile_d
+Endpoint: u_pll/watchdog_sel
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.7990
+Arrival Time:              6.7318
+Required Time:             4.9328
+Data Type: setup
+
+Startpoint: u_pciesub/fifo_async_prev
+Endpoint: u_buf/phy_cnt
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.2688
+Arrival Time:              7.5001
+Required Time:             7.7689
+Data Type: setup
+
+Startpoint: u_subsys/mem/alu_next
+Endpoint: u_subsys/cpu/scrambler_in[5]
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.1412
+Arrival Time:              6.3659
+Required Time:             6.2246
+Data Type: setup
+
+Startpoint: u_cache/regfile_data
+Endpoint: u_cluster/core1/alu_addr
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    1.6997
+Arrival Time:              3.5917
+Required Time:             5.2914
+Data Type: setup

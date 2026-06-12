@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -0.8791
+tns: -1.6764
+violating_path_count: 4
+
+Startpoint: u_buf/dcfifo_cnt
+Endpoint: u_gpu/ecc_out
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    -0.8791
+Arrival Time:              8.4064
+Required Time:             7.5273
+Data Type: hold
+
+Startpoint: u_cache/encoder_cmd[15]
+Endpoint: u_core/serdes_val
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    -0.2392
+Arrival Time:              5.1046
+Required Time:             4.8654
+Data Type: hold
+
+Startpoint: u_cache/filter_z
+Endpoint: u_subsys/dma/spi_q[59]
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    -0.4639
+Arrival Time:              3.7084
+Required Time:             3.2445
+Data Type: hold
+
+Startpoint: u_top/i2c_out[19]
+Endpoint: u_gpu/ram_ctrl_reg
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.1474
+Arrival Time:              4.2562
+Required Time:             4.4036
+Data Type: hold
+
+Startpoint: u_dma/async_next[26]
+Endpoint: u_serdes/adder_state[17]
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    -0.0942
+Arrival Time:              7.1121
+Required Time:             7.0180
+Data Type: hold
+
+Startpoint: u_ddrc/fifo_sync
+Endpoint: u_vpu/serdes_cnt
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.0992
+Arrival Time:              1.6433
+Required Time:             1.7425
+Data Type: hold
+
+Startpoint: u_top/phy_z
+Endpoint: u_gpu/dma_p
+Path Group: clk_io
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.5335
+Arrival Time:              6.8248
+Required Time:             7.3583
+Data Type: hold

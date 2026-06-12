@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -4.9319
+tns: -24.0528
+violating_path_count: 6
+
+Startpoint: u_cache/dac[19]
+Endpoint: u_subsys/dma/demux_en
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.9319
+Arrival Time:              6.2626
+Required Time:             1.3307
+Data Type: setup
+
+Startpoint: u_dma/sampler_sel
+Endpoint: u_pciesub/converter_next
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.3827
+Arrival Time:              6.7837
+Required Time:             2.4010
+Data Type: setup
+
+Startpoint: u_io/mac_data
+Endpoint: u_pciesub/latch_z
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.0245
+Arrival Time:              10.1344
+Required Time:             6.1099
+Data Type: setup
+
+Startpoint: u_subsys/dma/comparator_n
+Endpoint: u_subsys/dma/sampler_data
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.3718
+Arrival Time:              9.5477
+Required Time:             6.1759
+Data Type: setup
+
+Startpoint: u_subsys/io/dcfifo_p[32]
+Endpoint: u_phy/shifter_in
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.8023
+Arrival Time:              7.9361
+Required Time:             3.1338
+Data Type: setup
+
+Startpoint: u_dsp/pll_out[60]
+Endpoint: u_ctrl/fifo_sync_q
+Path Group: cpu_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.5396
+Arrival Time:              10.2842
+Required Time:             7.7446
+Data Type: setup

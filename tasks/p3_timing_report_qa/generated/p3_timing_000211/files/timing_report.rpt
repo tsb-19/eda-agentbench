@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -1.4409
+tns: -5.4922
+violating_path_count: 7
+
+Startpoint: u_dma/datapath_reg
+Endpoint: u_arb/fifo_async_p
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -1.4409
+Arrival Time:              5.2783
+Required Time:             3.8374
+Data Type: setup
+
+Startpoint: u_gpu/fifo_addr
+Endpoint: u_subsys/dma/pll_n[16]
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.9772
+Arrival Time:              6.1752
+Required Time:             5.1980
+Data Type: setup
+
+Startpoint: u_io/spi_val
+Endpoint: u_top/crc_out
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -1.0830
+Arrival Time:              7.9861
+Required Time:             6.9030
+Data Type: setup
+
+Startpoint: u_pll/fifo_sync_z[49]
+Endpoint: u_subsys/io/fifo_sync_b
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.9627
+Arrival Time:              4.9182
+Required Time:             3.9555
+Data Type: setup
+
+Startpoint: u_ctrl/timer_out[58]
+Endpoint: u_cluster/core1/descrambler_z
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.6213
+Arrival Time:              8.1173
+Required Time:             7.4960
+Data Type: setup
+
+Startpoint: u_noc/pll
+Endpoint: u_subsys/dma/pcs_b
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.3920
+Arrival Time:              8.1235
+Required Time:             7.7314
+Data Type: setup
+
+Startpoint: u_dsp/ram_ctrl_sel
+Endpoint: u_top/controller_p
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.0151
+Arrival Time:              6.3397
+Required Time:             6.3246
+Data Type: setup
+
+Startpoint: u_phy/ecc_q
+Endpoint: u_mac/dma_val
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    0.2047
+Arrival Time:              4.2507
+Required Time:             4.4554
+Data Type: setup
+
+Startpoint: u_cluster/core0/pcs_addr
+Endpoint: u_subsys/cpu/watchdog_cnt
+Path Group: mem_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    2.2336
+Arrival Time:              -0.0787
+Required Time:             2.1549
+Data Type: setup

@@ -1,0 +1,168 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 16
+
+wns: -4.4606
+tns: -42.5412
+violating_path_count: 14
+
+Startpoint: u_subsys/mem/uart_d[42]
+Endpoint: u_ctrl/datapath_en
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -4.4606
+Arrival Time:              7.7969
+Required Time:             3.3363
+Data Type: setup
+
+Startpoint: u_pll/cache_d
+Endpoint: u_pciesub/scrambler_in
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -4.2547
+Arrival Time:              6.5794
+Required Time:             2.3248
+Data Type: setup
+
+Startpoint: u_cache/dll_q
+Endpoint: u_dma/arbiter_sel
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.4705
+Arrival Time:              8.8939
+Required Time:             5.4234
+Data Type: setup
+
+Startpoint: u_arb/dma_ctrl_reg[55]
+Endpoint: u_cache/watchdog_data
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -3.8020
+Arrival Time:              7.9430
+Required Time:             4.1410
+Data Type: setup
+
+Startpoint: u_ctrl/dll_prev[57]
+Endpoint: u_dsp/pma_addr
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.3691
+Arrival Time:              10.6174
+Required Time:             7.2483
+Data Type: setup
+
+Startpoint: u_cluster/core1/crc_out
+Endpoint: u_cluster/core0/rom_ctrl_in
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.8813
+Arrival Time:              7.5661
+Required Time:             3.6848
+Data Type: setup
+
+Startpoint: u_subsys/dma/pcs_sel[21]
+Endpoint: u_core/uart_q[49]
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.7123
+Arrival Time:              7.6290
+Required Time:             5.9167
+Data Type: setup
+
+Startpoint: u_mem/controller_prev[24]
+Endpoint: u_cluster/core0/spi_b
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -3.0486
+Arrival Time:              5.8854
+Required Time:             2.8368
+Data Type: setup
+
+Startpoint: u_subsys/io/pipeline[45]
+Endpoint: u_vpu/adder_b[40]
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -3.9538
+Arrival Time:              10.5469
+Required Time:             6.5931
+Data Type: setup
+
+Startpoint: u_mac/adder_en[49]
+Endpoint: u_cluster/l2/fifo_sync_in
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.6100
+Arrival Time:              3.4539
+Required Time:             1.8439
+Data Type: setup
+
+Startpoint: u_phy/pll_next
+Endpoint: u_top/rom_ctrl_cmd[17]
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.2325
+Arrival Time:              9.7553
+Required Time:             7.5229
+Data Type: setup
+
+Startpoint: u_ctrl/encoder_n
+Endpoint: u_mac/spi_p
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.6833
+Arrival Time:              4.6140
+Required Time:             2.9307
+Data Type: setup
+
+Startpoint: u_mem/pcs_next
+Endpoint: u_vpu/arbiter_cnt
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0358
+Arrival Time:              3.6524
+Required Time:             3.6883
+Data Type: setup
+
+Startpoint: u_pciesub/dac_b
+Endpoint: u_subsys/cpu/regfile_reg[1]
+Path Group: clk_bus
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2150
+Arrival Time:              1.8703
+Required Time:             2.0853
+Data Type: setup
+
+Startpoint: u_pciesub/arbiter
+Endpoint: u_subsys/dma/ram_ctrl_p[17]
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.1466
+Arrival Time:              8.5196
+Required Time:             6.3731
+Data Type: setup
+
+Startpoint: u_cache/dma_ctrl_val
+Endpoint: u_cluster/l2/adder_p
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.9159
+Arrival Time:              8.1467
+Required Time:             5.2307
+Data Type: setup

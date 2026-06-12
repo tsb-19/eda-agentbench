@@ -94,13 +94,13 @@ fi
 rm -rf "$WRONG_DIR"
 echo ""
 
-# --- Step 6: Generate 100 tasks (final) ---
-echo "--- Step 6: Generate 100 P3 tasks (final) ---"
-python3 scripts/generate_p3_tasks.py --count 100 --output-dir tasks/p3_timing_report_qa/generated 2>&1
+# --- Step 6: Generate 999 tasks (final) ---
+echo "--- Step 6: Generate 999 P3 tasks (final) ---"
+python3 scripts/generate_p3_tasks.py --count 999 --output-dir tasks/p3_timing_report_qa/generated 2>&1
 FINAL_COUNT=$(ls -d tasks/p3_timing_report_qa/generated/p3_timing_* 2>/dev/null | wc -l)
 echo "  Generated: $FINAL_COUNT tasks"
-FINAL_CHECK=$(python3 -c "print('PASS' if $FINAL_COUNT == 100 else 'FAIL')")
-check "Generated 100 tasks" "$FINAL_CHECK"
+FINAL_CHECK=$(python3 -c "print('PASS' if $FINAL_COUNT == 999 else 'FAIL')")
+check "Generated 999 tasks" "$FINAL_CHECK"
 echo ""
 
 # --- Step 7: Clean up temp dir ---

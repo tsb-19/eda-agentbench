@@ -47,21 +47,22 @@ tasks/p3_timing_report_qa/
   smoke/                          # Handcrafted smoke task
     files/timing_report.rpt       # Timing report (visible)
     solution/answer.txt           # Correct answer
-    hidden/answer.txt             # Hidden answer (same as solution)
     prompt.md                     # Question prompt
     metadata.json                 # Task metadata
   generated/                      # Generated tasks
-    p3_timing_000000/ ... p3_timing_000099
+    p3_timing_000001/ ... p3_timing_000999
 ```
+
+Note: generated task IDs start at 000001 to avoid collision with the smoke task (p3_timing_000000).
 
 ## Generation
 
 ```bash
-python3 scripts/generate_p3_tasks.py --count 100 --seed 42
+python3 scripts/generate_p3_tasks.py --count 999 --seed 42
 ```
 
 Options:
-- `--count`: Number of tasks (default: 100)
+- `--count`: Number of tasks to generate (default: 100)
 - `--seed`: Random seed (default: 42)
 - `--output-dir`: Output directory (default: `tasks/p3_timing_report_qa/generated`)
 
@@ -71,9 +72,13 @@ Options:
 bash scripts/run_p3_smoke.sh
 ```
 
-## MVP Scope
+## Scope
 
 - No PrimeTime invocation (synthetic normalized reports only)
-- 1 smoke task + 100 generated tasks
-- 10 question types with round-robin distribution
+- 1 smoke task + 999 generated tasks (1000 total)
+- 10 question types with round-robin distribution (99–100 each)
+- 30 unique clocks, 15 path groups, ~30% multi-clock reports
+- Path counts 3–50, WNS range -5.0 to -0.01, TNS range -75 to -0.3
+- Signal names with hierarchical depth and optional bit indices
 - Deterministic generation with seeded RNG
+- Full solution evaluation: 1000/1000 = 1.00

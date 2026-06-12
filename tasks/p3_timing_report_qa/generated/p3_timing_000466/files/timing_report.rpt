@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -1.5845
+tns: -4.3529
+violating_path_count: 4
+
+Startpoint: u_serdes/uart_en
+Endpoint: u_pciesub/encoder_n
+Path Group: reg2reg
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.5845
+Arrival Time:              8.1010
+Required Time:             6.5165
+Data Type: setup
+
+Startpoint: u_mem/fifo_cnt
+Endpoint: u_gpu/mux_d
+Path Group: reg2reg
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.7559
+Arrival Time:              5.0652
+Required Time:             4.3093
+Data Type: setup
+
+Startpoint: u_cluster/l2/adc_en
+Endpoint: u_subsys/mem/crc_sel
+Path Group: reg2reg
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.4493
+Arrival Time:              6.7002
+Required Time:             5.2509
+Data Type: setup
+
+Startpoint: u_dma/dll_prev
+Endpoint: u_noc/rom_ctrl_out
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -0.5632
+Arrival Time:              5.9478
+Required Time:             5.3846
+Data Type: setup
+
+Startpoint: u_ddrc/uart_reg
+Endpoint: u_dma/regfile_addr
+Path Group: reg2reg
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.0199
+Arrival Time:              7.3787
+Required Time:             7.3985
+Data Type: setup

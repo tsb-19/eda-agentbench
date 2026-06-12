@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.7880
+tns: -17.9858
+violating_path_count: 6
+
+Startpoint: u_io/dma_ctrl_next
+Endpoint: u_cluster/l2/dma_ctrl_prev
+Path Group: in2reg
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.7880
+Arrival Time:              6.7457
+Required Time:             2.9577
+Data Type: setup
+
+Startpoint: u_core/cache_reg[49]
+Endpoint: u_ddrc/interrupt_ctrl_out[11]
+Path Group: in2reg
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.6143
+Arrival Time:              8.6426
+Required Time:             5.0283
+Data Type: setup
+
+Startpoint: u_cache/fifo_async_sel
+Endpoint: u_core/uart_b
+Path Group: jtag_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.4608
+Arrival Time:              8.4975
+Required Time:             5.0367
+Data Type: setup
+
+Startpoint: u_subsys/io/dma_ctrl_cmd[36]
+Endpoint: u_pll/demux_data
+Path Group: in2reg
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.0764
+Arrival Time:              6.6658
+Required Time:             3.5895
+Data Type: setup
+
+Startpoint: u_mac/uart_prev
+Endpoint: u_bus/dma_ctrl
+Path Group: in2reg
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.0598
+Arrival Time:              8.7608
+Required Time:             5.7010
+Data Type: setup
+
+Startpoint: u_dma/async_out[28]
+Endpoint: u_bus/fifo_async_d
+Path Group: in2reg
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.9865
+Arrival Time:              3.8091
+Required Time:             2.8226
+Data Type: setup

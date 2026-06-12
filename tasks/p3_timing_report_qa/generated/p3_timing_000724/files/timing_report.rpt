@@ -1,0 +1,128 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 12
+
+wns: -2.6037
+tns: -15.4586
+violating_path_count: 8
+
+Startpoint: u_top/fifo_async_data
+Endpoint: u_buf/decoder_sel[3]
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -2.6037
+Arrival Time:              3.7321
+Required Time:             1.1284
+Data Type: setup
+
+Startpoint: u_dma/rom_ctrl_sel[26]
+Endpoint: u_subsys/cpu/sampler_b
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -2.2728
+Arrival Time:              3.3502
+Required Time:             1.0774
+Data Type: setup
+
+Startpoint: u_core/filter_q[33]
+Endpoint: u_buf/uart_p[34]
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.9082
+Arrival Time:              5.8605
+Required Time:             3.9523
+Data Type: setup
+
+Startpoint: u_buf/uart_z
+Endpoint: u_dsp/sync_b[53]
+Path Group: pcie_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.8555
+Arrival Time:              8.3481
+Required Time:             7.4925
+Data Type: setup
+
+Startpoint: u_buf/ecc_d
+Endpoint: u_cache/pma_en
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.8334
+Arrival Time:              7.4403
+Required Time:             5.6070
+Data Type: setup
+
+Startpoint: u_dma/cache_sel
+Endpoint: u_phy/buffer_prev
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -2.1237
+Arrival Time:              6.2382
+Required Time:             4.1146
+Data Type: setup
+
+Startpoint: u_pciesub/adder
+Endpoint: u_buf/cache_z
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.1847
+Arrival Time:              3.3677
+Required Time:             3.5524
+Data Type: setup
+
+Startpoint: u_cache/sync_en
+Endpoint: u_cluster/core0/timer_z
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.6709
+Arrival Time:              7.1527
+Required Time:             5.4818
+Data Type: setup
+
+Startpoint: u_ctrl/mac_out
+Endpoint: u_subsys/cpu/alu_d[63]
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    0.1220
+Arrival Time:              6.6943
+Required Time:             6.8162
+Data Type: setup
+
+Startpoint: u_cache/demux_n[41]
+Endpoint: u_noc/fifo_async_cnt
+Path Group: in2out
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.0391
+Arrival Time:              3.3797
+Required Time:             3.4188
+Data Type: setup
+
+Startpoint: u_noc/pcs_state
+Endpoint: u_subsys/mem/timer_sel
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.1904
+Arrival Time:              5.3786
+Required Time:             3.1881
+Data Type: setup
+
+Startpoint: u_subsys/io/async_cmd
+Endpoint: u_mac/fifo_async_data
+Path Group: clk_50m
+Clock: clk_50m
+----------------------------------------
+Slack:                    2.3320
+Arrival Time:              3.0948
+Required Time:             5.4268
+Data Type: setup

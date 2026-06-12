@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.4937
+tns: -16.7908
+violating_path_count: 6
+
+Startpoint: u_vpu/converter_next
+Endpoint: u_core/cache_out[35]
+Path Group: in2reg
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.4937
+Arrival Time:              10.7837
+Required Time:             7.2900
+Data Type: setup
+
+Startpoint: u_ddrc/controller_b
+Endpoint: u_gpu/ecc
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.0007
+Arrival Time:              7.6979
+Required Time:             4.6972
+Data Type: setup
+
+Startpoint: u_top/interleaver_sel[36]
+Endpoint: u_core/controller_en
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.0127
+Arrival Time:              10.3601
+Required Time:             7.3475
+Data Type: setup
+
+Startpoint: u_pciesub/adder_cnt
+Endpoint: u_gpu/scrambler_next[16]
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8306
+Arrival Time:              10.7865
+Required Time:             7.9559
+Data Type: setup
+
+Startpoint: u_mac/descrambler_addr
+Endpoint: u_gpu/shifter_val
+Path Group: in2reg
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -1.7425
+Arrival Time:              6.5835
+Required Time:             4.8409
+Data Type: setup
+
+Startpoint: u_ctrl/converter_q
+Endpoint: u_mem/interleaver_cnt[53]
+Path Group: in2reg
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.7106
+Arrival Time:              6.0232
+Required Time:             3.3126
+Data Type: setup

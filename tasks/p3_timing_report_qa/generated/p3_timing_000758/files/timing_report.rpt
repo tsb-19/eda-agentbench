@@ -1,0 +1,258 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 25
+
+wns: -2.9227
+tns: -24.3672
+violating_path_count: 15
+
+Startpoint: u_core/fifo_async_b
+Endpoint: u_mem/uart_z
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.9227
+Arrival Time:              7.3649
+Required Time:             4.4422
+Data Type: setup
+
+Startpoint: u_subsys/cpu/dac_cmd
+Endpoint: u_cluster/l2/rom_ctrl_en[34]
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.5776
+Arrival Time:              3.8462
+Required Time:             1.2686
+Data Type: setup
+
+Startpoint: u_core/controller_p
+Endpoint: u_mem/fifo_async[49]
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.5903
+Arrival Time:              9.5416
+Required Time:             6.9513
+Data Type: setup
+
+Startpoint: u_subsys/mem/pma_cmd[53]
+Endpoint: u_cluster/core0/cache_z
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.0520
+Arrival Time:              7.5878
+Required Time:             5.5358
+Data Type: setup
+
+Startpoint: u_bus/rom_ctrl_cnt
+Endpoint: u_ctrl/dcfifo_b
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.9054
+Arrival Time:              8.7998
+Required Time:             7.8944
+Data Type: setup
+
+Startpoint: u_subsys/dma/i2c_reg
+Endpoint: u_vpu/datapath_q
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.4345
+Arrival Time:              4.8969
+Required Time:             2.4624
+Data Type: setup
+
+Startpoint: u_buf/arbiter_val
+Endpoint: u_dsp/cache_in
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.9641
+Arrival Time:              7.8243
+Required Time:             5.8603
+Data Type: setup
+
+Startpoint: u_bus/buffer_addr
+Endpoint: u_subsys/io/pcs_state
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.9947
+Arrival Time:              6.6590
+Required Time:             5.6644
+Data Type: setup
+
+Startpoint: u_arb/regfile_next
+Endpoint: u_cluster/core1/fifo_sync
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.5531
+Arrival Time:              3.6875
+Required Time:             3.1344
+Data Type: setup
+
+Startpoint: u_cluster/l2/latch_data
+Endpoint: u_top/sync_prev
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2091
+Arrival Time:              7.6201
+Required Time:             7.8292
+Data Type: setup
+
+Startpoint: u_noc/ecc_q
+Endpoint: u_ddrc/timer_next
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1086
+Arrival Time:              3.6002
+Required Time:             3.7088
+Data Type: setup
+
+Startpoint: u_io/datapath_cmd
+Endpoint: u_top/comparator_val
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2405
+Arrival Time:              6.7081
+Required Time:             6.9486
+Data Type: setup
+
+Startpoint: u_cluster/core0/interrupt_ctrl_n[48]
+Endpoint: u_dma/regfile_prev
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1815
+Arrival Time:              1.5143
+Required Time:             1.6958
+Data Type: setup
+
+Startpoint: u_noc/fifo_async_sel[21]
+Endpoint: u_mem/latch_out
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.7179
+Arrival Time:              3.7741
+Required Time:             1.0562
+Data Type: setup
+
+Startpoint: u_subsys/cpu/dcfifo_q
+Endpoint: u_gpu/regfile_p
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.2462
+Arrival Time:              3.6812
+Required Time:             3.9274
+Data Type: setup
+
+Startpoint: u_subsys/mem/pma_en
+Endpoint: u_buf/adder_p
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.0949
+Arrival Time:              6.5981
+Required Time:             6.6930
+Data Type: setup
+
+Startpoint: u_arb/spi
+Endpoint: u_subsys/io/timer_b
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1221
+Arrival Time:              6.1450
+Required Time:             6.2671
+Data Type: setup
+
+Startpoint: u_mem/bridge_q
+Endpoint: u_gpu/datapath_out
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0182
+Arrival Time:              5.9736
+Required Time:             5.9555
+Data Type: setup
+
+Startpoint: u_subsys/cpu/filter_b
+Endpoint: u_core/cache_q[9]
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1843
+Arrival Time:              5.7124
+Required Time:             5.8967
+Data Type: setup
+
+Startpoint: u_top/dcfifo_prev
+Endpoint: u_serdes/converter_next[2]
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0992
+Arrival Time:              1.5645
+Required Time:             1.4653
+Data Type: setup
+
+Startpoint: u_ddrc/async_cmd
+Endpoint: u_subsys/dma/fifo_out
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    0.1473
+Arrival Time:              5.9432
+Required Time:             6.0905
+Data Type: setup
+
+Startpoint: u_cluster/l2/sampler_n[59]
+Endpoint: u_arb/timer_cnt[48]
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.0205
+Arrival Time:              6.6251
+Required Time:             4.6045
+Data Type: setup
+
+Startpoint: u_core/scrambler_reg
+Endpoint: u_vpu/adc_q
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.0869
+Arrival Time:              3.2802
+Required Time:             3.1933
+Data Type: setup
+
+Startpoint: u_gpu/latch_p[10]
+Endpoint: u_vpu/buffer_addr
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.4301
+Arrival Time:              6.9636
+Required Time:             4.5336
+Data Type: setup
+
+Startpoint: u_cluster/l2/pll_state[27]
+Endpoint: u_subsys/cpu/uart_next
+Path Group: in2reg
+Clock: i2c_clk
+----------------------------------------
+Slack:                    4.8275
+Arrival Time:              2.1152
+Required Time:             6.9427
+Data Type: setup

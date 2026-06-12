@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -1.4028
+tns: -2.9384
+violating_path_count: 4
+
+Startpoint: u_phy/uart_next[60]
+Endpoint: u_gpu/timer_out
+Path Group: in2out
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.4028
+Arrival Time:              3.0289
+Required Time:             1.6261
+Data Type: hold
+
+Startpoint: u_core/mux_z
+Endpoint: u_serdes/spi_addr[0]
+Path Group: in2out
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.4295
+Arrival Time:              3.7737
+Required Time:             3.3443
+Data Type: hold
+
+Startpoint: u_subsys/io/dll_state
+Endpoint: u_pll/pma_en[1]
+Path Group: in2out
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.4944
+Arrival Time:              6.8120
+Required Time:             6.3175
+Data Type: hold
+
+Startpoint: u_buf/fifo_d
+Endpoint: u_bus/dcfifo_addr[62]
+Path Group: in2out
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.6117
+Arrival Time:              6.7983
+Required Time:             6.1866
+Data Type: hold

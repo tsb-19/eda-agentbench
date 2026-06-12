@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -4.9186
+tns: -39.1889
+violating_path_count: 13
+
+Startpoint: u_cache/arbiter_next
+Endpoint: u_core/cache_addr
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -4.9186
+Arrival Time:              8.8720
+Required Time:             3.9534
+Data Type: setup
+
+Startpoint: u_cluster/core0/pll_prev
+Endpoint: u_cache/cache_addr
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -4.3754
+Arrival Time:              5.4278
+Required Time:             1.0524
+Data Type: setup
+
+Startpoint: u_phy/decoder_cnt[56]
+Endpoint: u_phy/adder_en
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -4.6898
+Arrival Time:              8.7388
+Required Time:             4.0490
+Data Type: setup
+
+Startpoint: u_ctrl/ecc_reg
+Endpoint: u_noc/interleaver_en
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.4220
+Arrival Time:              11.2579
+Required Time:             7.8359
+Data Type: setup
+
+Startpoint: u_cluster/core0/datapath_out
+Endpoint: u_ddrc/pcs_n
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.0620
+Arrival Time:              9.3305
+Required Time:             6.2685
+Data Type: setup
+
+Startpoint: u_bus/dcfifo_addr
+Endpoint: u_noc/dma_ctrl_addr
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.3361
+Arrival Time:              6.2184
+Required Time:             3.8823
+Data Type: setup
+
+Startpoint: u_core/pcs_data
+Endpoint: u_pciesub/pll_q
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.7576
+Arrival Time:              4.8500
+Required Time:             2.0924
+Data Type: setup
+
+Startpoint: u_cache/demux_out
+Endpoint: u_io/fifo_p
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.7402
+Arrival Time:              8.6903
+Required Time:             4.9501
+Data Type: setup
+
+Startpoint: u_gpu/pma_out[53]
+Endpoint: u_phy/sampler_cnt[28]
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.9067
+Arrival Time:              3.0151
+Required Time:             2.1084
+Data Type: setup
+
+Startpoint: u_serdes/dac_data[18]
+Endpoint: u_cache/uart_reg
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.2453
+Arrival Time:              9.3347
+Required Time:             7.0893
+Data Type: setup
+
+Startpoint: u_ddrc/adc_val[15]
+Endpoint: u_core/adc_n
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.3865
+Arrival Time:              4.8472
+Required Time:             2.4607
+Data Type: setup
+
+Startpoint: u_dsp/demux_state
+Endpoint: u_subsys/dma/adc_next
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -1.6659
+Arrival Time:              7.6407
+Required Time:             5.9748
+Data Type: setup
+
+Startpoint: u_cluster/core1/adc_val
+Endpoint: u_dma/converter_data
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.6828
+Arrival Time:              6.2291
+Required Time:             3.5462
+Data Type: setup

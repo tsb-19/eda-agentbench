@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.9872
+tns: -19.9584
+violating_path_count: 8
+
+Startpoint: u_ddrc/dll_b[60]
+Endpoint: u_dma/adder_reg
+Path Group: clk_100m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -3.9872
+Arrival Time:              5.3745
+Required Time:             1.3873
+Data Type: hold
+
+Startpoint: u_subsys/io/arbiter_cnt
+Endpoint: u_cluster/core0/latch_z[5]
+Path Group: clk_dsp
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -3.7035
+Arrival Time:              5.8617
+Required Time:             2.1582
+Data Type: hold
+
+Startpoint: u_subsys/cpu/datapath_out
+Endpoint: u_mem/i2c_n
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -2.6866
+Arrival Time:              9.2484
+Required Time:             6.5618
+Data Type: hold
+
+Startpoint: u_ddrc/pll[7]
+Endpoint: u_cluster/core0/i2c_reg
+Path Group: clk_100m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -3.2144
+Arrival Time:              9.4330
+Required Time:             6.2186
+Data Type: hold
+
+Startpoint: u_mem/datapath_in
+Endpoint: u_vpu/pcs_sel
+Path Group: clk_dsp
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -1.6020
+Arrival Time:              4.8987
+Required Time:             3.2967
+Data Type: hold
+
+Startpoint: u_subsys/mem/multiplier_reg
+Endpoint: u_mac/watchdog[4]
+Path Group: clk_100m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -3.6269
+Arrival Time:              10.3846
+Required Time:             6.7577
+Data Type: hold
+
+Startpoint: u_cluster/core1/ram_ctrl_state
+Endpoint: u_cluster/core1/buffer_cnt[35]
+Path Group: clk_100m
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.5687
+Arrival Time:              5.7516
+Required Time:             5.1829
+Data Type: hold
+
+Startpoint: u_core/ram_ctrl_d
+Endpoint: u_core/latch_state
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    -0.5691
+Arrival Time:              2.2609
+Required Time:             1.6918
+Data Type: hold

@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -1.7189
+tns: -3.2087
+violating_path_count: 3
+
+Startpoint: u_bus/descrambler_cmd
+Endpoint: u_pciesub/arbiter[33]
+Path Group: clk_core
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.7189
+Arrival Time:              5.9977
+Required Time:             4.2788
+Data Type: hold
+
+Startpoint: u_cluster/core1/adder_next
+Endpoint: u_pll/dcfifo_p
+Path Group: clk_core
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.8258
+Arrival Time:              3.9633
+Required Time:             3.1374
+Data Type: hold
+
+Startpoint: u_bus/shifter_in[57]
+Endpoint: u_mem/comparator_state
+Path Group: clk_core
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.6640
+Arrival Time:              3.0132
+Required Time:             2.3491
+Data Type: hold
+
+Startpoint: u_pll/adder_d
+Endpoint: u_cluster/l2/multiplier_cnt[62]
+Path Group: clk_core
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1332
+Arrival Time:              2.5296
+Required Time:             2.6628
+Data Type: hold

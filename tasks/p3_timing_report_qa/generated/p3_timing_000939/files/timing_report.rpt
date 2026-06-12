@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -3.1945
+tns: -20.5607
+violating_path_count: 9
+
+Startpoint: u_noc/descrambler_d[4]
+Endpoint: u_ddrc/watchdog_z
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.1945
+Arrival Time:              4.3798
+Required Time:             1.1853
+Data Type: setup
+
+Startpoint: u_cluster/core0/decoder_cmd
+Endpoint: u_subsys/cpu/async_d
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.9408
+Arrival Time:              9.0752
+Required Time:             6.1344
+Data Type: setup
+
+Startpoint: u_mem/interleaver_en
+Endpoint: u_serdes/controller_q
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.8903
+Arrival Time:              3.2895
+Required Time:             1.3992
+Data Type: setup
+
+Startpoint: u_cache/dma
+Endpoint: u_core/ram_ctrl_en
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.4164
+Arrival Time:              5.1522
+Required Time:             2.7357
+Data Type: setup
+
+Startpoint: u_subsys/mem/spi_reg
+Endpoint: u_io/i2c_d[54]
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.3776
+Arrival Time:              4.3629
+Required Time:             2.9852
+Data Type: setup
+
+Startpoint: u_subsys/dma/adder_cmd[34]
+Endpoint: u_noc/scrambler_prev
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.6483
+Arrival Time:              8.9023
+Required Time:             6.2540
+Data Type: setup
+
+Startpoint: u_subsys/cpu/dac_data[30]
+Endpoint: u_gpu/decoder_cmd
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.3467
+Arrival Time:              4.9672
+Required Time:             3.6206
+Data Type: setup
+
+Startpoint: u_pll/mux_reg[7]
+Endpoint: u_top/comparator_sel
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.0913
+Arrival Time:              1.1094
+Required Time:             1.2007
+Data Type: setup
+
+Startpoint: u_cluster/l2/encoder_out
+Endpoint: u_ctrl/ram_ctrl_in
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.8157
+Arrival Time:              7.5164
+Required Time:             4.7008
+Data Type: setup
+
+Startpoint: u_top/phy_b
+Endpoint: u_serdes/arbiter_en
+Path Group: clk_200m
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.9304
+Arrival Time:              9.6116
+Required Time:             7.6812
+Data Type: setup

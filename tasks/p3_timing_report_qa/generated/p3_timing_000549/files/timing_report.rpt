@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.6534
+tns: -13.5133
+violating_path_count: 5
+
+Startpoint: u_top/descrambler_d
+Endpoint: u_subsys/cpu/decoder_addr
+Path Group: clk_100m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -3.6534
+Arrival Time:              8.5640
+Required Time:             4.9106
+Data Type: setup
+
+Startpoint: u_subsys/io/alu_data
+Endpoint: u_dma/dcfifo
+Path Group: clk_100m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.7485
+Arrival Time:              6.0603
+Required Time:             3.3118
+Data Type: setup
+
+Startpoint: u_ctrl/shifter_q
+Endpoint: u_ddrc/pcs_n
+Path Group: clk_100m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.8466
+Arrival Time:              10.2402
+Required Time:             7.3936
+Data Type: setup
+
+Startpoint: u_subsys/io/i2c_in
+Endpoint: u_cache/controller_reg[27]
+Path Group: clk_100m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.1380
+Arrival Time:              7.1296
+Required Time:             4.9916
+Data Type: setup
+
+Startpoint: u_subsys/io/buffer_sel
+Endpoint: u_subsys/dma/fifo_en
+Path Group: clk_100m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.1268
+Arrival Time:              5.3239
+Required Time:             3.1971
+Data Type: setup

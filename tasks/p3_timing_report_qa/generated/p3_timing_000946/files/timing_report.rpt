@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -2.5875
+tns: -9.4288
+violating_path_count: 4
+
+Startpoint: u_pll/buffer_val[61]
+Endpoint: u_vpu/timer_q
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -2.5875
+Arrival Time:              8.5784
+Required Time:             5.9909
+Data Type: setup
+
+Startpoint: u_subsys/dma/spi_state
+Endpoint: u_cluster/l2/async_reg
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -2.0746
+Arrival Time:              5.9664
+Required Time:             3.8918
+Data Type: setup
+
+Startpoint: u_phy/spi_state
+Endpoint: u_buf/datapath_cnt
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -2.2279
+Arrival Time:              6.4120
+Required Time:             4.1841
+Data Type: setup
+
+Startpoint: u_arb/dcfifo_val
+Endpoint: u_phy/fifo_in
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -2.5388
+Arrival Time:              9.1875
+Required Time:             6.6487
+Data Type: setup

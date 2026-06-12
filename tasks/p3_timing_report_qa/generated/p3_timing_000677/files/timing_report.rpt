@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -4.9078
+tns: -29.7462
+violating_path_count: 8
+
+Startpoint: u_cluster/core1/filter_q
+Endpoint: u_mem/i2c_p
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.9078
+Arrival Time:              10.3248
+Required Time:             5.4170
+Data Type: setup
+
+Startpoint: u_mac/dac_in
+Endpoint: u_mem/pipeline_n[9]
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.5727
+Arrival Time:              6.8544
+Required Time:             2.2818
+Data Type: setup
+
+Startpoint: u_subsys/mem/regfile_addr
+Endpoint: u_cluster/core0/dma_ctrl_cmd[2]
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.8429
+Arrival Time:              11.7472
+Required Time:             7.9042
+Data Type: setup
+
+Startpoint: u_phy/pipeline_in
+Endpoint: u_dsp/serdes_en
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.2115
+Arrival Time:              7.4071
+Required Time:             3.1956
+Data Type: setup
+
+Startpoint: u_arb/spi_n
+Endpoint: u_cluster/core1/rom_ctrl_sel[16]
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.0703
+Arrival Time:              5.9285
+Required Time:             2.8582
+Data Type: setup
+
+Startpoint: u_cache/serdes_data
+Endpoint: u_mem/cache_val
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -3.4046
+Arrival Time:              6.7093
+Required Time:             3.3047
+Data Type: setup
+
+Startpoint: u_vpu/pipeline_b
+Endpoint: u_subsys/mem/ecc_addr
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -4.1370
+Arrival Time:              11.6464
+Required Time:             7.5094
+Data Type: setup
+
+Startpoint: u_vpu/serdes_data[60]
+Endpoint: u_vpu/interleaver_reg
+Path Group: reg2reg
+Clock: clk_bus
+----------------------------------------
+Slack:                    -1.5994
+Arrival Time:              4.6690
+Required Time:             3.0697
+Data Type: setup

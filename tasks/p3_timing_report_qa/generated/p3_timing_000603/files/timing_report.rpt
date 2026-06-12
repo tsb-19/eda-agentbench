@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -0.5913
+tns: -0.5913
+violating_path_count: 1
+
+Startpoint: u_bus/demux_val
+Endpoint: u_mac/crc_state
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    -0.5913
+Arrival Time:              7.8411
+Required Time:             7.2498
+Data Type: hold
+
+Startpoint: u_dsp/serdes_sel[53]
+Endpoint: u_serdes/multiplier_q[21]
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    0.2030
+Arrival Time:              5.1544
+Required Time:             5.3575
+Data Type: hold
+
+Startpoint: u_io/shifter_reg
+Endpoint: u_subsys/mem/pcs_sel
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    0.2520
+Arrival Time:              6.7741
+Required Time:             7.0261
+Data Type: hold
+
+Startpoint: u_mac/cache_out
+Endpoint: u_cluster/core0/dac_addr[35]
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    0.9190
+Arrival Time:              1.2326
+Required Time:             2.1516
+Data Type: hold

@@ -1,0 +1,158 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 15
+
+wns: -0.5578
+tns: -0.9816
+violating_path_count: 4
+
+Startpoint: u_io/mux_en
+Endpoint: u_core/phy_q[12]
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.5578
+Arrival Time:              6.4919
+Required Time:             5.9341
+Data Type: hold
+
+Startpoint: u_arb/dll_out
+Endpoint: u_mem/spi_state
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.1600
+Arrival Time:              2.7342
+Required Time:             2.8942
+Data Type: hold
+
+Startpoint: u_buf/filter_b
+Endpoint: u_subsys/mem/dma_out
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    -0.0164
+Arrival Time:              3.8089
+Required Time:             3.7925
+Data Type: hold
+
+Startpoint: u_mac/ecc_n
+Endpoint: u_dma/async_data
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.1101
+Arrival Time:              5.4042
+Required Time:             5.5143
+Data Type: hold
+
+Startpoint: u_dma/pipeline_q
+Endpoint: u_pll/cache_p
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    0.0631
+Arrival Time:              5.5815
+Required Time:             5.6446
+Data Type: hold
+
+Startpoint: u_buf/pipeline_val
+Endpoint: u_subsys/io/sync_out
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2139
+Arrival Time:              1.2586
+Required Time:             1.4725
+Data Type: hold
+
+Startpoint: u_cluster/core1/alu_en
+Endpoint: u_buf/pll_en
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.3234
+Arrival Time:              6.6832
+Required Time:             6.3598
+Data Type: hold
+
+Startpoint: u_io/adder_state[23]
+Endpoint: u_core/i2c_val
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.0840
+Arrival Time:              4.3991
+Required Time:             4.3151
+Data Type: hold
+
+Startpoint: u_subsys/dma/sampler_out
+Endpoint: u_buf/regfile_next[27]
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2455
+Arrival Time:              3.8458
+Required Time:             4.0912
+Data Type: hold
+
+Startpoint: u_arb/serdes_val
+Endpoint: u_mac/comparator_next
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2236
+Arrival Time:              4.9279
+Required Time:             5.1516
+Data Type: hold
+
+Startpoint: u_dsp/dma_ctrl_n
+Endpoint: u_mem/demux_b[14]
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2775
+Arrival Time:              7.4399
+Required Time:             7.7174
+Data Type: hold
+
+Startpoint: u_cluster/core1/regfile_in[48]
+Endpoint: u_io/alu_sel
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    0.2364
+Arrival Time:              4.3741
+Required Time:             4.6104
+Data Type: hold
+
+Startpoint: u_ctrl/i2c_en[19]
+Endpoint: u_arb/controller_addr
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.2951
+Arrival Time:              6.0686
+Required Time:             6.3637
+Data Type: hold
+
+Startpoint: u_subsys/mem/mux_p
+Endpoint: u_cluster/core0/spi_out
+Path Group: clk_bus
+Clock: clk_bus
+----------------------------------------
+Slack:                    0.1079
+Arrival Time:              7.6390
+Required Time:             7.7469
+Data Type: hold
+
+Startpoint: u_subsys/io/dac_q
+Endpoint: u_dsp/datapath_q
+Path Group: in2reg
+Clock: clk_core
+----------------------------------------
+Slack:                    3.5694
+Arrival Time:              -1.9720
+Required Time:             1.5974
+Data Type: hold

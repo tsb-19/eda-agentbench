@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -1.3415
+tns: -4.0343
+violating_path_count: 7
+
+Startpoint: u_buf/dac_z
+Endpoint: u_top/timer_data
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.3415
+Arrival Time:              4.6981
+Required Time:             3.3566
+Data Type: hold
+
+Startpoint: u_subsys/dma/i2c_sel
+Endpoint: u_pll/demux_next
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.3167
+Arrival Time:              5.3270
+Required Time:             4.0104
+Data Type: hold
+
+Startpoint: u_gpu/alu_in
+Endpoint: u_top/fifo_sync_next
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0450
+Arrival Time:              1.4225
+Required Time:             1.4674
+Data Type: hold
+
+Startpoint: u_subsys/cpu/sampler_in
+Endpoint: u_cluster/core0/adder_addr
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0174
+Arrival Time:              3.8506
+Required Time:             3.8332
+Data Type: hold
+
+Startpoint: u_top/phy_reg
+Endpoint: u_subsys/io/rom_ctrl_addr
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.1993
+Arrival Time:              5.7362
+Required Time:             4.5369
+Data Type: hold
+
+Startpoint: u_bus/interrupt_ctrl_data[62]
+Endpoint: u_serdes/serdes_reg
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0478
+Arrival Time:              7.8759
+Required Time:             7.8281
+Data Type: hold
+
+Startpoint: u_cluster/l2/mac_addr
+Endpoint: u_vpu/scrambler_state[28]
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0177
+Arrival Time:              1.8293
+Required Time:             1.8116
+Data Type: hold
+
+Startpoint: u_cluster/l2/cache_z
+Endpoint: u_io/sync_prev[58]
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0213
+Arrival Time:              4.8080
+Required Time:             4.8293
+Data Type: hold
+
+Startpoint: u_gpu/sync_z
+Endpoint: u_dma/filter_state
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1747
+Arrival Time:              0.9709
+Required Time:             1.1457
+Data Type: hold
+
+Startpoint: u_cluster/core1/controller_prev
+Endpoint: u_subsys/cpu/mac_state[41]
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0939
+Arrival Time:              6.9545
+Required Time:             6.8605
+Data Type: hold
+
+Startpoint: u_serdes/dll_addr[46]
+Endpoint: u_core/sampler_in
+Path Group: clk_io
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.5760
+Arrival Time:              5.6517
+Required Time:             6.2277
+Data Type: hold

@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -2.9837
+tns: -14.0598
+violating_path_count: 7
+
+Startpoint: u_ctrl/pma_p
+Endpoint: u_noc/async_z
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.9837
+Arrival Time:              7.1359
+Required Time:             4.1522
+Data Type: hold
+
+Startpoint: u_subsys/mem/pipeline_prev
+Endpoint: u_subsys/mem/controller_val
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.5644
+Arrival Time:              4.0853
+Required Time:             1.5209
+Data Type: hold
+
+Startpoint: u_subsys/mem/latch_cmd
+Endpoint: u_subsys/io/fifo_async_state
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.1764
+Arrival Time:              6.5262
+Required Time:             4.3498
+Data Type: hold
+
+Startpoint: u_io/decoder_cnt
+Endpoint: u_dma/sampler_cnt
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.3341
+Arrival Time:              6.8442
+Required Time:             5.5101
+Data Type: hold
+
+Startpoint: u_gpu/cache_cnt
+Endpoint: u_ddrc/scrambler_b
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.6682
+Arrival Time:              4.5534
+Required Time:             3.8853
+Data Type: hold
+
+Startpoint: u_subsys/cpu/ecc_next
+Endpoint: u_vpu/interleaver[10]
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.7687
+Arrival Time:              7.3265
+Required Time:             4.5578
+Data Type: hold
+
+Startpoint: u_io/ecc_en
+Endpoint: u_io/pma_state
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.0211
+Arrival Time:              5.6620
+Required Time:             5.6831
+Data Type: hold
+
+Startpoint: u_mac/interleaver_sel[8]
+Endpoint: u_buf/fifo_async_prev
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.5643
+Arrival Time:              7.8308
+Required Time:             6.2665
+Data Type: hold
+
+Startpoint: u_serdes/dma_ctrl_prev[13]
+Endpoint: u_serdes/alu_in[26]
+Path Group: in2out
+Clock: cpu_clk
+----------------------------------------
+Slack:                    1.3397
+Arrival Time:              2.1371
+Required Time:             3.4769
+Data Type: hold

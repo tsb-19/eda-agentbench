@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.3824
+tns: -0.7722
+violating_path_count: 4
+
+Startpoint: u_io/dcfifo_prev
+Endpoint: u_cluster/core0/dma_ctrl_sel[48]
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.3824
+Arrival Time:              6.6454
+Required Time:             6.2630
+Data Type: hold
+
+Startpoint: u_phy/serdes_cnt
+Endpoint: u_ctrl/dac_out
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.3033
+Arrival Time:              5.8936
+Required Time:             5.5903
+Data Type: hold
+
+Startpoint: u_pciesub/datapath_p
+Endpoint: u_pll/controller_addr
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.0857
+Arrival Time:              3.9139
+Required Time:             3.8282
+Data Type: hold
+
+Startpoint: u_core/cache_sel
+Endpoint: u_cache/buffer_n
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.1205
+Arrival Time:              6.0750
+Required Time:             6.1955
+Data Type: hold
+
+Startpoint: u_core/arbiter_b
+Endpoint: u_phy/i2c_data
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.1486
+Arrival Time:              6.8571
+Required Time:             7.0057
+Data Type: hold
+
+Startpoint: u_noc/i2c_b[2]
+Endpoint: u_dsp/decoder_d
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.1778
+Arrival Time:              1.2360
+Required Time:             1.4138
+Data Type: hold
+
+Startpoint: u_subsys/mem/pcs_q
+Endpoint: u_dma/sampler_p
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0008
+Arrival Time:              1.4930
+Required Time:             1.4922
+Data Type: hold
+
+Startpoint: u_phy/pcs_data
+Endpoint: u_buf/latch_val
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    0.2305
+Arrival Time:              3.0667
+Required Time:             3.2972
+Data Type: hold
+
+Startpoint: u_cluster/l2/alu_n
+Endpoint: u_cache/rom_ctrl_state[33]
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2350
+Arrival Time:              5.5510
+Required Time:             5.7859
+Data Type: hold
+
+Startpoint: u_io/ecc_prev[42]
+Endpoint: u_cluster/core1/uart_data
+Path Group: mem_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.8739
+Arrival Time:              3.9214
+Required Time:             4.7953
+Data Type: hold

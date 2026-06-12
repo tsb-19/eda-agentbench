@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.0791
+tns: -8.2392
+violating_path_count: 3
+
+Startpoint: u_subsys/io/dma_in[26]
+Endpoint: u_cluster/l2/descrambler_state
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.0791
+Arrival Time:              10.3384
+Required Time:             7.2593
+Data Type: setup
+
+Startpoint: u_vpu/dll_z
+Endpoint: u_top/phy_z[16]
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.3324
+Arrival Time:              4.0061
+Required Time:             1.6738
+Data Type: setup
+
+Startpoint: u_io/pipeline
+Endpoint: u_cache/fifo_async_sel
+Path Group: mem_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.8277
+Arrival Time:              10.0476
+Required Time:             7.2200
+Data Type: setup

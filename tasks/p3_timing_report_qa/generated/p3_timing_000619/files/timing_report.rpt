@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -4.8375
+tns: -22.7591
+violating_path_count: 6
+
+Startpoint: u_dsp/adc_out
+Endpoint: u_mem/spi_p
+Path Group: sys_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.8375
+Arrival Time:              6.2796
+Required Time:             1.4421
+Data Type: setup
+
+Startpoint: u_gpu/descrambler_data
+Endpoint: u_noc/converter_state[12]
+Path Group: ref_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.8635
+Arrival Time:              5.3151
+Required Time:             1.4515
+Data Type: setup
+
+Startpoint: u_io/scrambler_addr[5]
+Endpoint: u_dma/multiplier_d
+Path Group: sys_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -3.3561
+Arrival Time:              10.8787
+Required Time:             7.5226
+Data Type: setup
+
+Startpoint: u_phy/cache_out
+Endpoint: u_subsys/cpu/dma_ctrl_out
+Path Group: sys_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.7786
+Arrival Time:              9.7698
+Required Time:             4.9913
+Data Type: setup
+
+Startpoint: u_subsys/io/mux_b
+Endpoint: u_noc/sync_n
+Path Group: ref_clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.5911
+Arrival Time:              6.3942
+Required Time:             3.8031
+Data Type: setup
+
+Startpoint: u_vpu/dcfifo[36]
+Endpoint: u_ddrc/dac_b
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -3.3323
+Arrival Time:              10.6951
+Required Time:             7.3627
+Data Type: setup

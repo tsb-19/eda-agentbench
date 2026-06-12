@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.4680
+tns: -19.9156
+violating_path_count: 8
+
+Startpoint: u_subsys/dma/i2c_cmd[44]
+Endpoint: u_top/dll_addr[43]
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.4680
+Arrival Time:              7.7196
+Required Time:             4.2516
+Data Type: hold
+
+Startpoint: u_cluster/l2/pma_addr
+Endpoint: u_subsys/cpu/latch_prev[38]
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.1571
+Arrival Time:              8.6001
+Required Time:             5.4431
+Data Type: hold
+
+Startpoint: u_arb/dma_ctrl_p
+Endpoint: u_subsys/mem/i2c_n
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.9766
+Arrival Time:              7.2339
+Required Time:             4.2573
+Data Type: hold
+
+Startpoint: u_bus/interrupt_ctrl_cnt
+Endpoint: u_ctrl/buffer_state[45]
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.8049
+Arrival Time:              4.5114
+Required Time:             2.7065
+Data Type: hold
+
+Startpoint: u_serdes/regfile_b
+Endpoint: u_subsys/io/cache_data[47]
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.1980
+Arrival Time:              5.0039
+Required Time:             1.8059
+Data Type: hold
+
+Startpoint: u_cache/filter_addr[24]
+Endpoint: u_bus/dma_ctrl_en
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.8979
+Arrival Time:              10.4199
+Required Time:             7.5221
+Data Type: hold
+
+Startpoint: u_buf/pipeline_b[52]
+Endpoint: u_vpu/uart_reg
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.7650
+Arrival Time:              4.5748
+Required Time:             3.8098
+Data Type: hold
+
+Startpoint: u_cluster/core1/pcs_z
+Endpoint: u_subsys/io/sampler_n[14]
+Path Group: clk_io
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.6481
+Arrival Time:              5.4030
+Required Time:             3.7548
+Data Type: hold

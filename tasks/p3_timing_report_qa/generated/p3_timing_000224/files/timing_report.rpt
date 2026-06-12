@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -4.3186
+tns: -24.8833
+violating_path_count: 7
+
+Startpoint: u_vpu/encoder_p[7]
+Endpoint: u_ctrl/fifo_async_prev
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -4.3186
+Arrival Time:              11.0679
+Required Time:             6.7493
+Data Type: hold
+
+Startpoint: u_subsys/dma/controller_val[62]
+Endpoint: u_top/sampler_cnt
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -4.0125
+Arrival Time:              8.2485
+Required Time:             4.2361
+Data Type: hold
+
+Startpoint: u_bus/comparator_sel
+Endpoint: u_cluster/core0/cache_addr
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.4523
+Arrival Time:              5.3497
+Required Time:             1.8974
+Data Type: hold
+
+Startpoint: u_mac/ecc_p
+Endpoint: u_dsp/regfile_out[35]
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.7087
+Arrival Time:              10.2644
+Required Time:             6.5557
+Data Type: hold
+
+Startpoint: u_subsys/io/pcs_cmd
+Endpoint: u_pll/converter_next
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.3412
+Arrival Time:              9.6160
+Required Time:             7.2748
+Data Type: hold
+
+Startpoint: u_cluster/l2/dma_in
+Endpoint: u_top/bridge_next[63]
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -4.0249
+Arrival Time:              8.5291
+Required Time:             4.5043
+Data Type: hold
+
+Startpoint: u_subsys/io/descrambler_z[59]
+Endpoint: u_cache/converter_sel
+Path Group: sys_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.0251
+Arrival Time:              8.0730
+Required Time:             5.0479
+Data Type: hold

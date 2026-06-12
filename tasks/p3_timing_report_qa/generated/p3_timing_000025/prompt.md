@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the path group of the worst timing path?
+How many violating paths (negative slack) are in the timing report?
 
 ## Instructions
 

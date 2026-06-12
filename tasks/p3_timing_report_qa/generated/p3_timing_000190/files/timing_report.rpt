@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -3.1408
+tns: -23.7403
+violating_path_count: 9
+
+Startpoint: u_subsys/cpu/adc_val[38]
+Endpoint: u_dma/pll_b[42]
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -3.1408
+Arrival Time:              9.6430
+Required Time:             6.5022
+Data Type: setup
+
+Startpoint: u_cache/dll_sel[29]
+Endpoint: u_vpu/filter_b
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.8380
+Arrival Time:              9.2666
+Required Time:             6.4286
+Data Type: setup
+
+Startpoint: u_dma/pipeline_d
+Endpoint: u_ctrl/latch_prev
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.9238
+Arrival Time:              4.9787
+Required Time:             2.0548
+Data Type: setup
+
+Startpoint: u_subsys/mem/multiplier_data
+Endpoint: u_core/dac_addr
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.4109
+Arrival Time:              6.8422
+Required Time:             4.4313
+Data Type: setup
+
+Startpoint: u_subsys/dma/arbiter_val
+Endpoint: u_arb/descrambler_state
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.5220
+Arrival Time:              8.1863
+Required Time:             6.6643
+Data Type: setup
+
+Startpoint: u_top/pipeline_q[13]
+Endpoint: u_subsys/io/encoder_next
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.9443
+Arrival Time:              10.3143
+Required Time:             7.3700
+Data Type: setup
+
+Startpoint: u_cluster/l2/sampler_z
+Endpoint: u_bus/buffer_in
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.7051
+Arrival Time:              4.3809
+Required Time:             1.6757
+Data Type: setup
+
+Startpoint: u_dsp/sampler_prev
+Endpoint: u_pll/pll_in[33]
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.6738
+Arrival Time:              10.5071
+Required Time:             7.8333
+Data Type: setup
+
+Startpoint: u_mac/comparator_out
+Endpoint: u_buf/crc_n
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.5816
+Arrival Time:              8.1036
+Required Time:             5.5220
+Data Type: setup
+
+Startpoint: u_subsys/mem/decoder_cmd
+Endpoint: u_mem/pipeline_reg
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2063
+Arrival Time:              7.5137
+Required Time:             7.7201
+Data Type: setup
+
+Startpoint: u_buf/buffer_state
+Endpoint: u_mac/sampler_z
+Path Group: sys_clk
+Clock: sys_clk
+----------------------------------------
+Slack:                    1.8545
+Arrival Time:              4.0893
+Required Time:             5.9438
+Data Type: setup

@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.5408
+tns: -13.7526
+violating_path_count: 5
+
+Startpoint: u_mem/interrupt_ctrl_cnt
+Endpoint: u_noc/pma_b[49]
+Path Group: clk_bus
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.5408
+Arrival Time:              6.7163
+Required Time:             3.1755
+Data Type: setup
+
+Startpoint: u_subsys/io/adder_cnt
+Endpoint: u_subsys/cpu/rom_ctrl_reg
+Path Group: clk_bus
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.8133
+Arrival Time:              10.3935
+Required Time:             7.5802
+Data Type: setup
+
+Startpoint: u_cluster/l2/pll_next
+Endpoint: u_cluster/l2/arbiter_q
+Path Group: clk_bus
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.5971
+Arrival Time:              7.8820
+Required Time:             5.2849
+Data Type: setup
+
+Startpoint: u_cluster/core1/async_sel[32]
+Endpoint: u_cluster/l2/sync_next
+Path Group: clk_bus
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -1.8766
+Arrival Time:              8.7270
+Required Time:             6.8505
+Data Type: setup
+
+Startpoint: u_mac/watchdog_val
+Endpoint: u_arb/ram_ctrl_n
+Path Group: clk_bus
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.9248
+Arrival Time:              5.9509
+Required Time:             3.0262
+Data Type: setup

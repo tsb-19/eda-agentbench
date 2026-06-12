@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -0.4907
+tns: -1.2193
+violating_path_count: 6
+
+Startpoint: u_pll/pll_q[4]
+Endpoint: u_ddrc/filter_sel
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.4907
+Arrival Time:              4.0250
+Required Time:             3.5343
+Data Type: hold
+
+Startpoint: u_pll/encoder_cnt
+Endpoint: u_io/latch_in
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.1577
+Arrival Time:              2.0335
+Required Time:             1.8759
+Data Type: hold
+
+Startpoint: u_cluster/core1/converter_addr
+Endpoint: u_subsys/dma/dma
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -0.2137
+Arrival Time:              1.9651
+Required Time:             1.7515
+Data Type: hold
+
+Startpoint: u_cluster/core1/scrambler_cnt
+Endpoint: u_mem/datapath_state[62]
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.2871
+Arrival Time:              5.5872
+Required Time:             5.3000
+Data Type: hold
+
+Startpoint: u_cache/watchdog_prev
+Endpoint: u_pll/phy_cmd[16]
+Path Group: mem_clk
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.0271
+Arrival Time:              6.6376
+Required Time:             6.6106
+Data Type: hold
+
+Startpoint: u_vpu/decoder_sel[12]
+Endpoint: u_cluster/core0/latch_val
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    0.0350
+Arrival Time:              3.6486
+Required Time:             3.6836
+Data Type: hold
+
+Startpoint: u_ctrl/multiplier_out[42]
+Endpoint: u_core/buffer_next[1]
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    0.2474
+Arrival Time:              7.6609
+Required Time:             7.9083
+Data Type: hold
+
+Startpoint: u_ddrc/interleaver_state
+Endpoint: u_subsys/cpu/pll_cnt
+Path Group: pll_clk
+Clock: pll_clk
+----------------------------------------
+Slack:                    0.1371
+Arrival Time:              6.7818
+Required Time:             6.9189
+Data Type: hold
+
+Startpoint: u_pciesub/pipeline_z
+Endpoint: u_subsys/mem/demux_out
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -0.0430
+Arrival Time:              4.6500
+Required Time:             4.6070
+Data Type: hold
+
+Startpoint: u_pciesub/adder_d
+Endpoint: u_arb/spi_next
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    0.1040
+Arrival Time:              7.4720
+Required Time:             7.5760
+Data Type: hold
+
+Startpoint: u_arb/spi_n
+Endpoint: u_pll/comparator_addr
+Path Group: in2out
+Clock: ddr_clk
+----------------------------------------
+Slack:                    1.2920
+Arrival Time:              4.3653
+Required Time:             5.6574
+Data Type: hold

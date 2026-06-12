@@ -1,0 +1,228 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 22
+
+wns: -2.6245
+tns: -14.9950
+violating_path_count: 12
+
+Startpoint: u_io/ram_ctrl_cnt
+Endpoint: u_io/mac_state[59]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.6245
+Arrival Time:              6.2067
+Required Time:             3.5822
+Data Type: setup
+
+Startpoint: u_io/pcs_reg
+Endpoint: u_subsys/cpu/interleaver_d[29]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.0806
+Arrival Time:              4.0452
+Required Time:             1.9646
+Data Type: setup
+
+Startpoint: u_subsys/cpu/pll_next
+Endpoint: u_cluster/core1/dcfifo_in
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.8742
+Arrival Time:              7.1799
+Required Time:             5.3057
+Data Type: setup
+
+Startpoint: u_subsys/mem/shifter_q[13]
+Endpoint: u_buf/datapath_sel
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.8388
+Arrival Time:              8.2915
+Required Time:             7.4528
+Data Type: setup
+
+Startpoint: u_top/scrambler_d
+Endpoint: u_noc/spi_addr
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.9736
+Arrival Time:              2.4565
+Required Time:             1.4829
+Data Type: setup
+
+Startpoint: u_cluster/l2/dma_cnt
+Endpoint: u_top/controller_z
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3092
+Arrival Time:              5.6619
+Required Time:             4.3528
+Data Type: setup
+
+Startpoint: u_subsys/io/comparator_out
+Endpoint: u_phy/shifter_next[63]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0709
+Arrival Time:              2.6193
+Required Time:             2.6902
+Data Type: setup
+
+Startpoint: u_cluster/l2/crc_z
+Endpoint: u_mem/pll_prev[27]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.5028
+Arrival Time:              2.5767
+Required Time:             2.0738
+Data Type: setup
+
+Startpoint: u_phy/spi_data
+Endpoint: u_io/datapath_b
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0592
+Arrival Time:              7.1844
+Required Time:             7.2436
+Data Type: setup
+
+Startpoint: u_dma/mux[3]
+Endpoint: u_subsys/dma/crc
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3244
+Arrival Time:              9.0866
+Required Time:             7.7622
+Data Type: setup
+
+Startpoint: u_bus/controller_reg
+Endpoint: u_ddrc/decoder_cmd[30]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2801
+Arrival Time:              1.3099
+Required Time:             1.5900
+Data Type: setup
+
+Startpoint: u_subsys/mem/sampler_n
+Endpoint: u_subsys/io/fifo_async_en[0]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2521
+Arrival Time:              6.9263
+Required Time:             7.1784
+Data Type: setup
+
+Startpoint: u_core/converter_next
+Endpoint: u_vpu/regfile_reg
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.8726
+Arrival Time:              9.1302
+Required Time:             7.2576
+Data Type: setup
+
+Startpoint: u_arb/sync_sel
+Endpoint: u_subsys/io/ecc_addr
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.1073
+Arrival Time:              6.3341
+Required Time:             6.4414
+Data Type: setup
+
+Startpoint: u_core/dma_p
+Endpoint: u_vpu/descrambler_reg
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0241
+Arrival Time:              5.7481
+Required Time:             5.7722
+Data Type: setup
+
+Startpoint: u_subsys/cpu/timer_sel
+Endpoint: u_subsys/mem/scrambler_b
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.5140
+Arrival Time:              9.1880
+Required Time:             7.6740
+Data Type: setup
+
+Startpoint: u_phy/interleaver_q[21]
+Endpoint: u_serdes/bridge_data
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0333
+Arrival Time:              1.5258
+Required Time:             1.5591
+Data Type: setup
+
+Startpoint: u_phy/dac_z
+Endpoint: u_pll/adder_val
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0490
+Arrival Time:              7.2742
+Required Time:             7.2252
+Data Type: setup
+
+Startpoint: u_mac/bridge_out[36]
+Endpoint: u_bus/shifter_p
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.0466
+Arrival Time:              2.0004
+Required Time:             2.0470
+Data Type: setup
+
+Startpoint: u_ddrc/scrambler_z
+Endpoint: u_subsys/dma/spi
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0313
+Arrival Time:              4.2679
+Required Time:             4.2366
+Data Type: setup
+
+Startpoint: u_subsys/cpu/rom_ctrl_state
+Endpoint: u_ctrl/arbiter_cmd[18]
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2052
+Arrival Time:              2.9072
+Required Time:             3.1124
+Data Type: setup
+
+Startpoint: u_top/datapath_prev
+Endpoint: u_ddrc/sampler_d
+Path Group: in2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    1.5071
+Arrival Time:              5.0040
+Required Time:             6.5111
+Data Type: setup

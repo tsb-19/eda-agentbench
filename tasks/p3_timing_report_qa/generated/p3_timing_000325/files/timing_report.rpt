@@ -1,0 +1,178 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 17
+
+wns: -1.3804
+tns: -3.3710
+violating_path_count: 7
+
+Startpoint: u_top/multiplier_out
+Endpoint: u_io/i2c_out
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.3804
+Arrival Time:              7.2322
+Required Time:             5.8518
+Data Type: setup
+
+Startpoint: u_dsp/adc_b[42]
+Endpoint: u_gpu/sync_val[6]
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.8662
+Arrival Time:              5.7729
+Required Time:             4.9068
+Data Type: setup
+
+Startpoint: u_dma/encoder_addr
+Endpoint: u_core/adder[36]
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.9500
+Arrival Time:              3.6637
+Required Time:             2.7137
+Data Type: setup
+
+Startpoint: u_top/regfile_p
+Endpoint: u_serdes/rom_ctrl_cmd[29]
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1259
+Arrival Time:              1.1037
+Required Time:             1.2295
+Data Type: setup
+
+Startpoint: u_buf/uart_val
+Endpoint: u_bus/dll_prev
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0784
+Arrival Time:              3.8325
+Required Time:             3.7540
+Data Type: setup
+
+Startpoint: u_noc/mux_reg[47]
+Endpoint: u_core/demux_cmd
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2852
+Arrival Time:              1.6573
+Required Time:             1.9425
+Data Type: setup
+
+Startpoint: u_vpu/regfile_addr
+Endpoint: u_noc/buffer_q
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0398
+Arrival Time:              4.9472
+Required Time:             4.9074
+Data Type: setup
+
+Startpoint: u_vpu/shifter_q
+Endpoint: u_cluster/l2/filter_addr
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0900
+Arrival Time:              7.8018
+Required Time:             7.8917
+Data Type: setup
+
+Startpoint: u_ddrc/adc_addr
+Endpoint: u_subsys/mem/filter_addr
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2860
+Arrival Time:              2.6546
+Required Time:             2.9406
+Data Type: setup
+
+Startpoint: u_ddrc/async
+Endpoint: u_dsp/decoder_in
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0455
+Arrival Time:              7.4644
+Required Time:             7.5100
+Data Type: setup
+
+Startpoint: u_mem/ram_ctrl_in
+Endpoint: u_phy/dll_state
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2523
+Arrival Time:              1.5712
+Required Time:             1.8235
+Data Type: setup
+
+Startpoint: u_vpu/controller_reg
+Endpoint: u_subsys/mem/uart_en
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.1861
+Arrival Time:              6.4332
+Required Time:             6.6193
+Data Type: setup
+
+Startpoint: u_mem/ram_ctrl_addr
+Endpoint: u_pciesub/dma_ctrl_q[1]
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0369
+Arrival Time:              5.6521
+Required Time:             5.6151
+Data Type: setup
+
+Startpoint: u_cluster/core0/fifo_async_d
+Endpoint: u_ddrc/arbiter_q
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.0193
+Arrival Time:              4.4789
+Required Time:             4.4596
+Data Type: setup
+
+Startpoint: u_serdes/mac
+Endpoint: u_io/arbiter_b[57]
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.2942
+Arrival Time:              5.3059
+Required Time:             5.6002
+Data Type: setup
+
+Startpoint: u_arb/pll_in[55]
+Endpoint: u_mac/mac_val
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    0.0011
+Arrival Time:              2.5464
+Required Time:             2.5475
+Data Type: setup
+
+Startpoint: u_subsys/cpu/scrambler_val[9]
+Endpoint: u_pciesub/fifo_async
+Path Group: sys_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    5.7907
+Arrival Time:              0.3654
+Required Time:             6.1560
+Data Type: setup

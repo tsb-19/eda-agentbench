@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the startpoint of the worst (most negative slack) timing path?
+What is the endpoint of the worst (most negative slack) timing path?
 
 ## Instructions
 

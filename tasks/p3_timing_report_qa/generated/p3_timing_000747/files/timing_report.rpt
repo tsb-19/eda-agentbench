@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.1536
+tns: -2.5340
+violating_path_count: 4
+
+Startpoint: u_cluster/core0/pma_addr
+Endpoint: u_subsys/mem/fifo_prev
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.1536
+Arrival Time:              4.9971
+Required Time:             3.8435
+Data Type: setup
+
+Startpoint: u_subsys/dma/sampler_en[21]
+Endpoint: u_ctrl/filter_val
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.2344
+Arrival Time:              8.1913
+Required Time:             7.9569
+Data Type: setup
+
+Startpoint: u_dma/arbiter_addr[41]
+Endpoint: u_mem/multiplier_cmd
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.8125
+Arrival Time:              6.5862
+Required Time:             5.7736
+Data Type: setup
+
+Startpoint: u_cluster/l2/datapath_out[35]
+Endpoint: u_bus/fifo_z
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.3335
+Arrival Time:              6.7228
+Required Time:             6.3893
+Data Type: setup
+
+Startpoint: u_mac/ecc_p
+Endpoint: u_pll/interleaver_state[32]
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.0033
+Arrival Time:              4.0952
+Required Time:             4.0984
+Data Type: setup
+
+Startpoint: u_top/fifo_sync_b
+Endpoint: u_buf/cache_sel
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.1942
+Arrival Time:              3.1237
+Required Time:             3.3179
+Data Type: setup
+
+Startpoint: u_buf/filter_addr
+Endpoint: u_bus/ecc_state[46]
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.0513
+Arrival Time:              5.8991
+Required Time:             5.9503
+Data Type: setup
+
+Startpoint: u_gpu/datapath_state
+Endpoint: u_vpu/dll_n
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.3146
+Arrival Time:              2.3199
+Required Time:             2.6345
+Data Type: setup

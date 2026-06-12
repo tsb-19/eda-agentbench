@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.6545
+tns: -1.8624
+violating_path_count: 6
+
+Startpoint: u_core/pcs_data
+Endpoint: u_subsys/dma/timer_addr
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.6545
+Arrival Time:              2.0457
+Required Time:             1.3912
+Data Type: setup
+
+Startpoint: u_top/arbiter_data[53]
+Endpoint: u_ctrl/dll
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.2952
+Arrival Time:              6.1870
+Required Time:             5.8918
+Data Type: setup
+
+Startpoint: u_gpu/descrambler_sel
+Endpoint: u_mac/timer_in[51]
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.0408
+Arrival Time:              3.7193
+Required Time:             3.6785
+Data Type: setup
+
+Startpoint: u_subsys/cpu/latch_addr[3]
+Endpoint: u_cluster/l2/pcs_prev
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.0498
+Arrival Time:              5.0304
+Required Time:             4.9806
+Data Type: setup
+
+Startpoint: u_pll/filter_reg
+Endpoint: u_mac/sampler_prev
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    0.1294
+Arrival Time:              2.9913
+Required Time:             3.1207
+Data Type: setup
+
+Startpoint: u_phy/shifter_data
+Endpoint: u_serdes/datapath_cnt
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.3794
+Arrival Time:              3.3957
+Required Time:             3.0163
+Data Type: setup
+
+Startpoint: u_pciesub/demux_in
+Endpoint: u_serdes/regfile_val[39]
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    0.1980
+Arrival Time:              7.7655
+Required Time:             7.9635
+Data Type: setup
+
+Startpoint: u_cluster/core1/pcs_state
+Endpoint: u_top/mux_reg[12]
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -0.4427
+Arrival Time:              4.6758
+Required Time:             4.2331
+Data Type: setup
+
+Startpoint: u_cluster/core0/mux_n
+Endpoint: u_cache/phy_p[49]
+Path Group: mem_clk
+Clock: pcie_clk
+----------------------------------------
+Slack:                    2.8752
+Arrival Time:              -0.5531
+Required Time:             2.3222
+Data Type: setup

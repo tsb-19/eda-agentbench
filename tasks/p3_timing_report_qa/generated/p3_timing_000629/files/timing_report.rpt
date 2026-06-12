@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -2.5666
+tns: -12.1264
+violating_path_count: 7
+
+Startpoint: u_vpu/interrupt_ctrl_in
+Endpoint: u_subsys/mem/pcs_cmd
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.5666
+Arrival Time:              8.3996
+Required Time:             5.8330
+Data Type: hold
+
+Startpoint: u_cluster/core0/comparator
+Endpoint: u_ddrc/filter_z
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.3248
+Arrival Time:              4.0318
+Required Time:             1.7070
+Data Type: hold
+
+Startpoint: u_dsp/sampler_p
+Endpoint: u_cluster/core0/interleaver_n[31]
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -1.5610
+Arrival Time:              8.4640
+Required Time:             6.9030
+Data Type: hold
+
+Startpoint: u_buf/demux_cmd
+Endpoint: u_gpu/pipeline_prev
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.4584
+Arrival Time:              6.7133
+Required Time:             4.2549
+Data Type: hold
+
+Startpoint: u_mac/multiplier_prev
+Endpoint: u_subsys/dma/mac_q
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.3128
+Arrival Time:              3.9215
+Required Time:             1.6087
+Data Type: hold
+
+Startpoint: u_mac/watchdog_data[18]
+Endpoint: u_buf/latch_d
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.8001
+Arrival Time:              3.1764
+Required Time:             2.3763
+Data Type: hold
+
+Startpoint: u_pll/controller_addr
+Endpoint: u_dma/ram_ctrl_cnt
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    -0.1027
+Arrival Time:              4.7766
+Required Time:             4.6740
+Data Type: hold
+
+Startpoint: u_phy/shifter_b
+Endpoint: u_mac/scrambler
+Path Group: in2reg
+Clock: ref_clk
+----------------------------------------
+Slack:                    1.2772
+Arrival Time:              0.1815
+Required Time:             1.4587
+Data Type: hold

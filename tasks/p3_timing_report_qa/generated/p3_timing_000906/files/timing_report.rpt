@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -1.6588
+tns: -4.9413
+violating_path_count: 4
+
+Startpoint: u_pciesub/mac_data[11]
+Endpoint: u_subsys/mem/sync_d
+Path Group: clk_100m
+Clock: clk_core
+----------------------------------------
+Slack:                    -1.6588
+Arrival Time:              4.9351
+Required Time:             3.2763
+Data Type: setup
+
+Startpoint: u_pciesub/serdes_in
+Endpoint: u_core/datapath_reg
+Path Group: clk_100m
+Clock: clk_core
+----------------------------------------
+Slack:                    -1.3944
+Arrival Time:              3.9658
+Required Time:             2.5713
+Data Type: setup
+
+Startpoint: u_cluster/core1/scrambler_en[63]
+Endpoint: u_cluster/l2/converter_sel
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.9056
+Arrival Time:              2.2153
+Required Time:             1.3097
+Data Type: setup
+
+Startpoint: u_pll/bridge_d
+Endpoint: u_mac/dac_p[34]
+Path Group: jtag_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.9825
+Arrival Time:              2.3190
+Required Time:             1.3365
+Data Type: setup

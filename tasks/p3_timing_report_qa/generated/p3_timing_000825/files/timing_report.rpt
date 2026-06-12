@@ -1,0 +1,158 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 15
+
+wns: -1.9525
+tns: -10.0995
+violating_path_count: 9
+
+Startpoint: u_core/scrambler_state
+Endpoint: u_cluster/core0/mac_z[27]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.9525
+Arrival Time:              9.7629
+Required Time:             7.8104
+Data Type: setup
+
+Startpoint: u_core/mac_out
+Endpoint: u_cluster/core1/pll_next[50]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.9226
+Arrival Time:              6.0410
+Required Time:             4.1184
+Data Type: setup
+
+Startpoint: u_noc/i2c_state
+Endpoint: u_pciesub/multiplier_addr
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.5432
+Arrival Time:              6.2116
+Required Time:             4.6684
+Data Type: setup
+
+Startpoint: u_bus/dcfifo_addr
+Endpoint: u_dsp/serdes_val
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.6978
+Arrival Time:              4.9483
+Required Time:             3.2505
+Data Type: setup
+
+Startpoint: u_pll/i2c_addr
+Endpoint: u_dma/comparator_cnt
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.0792
+Arrival Time:              3.8840
+Required Time:             2.8048
+Data Type: setup
+
+Startpoint: u_noc/scrambler_cnt
+Endpoint: u_mem/dll
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.6319
+Arrival Time:              7.4888
+Required Time:             6.8569
+Data Type: setup
+
+Startpoint: u_cache/filter_b[2]
+Endpoint: u_buf/ecc_sel[43]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.0772
+Arrival Time:              3.1963
+Required Time:             3.1191
+Data Type: setup
+
+Startpoint: u_mac/filter_n
+Endpoint: u_subsys/io/bridge_cmd
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.1093
+Arrival Time:              4.3097
+Required Time:             4.4189
+Data Type: setup
+
+Startpoint: u_dma/fifo_sync_in[41]
+Endpoint: u_noc/fifo_z
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.0824
+Arrival Time:              8.1991
+Required Time:             7.1167
+Data Type: setup
+
+Startpoint: u_cluster/core0/demux_out[1]
+Endpoint: u_cluster/core0/crc_d[0]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.1774
+Arrival Time:              4.8379
+Required Time:             5.0153
+Data Type: setup
+
+Startpoint: u_top/mac_prev[23]
+Endpoint: u_bus/mux_p
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.1375
+Arrival Time:              5.2627
+Required Time:             5.4002
+Data Type: setup
+
+Startpoint: u_pciesub/crc_in[14]
+Endpoint: u_dsp/spi_state
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.0491
+Arrival Time:              5.2769
+Required Time:             5.3260
+Data Type: setup
+
+Startpoint: u_core/mac_addr
+Endpoint: u_noc/multiplier_n
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.0323
+Arrival Time:              3.9278
+Required Time:             3.9601
+Data Type: setup
+
+Startpoint: u_pll/arbiter_z
+Endpoint: u_dsp/pipeline_d
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.1127
+Arrival Time:              3.4691
+Required Time:             3.3565
+Data Type: setup
+
+Startpoint: u_pciesub/regfile_prev
+Endpoint: u_phy/pipeline_cnt[31]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    5.4774
+Arrival Time:              0.9825
+Required Time:             6.4599
+Data Type: setup

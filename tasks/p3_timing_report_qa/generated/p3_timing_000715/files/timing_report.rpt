@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.2566
+tns: -0.3636
+violating_path_count: 4
+
+Startpoint: u_cluster/core1/fifo_prev[36]
+Endpoint: u_vpu/serdes_reg
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.2566
+Arrival Time:              5.8167
+Required Time:             5.5601
+Data Type: hold
+
+Startpoint: u_mac/fifo_sync_sel
+Endpoint: u_core/buffer_in[43]
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0061
+Arrival Time:              5.3004
+Required Time:             5.3065
+Data Type: hold
+
+Startpoint: u_subsys/dma/phy_cnt
+Endpoint: u_mem/cache_sel
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.0301
+Arrival Time:              5.6474
+Required Time:             5.6173
+Data Type: hold
+
+Startpoint: u_dsp/demux_prev
+Endpoint: u_noc/scrambler_next
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.0281
+Arrival Time:              2.2754
+Required Time:             2.2472
+Data Type: hold
+
+Startpoint: u_mem/ram_ctrl_n[35]
+Endpoint: u_top/controller_cmd
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.2618
+Arrival Time:              4.5688
+Required Time:             4.8306
+Data Type: hold
+
+Startpoint: u_cluster/core0/rom_ctrl_reg
+Endpoint: u_bus/cache_state[62]
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.0488
+Arrival Time:              6.5385
+Required Time:             6.4897
+Data Type: hold
+
+Startpoint: u_top/adder_p
+Endpoint: u_subsys/dma/timer_reg
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0437
+Arrival Time:              6.8805
+Required Time:             6.9241
+Data Type: hold
+
+Startpoint: u_core/bridge_n[59]
+Endpoint: u_cluster/core1/fifo_sync_b
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    0.0518
+Arrival Time:              2.6760
+Required Time:             2.7278
+Data Type: hold
+
+Startpoint: u_pciesub/dcfifo_n
+Endpoint: u_noc/mux_cmd
+Path Group: in2reg
+Clock: clk_dsp
+----------------------------------------
+Slack:                    3.3062
+Arrival Time:              3.6502
+Required Time:             6.9564
+Data Type: hold

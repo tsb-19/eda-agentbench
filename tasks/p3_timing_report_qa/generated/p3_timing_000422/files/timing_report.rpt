@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -2.3655
+tns: -5.9097
+violating_path_count: 3
+
+Startpoint: u_serdes/buffer_next
+Endpoint: u_dsp/timer_out
+Path Group: reg2reg
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.3655
+Arrival Time:              8.7878
+Required Time:             6.4223
+Data Type: hold
+
+Startpoint: u_dma/i2c_p
+Endpoint: u_bus/dcfifo_b
+Path Group: reg2reg
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -1.4399
+Arrival Time:              6.7390
+Required Time:             5.2991
+Data Type: hold
+
+Startpoint: u_buf/dac_state
+Endpoint: u_top/watchdog_out
+Path Group: reg2reg
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.1043
+Arrival Time:              6.0872
+Required Time:             3.9829
+Data Type: hold

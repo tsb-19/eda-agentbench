@@ -1,0 +1,428 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 42
+
+wns: -0.1692
+tns: -0.6911
+violating_path_count: 11
+
+Startpoint: u_top/pll_p
+Endpoint: u_pll/pipeline_data
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.1692
+Arrival Time:              3.5781
+Required Time:             3.4089
+Data Type: hold
+
+Startpoint: u_buf/alu_val[55]
+Endpoint: u_subsys/dma/fifo_sync_sel
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1450
+Arrival Time:              3.9641
+Required Time:             4.1091
+Data Type: hold
+
+Startpoint: u_noc/interleaver_out
+Endpoint: u_dsp/mac_q
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0014
+Arrival Time:              3.5869
+Required Time:             3.5883
+Data Type: hold
+
+Startpoint: u_mac/mux_reg[20]
+Endpoint: u_gpu/fifo_async_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1758
+Arrival Time:              2.2635
+Required Time:             2.4393
+Data Type: hold
+
+Startpoint: u_top/converter_data[32]
+Endpoint: u_cluster/core0/cache_next[40]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2026
+Arrival Time:              0.9189
+Required Time:             1.1215
+Data Type: hold
+
+Startpoint: u_serdes/adc_reg[1]
+Endpoint: u_noc/pcs_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2859
+Arrival Time:              4.9218
+Required Time:             5.2077
+Data Type: hold
+
+Startpoint: u_ddrc/buffer_d
+Endpoint: u_ddrc/bridge_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2185
+Arrival Time:              1.4386
+Required Time:             1.6572
+Data Type: hold
+
+Startpoint: u_mac/dma_data
+Endpoint: u_pll/timer_prev
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1860
+Arrival Time:              6.5743
+Required Time:             6.7603
+Data Type: hold
+
+Startpoint: u_phy/sync_b[51]
+Endpoint: u_subsys/io/crc_b[28]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2206
+Arrival Time:              5.6047
+Required Time:             5.8253
+Data Type: hold
+
+Startpoint: u_phy/interleaver_q
+Endpoint: u_cluster/l2/controller_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0089
+Arrival Time:              7.9646
+Required Time:             7.9735
+Data Type: hold
+
+Startpoint: u_ctrl/decoder_q
+Endpoint: u_mac/descrambler_p
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2457
+Arrival Time:              7.1920
+Required Time:             7.4377
+Data Type: hold
+
+Startpoint: u_noc/filter_addr
+Endpoint: u_mem/adc_d
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0904
+Arrival Time:              7.6874
+Required Time:             7.5970
+Data Type: hold
+
+Startpoint: u_io/spi_p
+Endpoint: u_dma/filter_prev
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0209
+Arrival Time:              6.3630
+Required Time:             6.3839
+Data Type: hold
+
+Startpoint: u_serdes/fifo_sync_prev
+Endpoint: u_serdes/buffer_d
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0276
+Arrival Time:              3.2407
+Required Time:             3.2683
+Data Type: hold
+
+Startpoint: u_mem/fifo_cmd[10]
+Endpoint: u_mac/dll_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0997
+Arrival Time:              1.8413
+Required Time:             1.9410
+Data Type: hold
+
+Startpoint: u_bus/phy_reg
+Endpoint: u_ddrc/timer_in
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1148
+Arrival Time:              3.7932
+Required Time:             3.9080
+Data Type: hold
+
+Startpoint: u_subsys/mem/spi_n
+Endpoint: u_subsys/mem/ram_ctrl_prev[10]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0692
+Arrival Time:              1.8885
+Required Time:             1.8194
+Data Type: hold
+
+Startpoint: u_mem/phy_p[36]
+Endpoint: u_bus/ecc_sel
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2123
+Arrival Time:              0.9511
+Required Time:             1.1634
+Data Type: hold
+
+Startpoint: u_cluster/l2/pcs
+Endpoint: u_ctrl/cache[0]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0719
+Arrival Time:              1.2779
+Required Time:             1.3498
+Data Type: hold
+
+Startpoint: u_pciesub/latch_sel[43]
+Endpoint: u_top/cache_data
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1065
+Arrival Time:              6.4694
+Required Time:             6.5759
+Data Type: hold
+
+Startpoint: u_mac/mac_state
+Endpoint: u_subsys/dma/interleaver_reg
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0618
+Arrival Time:              3.2923
+Required Time:             3.2305
+Data Type: hold
+
+Startpoint: u_gpu/decoder_sel
+Endpoint: u_subsys/dma/async_q
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0012
+Arrival Time:              6.6787
+Required Time:             6.6799
+Data Type: hold
+
+Startpoint: u_subsys/dma/fifo_async_n
+Endpoint: u_cluster/l2/serdes_data[61]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.2838
+Arrival Time:              3.2765
+Required Time:             3.5602
+Data Type: hold
+
+Startpoint: u_pciesub/sync_reg
+Endpoint: u_phy/dac_next[60]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0745
+Arrival Time:              4.6972
+Required Time:             4.6227
+Data Type: hold
+
+Startpoint: u_vpu/adder_next
+Endpoint: u_io/controller_cnt
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1581
+Arrival Time:              1.1945
+Required Time:             1.3526
+Data Type: hold
+
+Startpoint: u_bus/scrambler_in
+Endpoint: u_pll/converter_b
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0840
+Arrival Time:              7.6136
+Required Time:             7.5296
+Data Type: hold
+
+Startpoint: u_ctrl/serdes[30]
+Endpoint: u_cluster/l2/dma_ctrl
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0958
+Arrival Time:              3.5757
+Required Time:             3.6714
+Data Type: hold
+
+Startpoint: u_dsp/i2c_en[36]
+Endpoint: u_pll/alu_val
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0904
+Arrival Time:              6.6677
+Required Time:             6.7581
+Data Type: hold
+
+Startpoint: u_core/serdes_z[29]
+Endpoint: u_ctrl/scrambler_reg
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0723
+Arrival Time:              3.8670
+Required Time:             3.9393
+Data Type: hold
+
+Startpoint: u_bus/interleaver_q
+Endpoint: u_pll/encoder_out[36]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1557
+Arrival Time:              2.5695
+Required Time:             2.7252
+Data Type: hold
+
+Startpoint: u_subsys/cpu/fifo_sync_val
+Endpoint: u_mem/rom_ctrl_b
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0820
+Arrival Time:              4.8460
+Required Time:             4.9279
+Data Type: hold
+
+Startpoint: u_cluster/l2/ecc[36]
+Endpoint: u_cluster/core0/serdes_b[22]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0750
+Arrival Time:              3.3136
+Required Time:             3.2386
+Data Type: hold
+
+Startpoint: u_cache/dma_ctrl_data[33]
+Endpoint: u_arb/latch_prev
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1200
+Arrival Time:              5.3000
+Required Time:             5.4200
+Data Type: hold
+
+Startpoint: u_cluster/l2/sync_val[51]
+Endpoint: u_ctrl/i2c_out
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0086
+Arrival Time:              3.2278
+Required Time:             3.2192
+Data Type: hold
+
+Startpoint: u_dsp/interrupt_ctrl_d
+Endpoint: u_bus/fifo_sync_in
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.1550
+Arrival Time:              4.1740
+Required Time:             4.3290
+Data Type: hold
+
+Startpoint: u_ctrl/dma_in
+Endpoint: u_dma/buffer_p
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0987
+Arrival Time:              1.4293
+Required Time:             1.5280
+Data Type: hold
+
+Startpoint: u_dsp/uart_reg[47]
+Endpoint: u_buf/fifo_async_b[45]
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0259
+Arrival Time:              6.6924
+Required Time:             6.6665
+Data Type: hold
+
+Startpoint: u_ctrl/converter_next
+Endpoint: u_subsys/io/sync_reg
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0298
+Arrival Time:              6.8847
+Required Time:             6.8550
+Data Type: hold
+
+Startpoint: u_subsys/cpu/fifo_async_state
+Endpoint: u_noc/pma_n
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0057
+Arrival Time:              4.4219
+Required Time:             4.4276
+Data Type: hold
+
+Startpoint: u_cluster/core1/bridge_p
+Endpoint: u_subsys/cpu/dac_q
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    0.0688
+Arrival Time:              6.7586
+Required Time:             6.8274
+Data Type: hold
+
+Startpoint: u_subsys/mem/crc_z
+Endpoint: u_vpu/decoder_sel
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.0027
+Arrival Time:              7.3669
+Required Time:             7.3642
+Data Type: hold
+
+Startpoint: u_pciesub/adder_in
+Endpoint: u_cache/latch_en
+Path Group: clk_100m
+Clock: clk_33m
+----------------------------------------
+Slack:                    17.7888
+Arrival Time:              -15.1322
+Required Time:             2.6566
+Data Type: hold

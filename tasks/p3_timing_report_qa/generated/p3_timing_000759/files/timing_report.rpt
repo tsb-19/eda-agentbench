@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -0.0967
+tns: -0.2044
+violating_path_count: 3
+
+Startpoint: u_mac/shifter_en
+Endpoint: u_cluster/core1/latch_cnt
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.0250
+Arrival Time:              5.2246
+Required Time:             5.1996
+Data Type: setup
+
+Startpoint: u_pciesub/pcs
+Endpoint: u_io/multiplier_val
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.0967
+Arrival Time:              5.6475
+Required Time:             5.5508
+Data Type: setup
+
+Startpoint: u_pciesub/dma_cnt
+Endpoint: u_subsys/dma/phy_p[18]
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.0449
+Arrival Time:              5.6842
+Required Time:             5.7291
+Data Type: setup
+
+Startpoint: u_serdes/adc_b
+Endpoint: u_io/comparator_en
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.0827
+Arrival Time:              6.1099
+Required Time:             6.0271
+Data Type: setup
+
+Startpoint: u_dsp/cache_reg
+Endpoint: u_noc/async_b[42]
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.1561
+Arrival Time:              3.2516
+Required Time:             3.4077
+Data Type: setup
+
+Startpoint: u_ddrc/decoder_next[30]
+Endpoint: u_ctrl/rom_ctrl
+Path Group: clk
+Clock: clk_100m
+----------------------------------------
+Slack:                    2.2288
+Arrival Time:              -0.8723
+Required Time:             1.3565
+Data Type: setup

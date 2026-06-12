@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -2.2951
+tns: -10.0800
+violating_path_count: 6
+
+Startpoint: u_arb/buffer_n[50]
+Endpoint: u_pll/converter_en[13]
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.2951
+Arrival Time:              4.6742
+Required Time:             2.3791
+Data Type: hold
+
+Startpoint: u_phy/demux_q
+Endpoint: u_subsys/mem/converter_next
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.4289
+Arrival Time:              4.3607
+Required Time:             2.9318
+Data Type: hold
+
+Startpoint: u_cluster/l2/pcs_sel
+Endpoint: u_gpu/arbiter_en[42]
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.3346
+Arrival Time:              4.5747
+Required Time:             3.2401
+Data Type: hold
+
+Startpoint: u_core/controller_p
+Endpoint: u_noc/timer_n
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.0505
+Arrival Time:              8.7238
+Required Time:             7.6733
+Data Type: hold
+
+Startpoint: u_mem/latch_in
+Endpoint: u_pciesub/multiplier_out
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.1782
+Arrival Time:              7.6794
+Required Time:             5.5012
+Data Type: hold
+
+Startpoint: u_gpu/dma_state[34]
+Endpoint: u_subsys/cpu/filter_en
+Path Group: clk_bus
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.7927
+Arrival Time:              8.2821
+Required Time:             6.4894
+Data Type: hold

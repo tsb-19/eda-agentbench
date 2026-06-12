@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -1.8110
+tns: -7.8725
+violating_path_count: 8
+
+Startpoint: u_noc/pcs_state
+Endpoint: u_ddrc/phy_d
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.8110
+Arrival Time:              4.2819
+Required Time:             2.4709
+Data Type: hold
+
+Startpoint: u_vpu/timer
+Endpoint: u_mac/fifo_sync_reg
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.7563
+Arrival Time:              7.1726
+Required Time:             5.4163
+Data Type: hold
+
+Startpoint: u_arb/crc_next[52]
+Endpoint: u_subsys/cpu/converter_next[53]
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3435
+Arrival Time:              3.8660
+Required Time:             3.5225
+Data Type: hold
+
+Startpoint: u_gpu/interleaver_in[26]
+Endpoint: u_pciesub/fifo_p
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.4730
+Arrival Time:              4.9694
+Required Time:             3.4964
+Data Type: hold
+
+Startpoint: u_noc/fifo_async_val
+Endpoint: u_cluster/l2/fifo_sync_next[54]
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.0243
+Arrival Time:              5.6238
+Required Time:             5.6481
+Data Type: hold
+
+Startpoint: u_cluster/core0/phy_d
+Endpoint: u_ctrl/pipeline_q
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.7295
+Arrival Time:              6.9222
+Required Time:             5.1927
+Data Type: hold
+
+Startpoint: u_buf/pll_in
+Endpoint: u_ddrc/scrambler_cmd[37]
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.0439
+Arrival Time:              2.2428
+Required Time:             2.1989
+Data Type: hold
+
+Startpoint: u_subsys/io/mac_in
+Endpoint: u_subsys/io/fifo_async_in
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3277
+Arrival Time:              6.9013
+Required Time:             6.5736
+Data Type: hold
+
+Startpoint: u_cluster/core1/mac_b
+Endpoint: u_bus/pma_state
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3876
+Arrival Time:              5.1820
+Required Time:             4.7944
+Data Type: hold
+
+Startpoint: u_arb/ecc_p[61]
+Endpoint: u_bus/sync_out
+Path Group: in2reg
+Clock: cpu_clk
+----------------------------------------
+Slack:                    1.3448
+Arrival Time:              4.5134
+Required Time:             5.8582
+Data Type: hold

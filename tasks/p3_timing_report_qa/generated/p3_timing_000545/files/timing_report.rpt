@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -1.3907
+tns: -4.5435
+violating_path_count: 10
+
+Startpoint: u_vpu/ram_ctrl
+Endpoint: u_dsp/i2c_prev
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.3907
+Arrival Time:              8.3511
+Required Time:             6.9604
+Data Type: hold
+
+Startpoint: u_dsp/dma_cmd[53]
+Endpoint: u_vpu/alu_d
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.4014
+Arrival Time:              7.1409
+Required Time:             6.7395
+Data Type: hold
+
+Startpoint: u_io/pll_z
+Endpoint: u_mac/cache_in
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.0933
+Arrival Time:              8.5381
+Required Time:             7.4447
+Data Type: hold
+
+Startpoint: u_cluster/core1/interrupt_ctrl_sel
+Endpoint: u_cluster/core1/crc_cmd
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.7678
+Arrival Time:              5.8775
+Required Time:             5.1097
+Data Type: hold
+
+Startpoint: u_gpu/descrambler_val
+Endpoint: u_subsys/mem/i2c_out[52]
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.5856
+Arrival Time:              4.9652
+Required Time:             4.3796
+Data Type: hold
+
+Startpoint: u_io/regfile_n
+Endpoint: u_pll/rom_ctrl_d
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.1523
+Arrival Time:              5.5005
+Required Time:             5.6528
+Data Type: hold
+
+Startpoint: u_ctrl/interrupt_ctrl_prev[43]
+Endpoint: u_cluster/l2/converter_cnt
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0623
+Arrival Time:              2.2399
+Required Time:             2.1777
+Data Type: hold
+
+Startpoint: u_buf/serdes_cmd
+Endpoint: u_ctrl/encoder_addr
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2059
+Arrival Time:              6.8308
+Required Time:             7.0367
+Data Type: hold
+
+Startpoint: u_cache/watchdog[52]
+Endpoint: u_vpu/buffer_b
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0417
+Arrival Time:              5.5526
+Required Time:             5.5109
+Data Type: hold
+
+Startpoint: u_arb/dma_ctrl_en
+Endpoint: u_subsys/mem/controller_next
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0672
+Arrival Time:              5.4345
+Required Time:             5.3673
+Data Type: hold
+
+Startpoint: u_cluster/l2/demux_addr
+Endpoint: u_subsys/mem/descrambler_out
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0541
+Arrival Time:              4.6046
+Required Time:             4.5505
+Data Type: hold
+
+Startpoint: u_serdes/uart_reg[28]
+Endpoint: u_arb/dcfifo_next
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0794
+Arrival Time:              1.3799
+Required Time:             1.3006
+Data Type: hold
+
+Startpoint: u_mac/arbiter_en
+Endpoint: u_top/buffer_z
+Path Group: sys_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    4.4879
+Arrival Time:              -2.6047
+Required Time:             1.8832
+Data Type: hold

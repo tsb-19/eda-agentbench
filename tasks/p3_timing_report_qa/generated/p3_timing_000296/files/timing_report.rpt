@@ -1,0 +1,158 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 15
+
+wns: -3.6389
+tns: -30.3045
+violating_path_count: 14
+
+Startpoint: u_cluster/core1/dll_cmd
+Endpoint: u_dsp/descrambler
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.6389
+Arrival Time:              8.2235
+Required Time:             4.5846
+Data Type: setup
+
+Startpoint: u_subsys/mem/spi_next
+Endpoint: u_io/fifo_sync_en
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.1546
+Arrival Time:              6.6515
+Required Time:             3.4968
+Data Type: setup
+
+Startpoint: u_bus/shifter
+Endpoint: u_subsys/mem/comparator_p[25]
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.6832
+Arrival Time:              7.8531
+Required Time:             5.1699
+Data Type: setup
+
+Startpoint: u_pciesub/sync_sel[41]
+Endpoint: u_io/spi_out
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.0746
+Arrival Time:              8.2423
+Required Time:             5.1678
+Data Type: setup
+
+Startpoint: u_cache/async_cmd[53]
+Endpoint: u_bus/pipeline_reg
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.7151
+Arrival Time:              7.6216
+Required Time:             4.9065
+Data Type: setup
+
+Startpoint: u_subsys/io/mac_q[49]
+Endpoint: u_mac/buffer_cmd
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.2400
+Arrival Time:              3.9264
+Required Time:             1.6865
+Data Type: setup
+
+Startpoint: u_core/arbiter_z
+Endpoint: u_cluster/core0/demux
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.3127
+Arrival Time:              4.8448
+Required Time:             1.5321
+Data Type: setup
+
+Startpoint: u_bus/ram_ctrl_val
+Endpoint: u_cache/mac_cnt
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.3426
+Arrival Time:              11.2655
+Required Time:             7.9228
+Data Type: setup
+
+Startpoint: u_io/regfile_in[27]
+Endpoint: u_vpu/regfile_out
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.2444
+Arrival Time:              2.4489
+Required Time:             2.2045
+Data Type: setup
+
+Startpoint: u_ctrl/spi_n
+Endpoint: u_io/mac_in
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.7585
+Arrival Time:              6.2218
+Required Time:             4.4633
+Data Type: setup
+
+Startpoint: u_mac/bridge_cmd
+Endpoint: u_arb/dma_sel
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.3085
+Arrival Time:              6.4182
+Required Time:             5.1097
+Data Type: setup
+
+Startpoint: u_bus/mac_prev
+Endpoint: u_bus/buffer_n
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.7415
+Arrival Time:              3.4859
+Required Time:             2.7444
+Data Type: setup
+
+Startpoint: u_mac/filter_data
+Endpoint: u_subsys/io/dac_next
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.3838
+Arrival Time:              4.7727
+Required Time:             3.3889
+Data Type: setup
+
+Startpoint: u_bus/fifo_async[19]
+Endpoint: u_subsys/cpu/comparator_z[61]
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.7061
+Arrival Time:              5.2075
+Required Time:             4.5015
+Data Type: setup
+
+Startpoint: u_gpu/interrupt_ctrl_out
+Endpoint: u_noc/i2c_cmd
+Path Group: mem_clk
+Clock: apb_clk
+----------------------------------------
+Slack:                    3.1867
+Arrival Time:              3.0292
+Required Time:             6.2159
+Data Type: setup

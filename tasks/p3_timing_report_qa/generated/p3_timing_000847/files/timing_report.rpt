@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -4.4277
+tns: -11.8143
+violating_path_count: 3
+
+Startpoint: u_subsys/cpu/adder_addr
+Endpoint: u_subsys/mem/fifo_async_state
+Path Group: clk_mem
+Clock: clk_33m
+----------------------------------------
+Slack:                    -4.4277
+Arrival Time:              9.8099
+Required Time:             5.3822
+Data Type: setup
+
+Startpoint: u_subsys/dma/mux_addr
+Endpoint: u_cluster/core1/sampler_cmd
+Path Group: clk_mem
+Clock: clk_33m
+----------------------------------------
+Slack:                    -4.0308
+Arrival Time:              10.0857
+Required Time:             6.0549
+Data Type: setup
+
+Startpoint: u_subsys/mem/pma_addr
+Endpoint: u_subsys/cpu/dac_next[4]
+Path Group: clk_mem
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.3558
+Arrival Time:              4.6859
+Required Time:             1.3301
+Data Type: setup

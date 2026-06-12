@@ -1,0 +1,52 @@
+{
+  "task_id": "p3_timing_000648",
+  "track": "p3_timing_report_qa",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "hard",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 5,
+  "max_patch_attempts": 1,
+  "max_output_tokens": 4000,
+  "files": {
+    "visible": [
+      "timing_report.rpt",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "timing_report.rpt"
+    ]
+  },
+  "run_command": "echo 'P3 QA task - no tool execution needed'",
+  "scoring": {
+    "weights": {
+      "answer_match": 1.0
+    },
+    "evaluator": "timing_report_qa.TimingReportQAEvaluator"
+  },
+  "answer": {
+    "type": "numeric",
+    "expected": "4.1522",
+    "tolerance": 0.01,
+    "question_type": "required_time"
+  },
+  "generator": {
+    "script": "p3_timing_report_qa_gen.py",
+    "seed": 42,
+    "question_type": "required_time",
+    "task_index": 647,
+    "internal_index": 648,
+    "num_paths": 9,
+    "clock": "cpu_clk",
+    "path_group": "in2out",
+    "multi_clock": false
+  },
+  "version": "1.0.0"
+}

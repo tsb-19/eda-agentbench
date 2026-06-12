@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -4.1887
+tns: -13.4638
+violating_path_count: 4
+
+Startpoint: u_dma/demux_d
+Endpoint: u_dma/decoder_d
+Path Group: sys_clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -4.1887
+Arrival Time:              5.7364
+Required Time:             1.5477
+Data Type: hold
+
+Startpoint: u_ddrc/adder_n
+Endpoint: u_vpu/alu_d
+Path Group: sys_clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.3789
+Arrival Time:              8.6512
+Required Time:             5.2723
+Data Type: hold
+
+Startpoint: u_bus/watchdog_d[42]
+Endpoint: u_ctrl/watchdog_p
+Path Group: sys_clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.9311
+Arrival Time:              7.7498
+Required Time:             4.8187
+Data Type: hold
+
+Startpoint: u_vpu/alu_b
+Endpoint: u_mac/phy_cmd
+Path Group: sys_clk
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.9651
+Arrival Time:              7.7571
+Required Time:             4.7920
+Data Type: hold

@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.8281
+tns: -19.1565
+violating_path_count: 6
+
+Startpoint: u_cluster/core0/bridge_prev[47]
+Endpoint: u_subsys/dma/interleaver_reg
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.8281
+Arrival Time:              10.7279
+Required Time:             6.8998
+Data Type: hold
+
+Startpoint: u_dsp/fifo_reg[40]
+Endpoint: u_noc/ram_ctrl_reg
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.3830
+Arrival Time:              9.9966
+Required Time:             6.6136
+Data Type: hold
+
+Startpoint: u_ctrl/scrambler_q[29]
+Endpoint: u_subsys/cpu/descrambler_data
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.9684
+Arrival Time:              4.1216
+Required Time:             1.1532
+Data Type: hold
+
+Startpoint: u_ctrl/arbiter_val
+Endpoint: u_vpu/buffer_in[59]
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -3.4260
+Arrival Time:              9.1284
+Required Time:             5.7024
+Data Type: hold
+
+Startpoint: u_pciesub/descrambler_z
+Endpoint: u_buf/bridge_n
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.5981
+Arrival Time:              6.1577
+Required Time:             3.5596
+Data Type: hold
+
+Startpoint: u_dma/ecc_cnt[4]
+Endpoint: u_pciesub/interleaver_cmd
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.9529
+Arrival Time:              10.7261
+Required Time:             7.7733
+Data Type: hold

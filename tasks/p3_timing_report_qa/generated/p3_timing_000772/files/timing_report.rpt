@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -4.1539
+tns: -13.3600
+violating_path_count: 4
+
+Startpoint: u_buf/fifo_sync_sel
+Endpoint: u_mac/fifo_d[0]
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -4.1539
+Arrival Time:              11.0294
+Required Time:             6.8755
+Data Type: setup
+
+Startpoint: u_buf/comparator_val
+Endpoint: u_mem/cache_in[7]
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.5584
+Arrival Time:              4.9081
+Required Time:             1.3497
+Data Type: setup
+
+Startpoint: u_cluster/core1/sync_cnt[16]
+Endpoint: u_ctrl/alu_n
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.9282
+Arrival Time:              9.0590
+Required Time:             6.1308
+Data Type: setup
+
+Startpoint: u_io/spi_in
+Endpoint: u_subsys/io/serdes_en
+Path Group: clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.7195
+Arrival Time:              5.7905
+Required Time:             3.0710
+Data Type: setup

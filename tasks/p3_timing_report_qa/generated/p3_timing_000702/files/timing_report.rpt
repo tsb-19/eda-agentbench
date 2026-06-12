@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.5847
+tns: -19.6964
+violating_path_count: 7
+
+Startpoint: u_top/dac_b
+Endpoint: u_dma/async_addr
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.5847
+Arrival Time:              9.5054
+Required Time:             5.9207
+Data Type: setup
+
+Startpoint: u_subsys/io/uart_b
+Endpoint: u_cluster/core1/comparator_cnt
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.3417
+Arrival Time:              8.5175
+Required Time:             5.1758
+Data Type: setup
+
+Startpoint: u_io/dac[63]
+Endpoint: u_subsys/cpu/latch_q
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.2226
+Arrival Time:              10.4872
+Required Time:             7.2646
+Data Type: setup
+
+Startpoint: u_cluster/core1/pll_val
+Endpoint: u_gpu/pma_out[30]
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.6027
+Arrival Time:              9.4622
+Required Time:             6.8595
+Data Type: setup
+
+Startpoint: u_vpu/descrambler_en[16]
+Endpoint: u_cluster/l2/i2c_n
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.7779
+Arrival Time:              10.4630
+Required Time:             7.6851
+Data Type: setup
+
+Startpoint: u_buf/latch_addr
+Endpoint: u_bus/adc_val
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    -3.2216
+Arrival Time:              7.5350
+Required Time:             4.3134
+Data Type: setup
+
+Startpoint: u_cache/async_b
+Endpoint: u_ddrc/mux_d[27]
+Path Group: ahb_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.9452
+Arrival Time:              3.3973
+Required Time:             2.4521
+Data Type: setup
+
+Startpoint: u_io/latch_addr
+Endpoint: u_subsys/mem/cache_cmd[3]
+Path Group: clk_io
+Clock: clk_core
+----------------------------------------
+Slack:                    0.3684
+Arrival Time:              2.1666
+Required Time:             2.5350
+Data Type: setup

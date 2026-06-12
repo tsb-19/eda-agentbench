@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "string",
-    "expected": "u_io/pipeline_q",
+    "expected": "u_serdes/crc_cmd",
     "tolerance": 0.0,
-    "question_type": "worst_startpoint"
+    "question_type": "worst_endpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "worst_startpoint",
-    "task_index": 53,
+    "question_type": "worst_endpoint",
+    "task_index": 52,
+    "internal_index": 53,
     "num_paths": 14,
     "clock": "clk_100m",
-    "path_group": "reg2out"
+    "path_group": "clk_io",
+    "multi_clock": true
   },
   "version": "1.0.0"
 }

@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the required time of the worst timing path?
+What is the clock name of the worst timing path?
 
 ## Instructions
 

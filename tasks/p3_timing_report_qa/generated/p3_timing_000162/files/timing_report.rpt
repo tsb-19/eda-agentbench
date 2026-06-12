@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.8165
+tns: -13.2636
+violating_path_count: 7
+
+Startpoint: u_mac/latch_b
+Endpoint: u_subsys/dma/descrambler_val
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.8165
+Arrival Time:              4.9487
+Required Time:             2.1322
+Data Type: setup
+
+Startpoint: u_dsp/sampler_reg
+Endpoint: u_cluster/core0/fifo_async_data
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.7544
+Arrival Time:              4.0632
+Required Time:             1.3088
+Data Type: setup
+
+Startpoint: u_pciesub/phy_reg
+Endpoint: u_cluster/l2/spi_n
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -1.9926
+Arrival Time:              3.1474
+Required Time:             1.1548
+Data Type: setup
+
+Startpoint: u_core/dma_p
+Endpoint: u_dma/pipeline_state
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -2.7324
+Arrival Time:              6.9302
+Required Time:             4.1978
+Data Type: setup
+
+Startpoint: u_vpu/encoder_state
+Endpoint: u_cluster/l2/pcs_cmd
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -1.0867
+Arrival Time:              6.6899
+Required Time:             5.6032
+Data Type: setup
+
+Startpoint: u_subsys/io/dcfifo_val
+Endpoint: u_vpu/serdes_q[43]
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -1.5168
+Arrival Time:              2.6882
+Required Time:             1.1714
+Data Type: setup
+
+Startpoint: u_bus/adc_next
+Endpoint: u_bus/adder_reg[36]
+Path Group: sys_clk
+Clock: clk_200m
+----------------------------------------
+Slack:                    -0.3642
+Arrival Time:              5.2990
+Required Time:             4.9349
+Data Type: setup

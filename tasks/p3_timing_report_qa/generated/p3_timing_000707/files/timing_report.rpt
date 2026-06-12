@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -4.6406
+tns: -11.8697
+violating_path_count: 3
+
+Startpoint: u_dma/rom_ctrl_addr
+Endpoint: u_subsys/cpu/demux_q
+Path Group: in2out
+Clock: usb_clk
+----------------------------------------
+Slack:                    -4.6406
+Arrival Time:              11.0660
+Required Time:             6.4254
+Data Type: hold
+
+Startpoint: u_arb/spi_state
+Endpoint: u_cluster/core1/filter
+Path Group: in2out
+Clock: usb_clk
+----------------------------------------
+Slack:                    -4.0684
+Arrival Time:              7.9627
+Required Time:             3.8943
+Data Type: hold
+
+Startpoint: u_ddrc/encoder_n
+Endpoint: u_buf/comparator_b[31]
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -3.1607
+Arrival Time:              6.7445
+Required Time:             3.5838
+Data Type: hold

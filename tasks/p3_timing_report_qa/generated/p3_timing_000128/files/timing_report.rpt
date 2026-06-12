@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.5155
+tns: -10.9633
+violating_path_count: 6
+
+Startpoint: u_arb/dll_d[38]
+Endpoint: u_buf/interleaver_d
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.5155
+Arrival Time:              7.7093
+Required Time:             5.1938
+Data Type: hold
+
+Startpoint: u_pll/crc_in
+Endpoint: u_cache/uart_in
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -1.8918
+Arrival Time:              8.1657
+Required Time:             6.2740
+Data Type: hold
+
+Startpoint: u_subsys/io/shifter_en
+Endpoint: u_subsys/io/uart[54]
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -1.4599
+Arrival Time:              2.8610
+Required Time:             1.4011
+Data Type: hold
+
+Startpoint: u_pll/cache_prev
+Endpoint: u_core/pll
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.3914
+Arrival Time:              5.1288
+Required Time:             2.7373
+Data Type: hold
+
+Startpoint: u_io/bridge_val
+Endpoint: u_cache/demux
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -2.1531
+Arrival Time:              7.9497
+Required Time:             5.7966
+Data Type: hold
+
+Startpoint: u_subsys/io/phy_next
+Endpoint: u_cluster/core0/dcfifo_data
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    -0.5516
+Arrival Time:              6.5745
+Required Time:             6.0229
+Data Type: hold
+
+Startpoint: u_io/sync_d
+Endpoint: u_buf/fifo_async_b[45]
+Path Group: sys_clk
+Clock: clk
+----------------------------------------
+Slack:                    0.6385
+Arrival Time:              2.7307
+Required Time:             3.3692
+Data Type: hold

@@ -3,156 +3,156 @@
     -delay_type max
     -max_paths 15
 
-wns: -1.3121
-tns: -2.7917
-violating_path_count: 6
+wns: -0.7104
+tns: -1.7583
+violating_path_count: 8
 
-Startpoint: u_io/multiplier_reg
-Endpoint: u_top/multiplier_reg
+Startpoint: u_subsys/mem/fifo_sync_p
+Endpoint: u_cluster/core1/converter_prev
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    -1.3121
-Arrival Time:              4.4708
-Required Time:             3.1587
+Slack:                    -0.7104
+Arrival Time:              8.3719
+Required Time:             7.6615
 Data Type: hold
 
-Startpoint: u_core/datapath_q
-Endpoint: u_top/adder_q
+Startpoint: u_gpu/cache_state
+Endpoint: u_mac/dma_state[43]
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    -0.4034
-Arrival Time:              3.4507
-Required Time:             3.0474
+Slack:                    -0.4997
+Arrival Time:              8.2230
+Required Time:             7.7233
 Data Type: hold
 
-Startpoint: u_top/controller_en
-Endpoint: u_core/mux_q
+Startpoint: u_buf/mux_p[28]
+Endpoint: u_subsys/io/controller_state
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    -0.8292
-Arrival Time:              3.7349
-Required Time:             2.9057
+Slack:                    -0.0288
+Arrival Time:              7.6440
+Required Time:             7.6152
 Data Type: hold
 
-Startpoint: u_top/encoder_d
-Endpoint: u_core/uart_in
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_ddrc/cache_n
+Endpoint: u_arb/async_q
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    -0.0801
-Arrival Time:              2.2631
-Required Time:             2.1830
+Slack:                    -0.0106
+Arrival Time:              7.9506
+Required Time:             7.9400
 Data Type: hold
 
-Startpoint: u_mem/cache_out
-Endpoint: u_io/shifter_in
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_core/watchdog_state
+Endpoint: u_cluster/core0/mac_cnt
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    0.1708
-Arrival Time:              4.6809
-Required Time:             4.8517
+Slack:                    0.2798
+Arrival Time:              4.6310
+Required Time:             4.9108
 Data Type: hold
 
-Startpoint: u_mem/i2c_reg
-Endpoint: u_mem/demux_out
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_ddrc/ram_ctrl_en
+Endpoint: u_mem/descrambler_z
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    -0.0776
-Arrival Time:              3.9113
-Required Time:             3.8337
+Slack:                    0.1493
+Arrival Time:              6.9950
+Required Time:             7.1443
 Data Type: hold
 
-Startpoint: u_mem/adder_q
-Endpoint: u_top/controller_reg
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_cluster/l2/async_next
+Endpoint: u_io/comparator_cnt
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    0.0139
-Arrival Time:              2.7159
-Required Time:             2.7297
+Slack:                    0.0077
+Arrival Time:              1.2562
+Required Time:             1.2638
 Data Type: hold
 
-Startpoint: u_mem/pipeline_d
-Endpoint: u_core/i2c_d
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_vpu/pipeline_addr
+Endpoint: u_ddrc/cache_prev
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    0.2215
-Arrival Time:              2.2887
-Required Time:             2.5102
+Slack:                    -0.0134
+Arrival Time:              2.2279
+Required Time:             2.2146
 Data Type: hold
 
-Startpoint: u_io/uart_in
-Endpoint: u_mem/uart_q
+Startpoint: u_mac/arbiter_out[11]
+Endpoint: u_top/adc_cmd[49]
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    0.2954
-Arrival Time:              3.0432
-Required Time:             3.3386
+Slack:                    -0.4185
+Arrival Time:              8.1371
+Required Time:             7.7186
 Data Type: hold
 
-Startpoint: u_mem/multiplier
-Endpoint: u_top/cache_d
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_pciesub/dcfifo_d
+Endpoint: u_cluster/l2/encoder[46]
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    0.2658
-Arrival Time:              2.6850
-Required Time:             2.9508
+Slack:                    -0.0512
+Arrival Time:              5.1933
+Required Time:             5.1421
 Data Type: hold
 
-Startpoint: u_io/multiplier_en
-Endpoint: u_mem/adder_reg
+Startpoint: u_noc/adc_addr
+Endpoint: u_cache/adc_p
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    0.0158
-Arrival Time:              3.2013
-Required Time:             3.2170
+Slack:                    0.2561
+Arrival Time:              7.2901
+Required Time:             7.5462
 Data Type: hold
 
-Startpoint: u_io/arbiter_reg
-Endpoint: u_mem/spi_reg
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_dsp/encoder
+Endpoint: u_ddrc/latch_val
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    -0.0893
-Arrival Time:              1.5978
-Required Time:             1.5086
+Slack:                    0.0769
+Arrival Time:              3.0137
+Required Time:             3.0906
 Data Type: hold
 
-Startpoint: u_top/alu_q
-Endpoint: u_io/datapath_q
+Startpoint: u_subsys/io/watchdog_cnt[16]
+Endpoint: u_dma/watchdog_out
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    0.0151
-Arrival Time:              2.1127
-Required Time:             2.1278
+Slack:                    0.2186
+Arrival Time:              3.0026
+Required Time:             3.2213
 Data Type: hold
 
-Startpoint: u_mem/encoder_reg
-Endpoint: u_mem/spi_en
+Startpoint: u_core/uart_d[39]
+Endpoint: u_arb/interrupt_ctrl_prev
 Path Group: reg2reg
-Clock: usb_clk
+Clock: spi_clk
 ----------------------------------------
-Slack:                    0.0447
-Arrival Time:              3.1370
-Required Time:             3.1817
+Slack:                    0.0329
+Arrival Time:              1.9200
+Required Time:             1.9529
 Data Type: hold
 
-Startpoint: u_io/dma_in
-Endpoint: u_core/i2c_en
-Path Group: reg2reg
-Clock: usb_clk
+Startpoint: u_subsys/cpu/decoder_state
+Endpoint: u_io/pipeline_q
+Path Group: jtag_clk
+Clock: jtag_clk
 ----------------------------------------
-Slack:                    2.6050
-Arrival Time:              0.9085
-Required Time:             3.5134
+Slack:                    -0.0257
+Arrival Time:              2.6806
+Required Time:             2.6549
 Data Type: hold

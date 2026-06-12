@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the arrival time of the worst timing path?
+What is the required time of the worst timing path?
 
 ## Instructions
 

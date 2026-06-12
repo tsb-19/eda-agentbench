@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "string",
-    "expected": "u_io/fifo_q",
+    "expected": "u_subsys/dma/dma_ctrl_q",
     "tolerance": 0.0,
-    "question_type": "worst_startpoint"
+    "question_type": "worst_endpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "worst_startpoint",
-    "task_index": 63,
-    "num_paths": 6,
-    "clock": "clk_io",
-    "path_group": "clk"
+    "question_type": "worst_endpoint",
+    "task_index": 62,
+    "internal_index": 63,
+    "num_paths": 40,
+    "clock": "clk",
+    "path_group": "cpu_clk",
+    "multi_clock": false
   },
   "version": "1.0.0"
 }

@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -3.3892
+tns: -20.9754
+violating_path_count: 10
+
+Startpoint: u_subsys/io/latch_prev[50]
+Endpoint: u_phy/interleaver_cnt[3]
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.3892
+Arrival Time:              8.2726
+Required Time:             4.8834
+Data Type: hold
+
+Startpoint: u_mac/dac_p
+Endpoint: u_subsys/mem/ram_ctrl_sel[15]
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.9934
+Arrival Time:              6.8526
+Required Time:             3.8592
+Data Type: hold
+
+Startpoint: u_buf/fifo_b[45]
+Endpoint: u_subsys/io/pll_state[49]
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    -2.4598
+Arrival Time:              4.0239
+Required Time:             1.5641
+Data Type: hold
+
+Startpoint: u_cluster/core1/datapath_n
+Endpoint: u_mem/descrambler_reg
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -1.5586
+Arrival Time:              8.5009
+Required Time:             6.9423
+Data Type: hold
+
+Startpoint: u_cluster/core1/buffer_addr[24]
+Endpoint: u_io/controller_addr[17]
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.3022
+Arrival Time:              8.7084
+Required Time:             6.4062
+Data Type: hold
+
+Startpoint: u_core/arbiter_data
+Endpoint: u_dsp/latch_data
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.2653
+Arrival Time:              7.9629
+Required Time:             5.6976
+Data Type: hold
+
+Startpoint: u_gpu/async_z
+Endpoint: u_phy/descrambler[48]
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.3635
+Arrival Time:              4.1222
+Required Time:             2.7587
+Data Type: hold
+
+Startpoint: u_cluster/core0/interleaver_cmd
+Endpoint: u_subsys/mem/alu_d
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.2690
+Arrival Time:              9.2181
+Required Time:             6.9490
+Data Type: hold
+
+Startpoint: u_top/sync_data[52]
+Endpoint: u_subsys/cpu/interrupt_ctrl_prev
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.4347
+Arrival Time:              8.1528
+Required Time:             6.7181
+Data Type: hold
+
+Startpoint: u_pciesub/interleaver_addr[17]
+Endpoint: u_mem/sampler_state
+Path Group: clk_dsp
+Clock: clk_33m
+----------------------------------------
+Slack:                    -0.9397
+Arrival Time:              8.3205
+Required Time:             7.3808
+Data Type: hold
+
+Startpoint: u_vpu/controller_p
+Endpoint: u_subsys/io/adder_z[37]
+Path Group: pci_clk
+Clock: pci_clk
+----------------------------------------
+Slack:                    1.7235
+Arrival Time:              -0.0421
+Required Time:             1.6814
+Data Type: hold

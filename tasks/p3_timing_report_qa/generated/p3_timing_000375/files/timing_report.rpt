@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.1680
+tns: -0.4359
+violating_path_count: 5
+
+Startpoint: u_mac/descrambler_en
+Endpoint: u_cache/converter_state
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.1680
+Arrival Time:              7.0391
+Required Time:             6.8711
+Data Type: setup
+
+Startpoint: u_subsys/dma/dcfifo_reg[42]
+Endpoint: u_mem/sampler
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0867
+Arrival Time:              4.7117
+Required Time:             4.6250
+Data Type: setup
+
+Startpoint: u_serdes/interleaver_prev
+Endpoint: u_cache/fifo_async_z
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0349
+Arrival Time:              5.5569
+Required Time:             5.5220
+Data Type: setup
+
+Startpoint: u_pciesub/mux_next
+Endpoint: u_pciesub/dma_b[26]
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0501
+Arrival Time:              7.8218
+Required Time:             7.7717
+Data Type: setup
+
+Startpoint: u_pciesub/sampler_p
+Endpoint: u_mem/interleaver_val
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1104
+Arrival Time:              4.8804
+Required Time:             4.9908
+Data Type: setup
+
+Startpoint: u_arb/demux_sel
+Endpoint: u_pll/cache_in[21]
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2142
+Arrival Time:              0.8464
+Required Time:             1.0606
+Data Type: setup
+
+Startpoint: u_bus/dma_d[48]
+Endpoint: u_io/shifter_b
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.0962
+Arrival Time:              6.0846
+Required Time:             5.9884
+Data Type: setup
+
+Startpoint: u_buf/ram_ctrl_val
+Endpoint: u_subsys/mem/mux
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2998
+Arrival Time:              1.5718
+Required Time:             1.8717
+Data Type: setup
+
+Startpoint: u_top/uart_cnt
+Endpoint: u_mem/dma_addr[12]
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.1444
+Arrival Time:              3.8072
+Required Time:             3.9515
+Data Type: setup
+
+Startpoint: u_vpu/interleaver_b
+Endpoint: u_bus/rom_ctrl_val
+Path Group: reg2out
+Clock: sys_clk
+----------------------------------------
+Slack:                    3.8527
+Arrival Time:              1.5645
+Required Time:             5.4172
+Data Type: setup

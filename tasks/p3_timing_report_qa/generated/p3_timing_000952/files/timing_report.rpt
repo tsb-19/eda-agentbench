@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.7758
+tns: -2.2224
+violating_path_count: 5
+
+Startpoint: u_gpu/dac_in[24]
+Endpoint: u_subsys/io/controller_sel
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.7758
+Arrival Time:              6.7891
+Required Time:             6.0133
+Data Type: setup
+
+Startpoint: u_noc/cache_en[63]
+Endpoint: u_buf/dcfifo_next
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3174
+Arrival Time:              7.4795
+Required Time:             7.1621
+Data Type: setup
+
+Startpoint: u_pll/datapath_z[27]
+Endpoint: u_ddrc/watchdog_p[51]
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.3600
+Arrival Time:              4.8915
+Required Time:             4.5316
+Data Type: setup
+
+Startpoint: u_pciesub/uart_d
+Endpoint: u_ctrl/bridge_out
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0460
+Arrival Time:              6.8393
+Required Time:             6.8853
+Data Type: setup
+
+Startpoint: u_bus/dcfifo_b[20]
+Endpoint: u_top/filter_p[46]
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.5099
+Arrival Time:              5.6959
+Required Time:             5.1860
+Data Type: setup
+
+Startpoint: u_arb/sampler_z[32]
+Endpoint: u_pll/dac_z
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0879
+Arrival Time:              6.2148
+Required Time:             6.3027
+Data Type: setup
+
+Startpoint: u_cluster/core0/descrambler_in[31]
+Endpoint: u_subsys/dma/watchdog_reg
+Path Group: clk_gpu
+Clock: clk_gpu
+----------------------------------------
+Slack:                    0.0006
+Arrival Time:              5.2931
+Required Time:             5.2937
+Data Type: setup
+
+Startpoint: u_vpu/filter_addr
+Endpoint: u_ctrl/dcfifo_en[59]
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.2593
+Arrival Time:              8.0686
+Required Time:             7.8093
+Data Type: setup
+
+Startpoint: u_mac/pma_sel
+Endpoint: u_bus/comparator_cnt[51]
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2357
+Arrival Time:              7.7124
+Required Time:             7.9482
+Data Type: setup
+
+Startpoint: u_arb/datapath_q[24]
+Endpoint: u_cluster/core0/phy_addr
+Path Group: clk_bus
+Clock: sys_clk
+----------------------------------------
+Slack:                    1.0057
+Arrival Time:              4.0955
+Required Time:             5.1011
+Data Type: setup

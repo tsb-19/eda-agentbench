@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -0.7590
+tns: -1.8194
+violating_path_count: 7
+
+Startpoint: u_mac/i2c_in[50]
+Endpoint: u_dma/dll_prev
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.7590
+Arrival Time:              4.3535
+Required Time:             3.5945
+Data Type: hold
+
+Startpoint: u_gpu/adder_state
+Endpoint: u_subsys/dma/dma_ctrl_sel[36]
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.3730
+Arrival Time:              6.6956
+Required Time:             6.3226
+Data Type: hold
+
+Startpoint: u_pll/demux_in
+Endpoint: u_mac/crc_sel
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.0397
+Arrival Time:              7.7402
+Required Time:             7.7005
+Data Type: hold
+
+Startpoint: u_cluster/core1/mac_b[8]
+Endpoint: u_top/spi_in[54]
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.3242
+Arrival Time:              5.2122
+Required Time:             4.8880
+Data Type: hold
+
+Startpoint: u_subsys/cpu/rom_ctrl_prev
+Endpoint: u_cluster/l2/bridge_z
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.0406
+Arrival Time:              5.4433
+Required Time:             5.4027
+Data Type: hold
+
+Startpoint: u_subsys/cpu/controller_z
+Endpoint: u_phy/ecc_next
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    0.2493
+Arrival Time:              6.2207
+Required Time:             6.4700
+Data Type: hold
+
+Startpoint: u_ctrl/dcfifo_data
+Endpoint: u_cluster/core1/fifo_async_in
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    0.2276
+Arrival Time:              4.6498
+Required Time:             4.8774
+Data Type: hold
+
+Startpoint: u_noc/serdes_addr
+Endpoint: u_mem/bridge_cmd[18]
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.1978
+Arrival Time:              4.3297
+Required Time:             4.1319
+Data Type: hold
+
+Startpoint: u_subsys/cpu/timer_z[62]
+Endpoint: u_phy/serdes_cmd[3]
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.0851
+Arrival Time:              6.7430
+Required Time:             6.6579
+Data Type: hold
+
+Startpoint: u_vpu/converter_q
+Endpoint: u_ctrl/multiplier_reg
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    0.1066
+Arrival Time:              7.3585
+Required Time:             7.4651
+Data Type: hold
+
+Startpoint: u_arb/spi_n
+Endpoint: u_bus/serdes_in
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    3.8663
+Arrival Time:              1.4513
+Required Time:             5.3176
+Data Type: hold

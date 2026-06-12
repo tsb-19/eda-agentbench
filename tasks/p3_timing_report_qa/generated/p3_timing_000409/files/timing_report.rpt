@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -1.6261
+tns: -6.6447
+violating_path_count: 8
+
+Startpoint: u_bus/mac_en[9]
+Endpoint: u_gpu/buffer_n[35]
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.6261
+Arrival Time:              8.1607
+Required Time:             6.5346
+Data Type: setup
+
+Startpoint: u_ctrl/mac_b
+Endpoint: u_vpu/sampler[32]
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.9710
+Arrival Time:              3.2804
+Required Time:             2.3094
+Data Type: setup
+
+Startpoint: u_cache/shifter[48]
+Endpoint: u_serdes/bridge_d
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.3861
+Arrival Time:              8.7544
+Required Time:             7.3683
+Data Type: setup
+
+Startpoint: u_core/cache_en
+Endpoint: u_core/interleaver_prev
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.4846
+Arrival Time:              4.1945
+Required Time:             3.7099
+Data Type: setup
+
+Startpoint: u_gpu/i2c_reg[51]
+Endpoint: u_subsys/io/dcfifo_z
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.1516
+Arrival Time:              3.9367
+Required Time:             3.7852
+Data Type: setup
+
+Startpoint: u_noc/scrambler_p
+Endpoint: u_phy/adc_in
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2075
+Arrival Time:              3.7375
+Required Time:             3.9450
+Data Type: setup
+
+Startpoint: u_ddrc/i2c_in[14]
+Endpoint: u_dma/timer_in
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0957
+Arrival Time:              5.2473
+Required Time:             5.1515
+Data Type: setup
+
+Startpoint: u_subsys/dma/watchdog_b[10]
+Endpoint: u_gpu/interrupt_ctrl_val[21]
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.8315
+Arrival Time:              2.9015
+Required Time:             2.0699
+Data Type: setup
+
+Startpoint: u_serdes/mux_q
+Endpoint: u_core/multiplier_reg
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    0.2842
+Arrival Time:              5.9012
+Required Time:             6.1853
+Data Type: setup
+
+Startpoint: u_mac/adder_data
+Endpoint: u_pll/fifo_async_p
+Path Group: in2reg
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.0981
+Arrival Time:              5.4687
+Required Time:             4.3706
+Data Type: setup

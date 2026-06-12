@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -4.1886
+tns: -11.1885
+violating_path_count: 3
+
+Startpoint: u_buf/rom_ctrl_val
+Endpoint: u_subsys/io/ecc_addr
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -4.1886
+Arrival Time:              10.4885
+Required Time:             6.2999
+Data Type: setup
+
+Startpoint: u_cache/regfile_out
+Endpoint: u_dsp/crc[14]
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.4038
+Arrival Time:              9.7244
+Required Time:             6.3206
+Data Type: setup
+
+Startpoint: u_noc/fifo_en
+Endpoint: u_subsys/mem/dac_state
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.5961
+Arrival Time:              7.1797
+Required Time:             3.5837
+Data Type: setup

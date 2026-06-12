@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 4D integration audit complete (commit f14c2fc)
+**Phase**: 5A — P3 scaled to 1000 tasks
 
 ## Task Inventory
 
@@ -8,10 +8,10 @@
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
-| P3 Timing Report QA | 101 | pt (synthetic) | 1 smoke + 100 generated |
+| P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
-| **Total** | **1235** | | |
+| **Total** | **2134** | | |
 
 ## P1 Bug Type Distribution
 
@@ -39,10 +39,14 @@
 
 ## P3 Timing Report QA
 
-101 tasks (1 smoke + 100 generated). Synthetic normalized reports:
+1000 tasks (1 smoke + 999 generated). Synthetic normalized reports:
 - Agent answers questions about timing report fields (WNS, TNS, slack, etc.)
+- 10 question types with round-robin distribution (99–100 each)
+- 30 unique clocks, 15 path groups, ~30% multi-clock reports
+- Path counts 3–50, WNS range -5.0 to -0.01, TNS range -75 to -0.3
 - Scoring: answer_match (1.0)
 - No real PrimeTime tool required (uses synthetic reports)
+- Full solution evaluation: 1000/1000 = 1.00
 
 ## P4 Configuration Distribution
 
@@ -74,7 +78,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 189 | All passing |
+| pytest tests | 187 | All passing (2 skipped) |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |
@@ -86,8 +90,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 1235/1235 | 1.00 | N/A |
-| Buggy | 1235/1235 | 0.46 | 1235/1235 |
+| Solution | 2134/2134 | 1.00 | N/A |
+| Buggy | 2134/2134 | < 1.00 | 2134/2134 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 

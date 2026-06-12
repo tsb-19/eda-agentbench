@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -0.3581
+tns: -0.7118
+violating_path_count: 4
+
+Startpoint: u_core/spi_out
+Endpoint: u_ctrl/dma_state
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.3581
+Arrival Time:              7.2661
+Required Time:             6.9080
+Data Type: setup
+
+Startpoint: u_io/serdes_d
+Endpoint: u_vpu/arbiter_reg
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0290
+Arrival Time:              6.7896
+Required Time:             6.7606
+Data Type: setup
+
+Startpoint: u_serdes/uart_d[14]
+Endpoint: u_cluster/core0/interleaver_out
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.3225
+Arrival Time:              5.2607
+Required Time:             4.9382
+Data Type: setup
+
+Startpoint: u_core/pipeline_cmd
+Endpoint: u_mem/crc_state
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.0022
+Arrival Time:              6.9253
+Required Time:             6.9231
+Data Type: setup
+
+Startpoint: u_io/dac_z
+Endpoint: u_gpu/crc_in
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.1633
+Arrival Time:              4.4759
+Required Time:             4.6392
+Data Type: setup
+
+Startpoint: u_phy/fifo_p
+Endpoint: u_noc/sampler_state
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.0876
+Arrival Time:              1.4297
+Required Time:             1.5173
+Data Type: setup
+
+Startpoint: u_top/dma_cmd
+Endpoint: u_mac/watchdog_next
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.2550
+Arrival Time:              2.4246
+Required Time:             2.6796
+Data Type: setup
+
+Startpoint: u_subsys/io/bridge_en
+Endpoint: u_cluster/core0/controller_en
+Path Group: clk_mem
+Clock: apb_clk
+----------------------------------------
+Slack:                    1.8153
+Arrival Time:              1.2808
+Required Time:             3.0961
+Data Type: setup

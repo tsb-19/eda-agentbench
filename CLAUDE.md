@@ -11,25 +11,33 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 4D — commit f14c2fc)
+## Current Status (Phase 5A — P3 scale to 1000)
 
-Phase 4D integration audit complete. 1235 total tasks across 5 tracks:
+Phase 5A scaled P3 Timing Report QA from 101 to 1000 tasks. 2134 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 21 | VCS | 1 smoke + 20 generated |
-| P3 Timing Report QA | 101 | pt (synthetic) | 1 smoke + 100 generated |
+| P3 Timing Report QA | 1000 | pt (synthetic) | 1 smoke + 999 generated |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 10 | HSPICE | Imported from external bundle |
 
 Key results:
-- pytest: 189/189 pass
-- Solution mode: 1235/1235 = 1.00
-- Buggy mode: 1235/1235 all < 1.0
+- pytest: 187/187 pass (2 skipped)
+- Solution mode: 2134/2134 = 1.00
+- Buggy mode: 2134/2134 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
+
+### P3 Diversity (Phase 5A)
+
+- 30 unique clock names, 15 path groups, 50 module names, 27 instance prefixes
+- ~30% multi-clock reports (different clocks per path)
+- Path counts: 3–50, WNS range: -5.0 to -0.01, TNS range: -75 to -0.3
+- Signal names with hierarchical depth and optional bit indices
+- Generated task IDs start at p3_timing_000001 (smoke is p3_timing_000000)
 
 ## Available EDA Tool Roots
 

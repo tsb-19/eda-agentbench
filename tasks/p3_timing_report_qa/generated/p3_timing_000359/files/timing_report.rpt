@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -4.8107
+tns: -32.3714
+violating_path_count: 10
+
+Startpoint: u_serdes/shifter_n
+Endpoint: u_io/controller_data
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.8107
+Arrival Time:              10.6132
+Required Time:             5.8025
+Data Type: hold
+
+Startpoint: u_ctrl/multiplier_cnt
+Endpoint: u_buf/dac_in[16]
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.3872
+Arrival Time:              9.3193
+Required Time:             4.9320
+Data Type: hold
+
+Startpoint: u_bus/cache
+Endpoint: u_cache/rom_ctrl_q
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -3.6442
+Arrival Time:              5.2255
+Required Time:             1.5813
+Data Type: hold
+
+Startpoint: u_subsys/mem/alu_in
+Endpoint: u_dsp/dac_val
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.5755
+Arrival Time:              11.4881
+Required Time:             6.9126
+Data Type: hold
+
+Startpoint: u_cluster/core0/rom_ctrl_out[3]
+Endpoint: u_gpu/dll_in
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.0517
+Arrival Time:              7.5036
+Required Time:             3.4518
+Data Type: hold
+
+Startpoint: u_mac/adc_n
+Endpoint: u_bus/buffer
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -2.0164
+Arrival Time:              3.4044
+Required Time:             1.3880
+Data Type: hold
+
+Startpoint: u_phy/async
+Endpoint: u_pll/pll_en
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -4.4162
+Arrival Time:              11.4609
+Required Time:             7.0447
+Data Type: hold
+
+Startpoint: u_dsp/ram_ctrl_cnt[11]
+Endpoint: u_subsys/io/adc_addr
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.8994
+Arrival Time:              5.8144
+Required Time:             4.9150
+Data Type: hold
+
+Startpoint: u_cluster/core1/watchdog_b
+Endpoint: u_core/ram_ctrl_cnt
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -3.0319
+Arrival Time:              8.5100
+Required Time:             5.4781
+Data Type: hold
+
+Startpoint: u_subsys/io/i2c_addr
+Endpoint: u_top/shifter_q
+Path Group: clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.5382
+Arrival Time:              7.0971
+Required Time:             6.5589
+Data Type: hold

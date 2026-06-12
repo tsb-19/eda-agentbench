@@ -3,76 +3,76 @@
     -delay_type max
     -max_paths 7
 
-wns: -1.8052
-tns: -6.7906
-violating_path_count: 7
+wns: -2.2525
+tns: -6.1056
+violating_path_count: 5
 
-Startpoint: u_io/shifter_reg
-Endpoint: u_io/multiplier_d
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_pll/multiplier_z
+Endpoint: u_subsys/cpu/fifo_async_cmd
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -1.8052
-Arrival Time:              5.0057
-Required Time:             3.2005
-Data Type: hold
+Slack:                    -2.2525
+Arrival Time:              5.0239
+Required Time:             2.7714
+Data Type: setup
 
-Startpoint: u_io/pipeline_d
-Endpoint: u_core/mux_d
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_pll/dac_reg
+Endpoint: u_io/pipeline_cmd
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -1.2310
-Arrival Time:              4.0067
-Required Time:             2.7757
-Data Type: hold
+Slack:                    -2.1201
+Arrival Time:              8.7834
+Required Time:             6.6633
+Data Type: setup
 
-Startpoint: u_mem/encoder
-Endpoint: u_io/i2c_reg
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_cache/pcs_q
+Endpoint: u_ctrl/scrambler_p
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -0.6203
-Arrival Time:              4.6130
-Required Time:             3.9927
-Data Type: hold
+Slack:                    -1.0766
+Arrival Time:              2.9327
+Required Time:             1.8561
+Data Type: setup
 
-Startpoint: u_mem/controller_en
-Endpoint: u_io/datapath_in
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_buf/multiplier_z[27]
+Endpoint: u_mem/dcfifo_val
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -0.3286
-Arrival Time:              4.9012
-Required Time:             4.5726
-Data Type: hold
+Slack:                    -0.4510
+Arrival Time:              5.3824
+Required Time:             4.9315
+Data Type: setup
 
-Startpoint: u_core/encoder
-Endpoint: u_top/adder_d
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_gpu/dma_ctrl_addr
+Endpoint: u_pll/comparator_state[6]
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -1.4886
-Arrival Time:              5.2480
-Required Time:             3.7594
-Data Type: hold
+Slack:                    0.2230
+Arrival Time:              5.4764
+Required Time:             5.6994
+Data Type: setup
 
-Startpoint: u_core/uart_q
-Endpoint: u_core/multiplier_in
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_pll/decoder_out
+Endpoint: u_vpu/comparator_p
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -0.9713
-Arrival Time:              5.5735
-Required Time:             4.6022
-Data Type: hold
+Slack:                    0.0995
+Arrival Time:              7.8324
+Required Time:             7.9318
+Data Type: setup
 
-Startpoint: u_core/adder_en
-Endpoint: u_mem/i2c_en
-Path Group: reg2reg
-Clock: sys_clk
+Startpoint: u_subsys/cpu/dac_p
+Endpoint: u_serdes/multiplier_in
+Path Group: clk_bus
+Clock: ddr_clk
 ----------------------------------------
-Slack:                    -0.3456
-Arrival Time:              3.9107
-Required Time:             3.5651
-Data Type: hold
+Slack:                    -0.2054
+Arrival Time:              3.2007
+Required Time:             2.9953
+Data Type: setup

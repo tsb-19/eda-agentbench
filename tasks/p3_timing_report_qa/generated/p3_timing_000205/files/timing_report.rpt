@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -2.3161
+tns: -13.4242
+violating_path_count: 11
+
+Startpoint: u_ctrl/fifo_sync_reg
+Endpoint: u_subsys/dma/shifter_next
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.3161
+Arrival Time:              5.8497
+Required Time:             3.5336
+Data Type: setup
+
+Startpoint: u_cluster/core0/mux_in
+Endpoint: u_pll/dac_next
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.1432
+Arrival Time:              8.8763
+Required Time:             6.7331
+Data Type: setup
+
+Startpoint: u_subsys/dma/mac_in
+Endpoint: u_phy/alu_en[52]
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.9761
+Arrival Time:              4.6255
+Required Time:             2.6494
+Data Type: setup
+
+Startpoint: u_cluster/core0/fifo_prev
+Endpoint: u_cluster/core1/timer_state
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.7731
+Arrival Time:              6.1524
+Required Time:             4.3792
+Data Type: setup
+
+Startpoint: u_cache/pcs_reg[63]
+Endpoint: u_mem/uart_out
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.0631
+Arrival Time:              1.6587
+Required Time:             1.5956
+Data Type: setup
+
+Startpoint: u_ctrl/pipeline_d
+Endpoint: u_top/rom_ctrl_n[30]
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -2.1984
+Arrival Time:              8.4878
+Required Time:             6.2893
+Data Type: setup
+
+Startpoint: u_pll/pcs_q[61]
+Endpoint: u_buf/ecc_cnt
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.0836
+Arrival Time:              5.1429
+Required Time:             5.0593
+Data Type: setup
+
+Startpoint: u_subsys/mem/shifter_in[23]
+Endpoint: u_serdes/interleaver_data
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.6983
+Arrival Time:              3.9898
+Required Time:             3.2915
+Data Type: setup
+
+Startpoint: u_pll/adc_cnt
+Endpoint: u_bus/rom_ctrl_reg
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.1642
+Arrival Time:              3.7276
+Required Time:             3.5635
+Data Type: setup
+
+Startpoint: u_ctrl/arbiter_cmd[52]
+Endpoint: u_cluster/l2/interleaver_cnt
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -0.5438
+Arrival Time:              2.1489
+Required Time:             1.6050
+Data Type: setup
+
+Startpoint: u_dsp/dma_addr
+Endpoint: u_vpu/sync_reg[13]
+Path Group: reg2reg
+Clock: mem_clk
+----------------------------------------
+Slack:                    -1.4643
+Arrival Time:              3.7735
+Required Time:             2.3092
+Data Type: setup

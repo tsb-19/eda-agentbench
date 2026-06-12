@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.2558
+tns: -8.6680
+violating_path_count: 6
+
+Startpoint: u_vpu/demux_addr[57]
+Endpoint: u_cluster/core0/pcs_prev[46]
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -2.2558
+Arrival Time:              9.8825
+Required Time:             7.6267
+Data Type: setup
+
+Startpoint: u_arb/shifter_reg
+Endpoint: u_ddrc/phy_addr
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.7930
+Arrival Time:              5.7853
+Required Time:             3.9923
+Data Type: setup
+
+Startpoint: u_subsys/mem/serdes_val
+Endpoint: u_subsys/io/cache_out
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -2.2213
+Arrival Time:              4.0426
+Required Time:             1.8214
+Data Type: setup
+
+Startpoint: u_pciesub/shifter_state
+Endpoint: u_arb/shifter_n
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.1605
+Arrival Time:              7.8684
+Required Time:             6.7079
+Data Type: setup
+
+Startpoint: u_cluster/core0/pll_state[46]
+Endpoint: u_cache/decoder_en[2]
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -1.2153
+Arrival Time:              6.7302
+Required Time:             5.5149
+Data Type: setup
+
+Startpoint: u_mem/sync_cnt
+Endpoint: u_top/comparator_sel
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    -0.0221
+Arrival Time:              3.8304
+Required Time:             3.8083
+Data Type: setup
+
+Startpoint: u_subsys/cpu/scrambler_out[14]
+Endpoint: u_io/dll_p
+Path Group: clk_mem
+Clock: pci_clk
+----------------------------------------
+Slack:                    1.1168
+Arrival Time:              0.3080
+Required Time:             1.4249
+Data Type: setup

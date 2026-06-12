@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.5389
+tns: -14.2449
+violating_path_count: 6
+
+Startpoint: u_mem/decoder_state
+Endpoint: u_pciesub/datapath_prev
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.5389
+Arrival Time:              9.8722
+Required Time:             6.3333
+Data Type: hold
+
+Startpoint: u_pll/multiplier_addr
+Endpoint: u_top/dma_ctrl_cmd[52]
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.1815
+Arrival Time:              6.4198
+Required Time:             3.2384
+Data Type: hold
+
+Startpoint: u_noc/alu_z
+Endpoint: u_ddrc/pll_next
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.4051
+Arrival Time:              9.3300
+Required Time:             6.9249
+Data Type: hold
+
+Startpoint: u_pll/comparator_d[62]
+Endpoint: u_cache/ecc_addr[38]
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.8143
+Arrival Time:              4.3777
+Required Time:             2.5634
+Data Type: hold
+
+Startpoint: u_buf/buffer_prev
+Endpoint: u_cluster/core0/fifo_sync_p[38]
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.6598
+Arrival Time:              8.9595
+Required Time:             7.2996
+Data Type: hold
+
+Startpoint: u_bus/adder_state
+Endpoint: u_cache/i2c_state
+Path Group: in2out
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.6453
+Arrival Time:              8.8455
+Required Time:             7.2002
+Data Type: hold

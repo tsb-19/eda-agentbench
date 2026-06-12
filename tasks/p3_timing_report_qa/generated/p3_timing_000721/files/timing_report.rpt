@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -0.5622
+tns: -0.8843
+violating_path_count: 2
+
+Startpoint: u_dma/async_b
+Endpoint: u_io/comparator_en
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.5622
+Arrival Time:              1.6464
+Required Time:             1.0842
+Data Type: hold
+
+Startpoint: u_phy/descrambler_reg
+Endpoint: u_pll/fifo_sync_addr[20]
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.3221
+Arrival Time:              4.2511
+Required Time:             3.9290
+Data Type: hold
+
+Startpoint: u_mem/spi_addr[36]
+Endpoint: u_cluster/core1/pll_p
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.1379
+Arrival Time:              4.2572
+Required Time:             4.3951
+Data Type: hold
+
+Startpoint: u_subsys/io/multiplier_sel
+Endpoint: u_subsys/dma/fifo_async_state[12]
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.2157
+Arrival Time:              4.4871
+Required Time:             4.7028
+Data Type: hold
+
+Startpoint: u_arb/pipeline_sel
+Endpoint: u_pll/dcfifo_d
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.1271
+Arrival Time:              5.4402
+Required Time:             5.5673
+Data Type: hold
+
+Startpoint: u_arb/adder_q
+Endpoint: u_cache/async_d
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.0239
+Arrival Time:              5.7924
+Required Time:             5.8163
+Data Type: hold
+
+Startpoint: u_dma/datapath_en[55]
+Endpoint: u_subsys/dma/comparator_state
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.2831
+Arrival Time:              5.1382
+Required Time:             5.4213
+Data Type: hold
+
+Startpoint: u_io/scrambler_reg
+Endpoint: u_bus/pcs_prev
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.2384
+Arrival Time:              5.5543
+Required Time:             5.7927
+Data Type: hold
+
+Startpoint: u_gpu/dma_z
+Endpoint: u_gpu/descrambler_reg
+Path Group: clk_core
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.4544
+Arrival Time:              2.3846
+Required Time:             2.8390
+Data Type: hold

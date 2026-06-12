@@ -1,0 +1,158 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 15
+
+wns: -0.8245
+tns: -3.5141
+violating_path_count: 8
+
+Startpoint: u_pll/ecc_sel
+Endpoint: u_vpu/fifo_async_d
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.8245
+Arrival Time:              6.5186
+Required Time:             5.6941
+Data Type: hold
+
+Startpoint: u_top/datapath_data
+Endpoint: u_serdes/mac_data
+Path Group: ahb_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -0.3425
+Arrival Time:              4.9508
+Required Time:             4.6083
+Data Type: hold
+
+Startpoint: u_dma/decoder_sel
+Endpoint: u_noc/converter_z
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.6661
+Arrival Time:              8.1885
+Required Time:             7.5224
+Data Type: hold
+
+Startpoint: u_core/dcfifo_out
+Endpoint: u_serdes/dma_val[56]
+Path Group: ahb_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    0.0990
+Arrival Time:              3.2180
+Required Time:             3.3169
+Data Type: hold
+
+Startpoint: u_phy/pll_en
+Endpoint: u_cluster/l2/filter_d
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.1739
+Arrival Time:              5.7978
+Required Time:             5.6238
+Data Type: hold
+
+Startpoint: u_mac/alu_addr
+Endpoint: u_subsys/cpu/scrambler_val[38]
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.5296
+Arrival Time:              7.9945
+Required Time:             7.4649
+Data Type: hold
+
+Startpoint: u_cluster/core0/bridge_z
+Endpoint: u_pciesub/adc_state
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.0398
+Arrival Time:              3.4664
+Required Time:             3.5062
+Data Type: hold
+
+Startpoint: u_dsp/pma_in
+Endpoint: u_bus/timer_next
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    0.0150
+Arrival Time:              1.9856
+Required Time:             2.0006
+Data Type: hold
+
+Startpoint: u_buf/datapath_prev
+Endpoint: u_cluster/core0/controller_n[47]
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.4717
+Arrival Time:              6.6988
+Required Time:             6.2271
+Data Type: hold
+
+Startpoint: u_ctrl/converter_n
+Endpoint: u_arb/adder_cnt
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.1416
+Arrival Time:              1.5753
+Required Time:             1.7169
+Data Type: hold
+
+Startpoint: u_cluster/core0/crc_prev[12]
+Endpoint: u_dma/dcfifo_cnt[52]
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.2449
+Arrival Time:              7.6424
+Required Time:             7.8873
+Data Type: hold
+
+Startpoint: u_cluster/core0/ecc_z
+Endpoint: u_dsp/dma_ctrl_n
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    0.2486
+Arrival Time:              0.9580
+Required Time:             1.2066
+Data Type: hold
+
+Startpoint: u_phy/encoder_d[3]
+Endpoint: u_pll/arbiter_cmd
+Path Group: reg2out
+Clock: clk_25m
+----------------------------------------
+Slack:                    -0.4417
+Arrival Time:              6.5791
+Required Time:             6.1374
+Data Type: hold
+
+Startpoint: u_cache/dcfifo_n
+Endpoint: u_io/buffer_b
+Path Group: clk_dsp
+Clock: clk_dsp
+----------------------------------------
+Slack:                    -0.0641
+Arrival Time:              3.9812
+Required Time:             3.9171
+Data Type: hold
+
+Startpoint: u_mem/scrambler[41]
+Endpoint: u_arb/shifter_q
+Path Group: ahb_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    5.5084
+Arrival Time:              -3.8989
+Required Time:             1.6095
+Data Type: hold

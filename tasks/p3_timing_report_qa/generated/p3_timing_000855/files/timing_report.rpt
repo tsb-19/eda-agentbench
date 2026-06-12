@@ -1,0 +1,138 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 13
+
+wns: -3.3155
+tns: -18.2871
+violating_path_count: 12
+
+Startpoint: u_subsys/io/uart_state
+Endpoint: u_pciesub/dma_ctrl_data
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -3.3155
+Arrival Time:              9.7257
+Required Time:             6.4102
+Data Type: hold
+
+Startpoint: u_top/shifter_d
+Endpoint: u_buf/cache_state
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.4977
+Arrival Time:              9.8881
+Required Time:             7.3905
+Data Type: hold
+
+Startpoint: u_mac/phy[42]
+Endpoint: u_top/fifo_sync_cmd
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.5394
+Arrival Time:              8.0419
+Required Time:             5.5026
+Data Type: hold
+
+Startpoint: u_mem/dma_q[61]
+Endpoint: u_io/fifo_in
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.6852
+Arrival Time:              7.6932
+Required Time:             5.0080
+Data Type: hold
+
+Startpoint: u_cluster/core1/rom_ctrl_data
+Endpoint: u_noc/descrambler_sel
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.9540
+Arrival Time:              6.1656
+Required Time:             4.2116
+Data Type: hold
+
+Startpoint: u_arb/encoder_cnt[31]
+Endpoint: u_pll/watchdog_en
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.5164
+Arrival Time:              7.0431
+Required Time:             5.5267
+Data Type: hold
+
+Startpoint: u_subsys/cpu/pipeline_p[2]
+Endpoint: u_mem/interleaver
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0773
+Arrival Time:              3.8554
+Required Time:             3.7781
+Data Type: hold
+
+Startpoint: u_arb/bridge_q[51]
+Endpoint: u_subsys/dma/i2c_z[31]
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.5863
+Arrival Time:              7.5387
+Required Time:             6.9524
+Data Type: hold
+
+Startpoint: u_pll/dma_ctrl_n
+Endpoint: u_mem/spi_reg
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.2118
+Arrival Time:              8.3354
+Required Time:             7.1236
+Data Type: hold
+
+Startpoint: u_pll/multiplier_cmd
+Endpoint: u_gpu/mux_data
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.5506
+Arrival Time:              5.0975
+Required Time:             3.5469
+Data Type: hold
+
+Startpoint: u_pll/ecc_p
+Endpoint: u_phy/ecc[61]
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    0.2742
+Arrival Time:              7.0568
+Required Time:             7.3309
+Data Type: hold
+
+Startpoint: u_arb/sync_z[61]
+Endpoint: u_io/multiplier_addr
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0666
+Arrival Time:              6.1395
+Required Time:             6.0728
+Data Type: hold
+
+Startpoint: u_noc/pipeline_addr
+Endpoint: u_cluster/l2/converter_addr
+Path Group: clk_dsp
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.2863
+Arrival Time:              5.8762
+Required Time:             5.5899
+Data Type: hold

@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -3.0970
+tns: -7.9375
+violating_path_count: 3
+
+Startpoint: u_dma/sync_out
+Endpoint: u_arb/cache_val
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -3.0970
+Arrival Time:              4.8119
+Required Time:             1.7149
+Data Type: hold
+
+Startpoint: u_noc/adc_next
+Endpoint: u_ctrl/bridge_n[59]
+Path Group: jtag_clk
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -2.4002
+Arrival Time:              5.9142
+Required Time:             3.5140
+Data Type: hold
+
+Startpoint: u_ddrc/spi_n[8]
+Endpoint: u_buf/fifo_sync_cnt
+Path Group: clk_100m
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.4403
+Arrival Time:              3.9855
+Required Time:             1.5452
+Data Type: hold

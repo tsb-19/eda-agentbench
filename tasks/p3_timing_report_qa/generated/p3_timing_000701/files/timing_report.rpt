@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.4200
+tns: -0.5597
+violating_path_count: 3
+
+Startpoint: u_dma/dll_addr
+Endpoint: u_ddrc/sampler_out[18]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.4200
+Arrival Time:              8.0171
+Required Time:             7.5971
+Data Type: setup
+
+Startpoint: u_cluster/core0/pma_val
+Endpoint: u_arb/converter_cnt
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.0697
+Arrival Time:              7.5372
+Required Time:             7.6068
+Data Type: setup
+
+Startpoint: u_bus/comparator_sel
+Endpoint: u_bus/fifo_sync_en[6]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.0737
+Arrival Time:              3.1952
+Required Time:             3.1215
+Data Type: setup
+
+Startpoint: u_subsys/io/decoder_in
+Endpoint: u_mem/alu_b[57]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.1469
+Arrival Time:              1.3032
+Required Time:             1.4500
+Data Type: setup
+
+Startpoint: u_subsys/cpu/dma_ctrl_cnt
+Endpoint: u_phy/buffer_en
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.0146
+Arrival Time:              2.6050
+Required Time:             2.6196
+Data Type: setup
+
+Startpoint: u_buf/controller_val[24]
+Endpoint: u_subsys/dma/dll_prev[30]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.0652
+Arrival Time:              4.5989
+Required Time:             4.6641
+Data Type: setup
+
+Startpoint: u_cluster/core0/regfile_z
+Endpoint: u_subsys/io/pma_addr
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.0660
+Arrival Time:              3.3510
+Required Time:             3.2850
+Data Type: setup
+
+Startpoint: u_noc/dll_prev
+Endpoint: u_pciesub/dma_cmd
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.2639
+Arrival Time:              0.8107
+Required Time:             1.0746
+Data Type: setup
+
+Startpoint: u_pll/dma_en[27]
+Endpoint: u_dsp/dcfifo_b[10]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.2316
+Arrival Time:              6.3660
+Required Time:             6.5976
+Data Type: setup
+
+Startpoint: u_dma/dcfifo_d
+Endpoint: u_subsys/mem/interrupt_ctrl_p[24]
+Path Group: clk_core
+Clock: clk_100m
+----------------------------------------
+Slack:                    0.5940
+Arrival Time:              5.3601
+Required Time:             5.9541
+Data Type: setup

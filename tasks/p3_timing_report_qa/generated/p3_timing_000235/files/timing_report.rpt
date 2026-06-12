@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -1.5852
+tns: -4.3297
+violating_path_count: 6
+
+Startpoint: u_mac/pma_b
+Endpoint: u_dsp/ram_ctrl_addr[21]
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.5852
+Arrival Time:              4.3856
+Required Time:             2.8004
+Data Type: hold
+
+Startpoint: u_bus/mac_b
+Endpoint: u_top/decoder_p[20]
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.5529
+Arrival Time:              9.2842
+Required Time:             7.7314
+Data Type: hold
+
+Startpoint: u_cluster/core0/async_in
+Endpoint: u_io/interrupt_ctrl_in
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.1008
+Arrival Time:              4.0877
+Required Time:             3.9869
+Data Type: hold
+
+Startpoint: u_dma/controller_sel
+Endpoint: u_bus/watchdog_in
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.8538
+Arrival Time:              2.9289
+Required Time:             2.0751
+Data Type: hold
+
+Startpoint: u_mac/async_addr
+Endpoint: u_subsys/cpu/sampler[24]
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    0.0695
+Arrival Time:              7.3949
+Required Time:             7.4645
+Data Type: hold
+
+Startpoint: u_top/i2c_d
+Endpoint: u_arb/pma_cmd
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.2305
+Arrival Time:              1.5664
+Required Time:             1.3359
+Data Type: hold
+
+Startpoint: u_ddrc/serdes_in
+Endpoint: u_cluster/core0/pcs_sel
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.0065
+Arrival Time:              4.5600
+Required Time:             4.5535
+Data Type: hold
+
+Startpoint: u_mem/descrambler_en
+Endpoint: u_subsys/io/dcfifo_cmd
+Path Group: clk_200m
+Clock: spi_clk
+----------------------------------------
+Slack:                    1.1909
+Arrival Time:              3.0216
+Required Time:             4.2125
+Data Type: hold

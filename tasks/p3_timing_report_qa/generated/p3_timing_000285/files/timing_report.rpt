@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.0050
+tns: -7.0997
+violating_path_count: 5
+
+Startpoint: u_pciesub/controller_in[50]
+Endpoint: u_core/descrambler_out
+Path Group: clk_mem
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.0050
+Arrival Time:              6.1894
+Required Time:             4.1844
+Data Type: setup
+
+Startpoint: u_serdes/uart_next
+Endpoint: u_cluster/l2/fifo_async_val
+Path Group: clk_mem
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.4183
+Arrival Time:              9.1538
+Required Time:             7.7354
+Data Type: setup
+
+Startpoint: u_pll/phy_sel
+Endpoint: u_pll/mac_next[36]
+Path Group: clk_mem
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.4259
+Arrival Time:              6.8825
+Required Time:             5.4567
+Data Type: setup
+
+Startpoint: u_mem/pma_z
+Endpoint: u_vpu/timer_next[29]
+Path Group: clk_mem
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.7291
+Arrival Time:              4.1895
+Required Time:             2.4603
+Data Type: setup
+
+Startpoint: u_cluster/core0/phy_n[5]
+Endpoint: u_top/sync_q
+Path Group: clk_mem
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.5214
+Arrival Time:              6.7631
+Required Time:             6.2417
+Data Type: setup

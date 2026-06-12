@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -2.0645
+tns: -5.9711
+violating_path_count: 3
+
+Startpoint: u_subsys/mem/comparator_in
+Endpoint: u_arb/i2c_z[54]
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.0645
+Arrival Time:              8.0143
+Required Time:             5.9498
+Data Type: setup
+
+Startpoint: u_gpu/ram_ctrl_d
+Endpoint: u_subsys/mem/pll_sel[13]
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.9023
+Arrival Time:              6.4407
+Required Time:             4.5384
+Data Type: setup
+
+Startpoint: u_cluster/l2/i2c_n
+Endpoint: u_subsys/mem/uart_en
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.0043
+Arrival Time:              6.4047
+Required Time:             4.4004
+Data Type: setup

@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -1.0600
+tns: -2.1262
+violating_path_count: 3
+
+Startpoint: u_bus/filter_cmd[8]
+Endpoint: u_buf/dll_d[1]
+Path Group: in2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.0600
+Arrival Time:              7.7641
+Required Time:             6.7041
+Data Type: setup
+
+Startpoint: u_ddrc/adder_data
+Endpoint: u_ctrl/dac_reg
+Path Group: in2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.6102
+Arrival Time:              4.1290
+Required Time:             3.5188
+Data Type: setup
+
+Startpoint: u_top/datapath_reg
+Endpoint: u_buf/arbiter_z
+Path Group: in2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.4560
+Arrival Time:              6.1779
+Required Time:             5.7220
+Data Type: setup
+
+Startpoint: u_pciesub/ecc_next
+Endpoint: u_bus/fifo_next
+Path Group: in2out
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2251
+Arrival Time:              4.6389
+Required Time:             4.8640
+Data Type: setup

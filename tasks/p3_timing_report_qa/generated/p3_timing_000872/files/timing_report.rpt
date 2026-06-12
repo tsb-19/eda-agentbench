@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.0836
+tns: -13.1905
+violating_path_count: 5
+
+Startpoint: u_mem/bridge_d[56]
+Endpoint: u_dma/adder_cmd
+Path Group: mem_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -3.0836
+Arrival Time:              7.0542
+Required Time:             3.9706
+Data Type: hold
+
+Startpoint: u_mem/pipeline
+Endpoint: u_cluster/core1/i2c_en
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -2.3617
+Arrival Time:              7.2361
+Required Time:             4.8744
+Data Type: hold
+
+Startpoint: u_serdes/sampler_reg[28]
+Endpoint: u_subsys/io/shifter_data
+Path Group: usb_clk
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.8977
+Arrival Time:              6.1814
+Required Time:             3.2837
+Data Type: hold
+
+Startpoint: u_subsys/dma/demux_state[10]
+Endpoint: u_phy/dma_d
+Path Group: mem_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.9834
+Arrival Time:              4.9447
+Required Time:             1.9613
+Data Type: hold
+
+Startpoint: u_subsys/mem/fifo_prev
+Endpoint: u_pciesub/spi_val[0]
+Path Group: mem_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.8641
+Arrival Time:              4.7552
+Required Time:             2.8911
+Data Type: hold

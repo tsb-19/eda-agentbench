@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -0.9034
+tns: -4.1159
+violating_path_count: 7
+
+Startpoint: u_top/descrambler_next[43]
+Endpoint: u_bus/sync_prev
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.9034
+Arrival Time:              3.5380
+Required Time:             2.6346
+Data Type: setup
+
+Startpoint: u_top/comparator_q[44]
+Endpoint: u_subsys/mem/rom_ctrl_cmd
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.7444
+Arrival Time:              6.8600
+Required Time:             6.1157
+Data Type: setup
+
+Startpoint: u_arb/dma_ctrl_prev[3]
+Endpoint: u_subsys/mem/fifo_val
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.3617
+Arrival Time:              4.0542
+Required Time:             3.6925
+Data Type: setup
+
+Startpoint: u_subsys/mem/converter_data[42]
+Endpoint: u_core/dma_ctrl_b
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.7111
+Arrival Time:              2.0834
+Required Time:             1.3724
+Data Type: setup
+
+Startpoint: u_bus/i2c
+Endpoint: u_arb/dma_n
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.2050
+Arrival Time:              1.6830
+Required Time:             1.4780
+Data Type: setup
+
+Startpoint: u_gpu/adc_val
+Endpoint: u_dma/alu_in
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.7535
+Arrival Time:              4.5148
+Required Time:             3.7613
+Data Type: setup
+
+Startpoint: u_cache/dac_prev[58]
+Endpoint: u_cluster/l2/pll_q
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    -0.4368
+Arrival Time:              3.6621
+Required Time:             3.2253
+Data Type: setup
+
+Startpoint: u_gpu/scrambler_cnt
+Endpoint: u_dma/crc_data
+Path Group: clk_dsp
+Clock: axi_clk
+----------------------------------------
+Slack:                    1.6462
+Arrival Time:              1.6440
+Required Time:             3.2902
+Data Type: setup

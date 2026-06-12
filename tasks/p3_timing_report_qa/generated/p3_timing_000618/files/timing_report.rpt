@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.8871
+tns: -9.7584
+violating_path_count: 5
+
+Startpoint: u_pll/datapath_data[7]
+Endpoint: u_cluster/l2/dac_data
+Path Group: clk_100m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.8871
+Arrival Time:              8.3312
+Required Time:             5.4441
+Data Type: setup
+
+Startpoint: u_buf/comparator_next
+Endpoint: u_gpu/datapath_z
+Path Group: uart_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.0582
+Arrival Time:              5.6834
+Required Time:             3.6252
+Data Type: setup
+
+Startpoint: u_subsys/dma/rom_ctrl_z[50]
+Endpoint: u_io/bridge_reg
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    -1.5985
+Arrival Time:              5.2122
+Required Time:             3.6138
+Data Type: setup
+
+Startpoint: u_gpu/controller_addr
+Endpoint: u_subsys/cpu/sampler_cmd
+Path Group: clk_100m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -0.9674
+Arrival Time:              7.3127
+Required Time:             6.3452
+Data Type: setup
+
+Startpoint: u_cache/multiplier_q
+Endpoint: u_mac/spi_prev
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    -2.2472
+Arrival Time:              7.6114
+Required Time:             5.3642
+Data Type: setup

@@ -63,8 +63,8 @@ echo "--- Track discovery ---"
 ALL_OUT=$(eda-bench evaluate-dataset tasks --submission-mode solution 2>&1 | head -10)
 ALL_TOTAL=$(echo "$ALL_OUT" | grep "Tasks found:" | awk '{print $NF}')
 echo "  Total tasks found: $ALL_TOTAL"
-ALL_CHECK=$(python3 -c "print('PASS' if int('$ALL_TOTAL') >= 1235 else 'FAIL')")
-check_pass "$ALL_CHECK" "Total tasks >= 1235"
+ALL_CHECK=$(python3 -c "print('PASS' if int('$ALL_TOTAL') >= 2134 else 'FAIL')")
+check_pass "$ALL_CHECK" "Total tasks >= 2134"
 
 # --- Report generation ---
 echo ""

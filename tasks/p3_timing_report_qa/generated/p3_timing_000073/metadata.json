@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "string",
-    "expected": "u_io/demux_en",
+    "expected": "u_dsp/uart_addr",
     "tolerance": 0.0,
-    "question_type": "worst_startpoint"
+    "question_type": "worst_endpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "worst_startpoint",
-    "task_index": 73,
-    "num_paths": 14,
+    "question_type": "worst_endpoint",
+    "task_index": 72,
+    "internal_index": 73,
+    "num_paths": 32,
     "clock": "cpu_clk",
-    "path_group": "reg2reg"
+    "path_group": "clk_core",
+    "multi_clock": false
   },
   "version": "1.0.0"
 }

@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.7372
+tns: -17.7655
+violating_path_count: 6
+
+Startpoint: u_arb/pll_out[4]
+Endpoint: u_io/adc_z
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.7372
+Arrival Time:              6.8360
+Required Time:             3.0988
+Data Type: hold
+
+Startpoint: u_subsys/cpu/converter_q
+Endpoint: u_dsp/interrupt_ctrl_reg
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.1671
+Arrival Time:              5.2497
+Required Time:             2.0826
+Data Type: hold
+
+Startpoint: u_gpu/controller_cmd
+Endpoint: u_pll/encoder_sel
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.6470
+Arrival Time:              6.8852
+Required Time:             3.2381
+Data Type: hold
+
+Startpoint: u_bus/pipeline_in
+Endpoint: u_ctrl/sampler_state
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -1.8061
+Arrival Time:              7.5314
+Required Time:             5.7253
+Data Type: hold
+
+Startpoint: u_ctrl/phy_reg
+Endpoint: u_ddrc/i2c_z[7]
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -2.3356
+Arrival Time:              4.1044
+Required Time:             1.7688
+Data Type: hold
+
+Startpoint: u_subsys/dma/async_val
+Endpoint: u_dma/spi_data
+Path Group: clk_bus
+Clock: clk_33m
+----------------------------------------
+Slack:                    -3.0725
+Arrival Time:              10.1279
+Required Time:             7.0554
+Data Type: hold

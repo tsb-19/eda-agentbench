@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -2.0911
+tns: -6.8020
+violating_path_count: 6
+
+Startpoint: u_cluster/l2/encoder_val[48]
+Endpoint: u_pll/multiplier_state
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -2.0911
+Arrival Time:              9.7062
+Required Time:             7.6151
+Data Type: setup
+
+Startpoint: u_gpu/encoder_out
+Endpoint: u_phy/serdes_state[12]
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -1.8623
+Arrival Time:              3.9288
+Required Time:             2.0666
+Data Type: setup
+
+Startpoint: u_vpu/bridge_n
+Endpoint: u_cluster/l2/rom_ctrl_state[16]
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -1.9069
+Arrival Time:              4.8030
+Required Time:             2.8960
+Data Type: setup
+
+Startpoint: u_cluster/l2/fifo_async_cnt
+Endpoint: u_gpu/rom_ctrl_val
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -0.4442
+Arrival Time:              2.0225
+Required Time:             1.5783
+Data Type: setup
+
+Startpoint: u_mac/pll_z
+Endpoint: u_arb/multiplier_sel
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -0.4030
+Arrival Time:              6.4533
+Required Time:             6.0503
+Data Type: setup
+
+Startpoint: u_dma/crc_val
+Endpoint: u_dma/encoder_out
+Path Group: clk_bus
+Clock: clk
+----------------------------------------
+Slack:                    -0.0945
+Arrival Time:              6.4393
+Required Time:             6.3448
+Data Type: setup

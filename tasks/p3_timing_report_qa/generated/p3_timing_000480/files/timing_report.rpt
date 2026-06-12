@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.2879
+tns: -14.6218
+violating_path_count: 6
+
+Startpoint: u_phy/adder_next
+Endpoint: u_cache/descrambler_en
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -3.2879
+Arrival Time:              5.1383
+Required Time:             1.8504
+Data Type: setup
+
+Startpoint: u_serdes/encoder_next[47]
+Endpoint: u_subsys/io/rom_ctrl_b
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.9092
+Arrival Time:              8.5424
+Required Time:             5.6333
+Data Type: setup
+
+Startpoint: u_ctrl/fifo[9]
+Endpoint: u_io/phy_sel[59]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.1994
+Arrival Time:              6.1705
+Required Time:             3.9711
+Data Type: setup
+
+Startpoint: u_io/serdes_val
+Endpoint: u_serdes/async_cnt
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.8338
+Arrival Time:              10.1836
+Required Time:             7.3498
+Data Type: setup
+
+Startpoint: u_io/fifo_async_reg
+Endpoint: u_arb/pma_prev
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.5021
+Arrival Time:              8.2990
+Required Time:             6.7968
+Data Type: setup
+
+Startpoint: u_dma/converter_en
+Endpoint: u_gpu/dac_reg[26]
+Path Group: cpu_clk
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.8894
+Arrival Time:              7.9956
+Required Time:             6.1062
+Data Type: setup

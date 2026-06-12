@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -4.3414
+tns: -24.2678
+violating_path_count: 7
+
+Startpoint: u_mem/watchdog
+Endpoint: u_dsp/interrupt_ctrl_addr
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -4.3414
+Arrival Time:              6.9640
+Required Time:             2.6226
+Data Type: setup
+
+Startpoint: u_ctrl/comparator_p
+Endpoint: u_serdes/adc
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.9607
+Arrival Time:              11.1540
+Required Time:             7.1932
+Data Type: setup
+
+Startpoint: u_ddrc/descrambler_val
+Endpoint: u_cluster/core0/dac_q
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.8607
+Arrival Time:              6.4574
+Required Time:             3.5967
+Data Type: setup
+
+Startpoint: u_ddrc/fifo_async_prev
+Endpoint: u_dsp/pcs_state
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.9548
+Arrival Time:              8.5067
+Required Time:             5.5519
+Data Type: setup
+
+Startpoint: u_io/serdes_out[40]
+Endpoint: u_bus/serdes_prev
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -4.1466
+Arrival Time:              5.4321
+Required Time:             1.2856
+Data Type: setup
+
+Startpoint: u_buf/spi_sel
+Endpoint: u_ddrc/sampler_b
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.3178
+Arrival Time:              7.5784
+Required Time:             4.2606
+Data Type: setup
+
+Startpoint: u_subsys/cpu/shifter_p[47]
+Endpoint: u_pciesub/i2c_sel[7]
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.6858
+Arrival Time:              6.2801
+Required Time:             3.5942
+Data Type: setup

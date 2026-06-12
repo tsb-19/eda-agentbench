@@ -2,7 +2,7 @@
 
 ## Question
 
-What is the clock name of the worst timing path?
+What is the path group of the worst timing path?
 
 ## Instructions
 

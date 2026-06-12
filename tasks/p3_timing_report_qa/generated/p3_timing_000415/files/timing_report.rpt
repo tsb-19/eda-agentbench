@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -1.2343
+tns: -5.0188
+violating_path_count: 9
+
+Startpoint: u_cache/descrambler_in
+Endpoint: u_ddrc/interleaver_reg[40]
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.2343
+Arrival Time:              2.7350
+Required Time:             1.5007
+Data Type: hold
+
+Startpoint: u_mac/mux_q[30]
+Endpoint: u_mem/async_p
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.7622
+Arrival Time:              6.4535
+Required Time:             5.6913
+Data Type: hold
+
+Startpoint: u_top/sampler_cmd[11]
+Endpoint: u_buf/scrambler_cmd
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.0584
+Arrival Time:              8.0397
+Required Time:             6.9813
+Data Type: hold
+
+Startpoint: u_pciesub/descrambler
+Endpoint: u_subsys/io/multiplier_cmd[7]
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.1234
+Arrival Time:              5.4641
+Required Time:             5.3407
+Data Type: hold
+
+Startpoint: u_serdes/cache_data
+Endpoint: u_serdes/dma_ctrl_q[8]
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0648
+Arrival Time:              6.9732
+Required Time:             6.9084
+Data Type: hold
+
+Startpoint: u_serdes/ram_ctrl_p
+Endpoint: u_ctrl/mac_z
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.3349
+Arrival Time:              6.3573
+Required Time:             6.0224
+Data Type: hold
+
+Startpoint: u_pciesub/latch_cmd
+Endpoint: u_mac/rom_ctrl_state
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.0515
+Arrival Time:              3.8374
+Required Time:             3.7860
+Data Type: hold
+
+Startpoint: u_vpu/cache_val[12]
+Endpoint: u_noc/scrambler_state[60]
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -0.2855
+Arrival Time:              5.2929
+Required Time:             5.0073
+Data Type: hold
+
+Startpoint: u_serdes/ecc_reg[33]
+Endpoint: u_ctrl/shifter_sel[54]
+Path Group: reg2out
+Clock: jtag_clk
+----------------------------------------
+Slack:                    -1.1038
+Arrival Time:              3.2190
+Required Time:             2.1152
+Data Type: hold

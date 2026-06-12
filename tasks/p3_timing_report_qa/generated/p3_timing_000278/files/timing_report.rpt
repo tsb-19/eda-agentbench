@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.7483
+tns: -22.7865
+violating_path_count: 8
+
+Startpoint: u_phy/pma_prev[42]
+Endpoint: u_vpu/serdes_data
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.7483
+Arrival Time:              8.2443
+Required Time:             4.4960
+Data Type: hold
+
+Startpoint: u_mem/i2c_addr
+Endpoint: u_io/pcs_d
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.5032
+Arrival Time:              6.3354
+Required Time:             2.8322
+Data Type: hold
+
+Startpoint: u_subsys/cpu/cache_next
+Endpoint: u_cluster/core0/mux_reg
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.1539
+Arrival Time:              4.7949
+Required Time:             1.6410
+Data Type: hold
+
+Startpoint: u_cluster/core0/latch_b
+Endpoint: u_cluster/l2/adder_z
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.5033
+Arrival Time:              4.8814
+Required Time:             2.3781
+Data Type: hold
+
+Startpoint: u_bus/uart_cnt
+Endpoint: u_bus/comparator_in
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.7512
+Arrival Time:              4.0832
+Required Time:             1.3320
+Data Type: hold
+
+Startpoint: u_io/pll_next
+Endpoint: u_ddrc/async_en
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -1.6956
+Arrival Time:              7.4664
+Required Time:             5.7708
+Data Type: hold
+
+Startpoint: u_top/watchdog_cnt
+Endpoint: u_serdes/i2c_b
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -2.3022
+Arrival Time:              5.2975
+Required Time:             2.9953
+Data Type: hold
+
+Startpoint: u_subsys/cpu/scrambler_n[63]
+Endpoint: u_buf/sampler_out
+Path Group: clk_dsp
+Clock: apb_clk
+----------------------------------------
+Slack:                    -3.1288
+Arrival Time:              8.4053
+Required Time:             5.2765
+Data Type: hold

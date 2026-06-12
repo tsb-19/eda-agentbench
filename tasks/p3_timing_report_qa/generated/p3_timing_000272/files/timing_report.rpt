@@ -1,0 +1,168 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 16
+
+wns: -2.2882
+tns: -10.6258
+violating_path_count: 11
+
+Startpoint: u_subsys/dma/rom_ctrl_en
+Endpoint: u_arb/phy_data
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -2.2882
+Arrival Time:              8.8439
+Required Time:             6.5557
+Data Type: hold
+
+Startpoint: u_subsys/mem/fifo_sync_reg[1]
+Endpoint: u_cluster/l2/pma_val
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.5314
+Arrival Time:              4.9037
+Required Time:             3.3723
+Data Type: hold
+
+Startpoint: u_gpu/encoder_val
+Endpoint: u_core/interleaver_val
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.1195
+Arrival Time:              2.2740
+Required Time:             1.1545
+Data Type: hold
+
+Startpoint: u_noc/pipeline_next
+Endpoint: u_serdes/arbiter_q
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -1.9020
+Arrival Time:              3.5948
+Required Time:             1.6928
+Data Type: hold
+
+Startpoint: u_core/cache_val
+Endpoint: u_phy/serdes_val
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.0837
+Arrival Time:              7.6011
+Required Time:             5.5174
+Data Type: hold
+
+Startpoint: u_cluster/core1/async_n
+Endpoint: u_vpu/fifo_out
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.0307
+Arrival Time:              4.6428
+Required Time:             4.6120
+Data Type: hold
+
+Startpoint: u_noc/dac_p
+Endpoint: u_bus/encoder_q
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.6275
+Arrival Time:              3.6117
+Required Time:             2.9842
+Data Type: hold
+
+Startpoint: u_mac/datapath_n
+Endpoint: u_io/adc_cmd[45]
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.5627
+Arrival Time:              3.2750
+Required Time:             2.7124
+Data Type: hold
+
+Startpoint: u_top/encoder_p
+Endpoint: u_io/converter_data
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.0268
+Arrival Time:              5.5420
+Required Time:             5.5152
+Data Type: hold
+
+Startpoint: u_cluster/core0/dll_reg[36]
+Endpoint: u_ctrl/mac_addr
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0968
+Arrival Time:              7.6720
+Required Time:             7.7688
+Data Type: hold
+
+Startpoint: u_subsys/cpu/filter_state
+Endpoint: u_core/pipeline_prev
+Path Group: eth_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1628
+Arrival Time:              5.4385
+Required Time:             5.6013
+Data Type: hold
+
+Startpoint: u_bus/interleaver_data
+Endpoint: u_vpu/converter_d[58]
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    0.2342
+Arrival Time:              3.0111
+Required Time:             3.2452
+Data Type: hold
+
+Startpoint: u_vpu/phy_next
+Endpoint: u_cluster/core0/pcs_z
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    0.1777
+Arrival Time:              3.2236
+Required Time:             3.4013
+Data Type: hold
+
+Startpoint: u_gpu/watchdog_out
+Endpoint: u_subsys/dma/interrupt_ctrl_state
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.0471
+Arrival Time:              6.8078
+Required Time:             6.7607
+Data Type: hold
+
+Startpoint: u_ctrl/datapath_z
+Endpoint: u_pciesub/i2c_reg[28]
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    -0.4062
+Arrival Time:              8.1868
+Required Time:             7.7807
+Data Type: hold
+
+Startpoint: u_cluster/l2/interleaver_sel
+Endpoint: u_top/converter_out
+Path Group: clk_100m
+Clock: spi_clk
+----------------------------------------
+Slack:                    1.2921
+Arrival Time:              3.9567
+Required Time:             5.2487
+Data Type: hold

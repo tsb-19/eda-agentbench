@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -3.6718
+tns: -14.2517
+violating_path_count: 5
+
+Startpoint: u_cluster/core1/interleaver_en[45]
+Endpoint: u_subsys/cpu/shifter_b
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.6718
+Arrival Time:              5.3316
+Required Time:             1.6598
+Data Type: hold
+
+Startpoint: u_pciesub/interrupt_ctrl_reg
+Endpoint: u_arb/encoder_val
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.2050
+Arrival Time:              7.5604
+Required Time:             4.3553
+Data Type: hold
+
+Startpoint: u_buf/watchdog_sel[32]
+Endpoint: u_cache/dll_en
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.4139
+Arrival Time:              7.1295
+Required Time:             4.7156
+Data Type: hold
+
+Startpoint: u_subsys/io/ram_ctrl_z
+Endpoint: u_ddrc/datapath_d
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.2792
+Arrival Time:              8.5205
+Required Time:             6.2413
+Data Type: hold
+
+Startpoint: u_subsys/io/descrambler_val
+Endpoint: u_bus/sync_addr[29]
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -2.6818
+Arrival Time:              9.8313
+Required Time:             7.1494
+Data Type: hold

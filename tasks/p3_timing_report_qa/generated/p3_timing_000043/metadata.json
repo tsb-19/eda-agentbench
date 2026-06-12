@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "string",
-    "expected": "u_core/dma_out",
+    "expected": "u_pciesub/multiplier_n",
     "tolerance": 0.0,
-    "question_type": "worst_startpoint"
+    "question_type": "worst_endpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "worst_startpoint",
-    "task_index": 43,
-    "num_paths": 9,
-    "clock": "mem_clk",
-    "path_group": "clk_100m"
+    "question_type": "worst_endpoint",
+    "task_index": 42,
+    "internal_index": 43,
+    "num_paths": 20,
+    "clock": "clk",
+    "path_group": "clk_io",
+    "multi_clock": true
   },
   "version": "1.0.0"
 }

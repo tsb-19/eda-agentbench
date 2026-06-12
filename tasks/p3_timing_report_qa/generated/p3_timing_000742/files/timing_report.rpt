@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -0.8634
+tns: -2.4682
+violating_path_count: 7
+
+Startpoint: u_dma/demux_out
+Endpoint: u_subsys/io/dma_data
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.8634
+Arrival Time:              5.3714
+Required Time:             4.5080
+Data Type: hold
+
+Startpoint: u_subsys/mem/sync_reg
+Endpoint: u_subsys/cpu/rom_ctrl_sel
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3575
+Arrival Time:              3.0759
+Required Time:             2.7184
+Data Type: hold
+
+Startpoint: u_gpu/rom_ctrl_state
+Endpoint: u_io/pma_en
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.1912
+Arrival Time:              5.5310
+Required Time:             5.3398
+Data Type: hold
+
+Startpoint: u_cache/i2c_q
+Endpoint: u_pciesub/dcfifo_q
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.5997
+Arrival Time:              7.3501
+Required Time:             6.7504
+Data Type: hold
+
+Startpoint: u_subsys/mem/fifo_sync_next
+Endpoint: u_gpu/i2c_b
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.2367
+Arrival Time:              2.5726
+Required Time:             2.8094
+Data Type: hold
+
+Startpoint: u_subsys/dma/timer_cmd[54]
+Endpoint: u_noc/serdes_cnt[25]
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.3809
+Arrival Time:              2.5708
+Required Time:             2.1899
+Data Type: hold
+
+Startpoint: u_phy/converter_state
+Endpoint: u_subsys/mem/uart[49]
+Path Group: clk_io
+Clock: clk_io
+----------------------------------------
+Slack:                    -0.0469
+Arrival Time:              6.2789
+Required Time:             6.2320
+Data Type: hold
+
+Startpoint: u_io/regfile
+Endpoint: u_buf/bridge_data[9]
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    0.2153
+Arrival Time:              1.8350
+Required Time:             2.0503
+Data Type: hold
+
+Startpoint: u_buf/scrambler[29]
+Endpoint: u_gpu/alu_q
+Path Group: clk_core
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.0286
+Arrival Time:              1.5446
+Required Time:             1.5160
+Data Type: hold
+
+Startpoint: u_subsys/io/dac
+Endpoint: u_subsys/dma/datapath_b
+Path Group: cpu_clk
+Clock: cpu_clk
+----------------------------------------
+Slack:                    0.8798
+Arrival Time:              1.6602
+Required Time:             2.5400
+Data Type: hold

@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -3.9702
+tns: -25.2302
+violating_path_count: 8
+
+Startpoint: u_io/pma_cmd[1]
+Endpoint: u_subsys/mem/watchdog_b
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -3.9702
+Arrival Time:              5.7664
+Required Time:             1.7962
+Data Type: hold
+
+Startpoint: u_cluster/core0/pma_en[12]
+Endpoint: u_arb/bridge_d
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -3.6643
+Arrival Time:              4.7657
+Required Time:             1.1014
+Data Type: hold
+
+Startpoint: u_cluster/core0/dma_b[40]
+Endpoint: u_subsys/dma/latch_en[4]
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -2.6911
+Arrival Time:              8.4487
+Required Time:             5.7576
+Data Type: hold
+
+Startpoint: u_ddrc/async_out
+Endpoint: u_subsys/io/arbiter_en
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -3.5540
+Arrival Time:              8.8224
+Required Time:             5.2684
+Data Type: hold
+
+Startpoint: u_core/ecc
+Endpoint: u_gpu/rom_ctrl_z
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -3.4884
+Arrival Time:              11.3657
+Required Time:             7.8773
+Data Type: hold
+
+Startpoint: u_subsys/dma/mux_cnt
+Endpoint: u_buf/watchdog_b
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -1.6248
+Arrival Time:              2.6459
+Required Time:             1.0211
+Data Type: hold
+
+Startpoint: u_arb/timer_cnt
+Endpoint: u_phy/interleaver_sel[55]
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -3.3971
+Arrival Time:              4.8839
+Required Time:             1.4868
+Data Type: hold
+
+Startpoint: u_phy/async_data
+Endpoint: u_top/adder_next
+Path Group: clk_100m
+Clock: pll_clk
+----------------------------------------
+Slack:                    -2.8403
+Arrival Time:              4.4807
+Required Time:             1.6404
+Data Type: hold

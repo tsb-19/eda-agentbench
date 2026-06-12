@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.8279
+tns: -16.4277
+violating_path_count: 6
+
+Startpoint: u_top/scrambler_addr
+Endpoint: u_cluster/l2/sampler_reg
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.8279
+Arrival Time:              5.2003
+Required Time:             1.3724
+Data Type: setup
+
+Startpoint: u_dma/fifo_sync_d
+Endpoint: u_io/spi_next
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.7802
+Arrival Time:              10.4698
+Required Time:             6.6896
+Data Type: setup
+
+Startpoint: u_vpu/pipeline_z
+Endpoint: u_arb/dac_reg[18]
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -2.8436
+Arrival Time:              8.3508
+Required Time:             5.5072
+Data Type: setup
+
+Startpoint: u_pciesub/dma_ctrl_z[37]
+Endpoint: u_cluster/core0/interleaver_n
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -3.2743
+Arrival Time:              10.7493
+Required Time:             7.4750
+Data Type: setup
+
+Startpoint: u_ddrc/latch_cmd
+Endpoint: u_ctrl/dll_next
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -1.7926
+Arrival Time:              8.8417
+Required Time:             7.0491
+Data Type: setup
+
+Startpoint: u_cluster/core0/adder_val
+Endpoint: u_buf/dll_cmd
+Path Group: reg2out
+Clock: clk_mem
+----------------------------------------
+Slack:                    -0.9091
+Arrival Time:              5.7760
+Required Time:             4.8669
+Data Type: setup

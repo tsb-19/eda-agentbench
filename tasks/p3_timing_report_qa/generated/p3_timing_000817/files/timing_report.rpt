@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -4.3141
+tns: -27.9716
+violating_path_count: 9
+
+Startpoint: u_cluster/core1/uart_state
+Endpoint: u_subsys/mem/cache_sel
+Path Group: clk_mem
+Clock: sys_clk
+----------------------------------------
+Slack:                    -4.3141
+Arrival Time:              11.0723
+Required Time:             6.7582
+Data Type: hold
+
+Startpoint: u_noc/demux_reg[62]
+Endpoint: u_subsys/cpu/crc_out
+Path Group: clk_mem
+Clock: sys_clk
+----------------------------------------
+Slack:                    -4.1469
+Arrival Time:              9.6912
+Required Time:             5.5443
+Data Type: hold
+
+Startpoint: u_subsys/io/ecc
+Endpoint: u_noc/i2c
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.8158
+Arrival Time:              10.6485
+Required Time:             7.8327
+Data Type: hold
+
+Startpoint: u_pciesub/encoder[6]
+Endpoint: u_top/alu_sel[30]
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.8954
+Arrival Time:              4.1385
+Required Time:             1.2431
+Data Type: hold
+
+Startpoint: u_top/dll_in[46]
+Endpoint: u_core/alu_d
+Path Group: clk_mem
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.2469
+Arrival Time:              3.8928
+Required Time:             1.6459
+Data Type: hold
+
+Startpoint: u_arb/filter_b
+Endpoint: u_bus/adc_prev
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.3376
+Arrival Time:              10.3114
+Required Time:             7.9738
+Data Type: hold
+
+Startpoint: u_dma/spi_cmd[14]
+Endpoint: u_pll/fifo_state
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.8661
+Arrival Time:              4.6019
+Required Time:             1.7357
+Data Type: hold
+
+Startpoint: u_mem/descrambler_cnt[44]
+Endpoint: u_vpu/pll_z
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -2.6285
+Arrival Time:              8.5892
+Required Time:             5.9607
+Data Type: hold
+
+Startpoint: u_buf/converter_state
+Endpoint: u_bus/pma_reg
+Path Group: ddr_clk
+Clock: ddr_clk
+----------------------------------------
+Slack:                    -3.7203
+Arrival Time:              4.8486
+Required Time:             1.1283
+Data Type: hold

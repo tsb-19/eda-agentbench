@@ -1,0 +1,98 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 9
+
+wns: -3.8835
+tns: -26.4706
+violating_path_count: 9
+
+Startpoint: u_io/adc_q[38]
+Endpoint: u_top/sampler_z[26]
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.8835
+Arrival Time:              10.5189
+Required Time:             6.6354
+Data Type: setup
+
+Startpoint: u_vpu/pipeline_cnt[18]
+Endpoint: u_dma/datapath_state[36]
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.5041
+Arrival Time:              9.9741
+Required Time:             6.4700
+Data Type: setup
+
+Startpoint: u_vpu/controller_en
+Endpoint: u_subsys/cpu/sync_prev
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.8228
+Arrival Time:              7.8300
+Required Time:             4.0072
+Data Type: setup
+
+Startpoint: u_cluster/l2/watchdog_addr[52]
+Endpoint: u_pll/phy_next
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -1.9241
+Arrival Time:              9.0577
+Required Time:             7.1336
+Data Type: setup
+
+Startpoint: u_serdes/rom_ctrl_next[37]
+Endpoint: u_subsys/cpu/ecc
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.3101
+Arrival Time:              8.8948
+Required Time:             5.5847
+Data Type: setup
+
+Startpoint: u_subsys/io/decoder_cnt[13]
+Endpoint: u_gpu/async_in
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.6889
+Arrival Time:              8.1670
+Required Time:             4.4781
+Data Type: setup
+
+Startpoint: u_dsp/scrambler_p
+Endpoint: u_pciesub/rom_ctrl_cmd[50]
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.1452
+Arrival Time:              7.3288
+Required Time:             4.1836
+Data Type: setup
+
+Startpoint: u_subsys/dma/sampler_state
+Endpoint: u_pciesub/phy_cnt
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -3.0765
+Arrival Time:              10.4353
+Required Time:             7.3587
+Data Type: setup
+
+Startpoint: u_mem/ram_ctrl_z
+Endpoint: u_phy/descrambler_q[2]
+Path Group: clk_io
+Clock: clk_50m
+----------------------------------------
+Slack:                    -0.1154
+Arrival Time:              8.0509
+Required Time:             7.9355
+Data Type: setup

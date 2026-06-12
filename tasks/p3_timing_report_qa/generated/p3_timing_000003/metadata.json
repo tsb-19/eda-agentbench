@@ -33,18 +33,20 @@
   },
   "answer": {
     "type": "string",
-    "expected": "u_io/decoder_en",
+    "expected": "u_noc/adc_b",
     "tolerance": 0.0,
-    "question_type": "worst_startpoint"
+    "question_type": "worst_endpoint"
   },
   "generator": {
     "script": "p3_timing_report_qa_gen.py",
     "seed": 42,
-    "question_type": "worst_startpoint",
-    "task_index": 3,
-    "num_paths": 15,
-    "clock": "mem_clk",
-    "path_group": "in2reg"
+    "question_type": "worst_endpoint",
+    "task_index": 2,
+    "internal_index": 3,
+    "num_paths": 35,
+    "clock": "axi_clk",
+    "path_group": "clk_200m",
+    "multi_clock": false
   },
   "version": "1.0.0"
 }

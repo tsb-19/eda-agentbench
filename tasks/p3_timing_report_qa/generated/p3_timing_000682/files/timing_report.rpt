@@ -1,0 +1,298 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 29
+
+wns: -2.7115
+tns: -19.8471
+violating_path_count: 19
+
+Startpoint: u_dsp/dma_ctrl_data[0]
+Endpoint: u_ctrl/shifter_data
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.7115
+Arrival Time:              7.9224
+Required Time:             5.2109
+Data Type: hold
+
+Startpoint: u_vpu/dma_addr
+Endpoint: u_mem/uart_q
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.1594
+Arrival Time:              7.3354
+Required Time:             5.1760
+Data Type: hold
+
+Startpoint: u_pciesub/dma_sel
+Endpoint: u_cluster/core0/dma_out
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.4406
+Arrival Time:              5.3779
+Required Time:             3.9372
+Data Type: hold
+
+Startpoint: u_serdes/datapath_q[42]
+Endpoint: u_ddrc/pcs_state
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.4419
+Arrival Time:              6.6069
+Required Time:             5.1650
+Data Type: hold
+
+Startpoint: u_arb/dcfifo_cmd[16]
+Endpoint: u_pciesub/dma_ctrl_out
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.5018
+Arrival Time:              6.5774
+Required Time:             6.0756
+Data Type: hold
+
+Startpoint: u_io/multiplier_out
+Endpoint: u_io/interrupt_ctrl_z[7]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -2.4815
+Arrival Time:              7.1102
+Required Time:             4.6287
+Data Type: hold
+
+Startpoint: u_subsys/mem/adder_b[35]
+Endpoint: u_ddrc/mac_z[32]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.8376
+Arrival Time:              5.7277
+Required Time:             4.8900
+Data Type: hold
+
+Startpoint: u_cluster/core0/arbiter_z
+Endpoint: u_arb/ecc_b
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.5859
+Arrival Time:              3.9019
+Required Time:             2.3160
+Data Type: hold
+
+Startpoint: u_ddrc/interleaver_p
+Endpoint: u_pll/dma_prev
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.6773
+Arrival Time:              7.4234
+Required Time:             5.7461
+Data Type: hold
+
+Startpoint: u_io/latch_reg
+Endpoint: u_pciesub/multiplier_in
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.8101
+Arrival Time:              8.9882
+Required Time:             7.1780
+Data Type: hold
+
+Startpoint: u_cluster/l2/interleaver_b
+Endpoint: u_top/shifter_addr
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2197
+Arrival Time:              7.1317
+Required Time:             7.3513
+Data Type: hold
+
+Startpoint: u_cluster/core0/phy_prev[17]
+Endpoint: u_subsys/dma/bridge_sel
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0098
+Arrival Time:              6.1019
+Required Time:             6.1117
+Data Type: hold
+
+Startpoint: u_top/datapath_b
+Endpoint: u_pll/comparator_n
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1409
+Arrival Time:              3.2663
+Required Time:             3.4073
+Data Type: hold
+
+Startpoint: u_subsys/mem/descrambler_sel
+Endpoint: u_serdes/decoder_in
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.6616
+Arrival Time:              5.0100
+Required Time:             4.3483
+Data Type: hold
+
+Startpoint: u_subsys/dma/i2c_cmd[46]
+Endpoint: u_phy/multiplier_z
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1755
+Arrival Time:              5.5438
+Required Time:             5.7193
+Data Type: hold
+
+Startpoint: u_dma/pcs_val
+Endpoint: u_ddrc/regfile_out
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.2739
+Arrival Time:              2.8997
+Required Time:             3.1736
+Data Type: hold
+
+Startpoint: u_subsys/mem/spi_addr
+Endpoint: u_subsys/cpu/uart_out
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0827
+Arrival Time:              3.3411
+Required Time:             3.4237
+Data Type: hold
+
+Startpoint: u_subsys/io/interleaver_p[58]
+Endpoint: u_gpu/comparator_sel[23]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0263
+Arrival Time:              3.9160
+Required Time:             3.8897
+Data Type: hold
+
+Startpoint: u_pll/uart_q
+Endpoint: u_subsys/mem/regfile_prev[56]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0369
+Arrival Time:              3.1908
+Required Time:             3.1538
+Data Type: hold
+
+Startpoint: u_subsys/io/descrambler_d
+Endpoint: u_io/filter_prev[11]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0604
+Arrival Time:              4.6327
+Required Time:             4.5723
+Data Type: hold
+
+Startpoint: u_mem/dcfifo_b
+Endpoint: u_vpu/pma_cmd
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.7291
+Arrival Time:              7.6427
+Required Time:             6.9136
+Data Type: hold
+
+Startpoint: u_noc/timer_addr[58]
+Endpoint: u_pciesub/dma_reg
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0192
+Arrival Time:              7.2646
+Required Time:             7.2453
+Data Type: hold
+
+Startpoint: u_subsys/cpu/dma_cnt[2]
+Endpoint: u_top/fifo_sync_cnt
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0931
+Arrival Time:              7.7302
+Required Time:             7.8234
+Data Type: hold
+
+Startpoint: u_cluster/core1/bridge_q
+Endpoint: u_cluster/core1/i2c_out
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0912
+Arrival Time:              5.0891
+Required Time:             4.9979
+Data Type: hold
+
+Startpoint: u_phy/dcfifo_n
+Endpoint: u_phy/filter_d
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.1904
+Arrival Time:              3.3662
+Required Time:             3.5566
+Data Type: hold
+
+Startpoint: u_cluster/core1/fifo_d[2]
+Endpoint: u_subsys/dma/filter_z[13]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    0.0547
+Arrival Time:              2.0716
+Required Time:             2.1263
+Data Type: hold
+
+Startpoint: u_core/pll_addr
+Endpoint: u_gpu/pma_next
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -0.0139
+Arrival Time:              3.7056
+Required Time:             3.6917
+Data Type: hold
+
+Startpoint: u_arb/dcfifo_state
+Endpoint: u_ddrc/i2c_prev
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    -1.5609
+Arrival Time:              4.8609
+Required Time:             3.2999
+Data Type: hold
+
+Startpoint: u_cache/alu_p[4]
+Endpoint: u_subsys/cpu/pll_b[26]
+Path Group: cpu_clk
+Clock: uart_clk
+----------------------------------------
+Slack:                    3.5216
+Arrival Time:              -1.5991
+Required Time:             1.9225
+Data Type: hold

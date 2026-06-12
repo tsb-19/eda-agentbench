@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -3.5465
+tns: -17.2272
+violating_path_count: 6
+
+Startpoint: u_io/fifo_reg
+Endpoint: u_pll/uart
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.5465
+Arrival Time:              5.0352
+Required Time:             1.4887
+Data Type: hold
+
+Startpoint: u_cache/decoder_data[33]
+Endpoint: u_gpu/scrambler
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.4185
+Arrival Time:              10.5355
+Required Time:             7.1170
+Data Type: hold
+
+Startpoint: u_phy/fifo_addr[32]
+Endpoint: u_ctrl/comparator_sel
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.8266
+Arrival Time:              7.4552
+Required Time:             4.6286
+Data Type: hold
+
+Startpoint: u_pciesub/fifo_async_p[43]
+Endpoint: u_core/sync_reg
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -2.7789
+Arrival Time:              8.7196
+Required Time:             5.9407
+Data Type: hold
+
+Startpoint: u_subsys/dma/converter_b
+Endpoint: u_pll/dll[10]
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -3.0415
+Arrival Time:              7.3129
+Required Time:             4.2714
+Data Type: hold
+
+Startpoint: u_noc/mac_out
+Endpoint: u_vpu/demux_prev
+Path Group: clk_200m
+Clock: i2c_clk
+----------------------------------------
+Slack:                    -1.6152
+Arrival Time:              9.0153
+Required Time:             7.4001
+Data Type: hold

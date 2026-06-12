@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -0.5885
+tns: -1.0311
+violating_path_count: 4
+
+Startpoint: u_core/mac_addr
+Endpoint: u_subsys/mem/pma_p
+Path Group: reg2reg
+Clock: apb_clk
+----------------------------------------
+Slack:                    -0.5885
+Arrival Time:              8.4177
+Required Time:             7.8292
+Data Type: setup
+
+Startpoint: u_io/dcfifo_state[8]
+Endpoint: u_subsys/io/cache_out
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    0.0652
+Arrival Time:              1.9060
+Required Time:             1.9712
+Data Type: setup
+
+Startpoint: u_ctrl/interrupt_ctrl_data
+Endpoint: u_buf/controller_data
+Path Group: reg2reg
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.2181
+Arrival Time:              0.9921
+Required Time:             1.2101
+Data Type: setup
+
+Startpoint: u_phy/mux_addr
+Endpoint: u_cache/rom_ctrl_b[1]
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.0299
+Arrival Time:              1.5454
+Required Time:             1.5155
+Data Type: setup
+
+Startpoint: u_vpu/adder_q
+Endpoint: u_pciesub/async_next
+Path Group: reg2reg
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.1869
+Arrival Time:              5.4881
+Required Time:             5.6749
+Data Type: setup
+
+Startpoint: u_subsys/io/regfile_state[57]
+Endpoint: u_subsys/io/latch_addr
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.0569
+Arrival Time:              2.4630
+Required Time:             2.4061
+Data Type: setup
+
+Startpoint: u_cluster/core1/serdes_prev[51]
+Endpoint: u_ddrc/scrambler_n[8]
+Path Group: noc_clk
+Clock: noc_clk
+----------------------------------------
+Slack:                    -0.3558
+Arrival Time:              6.9995
+Required Time:             6.6437
+Data Type: setup
+
+Startpoint: u_vpu/multiplier_n
+Endpoint: u_ddrc/sync_reg
+Path Group: reg2reg
+Clock: apb_clk
+----------------------------------------
+Slack:                    0.7842
+Arrival Time:              2.2041
+Required Time:             2.9883
+Data Type: setup

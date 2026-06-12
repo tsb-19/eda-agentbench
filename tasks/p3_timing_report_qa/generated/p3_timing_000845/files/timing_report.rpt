@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -4.1233
+tns: -25.0351
+violating_path_count: 7
+
+Startpoint: u_subsys/dma/sync_out
+Endpoint: u_buf/pipeline_state
+Path Group: reg2out
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -4.1233
+Arrival Time:              11.5603
+Required Time:             7.4370
+Data Type: setup
+
+Startpoint: u_cache/regfile_p[47]
+Endpoint: u_bus/fifo_n
+Path Group: axi_clk
+Clock: axi_clk
+----------------------------------------
+Slack:                    -3.9860
+Arrival Time:              6.8198
+Required Time:             2.8338
+Data Type: setup
+
+Startpoint: u_buf/uart_b
+Endpoint: u_cluster/core1/timer_p
+Path Group: reg2out
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.4700
+Arrival Time:              10.9168
+Required Time:             7.4468
+Data Type: setup
+
+Startpoint: u_vpu/watchdog_cnt
+Endpoint: u_io/uart_val
+Path Group: reg2out
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -2.5956
+Arrival Time:              4.7886
+Required Time:             2.1930
+Data Type: setup
+
+Startpoint: u_subsys/cpu/pcs_cmd
+Endpoint: u_ddrc/phy_n
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -3.0210
+Arrival Time:              7.5714
+Required Time:             4.5505
+Data Type: setup
+
+Startpoint: u_cluster/core1/cache_in
+Endpoint: u_mem/cache_cnt
+Path Group: reg2out
+Clock: pcie_clk
+----------------------------------------
+Slack:                    -3.9931
+Arrival Time:              6.3814
+Required Time:             2.3882
+Data Type: setup
+
+Startpoint: u_mem/watchdog
+Endpoint: u_phy/timer_in
+Path Group: clk_200m
+Clock: clk_200m
+----------------------------------------
+Slack:                    -3.8461
+Arrival Time:              5.0109
+Required Time:             1.1648
+Data Type: setup

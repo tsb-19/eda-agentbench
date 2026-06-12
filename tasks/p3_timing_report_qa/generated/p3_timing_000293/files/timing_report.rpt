@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -4.6640
+tns: -26.6255
+violating_path_count: 7
+
+Startpoint: u_ctrl/pcs_reg[0]
+Endpoint: u_pciesub/adder_b
+Path Group: in2out
+Clock: clk
+----------------------------------------
+Slack:                    -4.6640
+Arrival Time:              11.2939
+Required Time:             6.6299
+Data Type: hold
+
+Startpoint: u_ctrl/adder_q[59]
+Endpoint: u_subsys/cpu/multiplier_p
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.8117
+Arrival Time:              10.3676
+Required Time:             6.5559
+Data Type: hold
+
+Startpoint: u_subsys/mem/async_p
+Endpoint: u_dsp/fifo_sync_d
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.3026
+Arrival Time:              5.6339
+Required Time:             2.3313
+Data Type: hold
+
+Startpoint: u_vpu/datapath_in
+Endpoint: u_buf/shifter_p
+Path Group: in2out
+Clock: clk
+----------------------------------------
+Slack:                    -4.0461
+Arrival Time:              10.7757
+Required Time:             6.7295
+Data Type: hold
+
+Startpoint: u_core/i2c_b
+Endpoint: u_subsys/dma/mux_prev
+Path Group: in2out
+Clock: clk
+----------------------------------------
+Slack:                    -3.9846
+Arrival Time:              8.4412
+Required Time:             4.4566
+Data Type: hold
+
+Startpoint: u_cache/fifo_async_sel
+Endpoint: u_ddrc/spi_data
+Path Group: spi_clk
+Clock: spi_clk
+----------------------------------------
+Slack:                    -3.1333
+Arrival Time:              9.9862
+Required Time:             6.8529
+Data Type: hold
+
+Startpoint: u_arb/controller_d[54]
+Endpoint: u_noc/filter_sel[32]
+Path Group: in2out
+Clock: clk
+----------------------------------------
+Slack:                    -3.6832
+Arrival Time:              8.6191
+Required Time:             4.9359
+Data Type: hold

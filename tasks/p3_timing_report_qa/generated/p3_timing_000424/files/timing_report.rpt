@@ -1,0 +1,48 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 4
+
+wns: -3.2797
+tns: -11.3129
+violating_path_count: 4
+
+Startpoint: u_vpu/fifo_sync_state
+Endpoint: u_subsys/io/regfile_q
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -3.2797
+Arrival Time:              8.7020
+Required Time:             5.4223
+Data Type: hold
+
+Startpoint: u_phy/dll_out
+Endpoint: u_pciesub/fifo_async_cnt[51]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.8863
+Arrival Time:              6.5945
+Required Time:             3.7082
+Data Type: hold
+
+Startpoint: u_bus/ram_ctrl_reg
+Endpoint: u_io/regfile_p[9]
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -3.1732
+Arrival Time:              5.6616
+Required Time:             2.4884
+Data Type: hold
+
+Startpoint: u_serdes/sync_reg
+Endpoint: u_noc/rom_ctrl_addr
+Path Group: clk_core
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.9737
+Arrival Time:              9.0055
+Required Time:             7.0318
+Data Type: hold

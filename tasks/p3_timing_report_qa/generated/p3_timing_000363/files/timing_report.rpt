@@ -1,0 +1,108 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 10
+
+wns: -3.3900
+tns: -23.8940
+violating_path_count: 10
+
+Startpoint: u_cluster/core0/mux_p[14]
+Endpoint: u_gpu/adder_data
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -3.3900
+Arrival Time:              5.8760
+Required Time:             2.4860
+Data Type: setup
+
+Startpoint: u_noc/dma_ctrl_state[13]
+Endpoint: u_cache/pma_sel
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.6829
+Arrival Time:              9.5843
+Required Time:             6.9014
+Data Type: setup
+
+Startpoint: u_io/cache_z[0]
+Endpoint: u_pciesub/fifo_async_next[50]
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.8292
+Arrival Time:              10.4445
+Required Time:             7.6154
+Data Type: setup
+
+Startpoint: u_ctrl/ram_ctrl_addr
+Endpoint: u_pciesub/phy_in
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.1707
+Arrival Time:              4.1281
+Required Time:             1.9574
+Data Type: setup
+
+Startpoint: u_subsys/dma/descrambler_b
+Endpoint: u_noc/spi_n
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.3363
+Arrival Time:              8.6105
+Required Time:             6.2742
+Data Type: setup
+
+Startpoint: u_noc/encoder_next
+Endpoint: u_top/serdes_d
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.4517
+Arrival Time:              5.1156
+Required Time:             4.6639
+Data Type: setup
+
+Startpoint: u_gpu/mux_cnt[20]
+Endpoint: u_subsys/cpu/async_addr[32]
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.8200
+Arrival Time:              5.4644
+Required Time:             2.6444
+Data Type: setup
+
+Startpoint: u_bus/filter_addr[38]
+Endpoint: u_subsys/dma/uart
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.4164
+Arrival Time:              5.2560
+Required Time:             3.8397
+Data Type: setup
+
+Startpoint: u_subsys/dma/crc_next
+Endpoint: u_mem/bridge_en
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -3.0906
+Arrival Time:              10.7310
+Required Time:             7.6404
+Data Type: setup
+
+Startpoint: u_subsys/cpu/arbiter_sel[2]
+Endpoint: u_ddrc/dll
+Path Group: clk_dsp
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -2.7062
+Arrival Time:              6.2566
+Required Time:             3.5503
+Data Type: setup

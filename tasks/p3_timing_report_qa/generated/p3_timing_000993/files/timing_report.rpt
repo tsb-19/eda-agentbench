@@ -1,0 +1,258 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 25
+
+wns: -2.8737
+tns: -21.6709
+violating_path_count: 14
+
+Startpoint: u_subsys/dma/demux_p
+Endpoint: u_bus/filter_sel
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.8737
+Arrival Time:              6.6769
+Required Time:             3.8032
+Data Type: setup
+
+Startpoint: u_subsys/mem/regfile_data[4]
+Endpoint: u_arb/serdes
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.0962
+Arrival Time:              5.9503
+Required Time:             3.8541
+Data Type: setup
+
+Startpoint: u_subsys/dma/adder_prev
+Endpoint: u_subsys/cpu/bridge_out
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.9071
+Arrival Time:              7.1532
+Required Time:             5.2461
+Data Type: setup
+
+Startpoint: u_gpu/demux_addr[18]
+Endpoint: u_cache/phy_b
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.3697
+Arrival Time:              4.4462
+Required Time:             3.0766
+Data Type: setup
+
+Startpoint: u_cluster/l2/demux_d[27]
+Endpoint: u_subsys/dma/ram_ctrl_state
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.5639
+Arrival Time:              6.1217
+Required Time:             3.5578
+Data Type: setup
+
+Startpoint: u_cache/ecc_data
+Endpoint: u_serdes/bridge_sel
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.2266
+Arrival Time:              7.8593
+Required Time:             7.6327
+Data Type: setup
+
+Startpoint: u_subsys/cpu/serdes_next
+Endpoint: u_serdes/sampler_cmd
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.1165
+Arrival Time:              9.9958
+Required Time:             7.8792
+Data Type: setup
+
+Startpoint: u_noc/spi[53]
+Endpoint: u_cluster/core1/encoder_b[35]
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.0795
+Arrival Time:              7.8539
+Required Time:             7.9334
+Data Type: setup
+
+Startpoint: u_ddrc/watchdog_state
+Endpoint: u_cluster/core1/encoder_sel
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.3994
+Arrival Time:              3.2098
+Required Time:             2.8104
+Data Type: setup
+
+Startpoint: u_mac/async_p
+Endpoint: u_gpu/crc_state[36]
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.4803
+Arrival Time:              6.7785
+Required Time:             6.2982
+Data Type: setup
+
+Startpoint: u_subsys/dma/sampler_addr
+Endpoint: u_io/rom_ctrl_out
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.0381
+Arrival Time:              5.5891
+Required Time:             3.5511
+Data Type: setup
+
+Startpoint: u_buf/comparator_state
+Endpoint: u_vpu/rom_ctrl_val
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2114
+Arrival Time:              3.0668
+Required Time:             3.2781
+Data Type: setup
+
+Startpoint: u_phy/pipeline_cmd
+Endpoint: u_cluster/core1/encoder_cnt
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.1582
+Arrival Time:              5.1195
+Required Time:             3.9613
+Data Type: setup
+
+Startpoint: u_pll/dac_q[63]
+Endpoint: u_subsys/dma/serdes_data
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2608
+Arrival Time:              6.9196
+Required Time:             7.1804
+Data Type: setup
+
+Startpoint: u_subsys/dma/pipeline_data[3]
+Endpoint: u_top/fifo_p[19]
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1919
+Arrival Time:              4.5801
+Required Time:             4.7720
+Data Type: setup
+
+Startpoint: u_pciesub/fifo_async_cmd
+Endpoint: u_cluster/core0/regfile_data[52]
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2905
+Arrival Time:              7.0577
+Required Time:             7.3482
+Data Type: setup
+
+Startpoint: u_subsys/cpu/arbiter_z
+Endpoint: u_io/interrupt_ctrl_b
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -2.2645
+Arrival Time:              8.0339
+Required Time:             5.7694
+Data Type: setup
+
+Startpoint: u_cluster/core0/descrambler_cnt[27]
+Endpoint: u_noc/descrambler_z
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1080
+Arrival Time:              6.3459
+Required Time:             6.4539
+Data Type: setup
+
+Startpoint: u_subsys/dma/mac_cnt
+Endpoint: u_cluster/core1/pcs_val[9]
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -0.4916
+Arrival Time:              2.1646
+Required Time:             1.6731
+Data Type: setup
+
+Startpoint: u_dma/alu_b
+Endpoint: u_cache/rom_ctrl
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1425
+Arrival Time:              7.6379
+Required Time:             7.7804
+Data Type: setup
+
+Startpoint: u_arb/serdes_d[47]
+Endpoint: u_phy/adc_in
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2104
+Arrival Time:              7.1093
+Required Time:             7.3197
+Data Type: setup
+
+Startpoint: u_phy/fifo_async_cmd
+Endpoint: u_dma/multiplier_en
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1164
+Arrival Time:              3.2655
+Required Time:             3.3819
+Data Type: setup
+
+Startpoint: u_ctrl/ecc_data
+Endpoint: u_cluster/core0/rom_ctrl_reg
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.2790
+Arrival Time:              4.8620
+Required Time:             5.1410
+Data Type: setup
+
+Startpoint: u_vpu/rom_ctrl
+Endpoint: u_vpu/sync_sel
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    0.1512
+Arrival Time:              5.5970
+Required Time:             5.7482
+Data Type: setup
+
+Startpoint: u_phy/dll_n
+Endpoint: u_top/dma_ctrl_reg
+Path Group: cpu_clk
+Clock: eth_clk
+----------------------------------------
+Slack:                    -1.6851
+Arrival Time:              3.0016
+Required Time:             1.3164
+Data Type: setup

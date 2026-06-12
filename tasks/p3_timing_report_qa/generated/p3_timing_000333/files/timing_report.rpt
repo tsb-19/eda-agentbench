@@ -1,0 +1,88 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 8
+
+wns: -4.8097
+tns: -31.3428
+violating_path_count: 8
+
+Startpoint: u_noc/crc_en[63]
+Endpoint: u_mem/shifter_in[57]
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -4.8097
+Arrival Time:              7.1028
+Required Time:             2.2931
+Data Type: hold
+
+Startpoint: u_gpu/comparator_z
+Endpoint: u_pll/ecc_state
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -4.4304
+Arrival Time:              6.1043
+Required Time:             1.6740
+Data Type: hold
+
+Startpoint: u_buf/interleaver_out[34]
+Endpoint: u_mac/controller_cnt
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -4.3426
+Arrival Time:              5.5140
+Required Time:             1.1713
+Data Type: hold
+
+Startpoint: u_core/pma_p
+Endpoint: u_subsys/mem/filter_q
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -4.1374
+Arrival Time:              6.9875
+Required Time:             2.8502
+Data Type: hold
+
+Startpoint: u_subsys/mem/ecc_next
+Endpoint: u_ctrl/ram_ctrl_reg
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.5622
+Arrival Time:              6.3621
+Required Time:             2.7999
+Data Type: hold
+
+Startpoint: u_ddrc/i2c_en[24]
+Endpoint: u_subsys/cpu/sampler_reg
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -4.2887
+Arrival Time:              9.8745
+Required Time:             5.5858
+Data Type: hold
+
+Startpoint: u_bus/ecc_b
+Endpoint: u_pciesub/fifo_sync[28]
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -2.2779
+Arrival Time:              7.0968
+Required Time:             4.8189
+Data Type: hold
+
+Startpoint: u_arb/descrambler_val[43]
+Endpoint: u_core/dma_ctrl_next
+Path Group: clk
+Clock: ref_clk
+----------------------------------------
+Slack:                    -3.4939
+Arrival Time:              4.5877
+Required Time:             1.0937
+Data Type: hold

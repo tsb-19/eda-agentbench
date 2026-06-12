@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -1.6297
+tns: -3.1665
+violating_path_count: 3
+
+Startpoint: u_subsys/io/crc
+Endpoint: u_pciesub/converter_in[44]
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -1.6297
+Arrival Time:              9.2756
+Required Time:             7.6459
+Data Type: hold
+
+Startpoint: u_gpu/buffer_q
+Endpoint: u_noc/pll_cmd
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.8280
+Arrival Time:              5.6563
+Required Time:             4.8283
+Data Type: hold
+
+Startpoint: u_dma/pipeline_val
+Endpoint: u_phy/dll_b
+Path Group: clk_io
+Clock: cpu_clk
+----------------------------------------
+Slack:                    -0.7088
+Arrival Time:              3.6990
+Required Time:             2.9902
+Data Type: hold

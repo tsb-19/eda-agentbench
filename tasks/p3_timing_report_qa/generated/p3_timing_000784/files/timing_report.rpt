@@ -1,0 +1,38 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 3
+
+wns: -1.4833
+tns: -3.3060
+violating_path_count: 3
+
+Startpoint: u_noc/decoder_out
+Endpoint: u_serdes/pll_cmd
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -1.4833
+Arrival Time:              9.4350
+Required Time:             7.9517
+Data Type: hold
+
+Startpoint: u_core/datapath_p
+Endpoint: u_bus/regfile_cnt
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -1.3087
+Arrival Time:              7.1904
+Required Time:             5.8816
+Data Type: hold
+
+Startpoint: u_serdes/mux_reg[58]
+Endpoint: u_pciesub/i2c_next[59]
+Path Group: clk_dsp
+Clock: clk_100m
+----------------------------------------
+Slack:                    -0.5140
+Arrival Time:              2.6507
+Required Time:             2.1367
+Data Type: hold

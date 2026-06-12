@@ -1,0 +1,68 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 6
+
+wns: -1.9305
+tns: -9.4368
+violating_path_count: 6
+
+Startpoint: u_cache/decoder_en
+Endpoint: u_vpu/comparator_val
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.9305
+Arrival Time:              4.7683
+Required Time:             2.8378
+Data Type: setup
+
+Startpoint: u_subsys/mem/encoder_cnt[16]
+Endpoint: u_ddrc/filter_prev
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.8341
+Arrival Time:              9.1194
+Required Time:             7.2853
+Data Type: setup
+
+Startpoint: u_pll/adc_en
+Endpoint: u_top/dma_ctrl_data[15]
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.5314
+Arrival Time:              2.9981
+Required Time:             1.4667
+Data Type: setup
+
+Startpoint: u_phy/crc_cmd
+Endpoint: u_core/cache_cmd
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.2941
+Arrival Time:              4.5721
+Required Time:             3.2780
+Data Type: setup
+
+Startpoint: u_subsys/mem/cache_data
+Endpoint: u_dma/i2c_cmd
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.6462
+Arrival Time:              5.6939
+Required Time:             4.0477
+Data Type: setup
+
+Startpoint: u_ddrc/adder_q
+Endpoint: u_io/buffer_val[62]
+Path Group: cpu_clk
+Clock: ahb_clk
+----------------------------------------
+Slack:                    -1.2005
+Arrival Time:              5.5267
+Required Time:             4.3262
+Data Type: setup

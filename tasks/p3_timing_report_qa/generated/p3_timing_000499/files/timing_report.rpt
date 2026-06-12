@@ -1,0 +1,58 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 5
+
+wns: -2.6134
+tns: -9.0339
+violating_path_count: 5
+
+Startpoint: u_subsys/mem/bridge_q
+Endpoint: u_serdes/interrupt_ctrl_cmd
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.6134
+Arrival Time:              4.5384
+Required Time:             1.9250
+Data Type: hold
+
+Startpoint: u_ctrl/ram_ctrl_val
+Endpoint: u_subsys/dma/regfile_d
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.1782
+Arrival Time:              9.1734
+Required Time:             6.9952
+Data Type: hold
+
+Startpoint: u_pll/spi_p[15]
+Endpoint: u_gpu/converter_state
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -1.3927
+Arrival Time:              9.3874
+Required Time:             7.9947
+Data Type: hold
+
+Startpoint: u_ddrc/ram_ctrl_addr
+Endpoint: u_bus/scrambler_sel
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -0.6136
+Arrival Time:              5.5057
+Required Time:             4.8921
+Data Type: hold
+
+Startpoint: u_subsys/mem/watchdog_reg
+Endpoint: u_cluster/l2/decoder_b
+Path Group: clk_io
+Clock: usb_clk
+----------------------------------------
+Slack:                    -2.2360
+Arrival Time:              5.6410
+Required Time:             3.4050
+Data Type: hold

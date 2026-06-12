@@ -1,0 +1,118 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 11
+
+wns: -2.8341
+tns: -11.7352
+violating_path_count: 7
+
+Startpoint: u_dma/controller_addr
+Endpoint: u_cluster/core0/controller_prev
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.8341
+Arrival Time:              5.7976
+Required Time:             2.9635
+Data Type: hold
+
+Startpoint: u_ctrl/pipeline_next[56]
+Endpoint: u_core/shifter_d[4]
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.3566
+Arrival Time:              7.1419
+Required Time:             4.7853
+Data Type: hold
+
+Startpoint: u_subsys/dma/pipeline_data
+Endpoint: u_bus/i2c_out
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -2.7091
+Arrival Time:              5.5834
+Required Time:             2.8743
+Data Type: hold
+
+Startpoint: u_cluster/core1/spi_n
+Endpoint: u_subsys/cpu/fifo_z
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.3863
+Arrival Time:              6.5889
+Required Time:             5.2026
+Data Type: hold
+
+Startpoint: u_phy/filter_next
+Endpoint: u_buf/mac_in
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.0765
+Arrival Time:              5.4154
+Required Time:             4.3389
+Data Type: hold
+
+Startpoint: u_subsys/mem/bridge_addr[0]
+Endpoint: u_pll/regfile_reg
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -0.1195
+Arrival Time:              5.9942
+Required Time:             5.8746
+Data Type: hold
+
+Startpoint: u_core/bridge_reg
+Endpoint: u_noc/pll_val[56]
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.0801
+Arrival Time:              2.0282
+Required Time:             2.1084
+Data Type: hold
+
+Startpoint: u_dsp/ram_ctrl_q[7]
+Endpoint: u_mem/ram_ctrl_prev[26]
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    -1.2531
+Arrival Time:              4.7310
+Required Time:             3.4779
+Data Type: hold
+
+Startpoint: u_buf/descrambler_data
+Endpoint: u_subsys/mem/ecc_sel[33]
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2171
+Arrival Time:              5.2408
+Required Time:             5.4579
+Data Type: hold
+
+Startpoint: u_dma/regfile_n[2]
+Endpoint: u_cluster/l2/dma_ctrl[21]
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    0.2427
+Arrival Time:              1.0697
+Required Time:             1.3124
+Data Type: hold
+
+Startpoint: u_noc/ram_ctrl_d
+Endpoint: u_dma/comparator_cnt
+Path Group: clk_200m
+Clock: sys_clk
+----------------------------------------
+Slack:                    1.5438
+Arrival Time:              6.2233
+Required Time:             7.7671
+Data Type: hold

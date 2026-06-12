@@ -1,0 +1,78 @@
+**** Report : timing
+    -path_type full
+    -delay_type max
+    -max_paths 7
+
+wns: -2.7461
+tns: -10.0758
+violating_path_count: 6
+
+Startpoint: u_io/pma
+Endpoint: u_cluster/core0/dma_ctrl_out[21]
+Path Group: clk_100m
+Clock: clk_core
+----------------------------------------
+Slack:                    -2.7461
+Arrival Time:              5.4400
+Required Time:             2.6939
+Data Type: setup
+
+Startpoint: u_subsys/io/interleaver_addr
+Endpoint: u_gpu/interrupt_ctrl_p
+Path Group: clk_25m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -2.2404
+Arrival Time:              9.7471
+Required Time:             7.5067
+Data Type: setup
+
+Startpoint: u_core/descrambler_d
+Endpoint: u_ctrl/rom_ctrl_sel
+Path Group: clk_25m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.2618
+Arrival Time:              5.6042
+Required Time:             4.3424
+Data Type: setup
+
+Startpoint: u_phy/converter_data
+Endpoint: u_io/datapath_cnt[47]
+Path Group: clk_25m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.3846
+Arrival Time:              9.1818
+Required Time:             7.7971
+Data Type: setup
+
+Startpoint: u_io/adc_n
+Endpoint: u_dsp/controller_n
+Path Group: clk_25m
+Clock: clk_25m
+----------------------------------------
+Slack:                    -1.6770
+Arrival Time:              9.2701
+Required Time:             7.5930
+Data Type: setup
+
+Startpoint: u_vpu/mux_q
+Endpoint: u_cluster/l2/serdes_cnt[20]
+Path Group: clk_100m
+Clock: clk_core
+----------------------------------------
+Slack:                    0.1096
+Arrival Time:              1.3908
+Required Time:             1.5004
+Data Type: setup
+
+Startpoint: u_subsys/cpu/serdes_out
+Endpoint: u_pll/fifo_sync_q
+Path Group: clk_100m
+Clock: clk_core
+----------------------------------------
+Slack:                    -0.7659
+Arrival Time:              5.6214
+Required Time:             4.8555
+Data Type: setup
