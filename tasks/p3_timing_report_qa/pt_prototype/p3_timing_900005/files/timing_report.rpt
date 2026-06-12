@@ -1,0 +1,30 @@
+Information: Timer using 'POSIX' clock source. (TIM-211)
+
+**** Report : timing
+        -path_type full
+        -delay_type max
+        -max_paths 3
+
+Startpoint: u_top/ctrl/state_reg
+Endpoint: data_out[0]
+Path Group: reg2out
+Clock: clk
+----------------------------------------
+Slack:                    -0.0050
+Arrival Time:              0.5050
+Required Time:             0.5000
+Data Type: setup
+
+Startpoint: u_top/ctrl/state_reg
+Endpoint: data_out[1]
+Path Group: reg2out
+Clock: clk
+----------------------------------------
+Slack:                     0.0220
+Arrival Time:              0.4780
+Required Time:             0.5000
+Data Type: setup
+
+wns: -0.0050
+tns: -0.0050
+violating_path_count: 1

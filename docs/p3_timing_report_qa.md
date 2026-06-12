@@ -72,10 +72,52 @@ Options:
 bash scripts/run_p3_smoke.sh
 ```
 
+## PrimeTime Prototype (Phase 5E)
+
+A small set of prototype tasks backed by real or handcrafted PrimeTime reports.
+Stored under `tasks/p3_timing_report_qa/pt_prototype/` (8 tasks, IDs 900000–900007).
+
+These tasks use the same schema, evaluator, and parser as synthetic P3 tasks.
+The difference is that reports include realistic PrimeTime informational lines
+and are sanitized via `LogSanitizer` before storage.
+
+### Generation
+
+```bash
+# Handcrafted (no PrimeTime required)
+python3 scripts/generate_pt_report_prototypes.py --mode handcrafted --seed 42
+
+# Real PrimeTime (requires pt_shell)
+python3 scripts/generate_pt_report_prototypes.py --mode real --seed 42
+```
+
+### Smoke Test
+
+```bash
+bash scripts/run_pt_report_smoke.sh
+```
+
+The smoke script checks PrimeTime availability and skips gracefully if unavailable.
+
+### Question Types Covered
+
+| Index | Scenario | Question Type |
+|-------|----------|---------------|
+| 900000 | Simple reg2reg setup path | wns |
+| 900001 | Multi-path, 3 violating | tns |
+| 900002 | Combinational in2reg path | worst_endpoint |
+| 900003 | Clock domain crossing | worst_startpoint |
+| 900004 | Hold violation path | violating_paths |
+| 900005 | Reg2out path group | path_group |
+| 900006 | Multi-clock design | clock_name |
+| 900007 | Deep combinational path | arrival_time |
+
 ## Scope
 
-- No PrimeTime invocation (synthetic normalized reports only)
-- 1 smoke task + 999 generated tasks (1000 total)
+- No PrimeTime invocation for synthetic tasks (synthetic normalized reports only)
+- 1 smoke task + 999 generated tasks (1000 synthetic total)
+- 8 PrimeTime prototype tasks (900000–900007, handcrafted or real PT-backed)
+- 1008 P3 tasks total
 - 10 question types with round-robin distribution (99–100 each)
 - 30 unique clocks, 15 path groups, ~30% multi-clock reports
 - Path counts 3–50, WNS range -5.0 to -0.01, TNS range -75 to -0.3
