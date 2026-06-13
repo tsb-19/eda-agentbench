@@ -1,15 +1,15 @@
 # EDA-AgentBench — Baseline Results
 
 **Date:** 2026-06-13  
-**Commit:** `756adb9`  
+**Commit:** `4a8f141`  
 **Sampling:** sample_per_track=1, seed=123
 
 ## Overview
 
 | Mode | Tasks Evaluated | Avg Score | Pass Rate |
 |------|----------------|-----------|-----------|
-| solution | 7 | 1.0000 | 1.0000 |
-| buggy | 7 | 0.2476 | 0.2857 |
+| solution | 9 | 1.0000 | 1.0000 |
+| buggy | 9 | 0.2148 | 0.2222 |
 
 ## Per-Track Breakdown
 
@@ -24,6 +24,8 @@
 | P5 SPICE Deck Debug | 1 | 1.0000 | 1.0000 |
 | p6_dc_constraint_debug | 1 | 1.0000 | 1.0000 |
 | p6_dc_synthesis_qa | 1 | 1.0000 | 1.0000 |
+| p7_primetime_sta_debug | 1 | 1.0000 | 1.0000 |
+| p7_spyglass_lint_debug | 1 | 1.0000 | 1.0000 |
 
 ### Buggy Mode
 
@@ -36,6 +38,8 @@
 | P5 SPICE Deck Debug | 1 | 0.1000 | 0.0000 |
 | p6_dc_constraint_debug | 1 | 0.1000 | 0.0000 |
 | p6_dc_synthesis_qa | 1 | 0.0000 | 0.0000 |
+| p7_primetime_sta_debug | 1 | 0.1000 | 0.0000 |
+| p7_spyglass_lint_debug | 1 | 0.1000 | 0.0000 |
 
 ## Score Distribution
 
@@ -43,7 +47,7 @@
 
 | Bucket | Count |
 |--------|------:|
-| 1.0 | 7 |
+| 1.0 | 9 |
 | [0.8,1.0) | 0 |
 | [0.5,0.8) | 0 |
 | <0.5 | 0 |
@@ -55,7 +59,7 @@
 | 1.0 | 0 |
 | [0.8,1.0) | 0 |
 | [0.5,0.8) | 2 |
-| <0.5 | 5 |
+| <0.5 | 7 |
 
 ## Interpretation
 

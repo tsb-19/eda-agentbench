@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2592  
-**Tracks:** 8  
+**Total tasks:** 2609  
+**Tracks:** 9  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -16,8 +16,9 @@
 | P5 SPICE Deck Debug | 100 |
 | P6 DC Constraint Debug | 13 |
 | P6 DC Synthesis QA | 51 |
+| P7 PrimeTime STA Debug | 17 |
 | P7 SpyGlass Lint Debug | 16 |
-| **Total** | **2592** |
+| **Total** | **2609** |
 
 ## Tool Distribution
 
@@ -25,7 +26,7 @@
 |------|----------:|
 | dc | 64 |
 | hspice | 251 |
-| pt | 1008 |
+| pt | 1025 |
 | spectre | 151 |
 | spyglass | 16 |
 | vcs | 1102 |
@@ -34,9 +35,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1307 |
+| easy | 1320 |
 | hard | 407 |
-| medium | 878 |
+| medium | 882 |
 
 ## Data Type Distribution
 
@@ -44,7 +45,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1390 |
+| template_synthetic | 1407 |
 
 ## Scoring Methodology
 
@@ -61,6 +62,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
 | P6 DC Constraint Debug | `constraint_pass:0.6|execution_pass:0.3|explanation:0.1` |
 | P6 DC Synthesis QA | `answer_match:1.0` |
+| P7 PrimeTime STA Debug | `execution_pass:0.3|explanation:0.1|timing_check:0.6` |
 | P7 SpyGlass Lint Debug | `explanation:0.1|lint_pass:0.9` |
 
 ## Public / Private Split
@@ -110,14 +112,16 @@ P5 tasks are flow_synthetic — they originate from real HSPICE error logs.
 
 ## Known Limitations
 
-- No agentic runner yet — evaluation uses pre-computed submissions
+- Agentic runner MVP available (run-agent, run-agent-dataset); single shell-command agent interface
 - No LLM API integration — benchmark is offline evaluation only
 - P4 tasks are RC-filter circuits only; no complex analog designs
 - P5 is limited to 100 tasks (imported from external bundle)
 - P3 synthetic reports are template-based, not from real synthesis runs
 - P6 DC Synthesis QA is a prototype (51 tasks)
 - P6 DC Constraint Debug is a prototype (13 tasks)
-- No P7 (physical) track yet
+- P7 SpyGlass Lint Debug is a prototype (16 tasks)
+- P7 PrimeTime STA Debug is a prototype (17 tasks)
+- No P8 (physical) track yet
 
 ## Generated Artifacts
 

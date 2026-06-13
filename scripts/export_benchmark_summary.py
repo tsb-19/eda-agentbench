@@ -35,6 +35,7 @@ TRACK_DISPLAY = {
     "p6_dc_synthesis_qa": "P6 DC Synthesis QA",
     "p6_dc_constraint_debug": "P6 DC Constraint Debug",
     "p7_spyglass_lint_debug": "P7 SpyGlass Lint Debug",
+    "p7_primetime_sta_debug": "P7 PrimeTime STA Debug",
 }
 
 LEADERBOARD_COLUMNS = [
@@ -416,14 +417,16 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
         "",
         "## Known Limitations",
         "",
-        "- No agentic runner yet — evaluation uses pre-computed submissions",
+        "- Agentic runner MVP available (run-agent, run-agent-dataset); single shell-command agent interface",
         "- No LLM API integration — benchmark is offline evaluation only",
         "- P4 tasks are RC-filter circuits only; no complex analog designs",
         "- P5 is limited to 100 tasks (imported from external bundle)",
         "- P3 synthetic reports are template-based, not from real synthesis runs",
         "- P6 DC Synthesis QA is a prototype (51 tasks)",
         "- P6 DC Constraint Debug is a prototype (13 tasks)",
-        "- No P7 (physical) track yet",
+        "- P7 SpyGlass Lint Debug is a prototype (16 tasks)",
+        "- P7 PrimeTime STA Debug is a prototype (17 tasks)",
+        "- No P8 (physical) track yet",
         "",
         "## Generated Artifacts",
         "",
