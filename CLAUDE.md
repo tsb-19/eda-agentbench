@@ -24,14 +24,16 @@ Phase 6 scaled P4 to 302 tasks (3 circuit types), added P6 DC Synthesis QA (51 t
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
 | P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 reliable bug categories) |
+| P7 PrimeTime STA Debug | 21 | pt | 1 smoke + 20 generated (5 reliable bug categories) |
 
 Key results:
 - pytest: all pass
-- Solution mode: 2576/2576 = 1.00
-- Buggy mode: 2576/2576 all < 1.0
+- Solution mode: 2597/2597 = 1.00
+- Buggy mode: 2597/2597 all < 1.0
 - P6 DC Constraint accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P6 is parser-based QA, no DC execution required
+- P7 PrimeTime STA Debug is execution-based, uses structural netlists for PT
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
 P2 scaled to 101 tasks (10 templates, 20 mutant variants) in Phase 5B.

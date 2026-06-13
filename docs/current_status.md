@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 6 — P4 scaled + P6 DC QA + baseline runner
+**Phase**: 7B — PrimeTime STA Debug prototype
 
 ## Task Inventory
 
@@ -12,7 +12,9 @@
 | P4 SPICE Sim | 302 | HSPICE, Spectre | 2 smoke + 300 generated (3 circuit types) |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
-| **Total** | **2563** | | |
+| P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 bug categories) |
+| P7 PrimeTime STA Debug | 21 | pt | 1 smoke + 20 generated (5 bug categories) |
+| **Total** | **2597** | | |
 
 ## P1 Bug Type Distribution
 

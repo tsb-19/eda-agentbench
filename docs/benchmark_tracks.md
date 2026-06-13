@@ -9,6 +9,9 @@
 | P3 Timing Report QA | `p3_timing_report_qa` | 1008 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 302 | HSPICE, Spectre | Metric-driven RC/RLC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 100 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
+| P6 DC Synthesis QA | `p6_dc_synthesis_qa` | 51 | dc (synthetic) | DC synthesis report QA | Answer match |
+| P6 DC Constraint Debug | `p6_dc_constraint_debug` | 13 | dc | SDC constraint debug for DC | Constraint pass + execution pass + explanation |
+| P7 PrimeTime STA Debug | `p7_primetime_sta_debug` | 21 | pt | SDC constraint debug for PrimeTime | Timing check + execution pass + explanation |
 
 ## P1: RTL Debug
 
@@ -199,6 +202,34 @@ Buggy versions have R_bug (4-20x too high), solutions have R_sol (correct value)
 | invalid_directive | 14 | Malformed .include (no filename) |
 
 **Why exact diff is not required**: A SPICE deck can be fixed in multiple valid ways. Any syntactically valid fix that HSPICE can execute is accepted.
+
+## P7: PrimeTime STA Debug
+
+**Goal**: Fix a buggy SDC constraint file so PrimeTime STA timing checks pass.
+
+**What it measures**: The agent's ability to diagnose SDC constraint bugs using PrimeTime timing analysis feedback and produce correct constraint repairs.
+
+**Task structure**:
+- `design.v` — RTL design (visible, read-only)
+- `constraints.sdc` — buggy SDC (visible, editable)
+- `run_public.sh` / `run_public.tcl` — PrimeTime validation scripts
+- `hidden/design_netlist.v` — structural netlist for PrimeTime
+
+**Bug types** (5 reliable categories):
+
+| Bug Type | Description | Difficulty |
+|----------|-------------|------------|
+| missing_clock | Missing `create_clock` definition | easy |
+| wrong_port_name | Typo in port reference | easy |
+| wrong_period | Incorrect clock period (10x off) | medium |
+| syntax_error | Missing bracket in SDC | easy |
+| invalid_get_ports | Nonexistent port pattern | medium |
+
+**Scoring**: timing_check (0.6) + execution_pass (0.3) + explanation (0.1)
+
+**Design templates**: counter, fsm_ctrl, adder_pipe, mux_reg (4 RTL templates with structural netlists)
+
+**PrimeTime integration**: Uses structural Verilog netlists (DFFX1 primitives) read via `read_verilog` + `link_design`. Graceful skip if pt_shell unavailable.
 
 ## Future Tracks (Planned)
 

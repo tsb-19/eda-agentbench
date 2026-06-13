@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2576  
-**Tracks:** 7  
+**Total tasks:** 2597  
+**Tracks:** 8  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -16,7 +16,8 @@
 | P5 SPICE Deck Debug | 100 |
 | P6 DC Constraint Debug | 13 |
 | P6 DC Synthesis QA | 51 |
-| **Total** | **2576** |
+| P7 PrimeTime STA Debug | 21 |
+| **Total** | **2597** |
 
 ## Tool Distribution
 
@@ -24,7 +25,7 @@
 |------|----------:|
 | dc | 64 |
 | hspice | 251 |
-| pt | 1008 |
+| pt | 1029 |
 | spectre | 151 |
 | vcs | 1102 |
 
@@ -32,9 +33,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1301 |
+| easy | 1314 |
 | hard | 407 |
-| medium | 868 |
+| medium | 876 |
 
 ## Data Type Distribution
 
@@ -42,7 +43,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1374 |
+| template_synthetic | 1395 |
 
 ## Scoring Methodology
 
@@ -59,6 +60,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
 | P6 DC Constraint Debug | `constraint_pass:0.6|execution_pass:0.3|explanation:0.1` |
 | P6 DC Synthesis QA | `answer_match:1.0` |
+| P7 PrimeTime STA Debug | `execution_pass:0.3|explanation:0.1|timing_check:0.6` |
 
 ## Public / Private Split
 

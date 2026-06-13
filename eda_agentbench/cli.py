@@ -313,6 +313,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "dc_constraint_debug.DCConstraintDebugEvaluator":
             from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
             evaluator = DCConstraintDebugEvaluator(task_path, meta)
+        elif evaluator_spec == "primetime_sta_debug.PrimeTimeSTADebugEvaluator":
+            from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
+            evaluator = PrimeTimeSTADebugEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
