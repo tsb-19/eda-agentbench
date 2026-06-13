@@ -1,0 +1,50 @@
+{
+  "task_id": "p6_dc_syn_000038",
+  "track": "p6_dc_synthesis_qa",
+  "tool": [
+    "dc"
+  ],
+  "difficulty": "easy",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 5,
+  "max_patch_attempts": 1,
+  "max_output_tokens": 4000,
+  "files": {
+    "visible": [
+      "synthesis_report.rpt",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "synthesis_report.rpt"
+    ]
+  },
+  "run_command": "echo 'P6 QA task - no tool execution needed'",
+  "scoring": {
+    "weights": {
+      "answer_match": 1.0
+    },
+    "evaluator": "dc_synthesis_qa.DCSynthesisQAEvaluator"
+  },
+  "answer": {
+    "type": "string",
+    "expected": "0 errors, 2 warnings",
+    "tolerance": 0.0,
+    "question_type": "compile_status"
+  },
+  "generator": {
+    "script": "p6_dc_synthesis_qa_gen.py",
+    "seed": 42,
+    "question_type": "compile_status",
+    "task_index": 37,
+    "internal_index": 38,
+    "top_module": "sync_fifo",
+    "clock_name": "pcie_clk"
+  },
+  "version": "1.0.0"
+}

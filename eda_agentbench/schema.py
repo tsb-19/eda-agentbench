@@ -12,11 +12,11 @@ METADATA_SCHEMA = {
         "files", "run_command", "scoring",
     ],
     "properties": {
-        "task_id": {"type": "string", "pattern": "^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6})$"},
+        "task_id": {"type": "string", "pattern": "^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6})$"},
         "track": {
             "type": "string",
             "enum": ["p1_rtl_debug", "p2_rtl_gen", "p2_tb_sva_gen", "p3_timing_report_qa",
-                      "p4_spice_sim", "p5_spice_deck_debug", "p6_lint", "p7_physical"],
+                      "p4_spice_sim", "p5_spice_deck_debug", "p6_dc_synthesis_qa", "p6_lint", "p7_physical"],
         },
         "tool": {
             "type": "array",
@@ -104,7 +104,7 @@ def validate_metadata(meta: dict) -> list[str]:
 
     # task_id format
     import re
-    if not re.match(r"^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6})$", meta["task_id"]):
+    if not re.match(r"^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6})$", meta["task_id"]):
         errors.append(f"Invalid task_id format: {meta['task_id']!r}")
 
     # weights sum to 1.0

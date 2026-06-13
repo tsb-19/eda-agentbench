@@ -13,7 +13,8 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | P3 Timing Report QA | 1008 | pt (synthetic) | template_synthetic | answer_match |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
-| **Total** | **2312** | | | |
+| P6 DC Synthesis QA | 51 | dc (synthetic) | template_synthetic | answer_match |
+| **Total** | **2363** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -76,6 +77,16 @@ Each task fixes an RC filter circuit to meet rise/fall time specifications. The 
 | unsupported_dialect | 14 | Model level not supported by HSPICE |
 | invalid_directive | 14 | Malformed .include (no filename) |
 
+### P6 DC Synthesis QA (51 tasks, prototype)
+
+- 1 smoke task + 50 generated tasks
+- Data type: `template_synthetic` (synthetic DC synthesis reports)
+- Agent answers questions about synthesis report fields (area, cell count, timing, etc.)
+- 10 question types with round-robin distribution (5 each)
+- 50 module names, 30 clock names
+- No real DC tool required (uses synthetic reports)
+- Scoring: answer_match (1.0)
+
 ## Evaluation Modes
 
 Each task supports two submission modes for validation:
@@ -89,13 +100,13 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2312/2312 | 1.00 | N/A |
-| Buggy | 2312/2312 | < 1.00 | 2312/2312 |
+| Solution | 2363/2363 | 1.00 | N/A |
+| Buggy | 2363/2363 | < 1.00 | 2363/2363 |
 
 ## Test Suite
 
-- 187 pytest tests (all passing, 2 skipped)
-- Smoke scripts per track (VCS, P2, P3, HSPICE, Spectre, P5)
+- 265 pytest tests (all passing, 2 skipped)
+- Smoke scripts per track (VCS, P2, P3, HSPICE, Spectre, P5, P6)
 - Dataset evaluation smoke (all tracks)
 
 ## File Visibility
@@ -112,8 +123,8 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 Deterministic dataset artifacts are available under `reports/`:
 
 - `task_inventory.json` / `task_inventory.csv` — full task inventory with metadata
-- `benchmark_summary.md` — human-readable summary (v0.3-phase5f-2312)
-- Per-track distributions: `p1_bug_distribution.csv`, `p2_template_mutant_distribution.csv`, `p3_question_type_distribution.csv`, `p5_error_category_distribution.csv`
+- `benchmark_summary.md` — human-readable summary (v0.3-phase6b-2363)
+- Per-track distributions: `p1_bug_distribution.csv`, `p2_template_mutant_distribution.csv`, `p3_question_type_distribution.csv`, `p5_error_category_distribution.csv`, `p6_question_type_distribution.csv`
 - `leaderboard_template.csv` — empty template for recording model evaluation results
 
 Generate with: `python scripts/export_benchmark_summary.py`

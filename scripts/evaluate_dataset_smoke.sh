@@ -63,8 +63,8 @@ echo "--- Track discovery ---"
 ALL_OUT=$(eda-bench evaluate-dataset tasks --submission-mode solution 2>&1 | head -10)
 ALL_TOTAL=$(echo "$ALL_OUT" | grep "Tasks found:" | awk '{print $NF}')
 echo "  Total tasks found: $ALL_TOTAL"
-ALL_CHECK=$(python3 -c "print('PASS' if int('$ALL_TOTAL') >= 2134 else 'FAIL')")
-check_pass "$ALL_CHECK" "Total tasks >= 2134"
+ALL_CHECK=$(python3 -c "print('PASS' if int('$ALL_TOTAL') >= 2363 else 'FAIL')")
+check_pass "$ALL_CHECK" "Total tasks >= 2363"
 
 # --- Report generation ---
 echo ""
@@ -110,6 +110,12 @@ fi
 # --- Existing smoke tests ---
 echo ""
 echo "--- Existing smoke tests ---"
+P6_SMOKE=$(bash scripts/run_dc_synthesis_qa_smoke.sh 2>&1)
+if echo "$P6_SMOKE" | grep -q "ALL P6 DC SYNTHESIS QA SMOKE TESTS PASSED"; then
+    check_pass "PASS" "P6 DC synthesis QA smoke passes"
+else
+    check_pass "FAIL" "P6 DC synthesis QA smoke failed"
+fi
 RTL_SMOKE=$(bash scripts/run_smoke.sh 2>&1)
 if echo "$RTL_SMOKE" | grep -q "ALL SMOKE TESTS PASSED"; then
     check_pass "PASS" "RTL smoke still passes"

@@ -32,6 +32,7 @@ TRACK_DISPLAY = {
     "p3_timing_report_qa": "P3 Timing Report QA",
     "p4_spice_sim": "P4 SPICE Sim",
     "p5_spice_deck_debug": "P5 SPICE Deck Debug",
+    "p6_dc_synthesis_qa": "P6 DC Synthesis QA",
 }
 
 LEADERBOARD_COLUMNS = [
@@ -147,6 +148,10 @@ def _extract_record(meta: dict, task_dir: Path, tasks_root: Path) -> dict:
     elif track == "p5_spice_deck_debug":
         record["expected_error_category"] = meta.get("expected_error_category", "")
 
+    elif track == "p6_dc_synthesis_qa":
+        answer = meta.get("answer", {})
+        record["question_type"] = answer.get("question_type", gen.get("question_type", ""))
+
     return record
 
 
@@ -249,6 +254,18 @@ def generate_p5_error_category_distribution(records: list[dict]) -> list[list[st
     return rows
 
 
+def generate_p6_question_type_distribution(records: list[dict]) -> list[list[str]]:
+    counter = Counter(
+        r["question_type"]
+        for r in records
+        if r["track"] == "p6_dc_synthesis_qa"
+    )
+    rows = [["question_type", "count"]]
+    for qt in sorted(counter):
+        rows.append([qt, str(counter[qt])])
+    return rows
+
+
 def generate_leaderboard_template() -> list[list[str]]:
     return [LEADERBOARD_COLUMNS]
 
@@ -285,7 +302,7 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
     lines = [
         "# EDA-AgentBench v0.3 — Benchmark Summary",
         "",
-        f"**Tag:** `v0.3-phase5f-2312`  ",
+        f"**Tag:** `v0.3-phase6b-2363`  ",
         f"**Total tasks:** {total}  ",
         f"**Tracks:** {len(track_counter)}  ",
         f"**Generated:** deterministic export via `scripts/export_benchmark_summary.py`",
@@ -381,10 +398,11 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
         "",
         "## Validation Status",
         "",
-        "- **pytest:** 189/189 passing",
-        "- **Smoke scripts:** all 5 tracks pass end-to-end smoke tests",
+        "- **pytest:** 265/265 passing",
+        "- **Smoke scripts:** all 6 tracks pass end-to-end smoke tests",
         "- **Sampled evaluation:** fast eval (5 tasks/track) passes for solution mode",
         "- **P5 full batch:** 100/100 solution tasks score 1.0; 100/100 buggy tasks score < 1.0",
+        "- **P6 prototype:** 51 tasks, all solution mode pass, DC detected on system",
         "",
         "## Known Limitations",
         "",
@@ -393,7 +411,7 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
         "- P4 tasks are RC-filter circuits only; no complex analog designs",
         "- P5 is limited to 100 tasks (imported from external bundle)",
         "- P3 synthetic reports are template-based, not from real synthesis runs",
-        "- No P6 (lint) or P7 (physical) tracks yet",
+        "- P6 DC Synthesis QA is a prototype (51 tasks); P7 (physical) not yet started",
         "",
         "## Generated Artifacts",
         "",
@@ -468,6 +486,12 @@ def main() -> None:
     write_csv_rows(
         generate_p5_error_category_distribution(records),
         REPORTS_DIR / "p5_error_category_distribution.csv",
+    )
+
+    # Write p6_question_type_distribution.csv
+    write_csv_rows(
+        generate_p6_question_type_distribution(records),
+        REPORTS_DIR / "p6_question_type_distribution.csv",
     )
 
     # Write leaderboard_template.csv
