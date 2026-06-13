@@ -11,9 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 7 — P7 SpyGlass + PrimeTime + Agentic Runner)
+## Current Status (Phase 8A — P8 PnR Report QA prototype)
 
-Phase 7 added P7 SpyGlass Lint Debug (16 tasks), P7 PrimeTime STA Debug (17 tasks), and agentic runner infrastructure. 2609 total tasks across 9 tracks:
+Phase 8A added P8 PnR Report QA (101 tasks). 2710 total tasks across 10 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
@@ -26,16 +26,18 @@ Phase 7 added P7 SpyGlass Lint Debug (16 tasks), P7 PrimeTime STA Debug (17 task
 | P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 reliable bug categories) |
 | P7 SpyGlass Lint Debug | 16 | spyglass | 1 smoke + 15 generated (3 reliable bug categories) |
 | P7 PrimeTime STA Debug | 17 | pt | 1 smoke + 16 generated (4 reliable bug categories) |
+| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | 1 smoke + 100 generated (9 question types) |
 
 Key results:
 - pytest: all pass
-- Solution mode: 2609/2609 = 1.00
-- Buggy mode: 2609/2609 all < 1.0
+- Solution mode: 2710/2710 = 1.00
+- Buggy mode: 2710/2710 all < 1.0
 - P6 DC Constraint accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
-- P6 is parser-based QA, no DC execution required
+- P6/P8 are parser-based QA, no commercial tool execution required
 - P7 SpyGlass is execution-based, uses real SpyGlass (sg_shell), 3 reliable lint bug categories
 - P7 PrimeTime is execution-based, uses real PrimeTime (pt_shell), 4 reliable STA bug categories
+- P8 is report-QA with synthetic ICC2/Innovus reports, parser-based answer matching
 - Agentic runner: two-phase workspace model, hidden/oracle isolation, CLI subcommands `run-agent` and `run-agent-dataset`
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.

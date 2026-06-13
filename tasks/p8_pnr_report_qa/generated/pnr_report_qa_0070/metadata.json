@@ -1,0 +1,50 @@
+{
+  "task_id": "pnr_report_qa_0070",
+  "track": "p8_pnr_report_qa",
+  "tool": [
+    "icc2"
+  ],
+  "difficulty": "medium",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 60,
+  "max_tool_calls": 10,
+  "max_patch_attempts": 3,
+  "max_output_tokens": 16000,
+  "files": {
+    "visible": [
+      "report.txt",
+      "prompt.md",
+      "answer.txt"
+    ],
+    "editable": [
+      "answer.txt"
+    ],
+    "hidden": [],
+    "forbidden": [
+      "report.txt",
+      "prompt.md"
+    ]
+  },
+  "run_command": "true",
+  "scoring": {
+    "weights": {
+      "answer_match": 0.9,
+      "explanation": 0.1
+    },
+    "evaluator": "pnr_report_qa.PnRReportQAEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p8_pnr_report_qa_gen.py",
+    "tool_family": "icc2",
+    "question_types": [
+      "flow_status",
+      "utilization",
+      "power"
+    ]
+  }
+}

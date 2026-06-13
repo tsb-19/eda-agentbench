@@ -36,6 +36,7 @@ TRACK_DISPLAY = {
     "p6_dc_constraint_debug": "P6 DC Constraint Debug",
     "p7_spyglass_lint_debug": "P7 SpyGlass Lint Debug",
     "p7_primetime_sta_debug": "P7 PrimeTime STA Debug",
+    "p8_pnr_report_qa": "P8 PnR Report QA",
 }
 
 LEADERBOARD_COLUMNS = [

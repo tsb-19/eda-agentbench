@@ -407,7 +407,8 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
 
     is_p3 = meta.get("track") == "p3_timing_report_qa"
     is_p6 = meta.get("track") == "p6_dc_synthesis_qa"
-    is_report_qa = is_p3 or is_p6
+    is_p8 = meta.get("track") == "p8_pnr_report_qa"
+    is_report_qa = is_p3 or is_p6 or is_p8
 
     # Detect tools (skip for report QA tasks which don't need EDA tools)
     detector = ToolEnvironmentDetector()
@@ -483,8 +484,8 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             raw_hid_log = ""
             san_pub_log = sanitizer.sanitize(run_log)
             san_hid_log = ""
-        elif is_p3 or is_p6:
-            # P3/P6: no tool execution needed, just evaluate answer file
+        elif is_p3 or is_p6 or is_p8:
+            # P3/P6/P8: no tool execution needed, just evaluate answer file
             raw_pub_log = f"{meta['track']} QA task - no tool execution"
             raw_hid_log = ""
             san_pub_log = raw_pub_log
@@ -535,6 +536,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "primetime_sta_debug.PrimeTimeSTADebugEvaluator":
             from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
             evaluator = PrimeTimeSTADebugEvaluator(task_path, meta)
+        elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
+            from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
+            evaluator = PnRReportQAEvaluator(task_path, meta)
         else:
             from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
             evaluator = VCSRTLEvaluator(task_path, meta)
