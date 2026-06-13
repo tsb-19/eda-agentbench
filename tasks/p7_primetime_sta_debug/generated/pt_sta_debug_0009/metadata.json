@@ -4,7 +4,7 @@
   "tool": [
     "pt"
   ],
-  "difficulty": "medium",
+  "difficulty": "easy",
   "data_type": "template_synthetic",
   "resource_preset": "standard",
   "timeout_sec": 300,
@@ -50,11 +50,11 @@
   "generator": {
     "script": "p7_primetime_sta_debug_gen.py",
     "seed": 42,
-    "bug_type": "invalid_get_ports",
-    "rtl_template": "fsm_ctrl",
-    "period_ns": 2.0,
-    "task_index": 9
+    "bug_type": "missing_clock",
+    "rtl_template": "adder_pipe",
+    "period_ns": 10.0,
+    "task_index": 8
   },
-  "expected_error_category": "invalid_get_ports",
-  "version": "1.0.0"
+  "expected_error_category": "missing_clock",
+  "version": "2.0.0"
 }

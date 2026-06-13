@@ -1,4 +1,4 @@
-# PrimeTime STA Debug Task: Wrong Period
+# PrimeTime STA Debug Task: Syntax Error
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Wrong clock period (20.0ns instead of 2.0ns) — report_clocks shows mismatch
+Syntax error: missing closing bracket — PrimeTime TCL parser error
 
 ## Files
 
@@ -26,9 +26,9 @@ Wrong clock period (20.0ns instead of 2.0ns) — report_clocks shows mismatch
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

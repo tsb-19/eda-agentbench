@@ -1,9 +1,8 @@
-# SDC constraints for fsm_ctrl
-create_clock -name clk -period 2.0 [get_ports {clk}]
+# SDC constraints for adder_pipe
 set_clock_uncertainty 0.1 [get_clocks {clk}]
 
-set_input_delay 0.5 -clock clk [get_ports {nonexistent_*}]
-set_input_delay 0.5 -clock clk [get_ports {start}]
+set_input_delay 0.5 -clock clk [get_ports {rst_n}]
+set_input_delay 0.5 -clock clk [get_ports {a}]
+set_input_delay 0.5 -clock clk [get_ports {b}]
 
-set_output_delay 0.5 -clock clk [get_ports {busy}]
-set_output_delay 0.5 -clock clk [get_ports {done}]
+set_output_delay 0.5 -clock clk [get_ports {sum}]

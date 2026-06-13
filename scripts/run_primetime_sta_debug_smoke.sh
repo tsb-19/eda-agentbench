@@ -24,7 +24,7 @@ echo "=== PrimeTime STA Debug Smoke Test ==="
 if [ ! -d "$TASK_DIR" ]; then
     echo ""
     echo "--- Generating smoke task ---"
-    python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 1 --seed 1 --output-dir "$TASK_DIR"
+    python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 1 --seed 1 --output-dir "$TASK_DIR" --id-start 0
 fi
 
 # Step 1: Validate task

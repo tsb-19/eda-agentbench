@@ -29,20 +29,20 @@ pt_sta_debug_NNNN/
     constraints.sdc      # Correct SDC
 ```
 
-## Bug Categories (5 reliable)
+## Bug Categories (4 reliable)
 
-| Bug Type | Description | Difficulty |
-|----------|-------------|------------|
-| missing_clock | Missing `create_clock` definition | easy |
-| wrong_port_name | Typo in port reference | easy |
-| wrong_period | Incorrect clock period (10x off) | medium |
-| syntax_error | Missing bracket in SDC | easy |
-| invalid_get_ports | Nonexistent port pattern | medium |
+| Bug Type | Description | Difficulty | Detection Method |
+|----------|-------------|------------|------------------|
+| missing_clock | Missing `create_clock` definition | easy | `all_clocks` empty → `no_clocks_created` |
+| wrong_port_name | Typo in port reference | easy | Source log `Can't find` → `port_or_clock_not_found` |
+| syntax_error | Missing bracket in SDC | easy | Source log `Error:` → `pt_error_in_source` |
+| invalid_get_ports | Nonexistent port pattern | medium | Source log `Can't find` → `port_or_clock_not_found` |
 
 ### Deferred Categories
 
 These categories were considered but deferred because PrimeTime accepts them silently or detection is non-deterministic:
 
+- `wrong_period` — PT accepts any period value; no structural check detects it
 - `missing_input_delay` — PT accepts missing delays
 - `missing_output_delay` — PT accepts missing delays
 - `false_path_too_broad` — requires real timing data
@@ -72,11 +72,12 @@ These categories were considered but deferred because PrimeTime accepts them sil
 
 The TCL script performs these checks after sourcing the SDC:
 
-1. Checks for PT errors in source output
+1. Scans source log for `Error:`, `Can't find`, `unknown command`
 2. Verifies at least one clock is created (`all_clocks`)
-3. Verifies all design ports resolve (`get_ports`)
-4. Verifies `report_timing` succeeds
-5. Emits `TIMING_CHECK_OK` or `TIMING_CHECK_FAIL: <reasons>`
+3. Verifies expected clock name exists in `all_clocks` collection
+4. Verifies all design ports resolve (`get_ports`)
+5. Verifies `report_timing` succeeds (valid timing graph)
+6. Emits `TIMING_CHECK_OK` or `TIMING_CHECK_FAIL: <reasons>`
 
 ## PrimeTime Integration
 
@@ -98,8 +99,12 @@ Expected results:
 ## Generator
 
 ```bash
-python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 20 --seed 42
+python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 16 --seed 42
 ```
 
 Deterministic generation with seed-based period variation (2.0, 3.0, 5.0, 10.0 ns).
-Round-robin across 5 bug types and 4 RTL templates.
+Round-robin across 4 bug types and 4 RTL templates (16 unique combinations).
+
+Task ID scheme:
+- Smoke: `pt_sta_debug_0000` (generated with `--id-start 0`)
+- Generated: `pt_sta_debug_0001` through `pt_sta_debug_0016` (default `--id-start 1`)

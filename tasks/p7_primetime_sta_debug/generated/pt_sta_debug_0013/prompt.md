@@ -1,13 +1,13 @@
-# PrimeTime STA Debug Task: Syntax Error
+# PrimeTime STA Debug Task: Missing Clock
 
 ## Description
 
-The design `adder_pipe` has a constraint file (`constraints.sdc`) with a bug.
+The design `mux_reg` has a constraint file (`constraints.sdc`) with a bug.
 Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Syntax error: missing closing bracket — PrimeTime TCL parser error
+Missing create_clock definition — PrimeTime has no clocks, timing checks fail
 
 ## Files
 
@@ -21,14 +21,14 @@ Syntax error: missing closing bracket — PrimeTime TCL parser error
 - Only modify `constraints.sdc`
 - Do not modify any other files
 - The design has clock `clk` with period 3.0ns
-- Design ports: clk, rst_n, a, b, sum
+- Design ports: clk, rst_n, sel, d0, d1, d2, d3, q
 
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

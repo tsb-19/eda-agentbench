@@ -26,9 +26,9 @@ Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

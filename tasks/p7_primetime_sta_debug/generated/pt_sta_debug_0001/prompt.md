@@ -1,4 +1,4 @@
-# PrimeTime STA Debug Task: Wrong Port Name
+# PrimeTime STA Debug Task: Missing Clock
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Wrong port name in constraint — PrimeTime reports 'Can't find port'
+Missing create_clock definition — PrimeTime has no clocks, timing checks fail
 
 ## Files
 
@@ -26,9 +26,9 @@ Wrong port name in constraint — PrimeTime reports 'Can't find port'
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

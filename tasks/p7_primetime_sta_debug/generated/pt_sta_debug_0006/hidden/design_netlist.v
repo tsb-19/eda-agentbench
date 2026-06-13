@@ -5,6 +5,7 @@ module fsm_ctrl (clk, rst_n, start, busy, done);
   input start;
   output busy;
   output done;
+  wire [1:0] state;
   DFFX1 state_reg_0 (.D(state_next_0), .CK(clk), .Q(state[0]));
   DFFX1 state_reg_1 (.D(state_next_1), .CK(clk), .Q(state[1]));
   DFFX1 busy_reg (.D(busy_next), .CK(clk), .Q(busy));

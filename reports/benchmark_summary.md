@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2597  
+**Total tasks:** 2593  
 **Tracks:** 8  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -16,8 +16,8 @@
 | P5 SPICE Deck Debug | 100 |
 | P6 DC Constraint Debug | 13 |
 | P6 DC Synthesis QA | 51 |
-| P7 PrimeTime STA Debug | 21 |
-| **Total** | **2597** |
+| P7 PrimeTime STA Debug | 17 |
+| **Total** | **2593** |
 
 ## Tool Distribution
 
@@ -25,7 +25,7 @@
 |------|----------:|
 | dc | 64 |
 | hspice | 251 |
-| pt | 1029 |
+| pt | 1025 |
 | spectre | 151 |
 | vcs | 1102 |
 
@@ -35,7 +35,7 @@
 |------------|------:|
 | easy | 1314 |
 | hard | 407 |
-| medium | 876 |
+| medium | 872 |
 
 ## Data Type Distribution
 
@@ -43,7 +43,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1395 |
+| template_synthetic | 1391 |
 
 ## Scoring Methodology
 

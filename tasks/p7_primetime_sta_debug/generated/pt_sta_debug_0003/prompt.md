@@ -20,15 +20,15 @@ Syntax error: missing closing bracket — PrimeTime TCL parser error
 
 - Only modify `constraints.sdc`
 - Do not modify any other files
-- The design has clock `clk` with period 3.0ns
+- The design has clock `clk` with period 5.0ns
 - Design ports: clk, rst_n, en, count
 
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

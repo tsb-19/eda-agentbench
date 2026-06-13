@@ -35,9 +35,23 @@ if {[regexp -nocase {unknown command} $source_content]} {
 
 # Check 1: Clocks must exist
 set all_clks [all_clocks]
-if {[sizeof_collection $all_clks] == 0} {
+set num_clocks [sizeof_collection $all_clks]
+if {$num_clocks == 0} {
     incr error_count
     lappend fail_reasons "no_clocks_created"
+} else {
+    # Verify expected clock name exists
+    set expected_clk "clk"
+    set clk_found 0
+    foreach_in_collection c $all_clks {
+        if {[get_object_name $c] eq $expected_clk} {
+            set clk_found 1
+        }
+    }
+    if {$clk_found == 0} {
+        incr error_count
+        lappend fail_reasons "expected_clock_missing:$expected_clk"
+    }
 }
 
 # Check 2: All ports must resolve
@@ -48,7 +62,7 @@ foreach port {clk rst_n en count} {
     }
 }
 
-# Check 3: Report timing (must succeed)
+# Check 3: Report timing (must succeed — validates timing graph)
 if {[catch {report_timing -max_paths 1} result]} {
     incr error_count
     lappend fail_reasons "report_timing_failed"

@@ -4,7 +4,7 @@
   "tool": [
     "pt"
   ],
-  "difficulty": "medium",
+  "difficulty": "easy",
   "data_type": "template_synthetic",
   "resource_preset": "standard",
   "timeout_sec": 300,
@@ -50,11 +50,11 @@
   "generator": {
     "script": "p7_primetime_sta_debug_gen.py",
     "seed": 42,
-    "bug_type": "invalid_get_ports",
-    "rtl_template": "adder_pipe",
-    "period_ns": 2.0,
-    "task_index": 14
+    "bug_type": "wrong_port_name",
+    "rtl_template": "mux_reg",
+    "period_ns": 3.0,
+    "task_index": 13
   },
-  "expected_error_category": "invalid_get_ports",
-  "version": "1.0.0"
+  "expected_error_category": "wrong_port_name",
+  "version": "2.0.0"
 }

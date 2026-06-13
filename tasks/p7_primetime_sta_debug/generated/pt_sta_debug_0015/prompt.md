@@ -1,4 +1,4 @@
-# PrimeTime STA Debug Task: Missing Clock
+# PrimeTime STA Debug Task: Syntax Error
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Missing create_clock definition — PrimeTime reports unconstrained paths
+Syntax error: missing closing bracket — PrimeTime TCL parser error
 
 ## Files
 
@@ -20,15 +20,15 @@ Missing create_clock definition — PrimeTime reports unconstrained paths
 
 - Only modify `constraints.sdc`
 - Do not modify any other files
-- The design has clock `clk` with period 3.0ns
+- The design has clock `clk` with period 2.0ns
 - Design ports: clk, rst_n, sel, d0, d1, d2, d3, q
 
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

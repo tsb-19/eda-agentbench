@@ -1,13 +1,13 @@
-# PrimeTime STA Debug Task: Invalid Get Ports
+# PrimeTime STA Debug Task: Missing Clock
 
 ## Description
 
-The design `fsm_ctrl` has a constraint file (`constraints.sdc`) with a bug.
+The design `adder_pipe` has a constraint file (`constraints.sdc`) with a bug.
 Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'
+Missing create_clock definition — PrimeTime has no clocks, timing checks fail
 
 ## Files
 
@@ -20,15 +20,15 @@ Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'
 
 - Only modify `constraints.sdc`
 - Do not modify any other files
-- The design has clock `clk` with period 2.0ns
-- Design ports: clk, rst_n, start, busy, done
+- The design has clock `clk` with period 10.0ns
+- Design ports: clk, rst_n, a, b, sum
 
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.

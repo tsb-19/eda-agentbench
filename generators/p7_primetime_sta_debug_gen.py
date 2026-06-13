@@ -1,17 +1,30 @@
-"""P7 PrimeTime STA Debug task generator — 5 reliable bug categories, deterministic seed.
+"""P7 PrimeTime STA Debug task generator — 4 reliable bug categories, deterministic seed.
 
-Only categories that produce detectable failures under PrimeTime are included.
-Removed categories (unreliable — PT accepts them silently or detection is non-deterministic):
-  - missing_input_delay (PT accepts missing delays)
-  - missing_output_delay (PT accepts missing delays)
-  - false_path_too_broad (requires real timing data)
-  - multicycle_path_error (requires real timing data)
-  - wrong_uncertainty (PT accepts, only shifts numbers slightly)
+Only categories that produce detectable hard failures under PrimeTime are included.
+
+Retained categories:
+  - missing_clock: no create_clock → PT errors / unconstrained paths
+  - wrong_port_name: typo in port reference → PT "Can't find port"
+  - syntax_error: missing bracket → PT TCL parser error
+  - invalid_get_ports: nonexistent port pattern → PT "Can't find ports matching"
+
+Removed categories (unreliable — PT accepts silently or no hard failure):
+  - wrong_period: PT accepts any period value; no structural check detects it
+  - missing_input_delay: PT accepts missing delays
+  - missing_output_delay: PT accepts missing delays
+  - false_path_too_broad: requires real timing data
+  - multicycle_path_error: requires real timing data
+  - wrong_uncertainty: PT accepts, only shifts numbers slightly
 
 Design approach:
   Each task includes a structural Verilog netlist (hidden) that PrimeTime can read
-  via read_verilog + link_design. The netlist uses DFF primitives and basic gates
-  so PT can perform real STA without needing a synthesis library.
+  via read_verilog + link_design. The netlist uses DFF primitives so PT can
+  perform real STA without needing a synthesis library.
+
+Task ID scheme:
+  Smoke task: pt_sta_debug_0000 (generated separately with seed=1)
+  Generated tasks: pt_sta_debug_0001 through pt_sta_debug_0016 (seed=42)
+  No duplicate task_ids between smoke and generated.
 """
 
 from __future__ import annotations
@@ -124,6 +137,7 @@ endmodule
 # ---------------------------------------------------------------------------
 # Structural netlist templates (hidden — read by PrimeTime)
 # Uses DFFX1 primitive for flip-flops. PT accepts unresolved cell references.
+# All internal buses must be explicitly declared to avoid implicit net issues.
 # ---------------------------------------------------------------------------
 
 _NETLIST_COUNTER = """\
@@ -152,6 +166,7 @@ module fsm_ctrl (clk, rst_n, start, busy, done);
   input start;
   output busy;
   output done;
+  wire [1:0] state;
   DFFX1 state_reg_0 (.D(state_next_0), .CK(clk), .Q(state[0]));
   DFFX1 state_reg_1 (.D(state_next_1), .CK(clk), .Q(state[1]));
   DFFX1 busy_reg (.D(busy_next), .CK(clk), .Q(busy));
@@ -255,20 +270,26 @@ def _correct_sdc(rtl: dict, period_ns: float) -> str:
 
 # ---------------------------------------------------------------------------
 # Bug categories: each returns (buggy_sdc, bug_name, difficulty, description)
-# Only categories that produce detectable failures under PrimeTime.
+# Only categories that produce detectable hard failures under PrimeTime.
 # ---------------------------------------------------------------------------
 
 def _bug_missing_clock(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Missing create_clock definition."""
+    """Missing create_clock definition.
+
+    Detection: all_clocks collection is empty → no_clocks_created.
+    """
     sdc = _correct_sdc(rtl, period_ns)
     lines = sdc.split("\n")
     buggy_lines = [l for l in lines if not l.startswith("create_clock")]
     return "\n".join(buggy_lines), "missing_clock", "easy", \
-        "Missing create_clock definition — PrimeTime reports unconstrained paths"
+        "Missing create_clock definition — PrimeTime has no clocks, timing checks fail"
 
 
 def _bug_wrong_port_name(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Wrong port name in constraint (typo)."""
+    """Wrong port name in constraint (typo).
+
+    Detection: source log contains "Can't find" → port_or_clock_not_found.
+    """
     sdc = _correct_sdc(rtl, period_ns)
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
@@ -284,17 +305,11 @@ def _bug_wrong_port_name(rtl: dict, period_ns: float) -> tuple[str, str, str, st
         "Wrong port name in constraint — PrimeTime reports 'Can't find port'"
 
 
-def _bug_wrong_period(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Wrong clock period (off by 10x)."""
-    sdc = _correct_sdc(rtl, period_ns)
-    wrong_period = period_ns * 10.0
-    buggy = sdc.replace(f"-period {period_ns}", f"-period {wrong_period}")
-    return buggy, "wrong_period", "medium", \
-        f"Wrong clock period ({wrong_period}ns instead of {period_ns}ns) — report_clocks shows mismatch"
-
-
 def _bug_syntax_error(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Syntax error in SDC (missing bracket)."""
+    """Syntax error in SDC (missing bracket).
+
+    Detection: source log contains "Error:" → pt_error_in_source.
+    """
     sdc = _correct_sdc(rtl, period_ns)
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
@@ -306,7 +321,10 @@ def _bug_syntax_error(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
 
 
 def _bug_invalid_get_ports(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Invalid get_ports pattern (wildcard error)."""
+    """Invalid get_ports pattern (wildcard error).
+
+    Detection: source log contains "Can't find" → port_or_clock_not_found.
+    """
     sdc = _correct_sdc(rtl, period_ns)
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
@@ -317,17 +335,16 @@ def _bug_invalid_get_ports(rtl: dict, period_ns: float) -> tuple[str, str, str, 
         "Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'"
 
 
-# Registry of reliable bug types
+# Registry of reliable bug types (4 categories)
 BUG_TYPES = [
     _bug_missing_clock,
     _bug_wrong_port_name,
-    _bug_wrong_period,
     _bug_syntax_error,
     _bug_invalid_get_ports,
 ]
 
 EXPECTED_BUG_TYPE_NAMES = [
-    "missing_clock", "wrong_port_name", "wrong_period",
+    "missing_clock", "wrong_port_name",
     "syntax_error", "invalid_get_ports",
 ]
 
@@ -337,6 +354,13 @@ def _make_tcl(rtl: dict, section: str) -> str:
 
     The script reads a structural netlist (design_netlist.v), links the design,
     then sources the SDC constraints and validates them.
+
+    Checks performed:
+    1. Source log scanned for Error:, Can't find, unknown command
+    2. all_clocks must be non-empty
+    3. Expected clock name must appear in all_clocks
+    4. All design ports must resolve via get_ports
+    5. report_timing must succeed (valid timing graph)
     """
     top = rtl["top"]
     clk = rtl["clk"]
@@ -391,9 +415,23 @@ if {{[regexp -nocase {{unknown command}} $source_content]}} {{
 
 # Check 1: Clocks must exist
 set all_clks [all_clocks]
-if {{[sizeof_collection $all_clks] == 0}} {{
+set num_clocks [sizeof_collection $all_clks]
+if {{$num_clocks == 0}} {{
     incr error_count
     lappend fail_reasons "no_clocks_created"
+}} else {{
+    # Verify expected clock name exists
+    set expected_clk "{clk}"
+    set clk_found 0
+    foreach_in_collection c $all_clks {{
+        if {{[get_object_name $c] eq $expected_clk}} {{
+            set clk_found 1
+        }}
+    }}
+    if {{$clk_found == 0}} {{
+        incr error_count
+        lappend fail_reasons "expected_clock_missing:$expected_clk"
+    }}
 }}
 
 # Check 2: All ports must resolve
@@ -404,7 +442,7 @@ foreach port {{{" ".join(all_ports)}}} {{
     }}
 }}
 
-# Check 3: Report timing (must succeed)
+# Check 3: Report timing (must succeed — validates timing graph)
 if {{[catch {{report_timing -max_paths 1}} result]}} {{
     incr error_count
     lappend fail_reasons "report_timing_failed"
@@ -452,9 +490,21 @@ exit $PT_EXIT
 
 
 class P7PrimeTimeSTADebugGenerator(BaseGenerator):
-    """Generates P7 PrimeTime STA Debug tasks with deterministic seeds."""
+    """Generates P7 PrimeTime STA Debug tasks with deterministic seeds.
+
+    Args:
+        id_start: Starting task ID number. Default 1 so generated tasks start
+                  at pt_sta_debug_0001, avoiding collision with smoke (0000).
+                  Pass id_start=0 for smoke generation.
+    """
+
+    def __init__(self, seed: int, output_dir: Path, id_start: int = 1):
+        super().__init__(seed, output_dir)
+        self.id_start = id_start
 
     def generate_one(self, task_index: int) -> Path:
+        display_index = task_index + self.id_start
+
         bug_fn = BUG_TYPES[task_index % len(BUG_TYPES)]
         rtl = RTL_TEMPLATES[(task_index // len(BUG_TYPES)) % len(RTL_TEMPLATES)]
         period_ns = self.rng.choice([2.0, 3.0, 5.0, 10.0])
@@ -462,7 +512,7 @@ class P7PrimeTimeSTADebugGenerator(BaseGenerator):
         buggy_sdc, bug_name, difficulty, description = bug_fn(rtl, period_ns)
         correct_sdc = _correct_sdc(rtl, period_ns)
 
-        task_id = f"pt_sta_debug_{task_index:04d}"
+        task_id = f"pt_sta_debug_{display_index:04d}"
         task_dir = self.output_dir / task_id
         task_dir.mkdir(parents=True, exist_ok=True)
 
@@ -526,12 +576,12 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.
 """
         (task_dir / "prompt.md").write_text(prompt)
 
@@ -574,7 +624,7 @@ wrong clock periods, syntax errors, or invalid port references.
                 "task_index": task_index,
             },
             "expected_error_category": bug_name,
-            "version": "1.0.0",
+            "version": "2.0.0",
         }
         (task_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
 

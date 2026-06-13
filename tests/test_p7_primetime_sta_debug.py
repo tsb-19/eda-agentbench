@@ -15,6 +15,10 @@ from eda_agentbench.task.loader import TaskLoader, TaskValidationError
 SMOKE_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p7_primetime_sta_debug" / "smoke"
 GENERATED_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p7_primetime_sta_debug" / "generated"
 
+# 4 bug types × 4 templates = 16 generated tasks
+EXPECTED_GENERATED_COUNT = 16
+EXPECTED_BUG_TYPES = {"missing_clock", "wrong_port_name", "syntax_error", "invalid_get_ports"}
+
 
 # --- Schema Validation ---
 
@@ -30,7 +34,7 @@ def test_smoke_task_id_format():
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
-    assert meta["task_id"].startswith("pt_sta_debug_")
+    assert meta["task_id"] == "pt_sta_debug_0000"
 
 
 def test_smoke_track_is_p7():
@@ -122,7 +126,7 @@ def test_generator_deterministic(tmp_path):
 def test_generator_metadata_valid(tmp_path):
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(EXPECTED_GENERATED_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         errors = validate_metadata(meta)
@@ -139,6 +143,7 @@ def test_generator_files_exist(tmp_path):
     assert (p / "files" / "constraints.sdc").is_file()
     assert (p / "files" / "run_public.sh").is_file()
     assert (p / "files" / "run_public.tcl").is_file()
+    assert (p / "hidden" / "design_netlist.v").is_file()
     assert (p / "hidden" / "run_hidden.sh").is_file()
     assert (p / "hidden" / "run_hidden.tcl").is_file()
     assert (p / "solution" / "constraints.sdc").is_file()
@@ -147,7 +152,7 @@ def test_generator_files_exist(tmp_path):
 def test_generator_buggy_differs_from_solution(tmp_path):
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(EXPECTED_GENERATED_COUNT):
         p = gen.generate_one(i)
         buggy = (p / "files" / "constraints.sdc").read_text()
         solution = (p / "solution" / "constraints.sdc").read_text()
@@ -157,51 +162,60 @@ def test_generator_buggy_differs_from_solution(tmp_path):
 def test_generator_batch_creates_count(tmp_path):
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
-    assert len(paths) == 20
+    paths = gen.generate_batch(EXPECTED_GENERATED_COUNT)
+    assert len(paths) == EXPECTED_GENERATED_COUNT
     for p in paths:
         assert (p / "metadata.json").is_file()
 
 
 def test_generator_bug_type_diversity(tmp_path):
-    """20 tasks cover all 5 bug types (4 each)."""
+    """16 tasks cover all 4 bug types (4 each)."""
     from collections import Counter
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
+    paths = gen.generate_batch(EXPECTED_GENERATED_COUNT)
     types = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         types[meta["generator"]["bug_type"]] += 1
-    assert len(types) == 5, f"Expected 5 bug types, got {len(types)}"
+    assert set(types.keys()) == EXPECTED_BUG_TYPES
     for bt, count in types.items():
         assert count == 4, f"{bt}: expected 4, got {count}"
 
 
 def test_generator_rtl_diversity(tmp_path):
-    """20 tasks cover 4 RTL templates (5 each)."""
+    """16 tasks cover 4 RTL templates (4 each)."""
     from collections import Counter
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
+    paths = gen.generate_batch(EXPECTED_GENERATED_COUNT)
     templates = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         templates[meta["generator"]["rtl_template"]] += 1
     assert len(templates) == 4
     for tmpl, count in templates.items():
-        assert count == 5, f"{tmpl}: expected 5, got {count}"
+        assert count == 4, f"{tmpl}: expected 4, got {count}"
 
 
 def test_generator_unique_task_ids(tmp_path):
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
     ids = set()
-    for i in range(20):
+    for i in range(EXPECTED_GENERATED_COUNT):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
-        assert meta["task_id"] not in ids
+        assert meta["task_id"] not in ids, f"Duplicate ID: {meta['task_id']}"
         ids.add(meta["task_id"])
+
+
+def test_generator_ids_start_from_0001(tmp_path):
+    """Generated task IDs start at pt_sta_debug_0001, not 0000 (smoke)."""
+    from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
+    gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
+    p = gen.generate_one(0)
+    meta = json.loads((p / "metadata.json").read_text())
+    assert meta["task_id"] == "pt_sta_debug_0001"
 
 
 def test_generator_validate_sample_tasks(tmp_path):
@@ -215,13 +229,57 @@ def test_generator_validate_sample_tasks(tmp_path):
 
 
 def test_generator_only_reliable_categories(tmp_path):
-    """All generated tasks use only the 5 reliable bug categories."""
+    """All generated tasks use only the 4 reliable bug categories."""
     from generators.p7_primetime_sta_debug_gen import EXPECTED_BUG_TYPE_NAMES, P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
+    paths = gen.generate_batch(EXPECTED_GENERATED_COUNT)
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["generator"]["bug_type"] in EXPECTED_BUG_TYPE_NAMES
+
+
+def test_generator_no_wrong_period(tmp_path):
+    """wrong_period is removed — PT accepts any period value."""
+    from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
+    gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
+    paths = gen.generate_batch(EXPECTED_GENERATED_COUNT)
+    for p in paths:
+        meta = json.loads((p / "metadata.json").read_text())
+        assert meta["generator"]["bug_type"] != "wrong_period"
+
+
+# --- Netlist Validity Tests ---
+
+def test_netlists_have_no_undeclared_bus_selects():
+    """Netlists must not use state[0] on an undeclared wire.
+
+    All bit-selects must reference wires declared in the module port list
+    or as explicit wire/reg declarations.
+    """
+    from generators.p7_primetime_sta_debug_gen import RTL_TEMPLATES
+    for tmpl in RTL_TEMPLATES:
+        netlist = tmpl["netlist"]
+        # Extract all port names from the module declaration
+        import re
+        module_match = re.search(r'module\s+\w+\s*\(([^)]+)\)', netlist)
+        if not module_match:
+            continue
+        ports = [p.strip() for p in module_match.group(1).split(',')]
+        # Check for bit-selects on non-port identifiers
+        for line in netlist.split('\n'):
+            select_match = re.search(r'(\w+)\[\d+\]', line)
+            if select_match:
+                bus_name = select_match.group(1)
+                # Bus must be declared as a port or as a wire/reg
+                assert bus_name in ports or f'wire' in netlist or f'output' in netlist, \
+                    f"{tmpl['name']}: bus '{bus_name}' used in bit-select but not declared"
+
+
+def test_fsm_netlist_has_state_declaration():
+    """FSM netlist must declare state as a wire bus."""
+    from generators.p7_primetime_sta_debug_gen import _NETLIST_FSM
+    assert "wire [1:0] state" in _NETLIST_FSM or "output [1:0] state" in _NETLIST_FSM, \
+        "FSM netlist missing state bus declaration"
 
 
 # --- Evaluator Tests (mocked, no PT) ---
@@ -236,7 +294,6 @@ def test_evaluator_loads():
 
 
 def test_evaluator_timing_check_pass():
-    """Timing check component passes when TIMING_CHECK_OK is present."""
     from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -248,7 +305,6 @@ def test_evaluator_timing_check_pass():
 
 
 def test_evaluator_timing_check_fail():
-    """Timing check component fails when TIMING_CHECK_FAIL is present."""
     from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -261,7 +317,6 @@ def test_evaluator_timing_check_fail():
 
 
 def test_evaluator_timing_check_fail_port_not_found():
-    """Timing check component fails when port not found."""
     from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -273,8 +328,19 @@ def test_evaluator_timing_check_fail_port_not_found():
     assert "port_not_found" in comp.details
 
 
+def test_evaluator_timing_check_fail_expected_clock_missing():
+    from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = PrimeTimeSTADebugEvaluator(SMOKE_DIR, meta)
+    log = "TIMING_CHECK_FAIL: expected_clock_missing:clk\n"
+    comp = evaluator.evaluate_component("timing_check", Path(), log)
+    assert comp.raw_score == 0.0
+    assert "expected_clock_missing" in comp.details
+
+
 def test_evaluator_execution_pass():
-    """Execution component passes when TIMING_CHECK_OK is present."""
     from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -286,7 +352,6 @@ def test_evaluator_execution_pass():
 
 
 def test_evaluator_execution_fail():
-    """Execution component fails when TIMING_CHECK_FAIL is present."""
     from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -393,6 +458,30 @@ def test_generated_tcl_has_timing_checks():
         assert "all_clocks" in tcl, f"{task_dir.name}: missing clock check"
         assert "TIMING_CHECK_OK" in tcl, f"{task_dir.name}: missing TIMING_CHECK_OK"
         assert "TIMING_CHECK_FAIL" in tcl, f"{task_dir.name}: missing TIMING_CHECK_FAIL"
+        assert "expected_clock_missing" in tcl, f"{task_dir.name}: missing expected clock name check"
+
+
+def test_generated_no_duplicate_ids():
+    """No duplicate task_ids between smoke and generated."""
+    if not GENERATED_DIR.is_dir():
+        pytest.skip("Generated tasks not created")
+    ids = set()
+    smoke_meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    ids.add(smoke_meta["task_id"])
+    for task_dir in sorted(GENERATED_DIR.iterdir()):
+        if not task_dir.is_dir():
+            continue
+        meta = json.loads((task_dir / "metadata.json").read_text())
+        assert meta["task_id"] not in ids, f"Duplicate task_id: {meta['task_id']}"
+        ids.add(meta["task_id"])
+
+
+def test_generated_count():
+    """Expected number of generated tasks."""
+    if not GENERATED_DIR.is_dir():
+        pytest.skip("Generated tasks not created")
+    count = sum(1 for d in GENERATED_DIR.iterdir() if d.is_dir())
+    assert count == EXPECTED_GENERATED_COUNT, f"Expected {EXPECTED_GENERATED_COUNT}, got {count}"
 
 
 # --- Smoke Skip Behavior ---

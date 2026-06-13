@@ -1,4 +1,4 @@
-# PrimeTime STA Debug Task: Wrong Period
+# PrimeTime STA Debug Task: Wrong Port Name
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 
 ## Bug Category
 
-Wrong clock period (50.0ns instead of 5.0ns) — report_clocks shows mismatch
+Wrong port name in constraint — PrimeTime reports 'Can't find port'
 
 ## Files
 
@@ -20,15 +20,15 @@ Wrong clock period (50.0ns instead of 5.0ns) — report_clocks shows mismatch
 
 - Only modify `constraints.sdc`
 - Do not modify any other files
-- The design has clock `clk` with period 5.0ns
+- The design has clock `clk` with period 2.0ns
 - Design ports: clk, rst_n, en, count
 
 ## Hint
 
 The run script checks that:
-1. At least one clock is created
+1. At least one clock is created with the expected clock name
 2. All design ports resolve correctly
 3. report_timing succeeds
 
 Check the SDC file for: missing clock definitions, wrong port names,
-wrong clock periods, syntax errors, or invalid port references.
+syntax errors, or invalid port references.
