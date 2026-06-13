@@ -1,4 +1,12 @@
-"""P6 DC Constraint Debug task generator — 10 bug categories, deterministic seed."""
+"""P6 DC Constraint Debug task generator — 6 reliable bug categories, deterministic seed.
+
+Only categories that produce detectable failures under DC are included.
+Removed categories (unreliable — DC accepts them silently):
+  - wrong_period (DC accepts any period value)
+  - missing_input_delay (DC accepts missing delays)
+  - missing_output_delay (DC accepts missing delays)
+  - tight_constraint (DC accepts overly tight constraints)
+"""
 
 from __future__ import annotations
 
@@ -109,13 +117,13 @@ endmodule
 
 RTL_TEMPLATES = [
     {"name": "counter", "rtl": _RTL_COUNTER, "top": "counter",
-     "clk": "clk", "ports": ["clk", "rst_n", "en", "count[7:0]"]},
+     "clk": "clk", "inputs": ["clk", "rst_n", "en"], "outputs": ["count"]},
     {"name": "fsm_ctrl", "rtl": _RTL_FSM, "top": "fsm_ctrl",
-     "clk": "clk", "ports": ["clk", "rst_n", "start", "busy", "done"]},
+     "clk": "clk", "inputs": ["clk", "rst_n", "start"], "outputs": ["busy", "done"]},
     {"name": "adder_pipe", "rtl": _RTL_ADDER, "top": "adder_pipe",
-     "clk": "clk", "ports": ["clk", "rst_n", "a[15:0]", "b[15:0]", "sum[16:0]"]},
+     "clk": "clk", "inputs": ["clk", "rst_n", "a", "b"], "outputs": ["sum"]},
     {"name": "mux_reg", "rtl": _RTL_MUX, "top": "mux_reg",
-     "clk": "clk", "ports": ["clk", "rst_n", "sel[1:0]", "d0[7:0]", "d1[7:0]", "d2[7:0]", "d3[7:0]", "q[7:0]"]},
+     "clk": "clk", "inputs": ["clk", "rst_n", "sel", "d0", "d1", "d2", "d3"], "outputs": ["q"]},
 ]
 
 
@@ -127,34 +135,8 @@ def _correct_sdc(rtl: dict, period_ns: float) -> str:
     """Generate correct SDC for the given RTL template."""
     top = rtl["top"]
     clk = rtl["clk"]
-    ports = rtl["ports"]
-
-    input_ports = [p.split("[")[0] for p in ports if p.split("[")[0] not in (clk,)]
-    output_ports = []
-    for p in ports:
-        name = p.split("[")[0]
-        if name != clk and name not in input_ports:
-            output_ports.append(name)
-
-    # Determine outputs (heuristic: last port is output)
-    # For our templates: counter(count), fsm_ctrl(busy,done), adder_pipe(sum), mux_reg(q)
-    all_names = [p.split("[")[0] for p in ports]
-    inputs = [clk, "rst_n"]
-    if "en" in all_names:
-        inputs.append("en")
-    if "start" in all_names:
-        inputs.append("start")
-    if "sel" in all_names:
-        inputs.append("sel")
-    for d in ["d0", "d1", "d2", "d3"]:
-        if d in all_names:
-            inputs.append(d)
-    if "a" in all_names:
-        inputs.append("a")
-    if "b" in all_names:
-        inputs.append("b")
-
-    outputs = [n for n in all_names if n not in inputs]
+    inputs = [p for p in rtl["inputs"] if p != clk]
+    outputs = rtl["outputs"]
 
     lines = [
         f"# SDC constraints for {top}",
@@ -164,8 +146,6 @@ def _correct_sdc(rtl: dict, period_ns: float) -> str:
     ]
 
     for inp in inputs:
-        if inp == clk:
-            continue
         lines.append(f"set_input_delay 0.5 -clock {clk} [get_ports {{{inp}}}]")
 
     lines.append("")
@@ -173,83 +153,61 @@ def _correct_sdc(rtl: dict, period_ns: float) -> str:
         lines.append(f"set_output_delay 0.5 -clock {clk} [get_ports {{{out}}}]")
 
     lines.append("")
-    lines.append(f"set_max_area 0")
+    lines.append("set_max_area 0")
     lines.append("")
     return "\n".join(lines)
 
 
 # ---------------------------------------------------------------------------
 # Bug categories: each returns (buggy_sdc, bug_name, difficulty, description)
+# Only categories that produce detectable failures under DC.
 # ---------------------------------------------------------------------------
 
 def _bug_missing_clock(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     """Missing create_clock definition."""
     sdc = _correct_sdc(rtl, period_ns)
-    # Remove the create_clock line
     lines = sdc.split("\n")
     buggy_lines = [l for l in lines if not l.startswith("create_clock")]
-    return "\n".join(buggy_lines), "missing_clock", "easy", "Missing create_clock definition"
-
-
-def _bug_wrong_period(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Wrong clock period (too tight or too loose)."""
-    sdc = _correct_sdc(rtl, period_ns)
-    # Replace period with 0.1ns (impossibly tight)
-    buggy = sdc.replace(f"-period {period_ns}", "-period 0.1")
-    return buggy, "wrong_period", "medium", "Clock period set to 0.1ns (impossibly tight)"
+    return "\n".join(buggy_lines), "missing_clock", "easy", \
+        "Missing create_clock definition — DC reports 'Can't find clock'"
 
 
 def _bug_wrong_port_name(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     """Wrong port name in constraint (typo)."""
     sdc = _correct_sdc(rtl, period_ns)
-    # Change first non-clock port to a wrong name
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
         if "get_ports" in line and "{clk}" not in line:
-            lines[i] = line.replace("{rst_n}", "{reset_n}").replace("{en}", "{enable}").replace("{start}", "{go}")
+            # Replace the first non-clock port reference with a wrong name
+            for old, new in [("{rst_n}", "{reset_n}"), ("{en}", "{enable}"),
+                             ("{start}", "{go}"), ("{a}", "{in_a}"), ("{b}", "{in_b}"),
+                             ("{sel}", "{selector}"), ("{d0}", "{data0}")]:
+                if old in line:
+                    lines[i] = line.replace(old, new)
+                    break
             break
-    return "\n".join(lines), "wrong_port_name", "easy", "Wrong port name in constraint (typo)"
+    return "\n".join(lines), "wrong_port_name", "easy", \
+        "Wrong port name in constraint — DC reports 'Can't find port'"
 
 
 def _bug_invalid_get_ports(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     """Invalid get_ports pattern (wildcard error)."""
     sdc = _correct_sdc(rtl, period_ns)
-    # Replace a valid port reference with an invalid wildcard
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
         if "set_input_delay" in line and "rst_n" in line:
             lines[i] = line.replace("[get_ports {rst_n}]", "[get_ports {nonexistent_*}]")
             break
-    return "\n".join(lines), "invalid_get_ports", "medium", "Invalid get_ports pattern (nonexistent wildcard)"
-
-
-def _bug_missing_input_delay(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Missing input delay on a data port."""
-    sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    # Remove first set_input_delay line (not rst_n)
-    for i, line in enumerate(lines):
-        if "set_input_delay" in line and "rst_n" not in line:
-            lines.pop(i)
-            break
-    return "\n".join(lines), "missing_input_delay", "medium", "Missing input delay on data port"
-
-
-def _bug_missing_output_delay(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Missing output delay on output port."""
-    sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    # Remove all set_output_delay lines
-    buggy_lines = [l for l in lines if not l.startswith("set_output_delay")]
-    return "\n".join(buggy_lines), "missing_output_delay", "medium", "Missing output delay on output port"
+    return "\n".join(lines), "invalid_get_ports", "medium", \
+        "Invalid get_ports pattern — DC reports 'Can't find ports matching'"
 
 
 def _bug_wrong_top_module(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     """Wrong top module name in SDC (references nonexistent module)."""
     sdc = _correct_sdc(rtl, period_ns)
-    # Change port references to use wrong module prefix
     buggy = sdc.replace("[get_ports {clk}]", "[get_ports {wrong_top/clk}]")
-    return buggy, "wrong_top_module", "hard", "Wrong top module name in port references"
+    return buggy, "wrong_top_module", "hard", \
+        "Wrong top module name in port references — DC reports 'Can't find port'"
 
 
 def _bug_syntax_error(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
@@ -258,222 +216,153 @@ def _bug_syntax_error(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     lines = sdc.split("\n")
     for i, line in enumerate(lines):
         if "create_clock" in line:
-            # Remove closing bracket
             lines[i] = line.replace("]", "")
             break
-    return "\n".join(lines), "syntax_error", "easy", "Syntax error: missing closing bracket"
+    return "\n".join(lines), "syntax_error", "easy", \
+        "Syntax error: missing closing bracket — DC exits nonzero"
 
 
 def _bug_unsupported_command(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
     """Unsupported command in DC script."""
     sdc = _correct_sdc(rtl, period_ns)
-    # Add an unsupported command
     lines = sdc.split("\n")
     lines.insert(1, "unsupported_command -arg value")
-    return "\n".join(lines), "unsupported_command", "medium", "Unsupported command in SDC script"
+    return "\n".join(lines), "unsupported_command", "medium", \
+        "Unsupported command in SDC script — DC reports 'unknown command'"
 
 
-def _bug_tight_constraint(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Overly tight constraint causing timing violation."""
-    sdc = _correct_sdc(rtl, period_ns)
-    # Set unreasonably tight input/output delays
-    lines = sdc.split("\n")
-    for i, line in enumerate(lines):
-        if "set_input_delay" in line and "rst_n" not in line:
-            lines[i] = line.replace("0.5", str(period_ns * 0.9))
-        elif "set_output_delay" in line:
-            lines[i] = line.replace("0.5", str(period_ns * 0.9))
-    return "\n".join(lines), "tight_constraint", "hard", "Overly tight input/output delays"
-
-
-# Registry of bug types
+# Registry of reliable bug types
 BUG_TYPES = [
     _bug_missing_clock,
-    _bug_wrong_period,
     _bug_wrong_port_name,
     _bug_invalid_get_ports,
-    _bug_missing_input_delay,
-    _bug_missing_output_delay,
     _bug_wrong_top_module,
     _bug_syntax_error,
     _bug_unsupported_command,
-    _bug_tight_constraint,
 ]
 
 EXPECTED_BUG_TYPE_NAMES = [
-    "missing_clock", "wrong_period", "wrong_port_name", "invalid_get_ports",
-    "missing_input_delay", "missing_output_delay", "wrong_top_module",
-    "syntax_error", "unsupported_command", "tight_constraint",
+    "missing_clock", "wrong_port_name", "invalid_get_ports",
+    "wrong_top_module", "syntax_error", "unsupported_command",
 ]
 
-# DC run script template
-RUN_PUBLIC_SH = """\
-#!/bin/bash
-# DC Constraint Debug — public run script
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$SCRIPT_DIR"
 
-DC_CMD="${EDA_DC_CMD:-dc_shell}"
+def _make_tcl(rtl: dict, section: str) -> str:
+    """Generate TCL script with explicit constraint validation."""
+    top = rtl["top"]
+    clk = rtl["clk"]
+    inputs = [p for p in rtl["inputs"] if p != clk]
+    outputs = rtl["outputs"]
+    all_ports = [clk] + inputs + outputs
 
-# Check if dc_shell is available
-if ! command -v "$DC_CMD" &>/dev/null; then
-    echo "SKIP: dc_shell not found (EDA_DC_CMD=$DC_CMD)"
-    echo "PUBLIC_RESULT: SKIP"
-    exit 0
-fi
+    if section == "public":
+        report_cmds = "report_timing -max_paths 5\nreport_area"
+    else:
+        report_cmds = (
+            "report_timing -max_paths 10 -delay max\n"
+            "report_timing -max_paths 10 -delay min"
+        )
 
-# Run dc_shell and capture output
-DC_OUTPUT=$("$DC_CMD" -f run_public.tcl 2>&1)
-DC_EXIT=$?
-
-echo "$DC_OUTPUT"
-
-# Check for DC-level errors in output
-DC_ERRORS=$(echo "$DC_OUTPUT" | grep -c "^Error:" || true)
-DC_CRASH=$(echo "$DC_OUTPUT" | grep -cPi "\babort\b|segmentation fault|core dumped" || true)
-
-if [ $DC_EXIT -ne 0 ] || [ "$DC_CRASH" -gt 0 ]; then
-    echo "PUBLIC_RESULT: FAIL (exit=$DC_EXIT, fatal=$DC_CRASH)"
-    exit 1
-elif [ "$DC_ERRORS" -gt 0 ]; then
-    echo "PUBLIC_RESULT: FAIL ($DC_ERRORS DC errors)"
-    exit 1
-else
-    echo "PUBLIC_RESULT: PASS"
-    exit 0
-fi
-"""
-
-RUN_PUBLIC_TCL = """\
-# DC Constraint Debug — public TCL script
+    return f"""\
+# DC Constraint Debug — {section} TCL script
 # Set library
 set target_library "lsi_10k.db"
 set link_library "* $target_library gtech.db"
 
 # Track errors
 set error_count 0
+set fail_reasons {{}}
 
 # Read RTL
 analyze -format verilog [list design.v]
 elaborate {top}
 link
 
-# Read constraints
-if {[catch {source -echo -verbose constraints.sdc} err]} {
-    echo "ERROR: Failed to read constraints: $err"
-    incr error_count
-}
+# Read constraints and capture output for error checking
+set source_log "source_output.log"
+redirect -file $source_log {{ source -echo -verbose constraints.sdc }}
 
-# Check design
-check_design -summary
+# --- Constraint validation checks ---
+
+# Check source output for DC errors
+set fh [open $source_log r]
+set source_content [read $fh]
+close $fh
+
+if {{[regexp {{Error:}} $source_content]}} {{
+    incr error_count
+    lappend fail_reasons "dc_error_in_source"
+}}
+
+if {{[regexp {{Can't find}} $source_content]}} {{
+    incr error_count
+    lappend fail_reasons "port_or_clock_not_found"
+}}
+
+if {{[regexp -nocase {{unknown command}} $source_content]}} {{
+    incr error_count
+    lappend fail_reasons "unsupported_command"
+}}
+
+# Check 1: Clocks must exist
+set all_clks [all_clocks]
+if {{[sizeof_collection $all_clks] == 0}} {{
+    incr error_count
+    lappend fail_reasons "no_clocks_created"
+}}
+
+# Check 2: All ports must resolve
+foreach port {{{" ".join(all_ports)}}} {{
+    if {{[catch {{get_ports $port}} result]}} {{
+        incr error_count
+        lappend fail_reasons "port_not_found:$port"
+    }}
+}}
 
 # Compile
-if {[catch {compile_ultra -no_autoungroup} err]} {
-    echo "ERROR: Compile failed: $err"
+if {{[catch {{compile_ultra -no_autoungroup}} result]}} {{
     incr error_count
-}
+    lappend fail_reasons "compile_failed"
+}}
 
 # Report
-report_timing -max_paths 5
-report_area
+{report_cmds}
 
-if {$error_count > 0} {
-    echo "PUBLIC_RESULT: FAIL ($error_count errors)"
+# Emit result
+if {{$error_count > 0}} {{
+    set reason_str [join $fail_reasons ","]
+    echo "CONSTRAINTS_FAIL: $reason_str"
     exit 1
-} else {
-    echo "PUBLIC_RESULT: PASS"
+}} else {{
+    echo "CONSTRAINTS_OK"
     exit 0
-}
+}}
 """
 
-RUN_HIDDEN_SH = """\
+
+def _make_sh(section: str) -> str:
+    """Generate bash run script."""
+    return f"""\
 #!/bin/bash
-# DC Constraint Debug — hidden run script
+# DC Constraint Debug — {section} run script
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
-DC_CMD="${EDA_DC_CMD:-dc_shell}"
+DC_CMD="${{EDA_DC_CMD:-dc_shell}}"
 
 # Check if dc_shell is available
 if ! command -v "$DC_CMD" &>/dev/null; then
     echo "SKIP: dc_shell not found (EDA_DC_CMD=$DC_CMD)"
-    echo "HIDDEN_RESULT: SKIP"
     exit 0
 fi
 
-# Run dc_shell and capture output
-DC_OUTPUT=$("$DC_CMD" -f run_hidden.tcl 2>&1)
+# Run dc_shell and capture both stdout and stderr
+DC_OUTPUT=$("$DC_CMD" -f run_{section}.tcl 2>&1)
 DC_EXIT=$?
 
 echo "$DC_OUTPUT"
 
-# Check for DC-level errors in output
-DC_ERRORS=$(echo "$DC_OUTPUT" | grep -c "^Error:" || true)
-DC_CRASH=$(echo "$DC_OUTPUT" | grep -cPi "\babort\b|segmentation fault|core dumped" || true)
-DC_TIMING_FAIL=$(echo "$DC_OUTPUT" | grep -c "HIDDEN_RESULT: FAIL" || true)
-
-if [ $DC_EXIT -ne 0 ] || [ "$DC_CRASH" -gt 0 ] || [ "$DC_TIMING_FAIL" -gt 0 ]; then
-    echo "HIDDEN_RESULT: FAIL (exit=$DC_EXIT, fatal=$DC_CRASH)"
-    exit 1
-elif [ "$DC_ERRORS" -gt 0 ]; then
-    echo "HIDDEN_RESULT: FAIL ($DC_ERRORS DC errors)"
-    exit 1
-else
-    echo "HIDDEN_RESULT: PASS"
-    exit 0
-fi
-"""
-
-RUN_HIDDEN_TCL = """\
-# DC Constraint Debug — hidden TCL script
-# Set library
-set target_library "lsi_10k.db"
-set link_library "* $target_library gtech.db"
-
-# Track errors
-set error_count 0
-
-# Read RTL
-analyze -format verilog [list design.v]
-elaborate {top}
-link
-
-# Read constraints
-if {[catch {source -echo -verbose constraints.sdc} err]} {
-    echo "ERROR: Failed to read constraints: $err"
-    incr error_count
-}
-
-# Check design (strict)
-check_design -summary
-
-# Check timing
-check_timing
-
-# Compile
-if {[catch {compile_ultra -no_autoungroup} err]} {
-    echo "ERROR: Compile failed: $err"
-    incr error_count
-}
-
-# Verify timing
-report_timing -max_paths 10 -delay max
-report_timing -max_paths 10 -delay min
-
-# Check for violations
-set timing_violations [get_timing_paths -max_paths 1 -slack_lesser_than 0]
-if {[sizeof_collection $timing_violations] > 0} {
-    echo "HIDDEN_RESULT: FAIL (timing violations found)"
-    exit 1
-}
-
-if {$error_count > 0} {
-    echo "HIDDEN_RESULT: FAIL ($error_count errors)"
-    exit 1
-} else {
-    echo "HIDDEN_RESULT: PASS"
-    exit 0
-}
+exit $DC_EXIT
 """
 
 
@@ -481,7 +370,6 @@ class P6DCConstraintDebugGenerator(BaseGenerator):
     """Generates P6 DC Constraint Debug tasks with deterministic seeds."""
 
     def generate_one(self, task_index: int) -> Path:
-        # Round-robin across bug types and RTL templates
         bug_fn = BUG_TYPES[task_index % len(BUG_TYPES)]
         rtl = RTL_TEMPLATES[(task_index // len(BUG_TYPES)) % len(RTL_TEMPLATES)]
         period_ns = self.rng.choice([2.0, 3.0, 5.0, 10.0])
@@ -508,19 +396,17 @@ class P6DCConstraintDebugGenerator(BaseGenerator):
         (task_dir / "solution" / "constraints.sdc").write_text(correct_sdc)
 
         # Write run scripts
-        run_pub_sh = RUN_PUBLIC_SH
-        run_pub_tcl = RUN_PUBLIC_TCL.replace("{top}", rtl["top"])
-        run_hid_sh = RUN_HIDDEN_SH
-        run_hid_tcl = RUN_HIDDEN_TCL.replace("{top}", rtl["top"])
-
-        (task_dir / "files" / "run_public.sh").write_text(run_pub_sh)
-        (task_dir / "files" / "run_public.tcl").write_text(run_pub_tcl)
-        (task_dir / "hidden" / "run_hidden.sh").write_text(run_hid_sh)
-        (task_dir / "hidden" / "run_hidden.tcl").write_text(run_hid_tcl)
+        (task_dir / "files" / "run_public.sh").write_text(_make_sh("public"))
+        (task_dir / "files" / "run_public.tcl").write_text(_make_tcl(rtl, "public"))
+        (task_dir / "hidden" / "run_hidden.sh").write_text(_make_sh("hidden"))
+        (task_dir / "hidden" / "run_hidden.tcl").write_text(_make_tcl(rtl, "hidden"))
 
         # Make scripts executable
         (task_dir / "files" / "run_public.sh").chmod(0o755)
         (task_dir / "hidden" / "run_hidden.sh").chmod(0o755)
+
+        # Build port list string for prompt
+        port_list = ", ".join(rtl["inputs"] + rtl["outputs"])
 
         # Write prompt
         prompt = f"""\
@@ -547,11 +433,17 @@ Fix the constraint file so that Design Compiler synthesis completes successfully
 - Only modify `constraints.sdc`
 - Do not modify any other files
 - The design has clock `{rtl['clk']}` with period {period_ns}ns
+- Design ports: {port_list}
 
 ## Hint
 
+The run script checks that:
+1. At least one clock is created
+2. All design ports resolve correctly
+3. compile_ultra succeeds
+
 Check the SDC file for: missing clock definitions, wrong port names,
-syntax errors, or incorrect timing constraints.
+syntax errors, or invalid port references.
 """
         (task_dir / "prompt.md").write_text(prompt)
 
@@ -577,9 +469,8 @@ syntax errors, or incorrect timing constraints.
             "run_command": "bash run_public.sh && bash run_hidden.sh",
             "scoring": {
                 "weights": {
-                    "execution_pass": 0.4,
-                    "check_pass": 0.3,
-                    "synthesis_pass": 0.2,
+                    "constraint_pass": 0.6,
+                    "execution_pass": 0.3,
                     "explanation": 0.1,
                 },
                 "evaluator": "dc_constraint_debug.DCConstraintDebugEvaluator",
@@ -595,7 +486,7 @@ syntax errors, or incorrect timing constraints.
                 "task_index": task_index,
             },
             "expected_error_category": bug_name,
-            "version": "1.0.0",
+            "version": "2.0.0",
         }
         (task_dir / "metadata.json").write_text(json.dumps(meta, indent=2) + "\n")
 

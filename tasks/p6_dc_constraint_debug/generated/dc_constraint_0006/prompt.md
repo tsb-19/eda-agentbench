@@ -1,13 +1,13 @@
-# DC Constraint Debug Task: Wrong Top Module
+# DC Constraint Debug Task: Missing Clock
 
 ## Description
 
-The design `counter` has a constraint file (`constraints.sdc`) with a bug.
+The design `fsm_ctrl` has a constraint file (`constraints.sdc`) with a bug.
 Fix the constraint file so that Design Compiler synthesis completes successfully.
 
 ## Bug Category
 
-Wrong top module name in port references
+Missing create_clock definition — DC reports 'Can't find clock'
 
 ## Files
 
@@ -21,8 +21,14 @@ Wrong top module name in port references
 - Only modify `constraints.sdc`
 - Do not modify any other files
 - The design has clock `clk` with period 2.0ns
+- Design ports: clk, rst_n, start, busy, done
 
 ## Hint
 
+The run script checks that:
+1. At least one clock is created
+2. All design ports resolve correctly
+3. compile_ultra succeeds
+
 Check the SDC file for: missing clock definitions, wrong port names,
-syntax errors, or incorrect timing constraints.
+syntax errors, or invalid port references.

@@ -19,7 +19,6 @@ GENERATED_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p6_dc_constr
 # --- Schema Validation ---
 
 def test_smoke_metadata_valid():
-    """Smoke task metadata passes schema validation."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -28,7 +27,6 @@ def test_smoke_metadata_valid():
 
 
 def test_smoke_task_id_format():
-    """Smoke task_id matches dc_constraint_NNNN pattern."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -36,7 +34,6 @@ def test_smoke_task_id_format():
 
 
 def test_smoke_track_is_p6():
-    """Smoke task has track=p6_dc_constraint_debug."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -44,7 +41,6 @@ def test_smoke_track_is_p6():
 
 
 def test_smoke_tool_is_dc():
-    """Smoke task tool list includes dc."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -52,7 +48,6 @@ def test_smoke_tool_is_dc():
 
 
 def test_smoke_weights_sum_to_one():
-    """Scoring weights sum to 1.0."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -61,7 +56,6 @@ def test_smoke_weights_sum_to_one():
 
 
 def test_smoke_files_exist():
-    """All visible and hidden files referenced in metadata exist."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -73,17 +67,15 @@ def test_smoke_files_exist():
 
 
 def test_smoke_editable_subset_of_visible():
-    """Editable files must be subset of visible."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
     visible = set(meta["files"]["visible"])
     editable = set(meta["files"]["editable"])
-    assert editable.issubset(visible), f"Editable not subset of visible: {editable - visible}"
+    assert editable.issubset(visible)
 
 
 def test_smoke_constraints_sdc_is_editable():
-    """constraints.sdc is the only editable file."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
@@ -91,33 +83,30 @@ def test_smoke_constraints_sdc_is_editable():
 
 
 def test_smoke_design_v_is_forbidden():
-    """design.v is in forbidden files."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
     assert "design.v" in meta["files"]["forbidden"]
 
 
-def test_smoke_solution_has_constraints():
-    """Solution directory contains constraints.sdc."""
-    if not SMOKE_DIR.is_dir():
-        pytest.skip("Smoke task not generated")
-    assert (SMOKE_DIR / "solution" / "constraints.sdc").is_file()
-
-
 def test_smoke_solution_differs_from_buggy():
-    """Solution constraints differ from buggy constraints."""
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     buggy = (SMOKE_DIR / "files" / "constraints.sdc").read_text()
     solution = (SMOKE_DIR / "solution" / "constraints.sdc").read_text()
-    assert buggy != solution, "Buggy and solution should differ"
+    assert buggy != solution
+
+
+def test_smoke_run_scripts_are_executable():
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    assert (SMOKE_DIR / "files" / "run_public.sh").stat().st_mode & 0o111
+    assert (SMOKE_DIR / "hidden" / "run_hidden.sh").stat().st_mode & 0o111
 
 
 # --- Generator Tests ---
 
 def test_generator_deterministic(tmp_path):
-    """Same seed produces identical output."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen1 = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path / "a")
     gen2 = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path / "b")
@@ -131,10 +120,9 @@ def test_generator_deterministic(tmp_path):
 
 
 def test_generator_metadata_valid(tmp_path):
-    """Generated task metadata passes schema validation."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(12):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         errors = validate_metadata(meta)
@@ -142,7 +130,6 @@ def test_generator_metadata_valid(tmp_path):
 
 
 def test_generator_files_exist(tmp_path):
-    """All required files are created."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
     p = gen.generate_one(0)
@@ -158,10 +145,9 @@ def test_generator_files_exist(tmp_path):
 
 
 def test_generator_buggy_differs_from_solution(tmp_path):
-    """Buggy SDC is different from solution SDC."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
-    for i in range(20):
+    for i in range(12):
         p = gen.generate_one(i)
         buggy = (p / "files" / "constraints.sdc").read_text()
         solution = (p / "solution" / "constraints.sdc").read_text()
@@ -169,72 +155,78 @@ def test_generator_buggy_differs_from_solution(tmp_path):
 
 
 def test_generator_batch_creates_count(tmp_path):
-    """generate_batch creates the requested number of tasks."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
-    assert len(paths) == 20
+    paths = gen.generate_batch(12)
+    assert len(paths) == 12
     for p in paths:
         assert (p / "metadata.json").is_file()
 
 
 def test_generator_bug_type_diversity(tmp_path):
-    """20 tasks cover all 10 bug types (2 each)."""
+    """12 tasks cover all 6 bug types (2 each)."""
     from collections import Counter
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(20)
+    paths = gen.generate_batch(12)
     types = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         types[meta["generator"]["bug_type"]] += 1
-    assert len(types) == 10, f"Expected 10 bug types, got {len(types)}: {set(types.keys())}"
+    assert len(types) == 6, f"Expected 6 bug types, got {len(types)}"
     for bt, count in types.items():
         assert count == 2, f"{bt}: expected 2, got {count}"
 
 
 def test_generator_rtl_diversity(tmp_path):
-    """40 tasks cover all 4 RTL templates (10 each)."""
+    """12 tasks cover 2 RTL templates (6 each)."""
     from collections import Counter
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(40)
+    paths = gen.generate_batch(12)
     templates = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         templates[meta["generator"]["rtl_template"]] += 1
-    assert len(templates) == 4, f"Expected 4 RTL templates, got {len(templates)}"
+    assert len(templates) == 2
     for tmpl, count in templates.items():
-        assert count == 10, f"{tmpl}: expected 10, got {count}"
+        assert count == 6, f"{tmpl}: expected 6, got {count}"
 
 
 def test_generator_unique_task_ids(tmp_path):
-    """All generated tasks have unique task IDs."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
     ids = set()
-    for i in range(20):
+    for i in range(12):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
-        assert meta["task_id"] not in ids, f"Duplicate task_id: {meta['task_id']}"
+        assert meta["task_id"] not in ids
         ids.add(meta["task_id"])
 
 
 def test_generator_validate_sample_tasks(tmp_path):
-    """Sample generated tasks pass structural validation."""
     from generators.p6_dc_constraint_debug_gen import P6DCConstraintDebugGenerator
     gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
     loader = TaskLoader(tmp_path)
     paths = gen.generate_batch(3)
     for p in paths:
-        meta = loader.load(p)  # raises on failure
+        meta = loader.load(p)
         assert meta["track"] == "p6_dc_constraint_debug"
+
+
+def test_generator_only_reliable_categories(tmp_path):
+    """All generated tasks use only the 6 reliable bug categories."""
+    from generators.p6_dc_constraint_debug_gen import EXPECTED_BUG_TYPE_NAMES, P6DCConstraintDebugGenerator
+    gen = P6DCConstraintDebugGenerator(seed=42, output_dir=tmp_path)
+    paths = gen.generate_batch(12)
+    for p in paths:
+        meta = json.loads((p / "metadata.json").read_text())
+        assert meta["generator"]["bug_type"] in EXPECTED_BUG_TYPE_NAMES
 
 
 # --- Evaluator Tests (mocked, no DC) ---
 
 def test_evaluator_loads():
-    """DCConstraintDebugEvaluator loads without error."""
     from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -243,56 +235,69 @@ def test_evaluator_loads():
     assert evaluator.weights == meta["scoring"]["weights"]
 
 
-def test_evaluator_pass_on_clean_log():
-    """Evaluator passes when log has PUBLIC_RESULT: PASS."""
+def test_evaluator_constraint_pass():
+    """Constraint component passes when CONSTRAINTS_OK is present."""
     from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
     evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
-    log = "elaborate counter\nlink\nSynthesis complete\nPUBLIC_RESULT: PASS\n"
+    log = "some DC output\nCONSTRAINTS_OK\n"
+    comp = evaluator.evaluate_component("constraint_pass", Path(), log)
+    assert comp.raw_score == 1.0
+
+
+def test_evaluator_constraint_fail():
+    """Constraint component fails when CONSTRAINTS_FAIL is present."""
+    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
+    log = "Error: Can't find clock\nCONSTRAINTS_FAIL: no_clocks_created\n"
+    comp = evaluator.evaluate_component("constraint_pass", Path(), log)
+    assert comp.raw_score == 0.0
+    assert "no_clocks_created" in comp.details
+
+
+def test_evaluator_constraint_fail_port_not_found():
+    """Constraint component fails when port not found."""
+    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
+    log = "CONSTRAINTS_FAIL: port_not_found:reset_n\n"
+    comp = evaluator.evaluate_component("constraint_pass", Path(), log)
+    assert comp.raw_score == 0.0
+    assert "port_not_found" in comp.details
+
+
+def test_evaluator_execution_pass():
+    """Execution component passes when CONSTRAINTS_OK is present."""
+    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
+    log = "DC output\nCONSTRAINTS_OK\n"
     comp = evaluator.evaluate_component("execution_pass", Path(), log)
     assert comp.raw_score == 1.0
 
 
-def test_evaluator_fail_on_error_log():
-    """Evaluator fails when log contains Error."""
+def test_evaluator_execution_fail():
+    """Execution component fails when CONSTRAINTS_FAIL is present."""
     from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
     evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
-    log = "Error: cannot find clock\nSynthesis aborted\n"
+    log = "DC output\nCONSTRAINTS_FAIL: no_clocks_created\n"
     comp = evaluator.evaluate_component("execution_pass", Path(), log)
     assert comp.raw_score == 0.0
 
 
-def test_evaluator_synthesis_pass():
-    """Synthesis component passes when DC reports success."""
-    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
-    if not SMOKE_DIR.is_dir():
-        pytest.skip("Smoke task not generated")
-    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
-    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
-    log = "Design compiled successfully\nPUBLIC_RESULT: PASS\n"
-    comp = evaluator.evaluate_component("synthesis_pass", Path(), log)
-    assert comp.raw_score == 1.0
-
-
-def test_evaluator_check_pass():
-    """Check component passes when check_design runs successfully."""
-    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
-    if not SMOKE_DIR.is_dir():
-        pytest.skip("Smoke task not generated")
-    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
-    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
-    log = "check_design summary:\n  Cells: 5\n"
-    comp = evaluator.evaluate_component("check_pass", Path(), log)
-    assert comp.raw_score == 1.0
-
-
 def test_evaluator_explanation_always_passes():
-    """Explanation component always scores 1.0 in submission mode."""
     from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -303,7 +308,6 @@ def test_evaluator_explanation_always_passes():
 
 
 def test_evaluator_unknown_component():
-    """Unknown component returns 0.0."""
     from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
@@ -316,18 +320,16 @@ def test_evaluator_unknown_component():
 # --- Anti-Cheat Tests ---
 
 def test_submission_forbidden_design_v(tmp_path):
-    """Submission containing design.v is rejected."""
     from eda_agentbench.task.validator import check_submission_forbidden
     sub = tmp_path / "submission"
     sub.mkdir()
     (sub / "constraints.sdc").write_text("create_clock -period 5 [get_ports {clk}]")
-    (sub / "design.v").write_text("module counter; endmodule")  # forbidden!
+    (sub / "design.v").write_text("module counter; endmodule")
     violations = check_submission_forbidden(sub, ["design.v", "run_public.sh"])
     assert "design.v" in violations
 
 
 def test_submission_clean(tmp_path):
-    """Submission with only editable files is accepted."""
     from eda_agentbench.task.validator import check_submission_forbidden
     sub = tmp_path / "submission"
     sub.mkdir()
@@ -336,18 +338,9 @@ def test_submission_clean(tmp_path):
     assert violations == []
 
 
-def test_smoke_run_scripts_are_executable():
-    """Run scripts have execute permission."""
-    if not SMOKE_DIR.is_dir():
-        pytest.skip("Smoke task not generated")
-    assert (SMOKE_DIR / "files" / "run_public.sh").stat().st_mode & 0o111
-    assert (SMOKE_DIR / "hidden" / "run_hidden.sh").stat().st_mode & 0o111
-
-
 # --- Generated Tasks Validation ---
 
 def test_generated_metadata_valid():
-    """All generated task metadata passes schema validation."""
     if not GENERATED_DIR.is_dir():
         pytest.skip("Generated tasks not created")
     for task_dir in sorted(GENERATED_DIR.iterdir()):
@@ -359,7 +352,6 @@ def test_generated_metadata_valid():
 
 
 def test_generated_track_is_p6():
-    """All generated tasks have track=p6_dc_constraint_debug."""
     if not GENERATED_DIR.is_dir():
         pytest.skip("Generated tasks not created")
     for task_dir in sorted(GENERATED_DIR.iterdir()):
@@ -370,7 +362,6 @@ def test_generated_track_is_p6():
 
 
 def test_generated_files_exist():
-    """All visible and hidden files referenced in generated metadata exist."""
     if not GENERATED_DIR.is_dir():
         pytest.skip("Generated tasks not created")
     for task_dir in sorted(GENERATED_DIR.iterdir()):
@@ -384,7 +375,6 @@ def test_generated_files_exist():
 
 
 def test_generated_no_raw_logs():
-    """Generated tasks contain no raw simulator outputs."""
     if not GENERATED_DIR.is_dir():
         pytest.skip("Generated tasks not created")
     for ext in [".lis", ".log", ".raw", ".st0", ".sw0", ".trn", ".ac0", ".ic0"]:
@@ -392,11 +382,22 @@ def test_generated_no_raw_logs():
             pytest.fail(f"Raw simulator output found: {f}")
 
 
+def test_generated_tcl_has_constraint_checks():
+    """Generated TCL scripts contain explicit constraint validation."""
+    if not GENERATED_DIR.is_dir():
+        pytest.skip("Generated tasks not created")
+    for task_dir in sorted(GENERATED_DIR.iterdir()):
+        if not task_dir.is_dir():
+            continue
+        tcl = (task_dir / "files" / "run_public.tcl").read_text()
+        assert "all_clocks" in tcl, f"{task_dir.name}: missing clock check"
+        assert "CONSTRAINTS_OK" in tcl, f"{task_dir.name}: missing CONSTRAINTS_OK"
+        assert "CONSTRAINTS_FAIL" in tcl, f"{task_dir.name}: missing CONSTRAINTS_FAIL"
+
+
 # --- Smoke Skip Behavior ---
 
 def test_smoke_script_skips_gracefully(tmp_path):
-    """Smoke script exits 0 when dc_shell is not available."""
-    # This test verifies the run_public.sh script handles missing dc_shell
     if not SMOKE_DIR.is_dir():
         pytest.skip("Smoke task not generated")
     import subprocess
@@ -406,14 +407,12 @@ def test_smoke_script_skips_gracefully(tmp_path):
         capture_output=True, text=True, timeout=30,
         env={"PATH": "/usr/bin:/bin", "EDA_DC_CMD": "nonexistent_dc_shell"},
     )
-    # Script should exit 0 with SKIP message
     assert "SKIP" in result.stdout or result.returncode == 0
 
 
 # --- Schema: task_id pattern ---
 
 def test_task_id_pattern_dc_constraint():
-    """dc_constraint_NNNN pattern is accepted by schema."""
     meta = {
         "task_id": "dc_constraint_0042",
         "track": "p6_dc_constraint_debug",
@@ -433,7 +432,7 @@ def test_task_id_pattern_dc_constraint():
         },
         "run_command": "echo ok",
         "scoring": {
-            "weights": {"execution_pass": 0.9, "explanation": 0.1},
+            "weights": {"constraint_pass": 0.6, "execution_pass": 0.3, "explanation": 0.1},
         },
     }
     errors = validate_metadata(meta)

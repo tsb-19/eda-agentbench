@@ -18,9 +18,8 @@
   "run_command": "bash run_public.sh && bash run_hidden.sh",
   "scoring": {
     "weights": {
-      "execution_pass": 0.4,
-      "check_pass": 0.3,
-      "synthesis_pass": 0.2,
+      "constraint_pass": 0.6,
+      "execution_pass": 0.3,
       "explanation": 0.1
     },
     "evaluator": "dc_constraint_debug.DCConstraintDebugEvaluator",
@@ -36,5 +35,5 @@
     "task_index": 0
   },
   "expected_error_category": "missing_clock",
-  "version": "1.0.0"
+  "version": "2.0.0"
 }

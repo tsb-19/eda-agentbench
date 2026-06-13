@@ -22,12 +22,13 @@ Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
-| P6 DC Constraint Debug | 21 | dc | 1 smoke + 20 generated (10 bug categories) |
+| P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 reliable bug categories) |
 
 Key results:
 - pytest: 264/264 pass
-- Solution mode: 2333/2333 = 1.00
-- Buggy mode: 2333/2333 all < 1.0
+- Solution mode: 2325/2325 = 1.00
+- Buggy mode: 2325/2325 all < 1.0
+- P6 accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.

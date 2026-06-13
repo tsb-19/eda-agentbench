@@ -1,4 +1,4 @@
-# DC Constraint Debug Task: Invalid Get Ports
+# DC Constraint Debug Task: Wrong Top Module
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that Design Compiler synthesis completes successfully
 
 ## Bug Category
 
-Invalid get_ports pattern (nonexistent wildcard)
+Wrong top module name in port references — DC reports 'Can't find port'
 
 ## Files
 
@@ -21,8 +21,14 @@ Invalid get_ports pattern (nonexistent wildcard)
 - Only modify `constraints.sdc`
 - Do not modify any other files
 - The design has clock `clk` with period 3.0ns
+- Design ports: clk, rst_n, en, count
 
 ## Hint
 
+The run script checks that:
+1. At least one clock is created
+2. All design ports resolve correctly
+3. compile_ultra succeeds
+
 Check the SDC file for: missing clock definitions, wrong port names,
-syntax errors, or incorrect timing constraints.
+syntax errors, or invalid port references.

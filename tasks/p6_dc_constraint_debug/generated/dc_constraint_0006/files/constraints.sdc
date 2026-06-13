@@ -1,10 +1,10 @@
-# SDC constraints for counter
-create_clock -name clk -period 2.0 [get_ports {wrong_top/clk}]
+# SDC constraints for fsm_ctrl
 set_clock_uncertainty 0.1 [get_clocks {clk}]
 
 set_input_delay 0.5 -clock clk [get_ports {rst_n}]
-set_input_delay 0.5 -clock clk [get_ports {en}]
+set_input_delay 0.5 -clock clk [get_ports {start}]
 
-set_output_delay 0.5 -clock clk [get_ports {count}]
+set_output_delay 0.5 -clock clk [get_ports {busy}]
+set_output_delay 0.5 -clock clk [get_ports {done}]
 
 set_max_area 0

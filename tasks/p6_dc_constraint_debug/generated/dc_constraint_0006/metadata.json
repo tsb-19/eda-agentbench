@@ -4,7 +4,7 @@
   "tool": [
     "dc"
   ],
-  "difficulty": "hard",
+  "difficulty": "easy",
   "data_type": "template_synthetic",
   "resource_preset": "standard",
   "timeout_sec": 300,
@@ -36,9 +36,8 @@
   "run_command": "bash run_public.sh && bash run_hidden.sh",
   "scoring": {
     "weights": {
-      "execution_pass": 0.4,
-      "check_pass": 0.3,
-      "synthesis_pass": 0.2,
+      "constraint_pass": 0.6,
+      "execution_pass": 0.3,
       "explanation": 0.1
     },
     "evaluator": "dc_constraint_debug.DCConstraintDebugEvaluator",
@@ -50,11 +49,11 @@
   "generator": {
     "script": "p6_dc_constraint_debug_gen.py",
     "seed": 42,
-    "bug_type": "wrong_top_module",
-    "rtl_template": "counter",
+    "bug_type": "missing_clock",
+    "rtl_template": "fsm_ctrl",
     "period_ns": 2.0,
     "task_index": 6
   },
-  "expected_error_category": "wrong_top_module",
-  "version": "1.0.0"
+  "expected_error_category": "missing_clock",
+  "version": "2.0.0"
 }

@@ -112,6 +112,8 @@ assert meta['track'] == 'p6_dc_constraint_debug', f'Wrong track: {meta[\"track\"
 assert 'dc' in meta['tool'], f'Wrong tool: {meta[\"tool\"]}'
 assert 'constraints.sdc' in meta['files']['editable'], 'constraints.sdc not editable'
 assert 'design.v' in meta['files']['forbidden'], 'design.v not forbidden'
+# Check scoring uses new constraint_pass weight
+assert 'constraint_pass' in meta['scoring']['weights'], 'Missing constraint_pass weight'
 print('  metadata is valid')
 " 2>&1 && check "Metadata fields" "PASS" || check "Metadata fields" "FAIL"
 

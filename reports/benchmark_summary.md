@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase5f-2312`  
-**Total tasks:** 2333  
+**Total tasks:** 2325  
 **Tracks:** 6  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -14,14 +14,14 @@
 | P3 Timing Report QA | 1008 |
 | P4 SPICE Sim | 102 |
 | P5 SPICE Deck Debug | 100 |
-| P6 DC Constraint Debug | 21 |
-| **Total** | **2333** |
+| P6 DC Constraint Debug | 13 |
+| **Total** | **2325** |
 
 ## Tool Distribution
 
 | Tool | Task Count |
 |------|----------:|
-| dc | 21 |
+| dc | 13 |
 | hspice | 151 |
 | pt | 1008 |
 | spectre | 51 |
@@ -32,8 +32,8 @@
 | Difficulty | Count |
 |------------|------:|
 | easy | 1075 |
-| hard | 404 |
-| medium | 854 |
+| hard | 402 |
+| medium | 848 |
 
 ## Data Type Distribution
 
@@ -41,7 +41,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1131 |
+| template_synthetic | 1123 |
 
 ## Scoring Methodology
 
@@ -56,7 +56,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P3 Timing Report QA | `answer_match:1.0` |
 | P4 SPICE Sim | `explanation:0.1|hidden_metric:0.2|output_generated:0.2|public_metric:0.2|tool_run:0.3` |
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
-| P6 DC Constraint Debug | `check_pass:0.3|execution_pass:0.4|explanation:0.1|synthesis_pass:0.2` |
+| P6 DC Constraint Debug | `constraint_pass:0.6|execution_pass:0.3|explanation:0.1` |
 
 ## Public / Private Split
 

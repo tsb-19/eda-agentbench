@@ -1,4 +1,4 @@
-# DC Constraint Debug Task: Missing Output Delay
+# DC Constraint Debug Task: Unsupported Command
 
 ## Description
 
@@ -7,7 +7,7 @@ Fix the constraint file so that Design Compiler synthesis completes successfully
 
 ## Bug Category
 
-Missing output delay on output port
+Unsupported command in SDC script — DC reports 'unknown command'
 
 ## Files
 
@@ -21,8 +21,14 @@ Missing output delay on output port
 - Only modify `constraints.sdc`
 - Do not modify any other files
 - The design has clock `clk` with period 3.0ns
+- Design ports: clk, rst_n, en, count
 
 ## Hint
 
+The run script checks that:
+1. At least one clock is created
+2. All design ports resolve correctly
+3. compile_ultra succeeds
+
 Check the SDC file for: missing clock definitions, wrong port names,
-syntax errors, or incorrect timing constraints.
+syntax errors, or invalid port references.

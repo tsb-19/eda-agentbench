@@ -5,45 +5,70 @@ set link_library "* $target_library gtech.db"
 
 # Track errors
 set error_count 0
+set fail_reasons {}
 
 # Read RTL
 analyze -format verilog [list design.v]
 elaborate counter
 link
 
-# Read constraints
-if {[catch {source -echo -verbose constraints.sdc} err]} {
-    echo "ERROR: Failed to read constraints: $err"
+# Read constraints and capture output for error checking
+set source_log "source_output.log"
+redirect -file $source_log { source -echo -verbose constraints.sdc }
+
+# --- Constraint validation checks ---
+
+# Check source output for DC errors
+set fh [open $source_log r]
+set source_content [read $fh]
+close $fh
+
+if {[regexp {Error:} $source_content]} {
     incr error_count
+    lappend fail_reasons "dc_error_in_source"
 }
 
-# Check design (strict)
-check_design -summary
+if {[regexp {Can't find} $source_content]} {
+    incr error_count
+    lappend fail_reasons "port_or_clock_not_found"
+}
 
-# Check timing
-check_timing
+if {[regexp -nocase {unknown command} $source_content]} {
+    incr error_count
+    lappend fail_reasons "unsupported_command"
+}
+
+# Check 1: Clocks must exist
+set all_clks [all_clocks]
+if {[sizeof_collection $all_clks] == 0} {
+    incr error_count
+    lappend fail_reasons "no_clocks_created"
+}
+
+# Check 2: All ports must resolve
+foreach port {clk rst_n en count} {
+    if {[catch {get_ports $port} result]} {
+        incr error_count
+        lappend fail_reasons "port_not_found:$port"
+    }
+}
 
 # Compile
-if {[catch {compile_ultra -no_autoungroup} err]} {
-    echo "ERROR: Compile failed: $err"
+if {[catch {compile_ultra -no_autoungroup} result]} {
     incr error_count
+    lappend fail_reasons "compile_failed"
 }
 
-# Verify timing
+# Report
 report_timing -max_paths 10 -delay max
 report_timing -max_paths 10 -delay min
 
-# Check for violations
-set timing_violations [get_timing_paths -max_paths 1 -slack_lesser_than 0]
-if {[sizeof_collection $timing_violations] > 0} {
-    echo "HIDDEN_RESULT: FAIL (timing violations found)"
-    exit 1
-}
-
+# Emit result
 if {$error_count > 0} {
-    echo "HIDDEN_RESULT: FAIL ($error_count errors)"
+    set reason_str [join $fail_reasons ","]
+    echo "CONSTRAINTS_FAIL: $reason_str"
     exit 1
 } else {
-    echo "HIDDEN_RESULT: PASS"
+    echo "CONSTRAINTS_OK"
     exit 0
 }

@@ -4,7 +4,7 @@
   "tool": [
     "dc"
   ],
-  "difficulty": "easy",
+  "difficulty": "medium",
   "data_type": "template_synthetic",
   "resource_preset": "standard",
   "timeout_sec": 300,
@@ -36,9 +36,8 @@
   "run_command": "bash run_public.sh && bash run_hidden.sh",
   "scoring": {
     "weights": {
-      "execution_pass": 0.4,
-      "check_pass": 0.3,
-      "synthesis_pass": 0.2,
+      "constraint_pass": 0.6,
+      "execution_pass": 0.3,
       "explanation": 0.1
     },
     "evaluator": "dc_constraint_debug.DCConstraintDebugEvaluator",
@@ -50,11 +49,11 @@
   "generator": {
     "script": "p6_dc_constraint_debug_gen.py",
     "seed": 42,
-    "bug_type": "wrong_port_name",
+    "bug_type": "invalid_get_ports",
     "rtl_template": "counter",
     "period_ns": 5.0,
     "task_index": 2
   },
-  "expected_error_category": "wrong_port_name",
-  "version": "1.0.0"
+  "expected_error_category": "invalid_get_ports",
+  "version": "2.0.0"
 }
