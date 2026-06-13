@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.4-phase6-2563`
-**Total tasks:** 2563
-**Tracks:** 6
+**Tag:** `v0.3-phase6b-2363`  
+**Total tasks:** 2563  
+**Tracks:** 6  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -31,9 +31,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1319 |
+| easy | 1294 |
 | hard | 405 |
-| medium | 839 |
+| medium | 864 |
 
 ## Data Type Distribution
 
