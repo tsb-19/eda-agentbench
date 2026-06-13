@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2609  
-**Tracks:** 9  
+**Total tasks:** 2710  
+**Tracks:** 10  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -18,7 +18,8 @@
 | P6 DC Synthesis QA | 51 |
 | P7 PrimeTime STA Debug | 17 |
 | P7 SpyGlass Lint Debug | 16 |
-| **Total** | **2609** |
+| P8 PnR Report QA | 101 |
+| **Total** | **2710** |
 
 ## Tool Distribution
 
@@ -26,6 +27,8 @@
 |------|----------:|
 | dc | 64 |
 | hspice | 251 |
+| icc2 | 45 |
+| innovus | 56 |
 | pt | 1025 |
 | spectre | 151 |
 | spyglass | 16 |
@@ -35,9 +38,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1320 |
+| easy | 1321 |
 | hard | 407 |
-| medium | 882 |
+| medium | 982 |
 
 ## Data Type Distribution
 
@@ -45,7 +48,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1407 |
+| template_synthetic | 1508 |
 
 ## Scoring Methodology
 
@@ -64,6 +67,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P6 DC Synthesis QA | `answer_match:1.0` |
 | P7 PrimeTime STA Debug | `execution_pass:0.3|explanation:0.1|timing_check:0.6` |
 | P7 SpyGlass Lint Debug | `explanation:0.1|lint_pass:0.9` |
+| P8 PnR Report QA | `answer_match:0.9|explanation:0.1` |
 
 ## Public / Private Split
 
