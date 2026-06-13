@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 6 — P4 scaled + P6 DC QA + baseline runner
+**Phase**: 7C — Agentic Runner MVP
 
 ## Task Inventory
 
@@ -146,7 +146,7 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 
 ## Known Limitations
 
-1. No agentic runner (submission/workspace mode only; agent cannot run tools during evaluation).
+1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`). Single shell-command agent interface; no interactive loop or per-tool-call transcript.
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
 3. P2 naming was cleaned up in Phase 4E: `p2_tb_sva_gen` track, `tb_sva_gen.TBSVAGenEvaluator`.
 4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).

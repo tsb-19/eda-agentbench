@@ -12,16 +12,18 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (Phase 5F — P5 scaled to 100)
+## Current Coverage (Phase 7C — Agentic Runner MVP)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
 | P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
 | P2 Testbench/SVA Gen | 101 | VCS | Write testbenches that catch RTL mutants |
 | P3 Timing Report QA | 1008 | pt (synthetic) | Answer questions about timing reports |
-| P4 SPICE Sim | 102 | HSPICE, Spectre | Fix RC filter rise/fall time |
+| P4 SPICE Sim | 302 | HSPICE, Spectre | Fix RC filter rise/fall time |
 | P5 SPICE Deck Debug | 100 | HSPICE | Fix broken SPICE simulation decks |
-| **Total** | **2312** | | |
+| P6 DC Synthesis QA | 51 | dc (synthetic) | Answer questions about synthesis reports |
+| P6 DC Constraint Debug | 13 | dc | Fix broken SDC constraints |
+| **Total** | **2576** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
 - 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
@@ -84,6 +86,21 @@ eda-bench validate-task tasks/p1_rtl_debug/task_000001
 ```
 
 ## Evaluating Tasks
+
+### Agentic Mode
+
+Run an external agent command against a task in a sandboxed workspace:
+
+```bash
+# Single task with a script agent
+eda-bench run-agent tasks/p3_timing_report_qa/smoke \
+    --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
+
+# Sampled dataset with a no-op agent
+eda-bench run-agent-dataset tasks --sample-per-track 1 --seed 42 --agent-cmd "true"
+```
+
+The agent receives `EDA_WORKSPACE`, `EDA_TASK_PATH`, `EDA_TASK_ID`, and `EDA_TIMEOUT` as environment variables. See [docs/agentic_runner.md](docs/agentic_runner.md) for details.
 
 ### Single Task
 
@@ -218,6 +235,7 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 
 ## Documentation
 
+- [Agentic Runner](docs/agentic_runner.md) — Agentic evaluation mode
 - [Benchmark Tracks](docs/benchmark_tracks.md) — Detailed track descriptions and scoring
 - [Dataset Card](docs/datacard.md) — Dataset composition and validation results
 - [Current Status](docs/current_status.md) — Phase 3C status and known limitations

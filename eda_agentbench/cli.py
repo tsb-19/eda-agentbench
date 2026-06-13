@@ -57,6 +57,32 @@ def main(argv: list[str] | None = None) -> None:
     p_rep.add_argument("--format", choices=["terminal", "json", "markdown", "all"], default="all")
     p_rep.add_argument("--output", default=None, help="Output directory for report files")
 
+    # run-agent
+    p_ra = sub.add_parser("run-agent", help="Run an external agent against a task")
+    p_ra.add_argument("task", help="Task directory path")
+    p_ra.add_argument("--agent-cmd", required=True,
+                       help="Agent command to execute (receives EDA_WORKSPACE env var)")
+    p_ra.add_argument("--timeout", type=int, default=None,
+                       help="Override timeout in seconds")
+    p_ra.add_argument("--run-id", default=None,
+                       help="Custom run ID (default: agentic_<timestamp>)")
+    p_ra.add_argument("--output-dir", default=None,
+                       help="Override output runs root directory")
+
+    # run-agent-dataset
+    p_rad = sub.add_parser("run-agent-dataset",
+                            help="Run agent against a sampled dataset")
+    p_rad.add_argument("tasks_root", help="Root directory containing task tracks")
+    p_rad.add_argument("--agent-cmd", required=True, help="Agent command to execute")
+    p_rad.add_argument("--track", default=None, help="Filter by track")
+    p_rad.add_argument("--timeout", type=int, default=None, help="Override timeout per task")
+    p_rad.add_argument("--run-id", default=None, help="Custom run ID")
+    p_rad.add_argument("--sample-per-track", type=int, default=None,
+                        help="Sample N tasks per track")
+    p_rad.add_argument("--limit", type=int, default=None,
+                        help="Evaluate at most N tasks total")
+    p_rad.add_argument("--seed", type=int, default=42, help="Sampling seed (default: 42)")
+
     args = parser.parse_args(argv)
 
     if args.command == "detect-tools":
@@ -69,6 +95,10 @@ def main(argv: list[str] | None = None) -> None:
         cmd_evaluate_dataset(args)
     elif args.command == "report":
         cmd_report(args)
+    elif args.command == "run-agent":
+        cmd_run_agent(args)
+    elif args.command == "run-agent-dataset":
+        cmd_run_agent_dataset(args)
 
 
 def cmd_detect_tools(args) -> None:
@@ -160,6 +190,192 @@ def cmd_evaluate_task(args) -> None:
         print(f"  {c.name}: {c.raw_score:.2f} * {c.weight:.2f} = {c.weighted_score:.4f} — {c.details}")
     print(f"\nScore written to: {runs_dir / 'score.json'}")
     print(f"Logs written to:  {runs_dir}/")
+
+
+def cmd_run_agent(args) -> None:
+    """Run an external agent against a single task."""
+    from eda_agentbench.task.loader import TaskLoader, TaskValidationError
+    from eda_agentbench.agentic.runner import run_single_agentic
+
+    task_path = Path(args.task).resolve()
+    if not task_path.is_dir():
+        print(f"ERROR: Task directory not found: {task_path}", file=sys.stderr)
+        sys.exit(1)
+
+    loader = TaskLoader(Path("."))
+    try:
+        meta = loader.load(task_path)
+    except TaskValidationError as e:
+        print(f"ERROR: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    timeout = args.timeout or meta.get("timeout_sec", 300)
+    runs_root = Path(args.output_dir).resolve() if args.output_dir else None
+
+    try:
+        runs_dir, score_result, agentic_result = run_single_agentic(
+            task_path, args.agent_cmd, meta, timeout, runs_root=runs_root,
+        )
+    except RuntimeError as e:
+        print(f"AGENT RUN FAILED: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"\nAgent: {args.agent_cmd}")
+    print(f"Agent exit code: {agentic_result.agent_exit_code}")
+    print(f"Agent wall time: {agentic_result.agent_wall_time_sec:.1f}s")
+    print(f"Files changed: {len(agentic_result.file_changes)}")
+    for path, change_type in sorted(agentic_result.file_changes.items()):
+        print(f"  {change_type}: {path}")
+    if not agentic_result.anti_cheat_clean:
+        print(f"  ANTI-CHEAT VIOLATIONS: {agentic_result.forbidden_violations}")
+    print(f"\nScore: {score_result.total_score:.2f} / 1.00 "
+          f"{'(PASS)' if score_result.passed else '(FAIL)'}")
+    for c in score_result.components:
+        print(f"  {c.name}: {c.raw_score:.2f} * {c.weight:.2f} = "
+              f"{c.weighted_score:.4f} — {c.details}")
+    print(f"\nArtifacts written to: {runs_dir}/")
+
+
+def cmd_run_agent_dataset(args) -> None:
+    """Run agent against a sampled dataset."""
+    import random
+    from eda_agentbench.task.loader import TaskLoader, TaskValidationError
+    from eda_agentbench.agentic.runner import run_single_agentic
+
+    tasks_root = Path(args.tasks_root).resolve()
+    if not tasks_root.is_dir():
+        print(f"ERROR: Tasks root not found: {tasks_root}", file=sys.stderr)
+        sys.exit(1)
+
+    track_filter = args.track
+    timeout_override = args.timeout
+    limit = args.limit
+    sample_per_track = args.sample_per_track
+    seed = args.seed
+    run_id = args.run_id or f"agentic_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    dataset_runs_root = RUNS_ROOT / run_id
+
+    # Discover tasks
+    loader = TaskLoader(tasks_root)
+    task_paths = loader.discover(track=track_filter, recursive=True)
+    if not task_paths:
+        print(f"ERROR: No tasks found under {tasks_root}", file=sys.stderr)
+        sys.exit(1)
+
+    total_candidates = len(task_paths)
+
+    # Apply sampling (same logic as cmd_evaluate_dataset)
+    sampled = sample_per_track is not None or limit is not None
+    selected_task_ids: list[str] = []
+
+    if sample_per_track is not None:
+        by_track: dict[str, list[Path]] = {}
+        for tp in task_paths:
+            try:
+                meta = loader.load(tp)
+                track = meta.get("track", "unknown")
+            except TaskValidationError:
+                track = "unknown"
+            by_track.setdefault(track, []).append(tp)
+
+        rng = random.Random(seed)
+        sampled_paths: list[Path] = []
+        for track in sorted(by_track):
+            candidates = by_track[track]
+            n = min(sample_per_track, len(candidates))
+            selected = rng.sample(candidates, n)
+            sampled_paths.extend(selected)
+        task_paths = sampled_paths
+    elif limit is not None:
+        rng = random.Random(seed)
+        shuffled = list(task_paths)
+        rng.shuffle(shuffled)
+        task_paths = shuffled[:limit]
+
+    for tp in task_paths:
+        try:
+            meta = loader.load(tp)
+            selected_task_ids.append(meta.get("task_id", tp.name))
+        except TaskValidationError:
+            selected_task_ids.append(tp.name)
+
+    print(f"=== Agentic Dataset Evaluation ===")
+    print(f"  Tasks root:      {tasks_root}")
+    print(f"  Agent cmd:       {args.agent_cmd}")
+    print(f"  Track filter:    {track_filter or 'all'}")
+    print(f"  Run ID:          {run_id}")
+    print(f"  Total candidates: {total_candidates}")
+    print(f"  Tasks selected:  {len(task_paths)}")
+    print()
+
+    results: list[dict] = []
+    for i, task_path in enumerate(task_paths):
+        try:
+            meta = loader.load(task_path)
+        except TaskValidationError as e:
+            print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: {e}")
+            results.append({
+                "task_path": str(task_path), "task_id": task_path.name,
+                "status": "error", "reason": str(e),
+            })
+            continue
+
+        task_id = meta["task_id"]
+        timeout = timeout_override or meta.get("timeout_sec", 300)
+
+        print(f"[{i+1}/{len(task_paths)}] {task_id} (agentic)...", end=" ", flush=True)
+
+        try:
+            runs_dir, score_result, agentic_result = run_single_agentic(
+                task_path, args.agent_cmd, meta, timeout, runs_root=dataset_runs_root,
+            )
+            status = "pass" if score_result.passed else "fail"
+            print(f"{score_result.total_score:.2f} {'PASS' if score_result.passed else 'FAIL'}")
+            results.append({
+                "task_path": str(task_path),
+                "task_id": task_id,
+                "track": meta["track"],
+                "tool": meta["tool"],
+                "difficulty": meta["difficulty"],
+                "status": status,
+                "total_score": score_result.total_score,
+                "objective_score": score_result.objective_score,
+                "explanation_score": score_result.explanation_score,
+                "components": [c.to_dict() for c in score_result.components],
+                "score_path": str(runs_dir / "score.json"),
+            })
+        except Exception as e:
+            print(f"ERROR: {e}")
+            results.append({
+                "task_path": str(task_path),
+                "task_id": task_id,
+                "track": meta.get("track", "unknown"),
+                "tool": meta.get("tool", []),
+                "difficulty": meta.get("difficulty", "unknown"),
+                "status": "error",
+                "reason": str(e),
+            })
+
+    # Write summary
+    summary = _build_dataset_summary(
+        results, run_id, "agentic", track_filter,
+        sampled=sampled, sample_per_track=sample_per_track,
+        limit=limit, seed=seed,
+        total_candidates=total_candidates,
+        selected_task_ids=selected_task_ids,
+    )
+    summary_path = dataset_runs_root / "summary.json"
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    summary_path.write_text(json.dumps(summary, indent=2))
+
+    print(f"\n=== Agentic Dataset Summary ===")
+    print(f"  Total:       {summary['total']}")
+    print(f"  Evaluated:   {summary['evaluated']}")
+    print(f"  Passed:      {summary['passed']}")
+    print(f"  Failed:      {summary['failed']}")
+    print(f"  Errors:      {summary['errors']}")
+    print(f"  Avg score:   {summary['avg_score']:.4f}")
+    print(f"\nSummary written to: {summary_path}")
 
 
 def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,

@@ -11,7 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 6 — P4 scaled + P6 DC QA + P6 DC Constraint + baseline runner)
+## Current Status (Phase 7C — Agentic Runner MVP)
+
+Phase 7C adds the agentic runner infrastructure. This is not a new task track — it is an evaluation mode that can run an external agent command in a sandboxed workspace, capture output, enforce limits, and grade using existing evaluators. CLI subcommands: `run-agent` and `run-agent-dataset`.
 
 Phase 6 scaled P4 to 302 tasks (3 circuit types), added P6 DC Synthesis QA (51 tasks), added P6 DC Constraint Debug (13 tasks), and added baseline runner. 2576 total tasks across 7 tracks:
 
@@ -96,6 +98,7 @@ Always implement environment detection instead of hardcoding one shell setup.
 10. Phase 5E: PT prototype (8 tasks) — DONE
 11. Phase 5F: P5 scale to 100 — DONE
 12. Phase 6C: P6 DC Constraint Debug prototype — DONE
+13. Phase 7C: Agentic Runner MVP — DONE
 
 ### Later
 

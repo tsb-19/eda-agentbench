@@ -105,3 +105,30 @@ class ScoreResult:
             "resource_usage": self.resource_usage,
             "metadata": self.metadata,
         }
+
+
+@dataclass
+class AgentSubprocessResult:
+    """Result of running an agent subprocess."""
+    return_code: int
+    stdout: str
+    stderr: str
+    wall_time_sec: float
+    timed_out: bool = False
+
+
+@dataclass
+class AgenticRunResult:
+    """Complete result of an agentic run (agent + evaluation)."""
+    task_id: str
+    agent_cmd: str
+    agent_exit_code: int
+    agent_wall_time_sec: float
+    agent_timed_out: bool
+    file_changes: dict[str, str]
+    forbidden_violations: list[str]
+    anti_cheat_clean: bool
+    total_score: float
+    passed: bool
+    transcript_path: Path
+    score_path: Path

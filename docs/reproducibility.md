@@ -223,3 +223,20 @@ python scripts/run_baseline_suite.py --track p3_timing_report_qa --modes solutio
 
 Any real LLM submission should score between the buggy and solution baselines.
 No external model APIs are called — all evaluation is local and deterministic.
+
+## Agentic Run Reproducibility
+
+Agentic runs (`run-agent`, `run-agent-dataset`) are reproducible when the agent command is deterministic and the task tree is unchanged. The output includes:
+
+- `workspace_manifest.json`: SHA-256 of all files before and after the agent runs
+- `modified_files.json`: exact list of file changes
+- `transcript.jsonl`: full agent output (stdout, stderr, events)
+- `metadata.json`: agent command, timeout, task metadata
+
+To reproduce an agentic result:
+
+```bash
+eda-bench run-agent tasks/<track>/<task_id> --agent-cmd "YOUR_COMMAND"
+```
+
+The score depends on the agent's edits and the task's evaluator. For QA tasks (P3, P6 QA), no EDA tools are needed, so results are fully deterministic across machines. For tool-based tasks (P1, P2, P4, P5, P6 constraint), results depend on EDA tool availability and version.
