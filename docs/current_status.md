@@ -1,3 +1,5 @@
+**English | [中文](current_status.zh.md)**
+
 # Current Benchmark Status
 
 **Phase**: 7 — P7 SpyGlass + PrimeTime + Agentic Runner

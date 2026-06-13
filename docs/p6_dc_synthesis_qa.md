@@ -1,3 +1,5 @@
+**English | [中文](p6_dc_synthesis_qa.zh.md)**
+
 # P6 DC Synthesis Report QA
 
 ## Overview

@@ -1,3 +1,5 @@
+**English | [中文](prompt_diversification.zh.md)**
+
 # Prompt Diversification
 
 ## Overview

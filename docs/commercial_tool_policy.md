@@ -1,3 +1,5 @@
+**English | [中文](commercial_tool_policy.zh.md)**
+
 # Commercial Tool Policy
 
 ## Overview

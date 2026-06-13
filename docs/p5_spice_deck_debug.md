@@ -1,3 +1,5 @@
+**English | [中文](p5_spice_deck_debug.zh.md)**
+
 # P5: SPICE Deck Debug
 
 ## What P5 Measures

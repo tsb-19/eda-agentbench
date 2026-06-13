@@ -1,3 +1,5 @@
+**English | [中文](benchmark_spec.zh.md)**
+
 # Benchmark Specification
 
 ## Overview

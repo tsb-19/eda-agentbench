@@ -1,3 +1,5 @@
+**English | [中文](current_v0_status.zh.md)**
+
 # EDA-AgentBench v0 Status
 
 **Checkpoint commit:** `960677c`

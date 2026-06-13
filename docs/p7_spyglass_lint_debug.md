@@ -1,3 +1,5 @@
+**English | [中文](p7_spyglass_lint_debug.zh.md)**
+
 # P7 SpyGlass Lint Debug
 
 ## Goal

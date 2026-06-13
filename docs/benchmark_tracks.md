@@ -1,3 +1,5 @@
+**English | [中文](benchmark_tracks.zh.md)**
+
 # Benchmark Tracks
 
 ## Track Overview

@@ -1,3 +1,5 @@
+**English | [中文](public_release_policy.zh.md)**
+
 # Public Release Policy
 
 ## Overview

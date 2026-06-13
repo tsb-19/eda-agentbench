@@ -1,3 +1,5 @@
+**English | [中文](adding_tasks.zh.md)**
+
 # Adding Tasks
 
 This guide explains how to create new tasks for EDA-AgentBench.

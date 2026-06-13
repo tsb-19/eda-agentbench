@@ -1,3 +1,5 @@
+**English | [中文](p2_tb_sva.zh.md)**
+
 # P2: Testbench / SVA Generation
 
 ## Overview

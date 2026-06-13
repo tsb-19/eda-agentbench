@@ -1,3 +1,5 @@
+**English | [中文](task_schema.zh.md)**
+
 # Task Schema Reference
 
 Each task is a directory containing `metadata.json`, `prompt.md`, and supporting files. This document describes the `metadata.json` fields.

@@ -1,3 +1,5 @@
+**English | [中文](p8_pnr_report_qa.zh.md)**
+
 # P8 PnR Report QA
 
 ## Overview

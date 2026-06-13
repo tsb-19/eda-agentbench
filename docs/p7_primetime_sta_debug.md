@@ -1,3 +1,5 @@
+**English | [中文](p7_primetime_sta_debug.zh.md)**
+
 # P7 PrimeTime STA Debug
 
 **Goal**: Fix a buggy SDC constraint file so PrimeTime STA timing checks pass.

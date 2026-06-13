@@ -1,3 +1,5 @@
+**English | [中文](p6_dc_constraint_debug.zh.md)**
+
 # P6 DC Constraint Debug Track
 
 ## Overview

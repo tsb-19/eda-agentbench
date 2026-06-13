@@ -1,3 +1,5 @@
+**English | [中文](datacard.zh.md)**
+
 # EDA-AgentBench Dataset Card
 
 ## Summary

@@ -1,3 +1,5 @@
+**English | [中文](scoring.zh.md)**
+
 # Scoring Rules
 
 ## Score Structure

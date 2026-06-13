@@ -1,3 +1,5 @@
+**English | [中文](phase6_design.zh.md)**
+
 # Phase 6 Design and Benchmark Roadmap
 
 **Date**: 2026-06-12

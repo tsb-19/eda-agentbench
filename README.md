@@ -1,3 +1,5 @@
+**English | [中文](README.zh.md)**
+
 # EDA-AgentBench
 
 A benchmark for evaluating LLMs and coding agents on realistic EDA workflows using commercial Synopsys and Cadence tools.
