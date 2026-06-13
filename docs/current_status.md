@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 7C — Agentic Runner MVP
+**Phase**: 7 — P7 SpyGlass + PrimeTime + Agentic Runner
 
 ## Task Inventory
 
@@ -12,7 +12,10 @@
 | P4 SPICE Sim | 302 | HSPICE, Spectre | 2 smoke + 300 generated (3 circuit types) |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
-| **Total** | **2563** | | |
+| P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 bug categories) |
+| P7 SpyGlass Lint Debug | 16 | spyglass | 1 smoke + 15 generated (3 bug categories) |
+| P7 PrimeTime STA Debug | 17 | pt | 1 smoke + 16 generated (4 bug categories) |
+| **Total** | **2609** | | |
 
 ## P1 Bug Type Distribution
 
@@ -99,20 +102,23 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 265+ | All passing |
+| pytest tests | 360+ | All passing |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |
 | HSPICE smoke tests | 7 | Passing |
 | Spectre smoke tests | 12 | Passing |
 | P5 batch evaluation | 100/100 + 100/100 | Passing |
+| P7 SpyGlass smoke | 1 | Passing |
+| P7 PrimeTime smoke | 1 | Passing |
+| Agentic runner tests | 38 | Passing |
 
 ## Dataset Evaluation Results
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2563/2563 | 1.00 | N/A |
-| Buggy | 2563/2563 | < 1.00 | 2563/2563 |
+| Solution | 2609/2609 | 1.00 | N/A |
+| Buggy | 2609/2609 | < 1.00 | 2609/2609 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -123,6 +129,9 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 | VCS | Synopsys | Available |
 | HSPICE | Synopsys | Available |
 | Spectre | Cadence | Available |
+| PrimeTime | Synopsys | Available |
+| SpyGlass | Synopsys | Available |
+| DC | Synopsys | Available |
 
 ## CLI Commands
 
@@ -133,6 +142,8 @@ All tasks verified: solution scores perfect, buggy scores strictly less.
 | `eda-bench evaluate-task` | Working |
 | `eda-bench evaluate-dataset` | Working |
 | `eda-bench report` | Working |
+| `eda-bench run-agent` | Working |
+| `eda-bench run-agent-dataset` | Working |
 
 ## Report Artifacts
 
@@ -151,12 +162,13 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 3. P2 naming was cleaned up in Phase 4E: `p2_tb_sva_gen` track, `tb_sva_gen.TBSVAGenEvaluator`.
 4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
 5. P6 DC Synthesis QA is a prototype (51 tasks); not yet scaled.
-6. No P7 lint track (no SpyGlass tasks).
-7. No P8 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
-8. P4 has 3 circuit types: RC rise delay, RC fall delay, RLC settling (302 tasks total).
-9. P5 has 100 tasks (execution-validated, 7 error categories).
-10. No `generate` CLI command (generation requires running Python scripts directly).
-11. Spectre measurement uses `-format nutascii` + Python waveform parsing.
+6. P7 SpyGlass Lint Debug is a prototype (16 tasks); not yet scaled.
+7. P7 PrimeTime STA Debug is a prototype (17 tasks); not yet scaled.
+8. No P8 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
+9. P4 has 3 circuit types: RC rise delay, RC fall delay, RLC settling (302 tasks total).
+10. P5 has 100 tasks (execution-validated, 7 error categories).
+11. No `generate` CLI command (generation requires running Python scripts directly).
+12. Spectre measurement uses `-format nutascii` + Python waveform parsing.
 
 ## Next Phases
 
@@ -173,3 +185,6 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 - **Phase 6A**: P4 scale to 302 (RC rise/fall + RLC settling) — DONE
 - **Phase 6B**: P6 DC Synthesis QA prototype (51 tasks) — DONE
 - **Phase 6D**: Baseline runner and leaderboard — DONE
+- **Phase 7A**: P7 SpyGlass Lint Debug prototype (16 tasks) — DONE
+- **Phase 7B**: P7 PrimeTime STA Debug prototype (17 tasks) — DONE
+- **Phase 7C**: Agentic Runner MVP — DONE

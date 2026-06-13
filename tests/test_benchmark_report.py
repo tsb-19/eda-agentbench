@@ -15,7 +15,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "export_benchmark_summary.py"
 REPORTS_DIR = REPO_ROOT / "reports"
 
-EXPECTED_TOTAL = 2576
+EXPECTED_TOTAL = 2592
 EXPECTED_TRACKS = {
     "p1_rtl_debug",
     "p2_tb_sva_gen",
@@ -24,6 +24,7 @@ EXPECTED_TRACKS = {
     "p5_spice_deck_debug",
     "p6_dc_synthesis_qa",
     "p6_dc_constraint_debug",
+    "p7_spyglass_lint_debug",
 }
 EXPECTED_TRACK_COUNTS = {
     "p1_rtl_debug": 1001,
@@ -33,6 +34,7 @@ EXPECTED_TRACK_COUNTS = {
     "p5_spice_deck_debug": 100,
     "p6_dc_synthesis_qa": 51,
     "p6_dc_constraint_debug": 13,
+    "p7_spyglass_lint_debug": 16,
 }
 
 LEADERBOARD_REQUIRED_COLUMNS = [
@@ -80,7 +82,7 @@ class TestExportRuns:
     def test_export_runs_without_error(self):
         result = _run_export()
         assert result.returncode == 0, f"Script failed: {result.stderr}"
-        assert "Loaded 2576 tasks" in result.stdout
+        assert "Loaded 2592 tasks" in result.stdout
 
     def test_all_artifacts_created(self):
         _run_export()
@@ -270,7 +272,7 @@ class TestBenchmarkSummaryMd:
     def test_md_has_total_count(self):
         _run_export()
         md = (REPORTS_DIR / "benchmark_summary.md").read_text()
-        assert "2576" in md
+        assert "2592" in md
 
     def test_md_has_all_tracks(self):
         _run_export()

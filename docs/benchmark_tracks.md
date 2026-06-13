@@ -9,6 +9,9 @@
 | P3 Timing Report QA | `p3_timing_report_qa` | 1008 | pt (synthetic) | Timing report field extraction and QA | Answer match |
 | P4 SPICE Sim | `p4_spice_sim` | 302 | HSPICE, Spectre | Metric-driven RC/RLC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 100 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
+| P6 DC Synthesis QA | `p6_dc_synthesis_qa` | 51 | dc (synthetic) | DC synthesis report QA | Answer match |
+| P6 DC Constraint Debug | `p6_dc_constraint_debug` | 13 | dc | SDC constraint repair | Constraint pass + execution pass |
+| P7 SpyGlass Lint Debug | `p7_spyglass_lint_debug` | 16 | spyglass | RTL lint violation repair | Lint pass (execution-based) |
 
 ## P1: RTL Debug
 
@@ -200,10 +203,38 @@ Buggy versions have R_bug (4-20x too high), solutions have R_sol (correct value)
 
 **Why exact diff is not required**: A SPICE deck can be fixed in multiple valid ways. Any syntactically valid fix that HSPICE can execute is accepted.
 
+## P7: SpyGlass Lint Debug
+
+**Goal**: Fix RTL lint violations detected by Synopsys SpyGlass so the lint check passes with zero violations.
+
+**What it measures**: The agent's ability to understand SpyGlass lint output, identify the root cause of lint violations, and fix RTL code to eliminate them.
+
+**Task structure**:
+- `design.v` — buggy RTL with lint issues (editable by agent)
+- `spyglass.prj` — SpyGlass project file (visible, not editable)
+- `run_public.sh` / `run_public.tcl` — SpyGlass lint runner (visible, not editable)
+- `run_hidden.sh` / `run_hidden.tcl` — hidden lint runner (hidden, not editable)
+- `solution/design.v` — correct RTL with zero violations
+
+**Bug categories** (3 reliable categories verified with SpyGlass S-2021.09-SP1):
+
+| Category | Difficulty | SpyGlass Detection |
+|----------|-----------|-------------------|
+| latch_inference | easy | Error + Warning |
+| multi_driven | medium | Error + Warning |
+| blocking_in_seq | medium | Error |
+
+**Rejected categories** (SpyGlass default lint does not flag these):
+width_mismatch, unused_signal, undriven_signal, missing_default, implicit_net
+
+**Scoring**: `lint_pass` (0.9) + `explanation` (0.1). Lint pass = 1.0 if zero Fatals + Errors + Warnings.
+
+**Validation**: solution=1.00, buggy=0.10 (all tasks produce valid contrast with real SpyGlass).
+
 ## Future Tracks (Planned)
 
 | Track | ID | Tool(s) | Status |
 |-------|----|---------|--------|
 | P5 Spectre dialect | `p5_spice_deck_debug` | Spectre | Spectre dialect repair |
-| P6 SpyGlass Lint | `p6_lint` | SpyGlass | Future |
+| P7 SpyGlass Lint scale | `p7_spyglass_lint_debug` | SpyGlass | Scale to 50+ tasks |
 | P7 Physical Design | `p7_physical` | ICC2/Innovus/StarRC | Future |
