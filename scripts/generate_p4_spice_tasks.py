@@ -11,10 +11,12 @@ from generators.p4_spice_gen import P4SPICEGenerator
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Generate P4 SPICE Sim tasks")
-    parser.add_argument("--count", type=int, default=100, help="Total tasks (50 HSPICE + 50 Spectre)")
+    parser.add_argument("--count", type=int, default=300,
+                        help="Total tasks (150 HSPICE + 150 Spectre across 3 circuit types)")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--output-dir", default="tasks/p4_spice_sim")
-    parser.add_argument("--split", action="store_true", help="Split into generated_hspice/ and generated_spectre/")
+    parser.add_argument("--split", action="store_true",
+                        help="Split into generated_hspice/ and generated_spectre/")
     args = parser.parse_args()
 
     out = Path(args.output_dir)

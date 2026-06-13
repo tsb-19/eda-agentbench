@@ -1,0 +1,70 @@
+{
+  "task_id": "task_004297",
+  "track": "p4_spice_sim",
+  "tool": [
+    "spectre"
+  ],
+  "difficulty": "easy",
+  "data_type": "template_synthetic",
+  "resource_preset": "fast",
+  "timeout_sec": 120,
+  "max_tool_calls": 10,
+  "max_patch_attempts": 3,
+  "max_output_tokens": 16000,
+  "files": {
+    "visible": [
+      "circuit.scs",
+      "run_public.sh"
+    ],
+    "editable": [
+      "circuit.scs"
+    ],
+    "hidden": [
+      "run_hidden.sh"
+    ],
+    "forbidden": [
+      "run_public.sh",
+      "run_hidden.sh"
+    ]
+  },
+  "run_command": "bash run_public.sh",
+  "scoring": {
+    "weights": {
+      "tool_run": 0.3,
+      "output_generated": 0.2,
+      "public_metric": 0.2,
+      "hidden_metric": 0.2,
+      "explanation": 0.1
+    },
+    "evaluator": "spice_sim.SPICESimEvaluator",
+    "explanation_weight": 0.1,
+    "metrics": {
+      "public": {
+        "measure": "tdrise",
+        "min": 9.80482393972713e-07,
+        "max": 1.5095993061620013e-06
+      },
+      "hidden": {
+        "measure": "tdfall",
+        "min": 9.80482393972713e-07,
+        "max": 1.5095993061620013e-06
+      }
+    }
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p4_spice_gen.py",
+    "seed": 42,
+    "config_index": 97,
+    "tool": "spectre",
+    "circuit_type": "rlc_settling",
+    "r_bug": 7755,
+    "r_sol": 1800,
+    "c": 1e-09,
+    "pulse_width_ns": 6225.204250336787,
+    "l": 6.8e-06
+  },
+  "version": "1.0.0"
+}

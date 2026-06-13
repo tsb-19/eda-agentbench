@@ -1,0 +1,19 @@
+// Rc Rise Delay - Spectre netlist
+simulator lang=spectre
+global 0
+
+// Power supply
+vdd (vdd 0) vsource type=dc dc=1.8
+
+// Input pulse
+vin (in 0) vsource type=pulse val0=0 val1=1.8 delay=1n rise=500p fall=500p width=177.2991n period=354.5982n
+
+// RC low-pass filter
+r1 (in out) resistor r=17909
+c1 (out 0) capacitor c=3.3e-12
+
+// Analysis
+tran tran stop=265.94865000000004n errpreset=moderate
+
+// Save outputs
+save in out
