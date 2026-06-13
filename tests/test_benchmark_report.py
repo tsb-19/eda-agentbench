@@ -15,13 +15,14 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "export_benchmark_summary.py"
 REPORTS_DIR = REPO_ROOT / "reports"
 
-EXPECTED_TOTAL = 2312
+EXPECTED_TOTAL = 2333
 EXPECTED_TRACKS = {
     "p1_rtl_debug",
     "p2_tb_sva_gen",
     "p3_timing_report_qa",
     "p4_spice_sim",
     "p5_spice_deck_debug",
+    "p6_dc_constraint_debug",
 }
 EXPECTED_TRACK_COUNTS = {
     "p1_rtl_debug": 1001,
@@ -29,6 +30,7 @@ EXPECTED_TRACK_COUNTS = {
     "p3_timing_report_qa": 1008,
     "p4_spice_sim": 102,
     "p5_spice_deck_debug": 100,
+    "p6_dc_constraint_debug": 21,
 }
 
 LEADERBOARD_REQUIRED_COLUMNS = [
@@ -76,7 +78,7 @@ class TestExportRuns:
     def test_export_runs_without_error(self):
         result = _run_export()
         assert result.returncode == 0, f"Script failed: {result.stderr}"
-        assert "Loaded 2312 tasks" in result.stdout
+        assert "Loaded 2333 tasks" in result.stdout
 
     def test_all_artifacts_created(self):
         _run_export()
@@ -266,12 +268,12 @@ class TestBenchmarkSummaryMd:
     def test_md_has_total_count(self):
         _run_export()
         md = (REPORTS_DIR / "benchmark_summary.md").read_text()
-        assert "2312" in md
+        assert "2333" in md
 
     def test_md_has_all_tracks(self):
         _run_export()
         md = (REPORTS_DIR / "benchmark_summary.md").read_text()
-        for track_name in ["P1 RTL Debug", "P2 Testbench/SVA Gen", "P3 Timing Report QA", "P4 SPICE Sim", "P5 SPICE Deck Debug"]:
+        for track_name in ["P1 RTL Debug", "P2 Testbench/SVA Gen", "P3 Timing Report QA", "P4 SPICE Sim", "P5 SPICE Deck Debug", "P6 DC Constraint Debug"]:
             assert track_name in md, f"Missing track {track_name} in summary"
 
     def test_md_has_validation_section(self):

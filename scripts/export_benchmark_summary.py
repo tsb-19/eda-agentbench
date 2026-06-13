@@ -32,6 +32,7 @@ TRACK_DISPLAY = {
     "p3_timing_report_qa": "P3 Timing Report QA",
     "p4_spice_sim": "P4 SPICE Sim",
     "p5_spice_deck_debug": "P5 SPICE Deck Debug",
+    "p6_dc_constraint_debug": "P6 DC Constraint Debug",
 }
 
 LEADERBOARD_COLUMNS = [
@@ -145,6 +146,10 @@ def _extract_record(meta: dict, task_dir: Path, tasks_root: Path) -> dict:
             record["p3_source"] = "synthetic"
 
     elif track == "p5_spice_deck_debug":
+        record["expected_error_category"] = meta.get("expected_error_category", "")
+
+    elif track == "p6_dc_constraint_debug":
+        record["bug_type"] = gen.get("bug_type", "")
         record["expected_error_category"] = meta.get("expected_error_category", "")
 
     return record
@@ -393,7 +398,8 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
         "- P4 tasks are RC-filter circuits only; no complex analog designs",
         "- P5 is limited to 100 tasks (imported from external bundle)",
         "- P3 synthetic reports are template-based, not from real synthesis runs",
-        "- No P6 (lint) or P7 (physical) tracks yet",
+        "- P6 DC Constraint Debug is a prototype (21 tasks); no large-scale DC track yet",
+        "- No P7 (physical) track yet",
         "",
         "## Generated Artifacts",
         "",

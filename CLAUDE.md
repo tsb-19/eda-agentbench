@@ -22,11 +22,12 @@ Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
 | P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
+| P6 DC Constraint Debug | 21 | dc | 1 smoke + 20 generated (10 bug categories) |
 
 Key results:
-- pytest: 189/189 pass
-- Solution mode: 2312/2312 = 1.00
-- Buggy mode: 2312/2312 all < 1.0
+- pytest: 264/264 pass
+- Solution mode: 2333/2333 = 1.00
+- Buggy mode: 2333/2333 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
@@ -91,11 +92,12 @@ Always implement environment detection instead of hardcoding one shell setup.
 9. Phase 5B: P2 scale to 101 — DONE
 10. Phase 5E: PT prototype (8 tasks) — DONE
 11. Phase 5F: P5 scale to 100 — DONE
+12. Phase 6C: P6 DC Constraint Debug prototype — DONE
 
 ### Later
 
 - P5 Spectre dialect repair
-- PrimeTime/DC/SDC/timing report tasks
+- P6 DC Constraint Debug scale to 50+
 - SpyGlass lint
 - ICC2/Innovus/StarRC/Sentaurus expert tracks
 
