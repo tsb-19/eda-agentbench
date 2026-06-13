@@ -190,11 +190,12 @@ def test_generator_batch_creates_count(tmp_path):
 
 
 def test_generator_distribution_balanced(tmp_path):
-    """15 tasks should cover all 3 bug types, 5 each."""
+    """15 generated tasks (indices 1–15) should cover all 3 bug types, 5 each."""
     from collections import Counter
     from generators.p7_spyglass_lint_debug_gen import P7SpyGlassLintDebugGenerator, EXPECTED_BUG_TYPE_NAMES
     gen = P7SpyGlassLintDebugGenerator(seed=42, output_dir=tmp_path)
-    paths = gen.generate_batch(15)
+    # Start at 1 to match generation script (avoids duplicate with smoke at 0)
+    paths = [gen.generate_one(i) for i in range(1, 16)]
     types = Counter()
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
@@ -370,3 +371,56 @@ def test_task_loader_loads_generated():
         assert meta["track"] == "p7_spyglass_lint_debug"
         count += 1
     assert count > 0, "Should load at least one generated task"
+
+
+# --- Uniqueness Tests ---
+
+def test_no_duplicate_task_ids():
+    """No duplicate task_id values across smoke and generated tasks."""
+    if not SMOKE_DIR.is_dir() or not GENERATED_DIR.is_dir():
+        pytest.skip("Tasks not generated")
+    ids = []
+    # Smoke
+    for d in sorted(SMOKE_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        meta = json.loads((d / "metadata.json").read_text())
+        ids.append(meta["task_id"])
+    # Generated
+    for d in sorted(GENERATED_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        meta = json.loads((d / "metadata.json").read_text())
+        ids.append(meta["task_id"])
+    assert len(ids) == len(set(ids)), f"Duplicate task IDs found: {[x for x in ids if ids.count(x) > 1]}"
+
+
+def test_smoke_id_not_in_generated():
+    """Smoke task ID does not appear in generated tasks."""
+    if not SMOKE_DIR.is_dir() or not GENERATED_DIR.is_dir():
+        pytest.skip("Tasks not generated")
+    smoke_meta = json.loads((SMOKE_DIR / "sg_lint_0000" / "metadata.json").read_text())
+    smoke_id = smoke_meta["task_id"]
+    for d in sorted(GENERATED_DIR.iterdir()):
+        if not d.is_dir():
+            continue
+        meta = json.loads((d / "metadata.json").read_text())
+        assert meta["task_id"] != smoke_id, f"Generated task has same ID as smoke: {smoke_id}"
+
+
+def test_total_task_count():
+    """Total P7 SpyGlass task count is 16 (1 smoke + 15 generated)."""
+    if not SMOKE_DIR.is_dir() or not GENERATED_DIR.is_dir():
+        pytest.skip("Tasks not generated")
+    smoke_count = sum(1 for d in SMOKE_DIR.iterdir() if d.is_dir())
+    gen_count = sum(1 for d in GENERATED_DIR.iterdir() if d.is_dir())
+    assert smoke_count + gen_count == 16, f"Expected 16, got {smoke_count + gen_count}"
+
+
+def test_generated_ids_start_at_one():
+    """Generated task IDs start at sg_lint_0001, not sg_lint_0000."""
+    if not GENERATED_DIR.is_dir():
+        pytest.skip("Generated tasks not created")
+    first_gen = sorted(GENERATED_DIR.iterdir())[0]
+    meta = json.loads((first_gen / "metadata.json").read_text())
+    assert meta["task_id"] == "sg_lint_0001", f"First generated ID: {meta['task_id']}"

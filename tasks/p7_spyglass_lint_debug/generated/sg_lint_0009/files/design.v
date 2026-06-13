@@ -1,8 +1,8 @@
 module comb_mux (
-    input  wire [3:0] a,
-    input  wire [3:0] b,
+    input  wire [7:0] a,
+    input  wire [7:0] b,
     input  wire       sel,
-    output reg  [3:0] y
+    output reg  [7:0] y
 );
     always @(*) begin
         if (sel)

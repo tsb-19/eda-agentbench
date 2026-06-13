@@ -41,9 +41,12 @@ def main() -> None:
     smoke_path = smoke_gen.generate_one(0)
     print(f"Smoke task: {smoke_path}")
 
-    # Generate batch
+    # Generate batch starting at index 1 to avoid duplicate with smoke (index 0)
     gen = P7SpyGlassLintDebugGenerator(seed=args.seed, output_dir=args.output_dir)
-    paths = gen.generate_batch(args.count)
+    paths = []
+    for i in range(1, args.count + 1):
+        p = gen.generate_one(i)
+        paths.append(p)
     print(f"Generated {len(paths)} tasks in {args.output_dir}")
 
     # Print distribution
