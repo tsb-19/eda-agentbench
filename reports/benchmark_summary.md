@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.4-phase6abc-2576`
-**Total tasks:** 2576
-**Tracks:** 6  
+**Tag:** `v0.3-phase6b-2363`  
+**Total tasks:** 2576  
+**Tracks:** 7  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -14,8 +14,8 @@
 | P3 Timing Report QA | 1008 |
 | P4 SPICE Sim | 302 |
 | P5 SPICE Deck Debug | 100 |
-| P6 DC Synthesis QA | 51 |
 | P6 DC Constraint Debug | 13 |
+| P6 DC Synthesis QA | 51 |
 | **Total** | **2576** |
 
 ## Tool Distribution
@@ -32,9 +32,9 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1307 |
-| hard | 405 |
-| medium | 864 |
+| easy | 1301 |
+| hard | 407 |
+| medium | 868 |
 
 ## Data Type Distribution
 
@@ -57,8 +57,8 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P3 Timing Report QA | `answer_match:1.0` |
 | P4 SPICE Sim | `explanation:0.1|hidden_metric:0.2|output_generated:0.2|public_metric:0.2|tool_run:0.3` |
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
-| P6 DC Synthesis QA | `answer_match:1.0` |
 | P6 DC Constraint Debug | `constraint_pass:0.6|execution_pass:0.3|explanation:0.1` |
+| P6 DC Synthesis QA | `answer_match:1.0` |
 
 ## Public / Private Split
 
