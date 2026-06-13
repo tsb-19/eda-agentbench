@@ -128,15 +128,69 @@ def qa_task_p6(tmp_path):
     return task_dir
 
 
+@pytest.fixture
+def task_with_hidden(tmp_path):
+    """Create a task with hidden files for security isolation tests."""
+    task_dir = tmp_path / "p1_rtl_debug" / "test_task"
+    task_dir.mkdir(parents=True)
+
+    meta = {
+        "task_id": "task_999999",
+        "track": "p1_rtl_debug",
+        "tool": ["vcs"],
+        "difficulty": "easy",
+        "data_type": "mutation_synthetic",
+        "resource_preset": "fast",
+        "timeout_sec": 30,
+        "max_tool_calls": 10,
+        "max_patch_attempts": 3,
+        "max_output_tokens": 16000,
+        "run_command": "bash run_public.sh && bash run_hidden.sh",
+        "files": {
+            "visible": ["design.sv", "run_public.sh"],
+            "editable": ["design.sv"],
+            "hidden": ["tb_hidden.sv", "run_hidden.sh"],
+            "forbidden": ["run_public.sh"],
+        },
+        "scoring": {
+            "evaluator": "rtl_debug.VCSRTLEvaluator",
+            "weights": {
+                "compile": 0.2,
+                "public_test": 0.3,
+                "hidden_test": 0.4,
+                "explanation": 0.1,
+            },
+        },
+    }
+    (task_dir / "metadata.json").write_text(json.dumps(meta, indent=2))
+    (task_dir / "prompt.md").write_text("Fix the bug")
+
+    files_dir = task_dir / "files"
+    files_dir.mkdir()
+    (files_dir / "design.sv").write_text("module top; endmodule\n")
+    (files_dir / "run_public.sh").write_text("#!/bin/bash\necho PASS\n")
+
+    hidden_dir = task_dir / "hidden"
+    hidden_dir.mkdir()
+    (hidden_dir / "tb_hidden.sv").write_text("module tb; /* secret testbench */ endmodule\n")
+    (hidden_dir / "run_hidden.sh").write_text("#!/bin/bash\necho HIDDEN_PASS\n")
+
+    sol_dir = task_dir / "solution"
+    sol_dir.mkdir()
+    (sol_dir / "design.sv").write_text("module top_fixed; endmodule\n")
+
+    return task_dir
+
+
 # ---------------------------------------------------------------------------
 # Workspace tests
 # ---------------------------------------------------------------------------
 
 class TestWorkspace:
-    def test_create_workspace_qa(self, qa_task):
-        from eda_agentbench.agentic.workspace import create_workspace
+    def test_create_agent_workspace_qa(self, qa_task):
+        from eda_agentbench.agentic.workspace import create_agent_workspace
         meta = json.loads((qa_task / "metadata.json").read_text())
-        ws = create_workspace(qa_task, meta)
+        ws = create_agent_workspace(qa_task, meta)
         try:
             assert (ws / "timing_report.rpt").is_file()
             assert (ws / "answer.txt").is_file()
@@ -144,33 +198,61 @@ class TestWorkspace:
             import shutil
             shutil.rmtree(ws, ignore_errors=True)
 
-    def test_create_workspace_standard(self, tmp_path):
-        from eda_agentbench.agentic.workspace import create_workspace
-        task_dir = tmp_path / "task_test"
-        (task_dir / "files").mkdir(parents=True)
-        (task_dir / "hidden").mkdir()
-        (task_dir / "files" / "design.sv").write_text("module top; endmodule")
-        (task_dir / "files" / "run_public.sh").write_text("echo ok")
-        (task_dir / "hidden" / "tb_hidden.sv").write_text("module tb; endmodule")
-        meta = {
-            "task_id": "task_999999",
-            "track": "p1_rtl_debug",
-            "files": {
-                "visible": ["design.sv", "run_public.sh"],
-                "editable": ["design.sv"],
-                "hidden": ["tb_hidden.sv"],
-                "forbidden": ["run_public.sh"],
-            },
-        }
-        (task_dir / "metadata.json").write_text(json.dumps(meta))
-        ws = create_workspace(task_dir, meta)
+    def test_create_agent_workspace_no_hidden_files(self, task_with_hidden):
+        """Agent workspace must NOT contain hidden files."""
+        from eda_agentbench.agentic.workspace import create_agent_workspace
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        ws = create_agent_workspace(task_with_hidden, meta)
         try:
+            # Visible files present
             assert (ws / "design.sv").is_file()
             assert (ws / "run_public.sh").is_file()
-            assert (ws / "tb_hidden.sv").is_file()
+            # Hidden files ABSENT
+            assert not (ws / "tb_hidden.sv").exists()
+            assert not (ws / "run_hidden.sh").exists()
         finally:
             import shutil
             shutil.rmtree(ws, ignore_errors=True)
+
+    def test_create_evaluator_workspace_has_hidden(self, task_with_hidden):
+        """Evaluator workspace must contain hidden files."""
+        from eda_agentbench.agentic.workspace import (
+            create_agent_workspace, create_evaluator_workspace,
+        )
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        agent_ws = create_agent_workspace(task_with_hidden, meta)
+        eval_ws = create_evaluator_workspace(task_with_hidden, meta, agent_ws)
+        try:
+            # Visible files present
+            assert (eval_ws / "design.sv").is_file()
+            assert (eval_ws / "run_public.sh").is_file()
+            # Hidden files present in evaluator workspace
+            assert (eval_ws / "tb_hidden.sv").is_file()
+            assert (eval_ws / "run_hidden.sh").is_file()
+        finally:
+            import shutil
+            shutil.rmtree(agent_ws, ignore_errors=True)
+            shutil.rmtree(eval_ws, ignore_errors=True)
+
+    def test_evaluator_workspace_reflects_agent_edits(self, task_with_hidden):
+        """Evaluator workspace should contain agent's edits overlaid on hidden files."""
+        from eda_agentbench.agentic.workspace import (
+            create_agent_workspace, create_evaluator_workspace,
+        )
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        agent_ws = create_agent_workspace(task_with_hidden, meta)
+        # Simulate agent editing design.sv
+        (agent_ws / "design.sv").write_text("module top_fixed; endmodule\n")
+        eval_ws = create_evaluator_workspace(task_with_hidden, meta, agent_ws)
+        try:
+            # Agent's edit should be in evaluator workspace
+            assert "top_fixed" in (eval_ws / "design.sv").read_text()
+            # Hidden files should also be present
+            assert (eval_ws / "tb_hidden.sv").is_file()
+        finally:
+            import shutil
+            shutil.rmtree(agent_ws, ignore_errors=True)
+            shutil.rmtree(eval_ws, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
@@ -239,6 +321,120 @@ class TestForbiddenModifications:
         assert clean is False
         assert len(violations) == 1
         assert "timing_report.rpt" in violations[0]
+
+
+# ---------------------------------------------------------------------------
+# Hidden file isolation security tests
+# ---------------------------------------------------------------------------
+
+class TestHiddenIsolation:
+    def test_hidden_files_absent_from_agent_workspace(self, task_with_hidden):
+        """Agent workspace must not contain any hidden files."""
+        from eda_agentbench.agentic.workspace import create_agent_workspace
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        ws = create_agent_workspace(task_with_hidden, meta)
+        try:
+            hidden_files = meta["files"]["hidden"]
+            for hf in hidden_files:
+                assert not (ws / hf).exists(), \
+                    f"Hidden file {hf} found in agent workspace"
+        finally:
+            import shutil
+            shutil.rmtree(ws, ignore_errors=True)
+
+    def test_hidden_files_present_in_evaluator_workspace(self, task_with_hidden):
+        """Evaluator workspace must contain hidden files for tool execution."""
+        from eda_agentbench.agentic.workspace import (
+            create_agent_workspace, create_evaluator_workspace,
+        )
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        agent_ws = create_agent_workspace(task_with_hidden, meta)
+        eval_ws = create_evaluator_workspace(task_with_hidden, meta, agent_ws)
+        try:
+            hidden_files = meta["files"]["hidden"]
+            for hf in hidden_files:
+                assert (eval_ws / hf).is_file(), \
+                    f"Hidden file {hf} missing from evaluator workspace"
+        finally:
+            import shutil
+            shutil.rmtree(agent_ws, ignore_errors=True)
+            shutil.rmtree(eval_ws, ignore_errors=True)
+
+    def test_agent_cannot_read_hidden_files(self, task_with_hidden):
+        """Agent command that tries to read hidden files should fail."""
+        from eda_agentbench.agentic.runner import run_single_agentic
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        # Agent tries to read hidden testbench
+        agent_cmd = "cat $EDA_WORKSPACE/tb_hidden.sv 2>/dev/null && echo LEAKED || echo SAFE"
+        runs_dir, score, result = run_single_agentic(
+            task_with_hidden, agent_cmd, meta, timeout=30,
+        )
+        try:
+            stdout = (runs_dir / "stdout.log").read_text()
+            assert "LEAKED" not in stdout, \
+                "Agent was able to read hidden file from workspace!"
+            assert "SAFE" in stdout
+        finally:
+            import shutil
+            shutil.rmtree(runs_dir, ignore_errors=True)
+
+    def test_agent_cannot_list_hidden_files(self, task_with_hidden):
+        """Agent should not see hidden files when listing workspace."""
+        from eda_agentbench.agentic.runner import run_single_agentic
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        agent_cmd = "ls $EDA_WORKSPACE/"
+        runs_dir, score, result = run_single_agentic(
+            task_with_hidden, agent_cmd, meta, timeout=30,
+        )
+        try:
+            stdout = (runs_dir / "stdout.log").read_text()
+            assert "tb_hidden.sv" not in stdout
+            assert "run_hidden.sh" not in stdout
+            # But visible files should be listed
+            assert "design.sv" in stdout
+        finally:
+            import shutil
+            shutil.rmtree(runs_dir, ignore_errors=True)
+
+    def test_solution_dir_not_in_agent_workspace(self, task_with_hidden):
+        """Solution directory should not be accessible in agent workspace."""
+        from eda_agentbench.agentic.workspace import create_agent_workspace
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        ws = create_agent_workspace(task_with_hidden, meta)
+        try:
+            assert not (ws / "solution").exists()
+        finally:
+            import shutil
+            shutil.rmtree(ws, ignore_errors=True)
+
+    def test_oracle_dir_not_in_agent_workspace(self, tmp_path):
+        """Oracle directory (P5 layout) should not be in agent workspace."""
+        from eda_agentbench.agentic.workspace import create_agent_workspace
+        task_dir = tmp_path / "p5_task"
+        (task_dir / "visible").mkdir(parents=True)
+        (task_dir / "visible" / "bug.sp").write_text(".SUBCKT bug\n.ENDS")
+        (task_dir / "hidden").mkdir()
+        (task_dir / "hidden" / "fixed.sp").write_text(".SUBCKT fixed\n.ENDS")
+        (task_dir / "oracle").mkdir()
+        (task_dir / "oracle" / "answer.txt").write_text("The fix is...")
+        meta = {
+            "task_id": "spice_deck_debug_9999",
+            "track": "p5_spice_deck_debug",
+            "files": {
+                "visible": ["bug.sp"],
+                "editable": ["bug.sp"],
+                "hidden": ["fixed.sp"],
+                "forbidden": [],
+            },
+        }
+        ws = create_agent_workspace(task_dir, meta)
+        try:
+            assert not (ws / "oracle").exists()
+            assert not (ws / "hidden").exists()
+            assert (ws / "bug.sp").is_file()
+        finally:
+            import shutil
+            shutil.rmtree(ws, ignore_errors=True)
 
 
 # ---------------------------------------------------------------------------
@@ -428,6 +624,25 @@ class TestArtifacts:
             manifest = json.loads(mpath.read_text())
             assert "before" in manifest
             assert "after" in manifest
+        finally:
+            import shutil
+            shutil.rmtree(runs_dir, ignore_errors=True)
+
+    def test_workspace_manifest_no_hidden_files(self, task_with_hidden):
+        """Manifest should only contain agent-visible files, not hidden ones."""
+        from eda_agentbench.agentic.runner import run_single_agentic
+        from eda_agentbench.agentic.test_agents import make_noop_agent
+        meta = json.loads((task_with_hidden / "metadata.json").read_text())
+        runs_dir, score, result = run_single_agentic(
+            task_with_hidden, make_noop_agent(), meta, timeout=30,
+        )
+        try:
+            mpath = runs_dir / "workspace_manifest.json"
+            manifest = json.loads(mpath.read_text())
+            all_files = set(manifest["before"].keys()) | set(manifest["after"].keys())
+            for hf in meta["files"]["hidden"]:
+                assert hf not in all_files, \
+                    f"Hidden file {hf} leaked into workspace_manifest.json"
         finally:
             import shutil
             shutil.rmtree(runs_dir, ignore_errors=True)

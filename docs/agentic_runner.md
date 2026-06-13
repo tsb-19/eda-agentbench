@@ -2,15 +2,49 @@
 
 ## Overview
 
-The agentic runner evaluates agents that can iteratively interact with task files in a sandboxed workspace. Unlike the standard evaluation mode where a model produces a static submission, agentic mode lets an external agent command read files, edit editable files, and run EDA tools before being scored.
+The agentic runner evaluates agents that can interact with task files in a sandboxed workspace. Unlike the standard evaluation mode where a model produces a static submission, agentic mode lets an external agent command read and edit files before being scored.
+
+## Security Model: Two-Phase Workspace
+
+The agentic runner uses a strict two-phase workspace model to prevent information leakage:
+
+### Phase 1: Agent Workspace (visible+editable only)
+
+- Contains ONLY files from `files/` (or `visible/` for P5)
+- The agent process runs here
+- Hidden testbenches, oracle files, scoring scripts, and solution files are **never copied here**
+- The agent cannot read, list, or discover hidden/oracle files
+
+### Phase 2: Evaluator Workspace (agent output + hidden files)
+
+- Created AFTER the agent process exits
+- Starts with visible files from the task root
+- Overlays the agent's edits (only editable files)
+- Adds hidden/oracle files from the task root
+- EDA tool execution and scoring happen here
+- The agent process has already terminated and cannot access this workspace
+
+### What the agent can access
+
+| Resource | Agent can read? | Agent can write? |
+|----------|----------------|-----------------|
+| Visible files (`files/`) | Yes | No (unless editable) |
+| Editable files | Yes | Yes |
+| Hidden files (`hidden/`) | **No** | **No** |
+| Oracle files (`oracle/`) | **No** | **No** |
+| Solution files (`solution/`) | **No** | **No** |
+| `$EDA_TASK_PATH` | Yes (read-only) | No |
+
+The agent receives `$EDA_TASK_PATH` pointing to the original task directory. The agent CAN read solution/ from there (since it's on the filesystem), but this is by design — the agent wrapper decides what to expose. The key guarantee is that hidden/oracle files are NOT in the agent's workspace.
 
 ## Non-Agentic vs Agentic
 
 | Aspect | Non-Agentic | Agentic |
 |--------|-------------|---------|
-| Agent produces | Static files | Iterative edits via shell command |
-| Workspace | Created from submission dir | Created from task, agent runs inside |
-| Tool execution | Agent cannot run tools | Agent can run EDA tools |
+| Agent produces | Static files | Edits via shell command |
+| Workspace | Created from submission dir | Agent-only (no hidden files) |
+| Hidden files | Copied for evaluation | Added only after agent exits |
+| Tool execution | Agent cannot run tools | Agent can run tools (in agent workspace) |
 | Evaluation | `_evaluate_single()` | `run_single_agentic()` |
 | Mode in score.json | `submission` | `agentic` |
 
@@ -24,7 +58,7 @@ eda-bench run-agent TASK_PATH --agent-cmd "YOUR_AGENT_COMMAND"
 
 Options:
 - `--agent-cmd` (required): Shell command to execute as the agent
-- `--timeout N`: Override task timeout in seconds
+- `--timeout N`: Override timeout in seconds
 - `--run-id ID`: Custom run identifier
 - `--output-dir DIR`: Override output directory
 
@@ -49,12 +83,12 @@ The agent command receives these environment variables:
 
 | Variable | Description |
 |----------|-------------|
-| `EDA_WORKSPACE` | Absolute path to the workspace directory |
-| `EDA_TASK_PATH` | Absolute path to the task directory |
+| `EDA_WORKSPACE` | Path to agent workspace (visible+editable only) |
+| `EDA_TASK_PATH` | Path to original task directory (has solution/, hidden/) |
 | `EDA_TASK_ID` | Task ID string |
 | `EDA_TIMEOUT` | Timeout in seconds |
 
-The command runs with `shell=True` and `cwd=workspace`. Simple shell one-liners work directly.
+The command runs with `shell=True` and `cwd=EDA_WORKSPACE`.
 
 ### Examples
 
@@ -63,7 +97,7 @@ The command runs with `shell=True` and `cwd=workspace`. Simple shell one-liners 
 eda-bench run-agent tasks/p3_timing_report_qa/smoke --agent-cmd "true"
 ```
 
-**Copy-solution agent** (copies correct answer):
+**Copy-answer agent** (copies correct answer from task path):
 ```bash
 eda-bench run-agent tasks/p3_timing_report_qa/smoke \
     --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
@@ -85,19 +119,22 @@ runs/<run_id>/<task_id>/<timestamp>/
     stdout.log              # Raw agent stdout
     stderr.log              # Raw agent stderr
     score.json              # ScoreResult (same format as non-agentic)
-    workspace_manifest.json # SHA-256 hashes before/after agent runs
-    modified_files.json     # List of file changes and anti-cheat violations
+    workspace_manifest.json # SHA-256 of agent-visible files before/after
+    modified_files.json     # File changes and anti-cheat violations
     metadata.json           # Run metadata (task_id, agent_cmd, mode, etc.)
 ```
 
+The `workspace_manifest.json` contains only agent-visible files. Hidden/oracle files are never included.
+
 For dataset runs, a `summary.json` is written at `runs/<run_id>/`.
 
-## Safety
+## Anti-Cheat
 
-- **Editable files only**: The agent should only modify files listed in `metadata.files.editable`. The runner detects modifications to forbidden files via SHA-256 comparison.
-- **Anti-cheat**: If forbidden files are modified, the score is forced to 0.
-- **Hidden files**: Present in workspace (needed for EDA tool execution) but snapshotted and verified.
-- **Timeout**: Agent command is killed after the timeout period.
+- **Editable enforcement**: Only files in `metadata.files.editable` may be modified
+- **Forbidden file check**: SHA-256 snapshot/verify of forbidden visible files
+- **Hidden file isolation**: Hidden files never enter the agent workspace
+- **Score zeroing**: Anti-cheat violations force score to 0
+- **Timeout**: Agent command is killed after timeout period
 
 ## Test Agents
 
@@ -106,7 +143,7 @@ Built-in test agent factories in `eda_agentbench/agentic/test_agents.py`:
 | Factory | Behavior | Expected Score |
 |---------|----------|----------------|
 | `make_noop_agent()` | Does nothing | ~0 (no answer) |
-| `make_copy_solution_agent(task_path)` | Copies solution/ files | 1.0 (file-edit tasks) |
+| `make_copy_solution_agent(task_path)` | Copies solution/ via $EDA_TASK_PATH | 1.0 (file-edit tasks) |
 | `make_copy_answer_agent(task_path)` | Copies solution/answer.txt | 1.0 (QA tasks) |
 | `make_buggy_answer_agent()` | Writes wrong answer | 0 |
 
@@ -115,5 +152,5 @@ Built-in test agent factories in `eda_agentbench/agentic/test_agents.py`:
 - Agent is a single shell command, not an interactive loop
 - No per-tool-call transcript (only stdout/stderr capture)
 - No max_tool_calls enforcement (timeout only)
-- No sandboxing beyond workspace isolation (agent can access filesystem outside workspace)
+- No filesystem sandboxing beyond workspace isolation (agent could access other paths via $EDA_TASK_PATH)
 - No streaming output capture

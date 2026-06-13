@@ -228,10 +228,19 @@ No external model APIs are called — all evaluation is local and deterministic.
 
 Agentic runs (`run-agent`, `run-agent-dataset`) are reproducible when the agent command is deterministic and the task tree is unchanged. The output includes:
 
-- `workspace_manifest.json`: SHA-256 of all files before and after the agent runs
+- `workspace_manifest.json`: SHA-256 of agent-visible files before and after the agent runs
 - `modified_files.json`: exact list of file changes
 - `transcript.jsonl`: full agent output (stdout, stderr, events)
 - `metadata.json`: agent command, timeout, task metadata
+
+### Security Model
+
+The agentic runner uses a two-phase workspace model:
+
+1. **Agent workspace**: visible+editable files only. No hidden/oracle/scoring files.
+2. **Evaluator workspace**: created after agent exits, merges agent edits + hidden files from task root.
+
+Hidden/oracle files are never readable by the agent process. The `workspace_manifest.json` contains only agent-visible files.
 
 To reproduce an agentic result:
 

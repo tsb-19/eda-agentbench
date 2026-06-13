@@ -1,7 +1,11 @@
 """Core agentic evaluation runner.
 
-Runs an external agent command in a sandboxed workspace, captures output,
-enforces limits, and grades using existing evaluators.
+Security model:
+- Agent runs in a workspace with ONLY visible+editable files.
+- After agent exits, an evaluator-private workspace is created by merging
+  the agent's edits with hidden/oracle files from the task root.
+- EDA tool execution and scoring happen in the evaluator workspace.
+- Hidden/oracle files are NEVER readable by the agent process.
 """
 
 from __future__ import annotations
@@ -10,7 +14,6 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import time
 from datetime import datetime
 from pathlib import Path
@@ -23,7 +26,8 @@ from eda_agentbench.types import (
     ScoreComponent,
 )
 from eda_agentbench.agentic.workspace import (
-    create_workspace,
+    create_agent_workspace,
+    create_evaluator_workspace,
     snapshot_workspace,
     compute_file_changes,
     detect_forbidden_modifications,
@@ -39,6 +43,10 @@ def run_single_agentic(
 ) -> tuple[Path, ScoreResult, AgenticRunResult]:
     """Run an agent against a single task, then evaluate.
 
+    Two-phase workspace model:
+    1. Agent workspace: visible+editable only. Agent runs here.
+    2. Evaluator workspace: agent output + hidden files. EDA tools + scoring here.
+
     Returns: (runs_dir, ScoreResult, AgenticRunResult)
     """
     from eda_agentbench.tools.detector import ToolEnvironmentDetector
@@ -52,25 +60,34 @@ def run_single_agentic(
     runs_dir = runs_base / task_id / run_id
     runs_dir.mkdir(parents=True, exist_ok=True)
 
-    workspace = None
+    agent_workspace = None
+    eval_workspace = None
     try:
-        # 1. Create workspace
-        workspace = create_workspace(task_path, meta)
+        # === PHASE 1: Agent workspace (visible+editable only) ===
+        agent_workspace = create_agent_workspace(task_path, meta)
 
-        # 2. Snapshot before agent runs
-        before_snapshot = snapshot_workspace(workspace)
+        # Snapshot agent workspace before agent runs
+        before_snapshot = snapshot_workspace(agent_workspace)
 
-        # 3. Run agent
-        agent_result = _run_agent_subprocess(agent_cmd, workspace, timeout, task_path, meta)
+        # Run agent in agent-only workspace
+        agent_result = _run_agent_subprocess(
+            agent_cmd, agent_workspace, timeout, task_path, meta,
+        )
 
-        # 4. Snapshot after agent runs
-        after_snapshot = snapshot_workspace(workspace)
+        # Snapshot agent workspace after agent runs
+        after_snapshot = snapshot_workspace(agent_workspace)
 
-        # 5. Compute changes and anti-cheat
+        # Compute changes and anti-cheat on agent workspace
         changes = compute_file_changes(before_snapshot, after_snapshot)
-        clean, violations = detect_forbidden_modifications(changes, files_spec.get("forbidden", []))
+        clean, violations = detect_forbidden_modifications(
+            changes, files_spec.get("forbidden", []),
+        )
 
-        # 6. Run EDA tools in workspace
+        # === PHASE 2: Evaluator workspace (agent output + hidden files) ===
+        eval_workspace = create_evaluator_workspace(
+            task_path, meta, agent_workspace,
+        )
+
         is_report_qa = meta.get("track") in ("p3_timing_report_qa", "p6_dc_synthesis_qa")
 
         # Detect tools (skip for report QA)
@@ -86,13 +103,13 @@ def run_single_agentic(
 
         sanitizer = LogSanitizer()
         start_time = time.time()
-        raw_pub_log, raw_hid_log = _run_eda_tools(meta, workspace, env, timeout)
+        raw_pub_log, raw_hid_log = _run_eda_tools(meta, eval_workspace, env, timeout)
         wall_time = time.time() - start_time
 
         san_pub_log = sanitizer.sanitize(raw_pub_log)
         san_hid_log = sanitizer.sanitize(raw_hid_log)
 
-        # 7. Score using evaluator
+        # === PHASE 3: Score using evaluator ===
         if not clean:
             # Anti-cheat violation: force score to 0
             score_result = ScoreResult(
@@ -146,7 +163,8 @@ def run_single_agentic(
             components: list[ScoreComponent] = []
             for comp_name in meta["scoring"]["weights"]:
                 comp = evaluator.evaluate_component(
-                    comp_name, workspace, log_map.get(comp_name, combined_log), mode="submission",
+                    comp_name, eval_workspace, log_map.get(comp_name, combined_log),
+                    mode="submission",
                 )
                 components.append(comp)
 
@@ -185,7 +203,7 @@ def run_single_agentic(
                 explanation_score=round(explanation_score, 4),
             )
 
-        # 8. Write artifacts
+        # === PHASE 4: Write artifacts ===
         agentic_result = AgenticRunResult(
             task_id=task_id,
             agent_cmd=agent_cmd,
@@ -209,8 +227,10 @@ def run_single_agentic(
         return runs_dir, score_result, agentic_result
 
     finally:
-        if workspace is not None:
-            shutil.rmtree(workspace, ignore_errors=True)
+        if agent_workspace is not None:
+            shutil.rmtree(agent_workspace, ignore_errors=True)
+        if eval_workspace is not None:
+            shutil.rmtree(eval_workspace, ignore_errors=True)
 
 
 def _run_agent_subprocess(
@@ -289,7 +309,7 @@ def _run_eda_tools(
     env: dict[str, str],
     timeout: int,
 ) -> tuple[str, str]:
-    """Run EDA tool scripts in workspace. Returns (pub_log, hid_log)."""
+    """Run EDA tool scripts in evaluator workspace. Returns (pub_log, hid_log)."""
     track = meta.get("track", "")
     is_p5 = track == "p5_spice_deck_debug"
     is_report_qa = track in ("p3_timing_report_qa", "p6_dc_synthesis_qa")
@@ -419,7 +439,7 @@ def _write_agentic_artifacts(
     # score.json
     (runs_dir / "score.json").write_text(json.dumps(score_result.to_dict(), indent=2))
 
-    # workspace_manifest.json
+    # workspace_manifest.json — agent-visible files only
     manifest = {"before": before_snapshot, "after": after_snapshot}
     (runs_dir / "workspace_manifest.json").write_text(json.dumps(manifest, indent=2))
 

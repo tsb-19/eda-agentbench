@@ -13,7 +13,7 @@ The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA eng
 
 ## Current Status (Phase 7C — Agentic Runner MVP)
 
-Phase 7C adds the agentic runner infrastructure. This is not a new task track — it is an evaluation mode that can run an external agent command in a sandboxed workspace, capture output, enforce limits, and grade using existing evaluators. CLI subcommands: `run-agent` and `run-agent-dataset`.
+Phase 7C adds the agentic runner infrastructure. This is not a new task track — it is an evaluation mode that can run an external agent command in a sandboxed workspace, capture output, enforce limits, and grade using existing evaluators. CLI subcommands: `run-agent` and `run-agent-dataset`. Two-phase workspace model: agent sees only visible+editable files; hidden/oracle files are added to a separate evaluator workspace after the agent exits.
 
 Phase 6 scaled P4 to 302 tasks (3 circuit types), added P6 DC Synthesis QA (51 tasks), added P6 DC Constraint Debug (13 tasks), and added baseline runner. 2576 total tasks across 7 tracks:
 
