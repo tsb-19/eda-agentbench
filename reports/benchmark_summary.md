@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2563  
+**Tag:** `v0.4-phase6abc-2576`
+**Total tasks:** 2576
 **Tracks:** 6  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -15,13 +15,14 @@
 | P4 SPICE Sim | 302 |
 | P5 SPICE Deck Debug | 100 |
 | P6 DC Synthesis QA | 51 |
-| **Total** | **2563** |
+| P6 DC Constraint Debug | 13 |
+| **Total** | **2576** |
 
 ## Tool Distribution
 
 | Tool | Task Count |
 |------|----------:|
-| dc | 51 |
+| dc | 64 |
 | hspice | 251 |
 | pt | 1008 |
 | spectre | 151 |
@@ -31,7 +32,7 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1294 |
+| easy | 1307 |
 | hard | 405 |
 | medium | 864 |
 
@@ -41,7 +42,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1361 |
+| template_synthetic | 1374 |
 
 ## Scoring Methodology
 
@@ -57,6 +58,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | P4 SPICE Sim | `explanation:0.1|hidden_metric:0.2|output_generated:0.2|public_metric:0.2|tool_run:0.3` |
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
 | P6 DC Synthesis QA | `answer_match:1.0` |
+| P6 DC Constraint Debug | `constraint_pass:0.6|execution_pass:0.3|explanation:0.1` |
 
 ## Public / Private Split
 
@@ -110,7 +112,9 @@ P5 tasks are flow_synthetic — they originate from real HSPICE error logs.
 - P4 tasks are RC-filter circuits only; no complex analog designs
 - P5 is limited to 100 tasks (imported from external bundle)
 - P3 synthetic reports are template-based, not from real synthesis runs
-- P6 DC Synthesis QA is a prototype (51 tasks); P7 (physical) not yet started
+- P6 DC Synthesis QA is a prototype (51 tasks)
+- P6 DC Constraint Debug is a prototype (13 tasks)
+- No P7 (physical) track yet
 
 ## Generated Artifacts
 
