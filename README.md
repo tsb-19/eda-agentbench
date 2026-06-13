@@ -12,22 +12,28 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (Phase 5F — P5 scaled to 100)
+## Current Coverage (Phase 7A — P7 SpyGlass Lint Debug prototype)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
 | P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
 | P2 Testbench/SVA Gen | 101 | VCS | Write testbenches that catch RTL mutants |
 | P3 Timing Report QA | 1008 | pt (synthetic) | Answer questions about timing reports |
-| P4 SPICE Sim | 102 | HSPICE, Spectre | Fix RC filter rise/fall time |
+| P4 SPICE Sim | 302 | HSPICE, Spectre | Fix RC/RLC filter rise/fall time |
 | P5 SPICE Deck Debug | 100 | HSPICE | Fix broken SPICE simulation decks |
-| **Total** | **2312** | | |
+| P6 DC Synthesis QA | 51 | dc (synthetic) | Answer questions about DC synthesis reports |
+| P6 DC Constraint Debug | 13 | dc | Fix broken SDC constraint files |
+| P7 SpyGlass Lint Debug | 16 | spyglass | Fix RTL lint violations detected by SpyGlass |
+| **Total** | **2592** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
 - 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
 - 1008 P3 tasks: 1 smoke + 999 synthetic + 8 PT prototype (30 clocks, 15 path groups, 10 question types)
-- 102 P4 tasks: 2 smoke (1 HSPICE, 1 Spectre) + 100 generated (50 HSPICE, 50 Spectre)
+- 302 P4 tasks: 2 smoke + 300 generated (3 circuit types, 50 HSPICE + 50 Spectre each)
 - 100 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
+- 51 P6 DC QA tasks: 1 smoke + 50 generated (10 question types)
+- 13 P6 DC Constraint tasks: 1 smoke + 12 generated (6 bug categories)
+- 16 P7 SpyGlass tasks: 1 smoke + 15 generated (3 lint bug categories)
 
 ## Tool Dependencies
 

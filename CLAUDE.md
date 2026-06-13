@@ -11,9 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 6 — P4 scaled + P6 DC QA + P6 DC Constraint + baseline runner)
+## Current Status (Phase 7A — P7 SpyGlass Lint Debug prototype)
 
-Phase 6 scaled P4 to 302 tasks (3 circuit types), added P6 DC Synthesis QA (51 tasks), added P6 DC Constraint Debug (13 tasks), and added baseline runner. 2576 total tasks across 7 tracks:
+Phase 7A added P7 SpyGlass Lint Debug prototype (16 tasks, 3 bug categories). 2592 total tasks across 8 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
@@ -24,14 +24,16 @@ Phase 6 scaled P4 to 302 tasks (3 circuit types), added P6 DC Synthesis QA (51 t
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | 1 smoke + 50 generated (10 question types) |
 | P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 reliable bug categories) |
+| P7 SpyGlass Lint Debug | 16 | spyglass | 1 smoke + 15 generated (3 reliable bug categories) |
 
 Key results:
 - pytest: all pass
-- Solution mode: 2576/2576 = 1.00
-- Buggy mode: 2576/2576 all < 1.0
+- Solution mode: 2592/2592 = 1.00
+- Buggy mode: 2592/2592 all < 1.0
 - P6 DC Constraint accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P6 is parser-based QA, no DC execution required
+- P7 is execution-based, uses real SpyGlass (sg_shell), 3 reliable lint bug categories
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
 P2 scaled to 101 tasks (10 templates, 20 mutant variants) in Phase 5B.
@@ -96,12 +98,13 @@ Always implement environment detection instead of hardcoding one shell setup.
 10. Phase 5E: PT prototype (8 tasks) — DONE
 11. Phase 5F: P5 scale to 100 — DONE
 12. Phase 6C: P6 DC Constraint Debug prototype — DONE
+13. Phase 7A: P7 SpyGlass Lint Debug prototype — DONE
 
 ### Later
 
 - P5 Spectre dialect repair
 - P6 DC Constraint Debug scale to 50+
-- SpyGlass lint
+- P7 SpyGlass Lint Debug scale to 50+
 - ICC2/Innovus/StarRC/Sentaurus expert tracks
 
 Do not start expert tracks before Phase 4A–4C are stable.

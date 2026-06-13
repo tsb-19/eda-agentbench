@@ -14,7 +14,9 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | template_synthetic | answer_match |
-| **Total** | **2363** | | | |
+| P6 DC Constraint Debug | 13 | dc | template_synthetic | execution-based (constraint + execution) |
+| P7 SpyGlass Lint Debug | 16 | spyglass | template_synthetic | execution-based (lint violations) |
+| **Total** | **2592** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 

@@ -34,6 +34,7 @@ TRACK_DISPLAY = {
     "p5_spice_deck_debug": "P5 SPICE Deck Debug",
     "p6_dc_synthesis_qa": "P6 DC Synthesis QA",
     "p6_dc_constraint_debug": "P6 DC Constraint Debug",
+    "p7_spyglass_lint_debug": "P7 SpyGlass Lint Debug",
 }
 
 LEADERBOARD_COLUMNS = [
@@ -154,6 +155,10 @@ def _extract_record(meta: dict, task_dir: Path, tasks_root: Path) -> dict:
         record["question_type"] = answer.get("question_type", gen.get("question_type", ""))
 
     elif track == "p6_dc_constraint_debug":
+        record["bug_type"] = gen.get("bug_type", "")
+        record["expected_error_category"] = meta.get("expected_error_category", "")
+
+    elif track == "p7_spyglass_lint_debug":
         record["bug_type"] = gen.get("bug_type", "")
         record["expected_error_category"] = meta.get("expected_error_category", "")
 
