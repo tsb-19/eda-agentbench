@@ -7,7 +7,7 @@
 | P1 RTL Debug | `p1_rtl_debug` | 1001 | VCS | Code repair using simulation feedback | Compile + public test + hidden test + explanation |
 | P2 Testbench/SVA Gen | `p2_tb_sva_gen` | 101 | VCS | Testbench/SVA generation for RTL verification | Compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | `p3_timing_report_qa` | 1008 | pt (synthetic) | Timing report field extraction and QA | Answer match |
-| P4 SPICE Sim | `p4_spice_sim` | 102 | HSPICE, Spectre | Metric-driven RC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
+| P4 SPICE Sim | `p4_spice_sim` | 302 | HSPICE, Spectre | Metric-driven RC/RLC/SPICE optimization | Tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | `p5_spice_deck_debug` | 100 | HSPICE | Execution-based netlist/deck repair | Execution pass + explanation |
 
 ## P1: RTL Debug
@@ -115,7 +115,7 @@
 
 ## P4: SPICE Sim
 
-**Goal**: Fix a buggy RC filter SPICE netlist so that the rise time and fall time measurements meet specification ranges.
+**Goal**: Fix a buggy SPICE netlist so that timing measurements meet specification ranges.
 
 **What it measures**: The agent's ability to diagnose analog circuit issues using HSPICE or Spectre simulation feedback and optimize component values.
 
@@ -123,19 +123,22 @@
 - `circuit.sp` (HSPICE) or `circuit.scs` (Spectre) — buggy netlist (editable)
 - `run_public.sh` — runs simulation, extracts public measurement
 - `run_hidden.sh` — runs simulation, extracts hidden measurement
-- `solution/` — correct netlist with proper R/C values
+- `solution/` — correct netlist with proper component values
 
-**Circuit**: Single-stage RC lowpass filter. Buggy version has R_bug (5-10x too high), solution has R_sol (correct value).
+**Circuit types** (300 generated tasks, 100 each):
 
-**Generated configurations** (5 RC parameter sets, each producing 1 HSPICE + 1 Spectre task = 10 generated pairs, 50 of each tool):
+| Circuit Type | Description | Public Metric | Hidden Metric |
+|-------------|-------------|---------------|---------------|
+| RC Rise Delay | RC low-pass filter, rise time too slow | tdrise | tdfall |
+| RC Fall Delay | RC low-pass filter, fall time too slow | tdrise | tdfall |
+| RLC Response | RLC bandpass filter, response too slow | tdrise | tdfall |
 
-| Config | R_bug | R_sol | C |
-|--------|-------|-------|------|
-| 0 | 10k | 1.2k | 10p |
-| 1 | 22k | 2.2k | 4.7p |
-| 2 | 4.7k | 560 | 22p |
-| 3 | 15k | 1.5k | 6.8p |
-| 4 | 33k | 3.3k | 3.3p |
+Buggy versions have R_bug (4-20x too high), solutions have R_sol (correct value). For RLC tasks, the buggy R causes overdamping; the correct R produces a well-damped response.
+
+**Generated configurations** (100 tasks per type, 50 HSPICE + 50 Spectre each):
+- RC tasks: 27 R_sol choices (220–47kΩ), 16 C choices (1pF–470pF), randomized R_bug multiplier (5-20x)
+- RLC tasks: 14 R_sol choices (100–3300Ω), 14 L choices (1µH–470µH), 10 C choices (1pF–1nF), R_bug multiplier (4-10x)
+- RLC uses tdrise/tdfall (same as RC tasks); buggy overdamped R responds slower than solution underdamped R
 
 **Scoring weights**:
 ```json
@@ -149,10 +152,10 @@
 ```
 
 **Metric extraction**:
-- HSPICE: parses `.lis` file for `.measure` results with engineering suffixes
+- HSPICE: parses `.lis` file for `.measure` results with engineering suffixes; RLC uses `rise=last` for settling time
 - Spectre: reads `metrics.json` from Python waveform parser (uses `-format nutascii`)
 
-**Validation**: Solution mode scores 1.00; buggy mode scores < 1.00 for all 102 tasks.
+**Validation**: Solution mode scores 1.00; buggy mode scores < 1.00 for all 302 tasks.
 
 ## P5: SPICE Deck Debug
 

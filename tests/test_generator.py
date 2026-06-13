@@ -143,22 +143,26 @@ def test_p4_generator_files_exist(tmp_path):
 
 
 def test_p4_generator_tool_split(tmp_path):
-    """100 tasks: first 50 HSPICE, last 50 Spectre."""
+    """300 tasks: 150 HSPICE + 150 Spectre, 50 each per circuit type."""
     gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
     tools = []
-    for i in range(100):
+    for i in range(300):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         tools.append(meta["tool"][0])
     assert tools[:50] == ["hspice"] * 50
-    assert tools[50:] == ["spectre"] * 50
+    assert tools[50:100] == ["spectre"] * 50
+    assert tools[100:150] == ["hspice"] * 50
+    assert tools[150:200] == ["spectre"] * 50
+    assert tools[200:250] == ["hspice"] * 50
+    assert tools[250:300] == ["spectre"] * 50
 
 
 def test_p4_generator_unique_task_ids(tmp_path):
-    """All 100 P4 tasks have unique task IDs."""
+    """All 300 P4 tasks have unique task IDs."""
     gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
     ids = set()
-    for i in range(100):
+    for i in range(300):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         assert meta["task_id"] not in ids, f"Duplicate task_id: {meta['task_id']}"
@@ -166,19 +170,64 @@ def test_p4_generator_unique_task_ids(tmp_path):
 
 
 def test_p4_generator_parameter_diversity(tmp_path):
-    """100 P4 tasks should have diverse R, C, and pulse width values."""
+    """300 P4 tasks should have diverse R, C, and pulse width values."""
     gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
     r_sols = set()
     c_vals = set()
     pw_vals = set()
-    for i in range(100):
+    for i in range(300):
         p = gen.generate_one(i)
         meta = json.loads((p / "metadata.json").read_text())
         g = meta["generator"]
         r_sols.add(g["r_sol"])
         c_vals.add(g["c"])
         pw_vals.add(g["pulse_width_ns"])
-    # With 100 tasks and diverse RNG, we expect many unique values
-    assert len(r_sols) >= 10, f"Too few unique R_sol values: {len(r_sols)}"
-    assert len(c_vals) >= 5, f"Too few unique C values: {len(c_vals)}"
-    assert len(pw_vals) >= 10, f"Too few unique pulse width values: {len(pw_vals)}"
+    assert len(r_sols) >= 20, f"Too few unique R_sol values: {len(r_sols)}"
+    assert len(c_vals) >= 10, f"Too few unique C values: {len(c_vals)}"
+    assert len(pw_vals) >= 20, f"Too few unique pulse width values: {len(pw_vals)}"
+
+
+def test_p4_generator_circuit_types(tmp_path):
+    """300 tasks span 3 circuit types: 100 each."""
+    from collections import Counter
+    gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
+    types = Counter()
+    for i in range(300):
+        p = gen.generate_one(i)
+        meta = json.loads((p / "metadata.json").read_text())
+        types[meta["generator"]["circuit_type"]] += 1
+    assert types["rc_rise_delay"] == 100
+    assert types["rc_fall_delay"] == 100
+    assert types["rlc_settling"] == 100
+
+
+def test_p4_generator_rlc_has_l(tmp_path):
+    """RLC tasks include inductance in generator metadata."""
+    gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
+    for i in range(200, 210):
+        p = gen.generate_one(i)
+        meta = json.loads((p / "metadata.json").read_text())
+        g = meta["generator"]
+        assert g["circuit_type"] == "rlc_settling"
+        assert "l" in g, f"RLC task {i} missing 'l' in generator metadata"
+        assert g["l"] > 0
+
+
+def test_p4_generator_rlc_metric_names(tmp_path):
+    """All circuit types use tdrise/tdfall metrics."""
+    gen = P4SPICEGenerator(seed=42, output_dir=tmp_path)
+    # RC rise delay
+    p = gen.generate_one(0)
+    meta = json.loads((p / "metadata.json").read_text())
+    assert meta["scoring"]["metrics"]["public"]["measure"] == "tdrise"
+    assert meta["scoring"]["metrics"]["hidden"]["measure"] == "tdfall"
+    # RC fall delay
+    p = gen.generate_one(100)
+    meta = json.loads((p / "metadata.json").read_text())
+    assert meta["scoring"]["metrics"]["public"]["measure"] == "tdrise"
+    assert meta["scoring"]["metrics"]["hidden"]["measure"] == "tdfall"
+    # RLC
+    p = gen.generate_one(200)
+    meta = json.loads((p / "metadata.json").read_text())
+    assert meta["scoring"]["metrics"]["public"]["measure"] == "tdrise"
+    assert meta["scoring"]["metrics"]["hidden"]["measure"] == "tdfall"

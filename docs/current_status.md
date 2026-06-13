@@ -1,6 +1,6 @@
 # Current Benchmark Status
 
-**Phase**: 5F — P5 scaled to 100
+**Phase**: 6A — P4 scaled to 302
 
 ## Task Inventory
 
@@ -9,9 +9,9 @@
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated |
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
-| P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
+| P4 SPICE Sim | 302 | HSPICE, Spectre | 2 smoke + 300 generated (3 circuit types) |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
-| **Total** | **2312** | | |
+| **Total** | **2512** | | |
 
 ## P1 Bug Type Distribution
 
@@ -52,15 +52,22 @@
 
 ## P4 Configuration Distribution
 
-100 generated tasks: 50 HSPICE + 50 Spectre from 5 RC parameter sets (10 pairs each):
+300 generated tasks across 3 circuit types (100 each: 50 HSPICE + 50 Spectre):
 
-| Config | R_bug | R_sol | C |
-|--------|-------|-------|------|
-| 0 | 10k | 1.2k | 10p |
-| 1 | 22k | 2.2k | 4.7p |
-| 2 | 4.7k | 560 | 22p |
-| 3 | 15k | 1.5k | 6.8p |
-| 4 | 33k | 3.3k | 3.3p |
+### RC Rise Delay (100 tasks)
+- 27 R_sol choices (220–47kΩ), 16 C choices (1pF–470pF)
+- R_bug multiplier: 5–20x R_sol
+- Metrics: tdrise (public), tdfall (hidden)
+
+### RC Fall Delay (100 tasks)
+- Same parameter space as RC Rise Delay
+- Metrics: tdrise (public), tdfall (hidden)
+
+### RLC Response (100 tasks)
+- 14 R_sol choices (100–3300Ω), 14 L choices (1µH–470µH), 10 C choices (1pF–1nF)
+- R_bug multiplier: 4–10x R_sol
+- Metrics: tdrise (public), tdfall (hidden)
+- Buggy overdamped R responds slower than solution underdamped R
 
 Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
@@ -80,7 +87,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Category | Count | Status |
 |----------|-------|--------|
-| pytest tests | 189 | All passing |
+| pytest tests | 203+ | All passing |
 | RTL smoke tests | 5 | Passing |
 | P2 smoke tests | 4 | Passing |
 | P3 smoke tests | 7 | Passing |
@@ -92,8 +99,8 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2312/2312 | 1.00 | N/A |
-| Buggy | 2312/2312 | < 1.00 | 2312/2312 |
+| Solution | 2512/2512 | 1.00 | N/A |
+| Buggy | 2512/2512 | < 1.00 | 2512/2512 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
@@ -133,7 +140,7 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
 5. No P6 lint track (no SpyGlass tasks).
 6. No P7 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
-7. P4 is RC-filter only (single circuit topology).
+7. P4 has 3 circuit types: RC rise delay, RC fall delay, RLC settling (302 tasks total).
 8. P5 has 100 tasks (execution-validated, 7 error categories).
 9. No `generate` CLI command (generation requires running Python scripts directly).
 10. Spectre measurement uses `-format nutascii` + Python waveform parsing.
@@ -150,3 +157,4 @@ See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other
 - **Phase 5B**: P2 scale to 101 — DONE
 - **Phase 5E**: PT prototype (8 tasks) — DONE
 - **Phase 5F**: P5 scale to 100 — DONE
+- **Phase 6A**: P4 scale to 302 (RC rise/fall + RLC settling) — DONE

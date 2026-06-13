@@ -1,0 +1,20 @@
+// RLC bandpass filter - Spectre netlist
+simulator lang=spectre
+global 0
+
+// Power supply
+vdd (vdd 0) vsource type=dc dc=1.8
+
+// Input pulse
+vin (in 0) vsource type=pulse val0=0 val1=1.8 delay=1n rise=500p fall=500p width=394.3978775106376n period=788.7957550212752n
+
+// RLC bandpass filter
+l1 (in mid) inductor l=1e-05
+r1 (mid out) resistor r=330
+c1 (out 0) capacitor c=4.7e-10
+
+// Analysis - timestep fine enough for LC oscillation
+tran tran stop=2922.1256369328466n errpreset=moderate maxstep=2n
+
+// Save outputs
+save in out

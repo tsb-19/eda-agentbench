@@ -11,22 +11,22 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (Phase 5F — P5 scaled to 100)
+## Current Status (Phase 6A — P4 scaled to 302)
 
-Phase 5F scaled P5 to 100 tasks. 2312 total tasks across 5 tracks:
+Phase 6A scaled P4 to 302 tasks (3 circuit types: RC rise delay, RC fall delay, RLC settling). 2512 total tasks across 5 tracks:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
 | P1 RTL Debug | 1001 | VCS | 1 handcrafted + 1000 generated |
 | P2 Testbench/SVA Gen | 101 | VCS | 1 smoke + 100 generated (10 templates) |
 | P3 Timing Report QA | 1008 | pt (synthetic) | 1 smoke + 999 synthetic + 8 PT prototype |
-| P4 SPICE Sim | 102 | HSPICE, Spectre | 2 smoke + 100 generated |
+| P4 SPICE Sim | 302 | HSPICE, Spectre | 2 smoke + 300 generated (3 circuit types) |
 | P5 SPICE Deck Debug | 100 | HSPICE | Imported from external bundle |
 
 Key results:
-- pytest: 189/189 pass
-- Solution mode: 2312/2312 = 1.00
-- Buggy mode: 2312/2312 all < 1.0
+- pytest: all pass
+- Solution mode: 2512/2512 = 1.00
+- Buggy mode: 2512/2512 all < 1.0
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.

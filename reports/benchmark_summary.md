@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase5f-2312`  
-**Total tasks:** 2312  
+**Total tasks:** 2512  
 **Tracks:** 5  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -12,24 +12,24 @@
 | P1 RTL Debug | 1001 |
 | P2 Testbench/SVA Gen | 101 |
 | P3 Timing Report QA | 1008 |
-| P4 SPICE Sim | 102 |
+| P4 SPICE Sim | 302 |
 | P5 SPICE Deck Debug | 100 |
-| **Total** | **2312** |
+| **Total** | **2512** |
 
 ## Tool Distribution
 
 | Tool | Task Count |
 |------|----------:|
-| hspice | 151 |
+| hspice | 251 |
 | pt | 1008 |
-| spectre | 51 |
+| spectre | 151 |
 | vcs | 1102 |
 
 ## Difficulty Distribution
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1068 |
+| easy | 1268 |
 | hard | 400 |
 | medium | 844 |
 
@@ -39,7 +39,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1110 |
+| template_synthetic | 1310 |
 
 ## Scoring Methodology
 
