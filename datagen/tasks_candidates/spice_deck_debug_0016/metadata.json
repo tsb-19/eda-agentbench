@@ -1,0 +1,36 @@
+{
+  "task_id": "spice_deck_debug_0016",
+  "domain": "spice_deck_debug",
+  "task_family": "syntax_error",
+  "expected_error_category": "missing_subckt",
+  "difficulty": "easy",
+  "tags": [
+    "syntax",
+    "subcircuit",
+    "missing-subckt"
+  ],
+  "prompt_file": "prompt.md",
+  "visible_files": [
+    "visible/spice_deck_debug_0016_bug.sp"
+  ],
+  "hidden_files": [
+    "hidden/spice_deck_debug_0016_fixed.sp"
+  ],
+  "expected_outputs": [
+    "spice_deck_debug_0016_fixed.sp"
+  ],
+  "grader": {
+    "type": "exact_match",
+    "criteria": "Fixed SPICE deck must be functionally equivalent to oracle solution"
+  },
+  "timeout_sec": 300,
+  "license_notes": "Apache-2.0, synthetic content",
+  "generation_source": "synthetic",
+  "oracle_description": "Add `.subckt buf in out` / `Rseries in out 100` / `.ends buf` before the X1 instance.",
+  "validation_status": "candidate_unvalidated",
+  "optional_tool_backends": [
+    "hspice",
+    "spectre"
+  ],
+  "public_release_safe": true
+}

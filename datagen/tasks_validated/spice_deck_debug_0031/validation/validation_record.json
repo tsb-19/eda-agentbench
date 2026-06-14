@@ -1,0 +1,57 @@
+{
+  "task_id": "spice_deck_debug_0031",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:28:06.412034+00:00",
+  "notes": "Buggy exit=1, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 1,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "duplicate_element",
+        "message": "**error** attempts to redefine r1               at line        0 and line        1"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">error          ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "235e9468d2e37ee8b056669976515e3b836a1acec07c1c74afbd0edb4e55cc71",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [],
+    "raw_log_sha256": "afac712fdccaee05327b251a71c4a57bc78dbff651e2133e029df3dcd31f6e6f",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "duplicate_element",
+    "observed_error_categories": [
+      "duplicate_element",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.132
+  }
+}

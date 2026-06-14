@@ -1,0 +1,63 @@
+{
+  "task_id": "spice_deck_debug_0042",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:28:14.361517+00:00",
+  "notes": "Buggy exit=1, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 1,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "duplicate_element",
+        "message": "**error** attempts to redefine m3               at line        2 and line        3"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">error          ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "9747d164e2c12064556f5157e20ec9cf719f9b62669744c8fe3ddf128394504b",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "5b3856cf64c0123eca6d66be6ed554aa46301d3f1ec3e05e06f44e19803aa1b2",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "duplicate_element",
+    "observed_error_categories": [
+      "duplicate_element",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.146
+  }
+}

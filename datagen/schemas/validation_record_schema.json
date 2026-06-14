@@ -1,0 +1,157 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eda-agent-bench.org/schemas/validation_record.json",
+  "title": "Validation Record",
+  "description": "Schema for a normalized validation record produced by commercial tool adapters",
+  "type": "object",
+  "required": [
+    "task_id",
+    "domain",
+    "backend",
+    "tool_name",
+    "tool_version_normalized",
+    "validation_status",
+    "validation_time_utc",
+    "notes"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^(rtl_debug|spice_deck_debug|timing_report_qa)_\\d{4}$",
+      "description": "Task identifier this record validates"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["rtl_debug", "spice_deck_debug", "timing_report_qa"],
+      "description": "Task domain"
+    },
+    "backend": {
+      "type": "string",
+      "enum": ["vcs", "hspice", "spectre", "pt"],
+      "description": "Validation backend used"
+    },
+    "tool_name": {
+      "type": "string",
+      "description": "Canonical name of the EDA tool"
+    },
+    "tool_version_normalized": {
+      "type": "string",
+      "description": "Normalized tool version (major.minor only, no build/patch)"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "candidate_unvalidated",
+        "commercial_smoke_passed",
+        "debug_contrast_verified",
+        "validation_failed",
+        "oracle_parser_verified"
+      ],
+      "description": "Validation outcome status"
+    },
+    "buggy_run": {
+      "$ref": "#/$defs/run_record",
+      "description": "Result of running the buggy visible artifact"
+    },
+    "golden_run": {
+      "$ref": "#/$defs/run_record",
+      "description": "Result of running the golden/fixed oracle artifact"
+    },
+    "fixed_run": {
+      "$ref": "#/$defs/run_record",
+      "description": "Optional: result of running an agent-produced fix"
+    },
+    "debug_contrast": {
+      "type": "object",
+      "properties": {
+        "buggy_failed_as_expected": { "type": "boolean" },
+        "golden_passed_as_expected": { "type": "boolean" },
+        "error_category_match": { "type": "boolean" },
+        "expected_error_category": { "type": "string" },
+        "observed_error_categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      },
+      "required": [
+        "buggy_failed_as_expected",
+        "golden_passed_as_expected",
+        "error_category_match"
+      ],
+      "description": "Debug contrast analysis (for rtl_debug and spice_deck_debug tasks)"
+    },
+    "parsed_metrics": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Extracted metrics (timing slack, power, area, etc.)"
+    },
+    "validation_time_utc": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC timestamp of validation"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Free-text notes about this validation run"
+    }
+  },
+  "$defs": {
+    "run_record": {
+      "type": "object",
+      "required": [
+        "command_backend",
+        "expected_status",
+        "actual_status",
+        "exit_code",
+        "normalized_errors",
+        "raw_log_sha256",
+        "raw_log_retained"
+      ],
+      "properties": {
+        "command_backend": {
+          "type": "string",
+          "enum": ["vcs", "hspice", "spectre", "pt"],
+          "description": "Backend used for this run"
+        },
+        "expected_status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error"],
+          "description": "Expected outcome for this artifact"
+        },
+        "actual_status": {
+          "type": "string",
+          "enum": ["pass", "fail", "error"],
+          "description": "Observed outcome"
+        },
+        "exit_code": {
+          "type": "integer",
+          "description": "Process exit code"
+        },
+        "normalized_errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "severity": { "type": "string", "enum": ["error", "warning", "info"] },
+              "category": { "type": "string" },
+              "message": { "type": "string" }
+            },
+            "required": ["severity", "category", "message"]
+          },
+          "description": "Extracted error/warning summaries"
+        },
+        "raw_log_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$",
+          "description": "SHA-256 hash of the raw log"
+        },
+        "raw_log_retained": {
+          "type": "boolean",
+          "description": "Whether the raw log was retained in .local_runs/"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

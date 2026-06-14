@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://eda-agent-bench.org/schemas/grader_contract.json",
+  "title": "Grader Contract",
+  "description": "Defines how the evaluator should grade an agent's attempt at a task",
+  "type": "object",
+  "required": [
+    "task_id",
+    "task_family",
+    "domain",
+    "editable_files",
+    "read_only_files",
+    "hidden_files",
+    "oracle_files",
+    "backend",
+    "backend_env_var",
+    "command_template",
+    "working_directory",
+    "timeout_sec",
+    "success_criteria",
+    "failure_patterns",
+    "normalized_error_categories",
+    "public_task_path",
+    "private_task_path"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^(rtl_debug|spice_deck_debug|timing_report_qa)_\\d{4}$"
+    },
+    "task_family": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["rtl_debug", "spice_deck_debug", "timing_report_qa"]
+    },
+    "editable_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files the agent is allowed to modify (relative to task root)"
+    },
+    "read_only_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files the agent can read but not modify"
+    },
+    "hidden_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Files hidden from the agent, used for grading"
+    },
+    "oracle_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Reference solution files"
+    },
+    "backend": {
+      "type": "string",
+      "enum": ["vcs", "hspice", "spectre", "pt"],
+      "description": "Commercial tool backend for grading"
+    },
+    "backend_env_var": {
+      "type": "string",
+      "description": "Environment variable for the backend command (e.g., EDA_HSPICE_CMD)"
+    },
+    "command_template": {
+      "type": "string",
+      "description": "Command template with {file} placeholder for the agent's output file"
+    },
+    "working_directory": {
+      "type": "string",
+      "description": "Working directory for command execution (relative to task root)"
+    },
+    "timeout_sec": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 3600
+    },
+    "success_criteria": {
+      "type": "object",
+      "properties": {
+        "exit_code": { "type": "integer", "description": "Expected exit code (0 for success)" },
+        "no_fatal_errors": { "type": "boolean", "description": "Normalized fatal error list must be empty" },
+        "execution_based": { "type": "boolean", "description": "Grade by running the tool, not by diff" },
+        "notes": { "type": "string", "description": "Human-readable success criteria description" }
+      },
+      "required": ["exit_code", "no_fatal_errors", "execution_based", "notes"]
+    },
+    "failure_patterns": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string" },
+          "severity": { "type": "string", "enum": ["error", "warning"] },
+          "description": { "type": "string" }
+        },
+        "required": ["category", "severity", "description"]
+      },
+      "description": "Error patterns that indicate the agent's fix is wrong"
+    },
+    "normalized_error_categories": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Error categories observed during validation"
+    },
+    "public_task_path": {
+      "type": "string",
+      "description": "Relative path to the public task package"
+    },
+    "private_task_path": {
+      "type": "string",
+      "description": "Relative path to the private eval bundle"
+    }
+  },
+  "additionalProperties": false
+}

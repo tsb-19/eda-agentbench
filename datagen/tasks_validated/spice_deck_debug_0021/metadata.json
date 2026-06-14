@@ -1,0 +1,36 @@
+{
+  "task_id": "spice_deck_debug_0021",
+  "domain": "spice_deck_debug",
+  "task_family": "syntax_error",
+  "expected_error_category": "missing_subckt",
+  "difficulty": "medium",
+  "tags": [
+    "syntax",
+    "subcircuit",
+    "missing-subckt"
+  ],
+  "prompt_file": "prompt.md",
+  "visible_files": [
+    "visible/spice_deck_debug_0021_bug.sp"
+  ],
+  "hidden_files": [
+    "hidden/spice_deck_debug_0021_fixed.sp"
+  ],
+  "expected_outputs": [
+    "spice_deck_debug_0021_fixed.sp"
+  ],
+  "grader": {
+    "type": "exact_match",
+    "criteria": "Fixed SPICE deck must be functionally equivalent to oracle solution"
+  },
+  "timeout_sec": 300,
+  "license_notes": "Apache-2.0, synthetic content",
+  "generation_source": "synthetic",
+  "oracle_description": "Rename `.subckt inv_buffer` to `.subckt inv` and `.ends inv_buffer` to `.ends inv`.",
+  "validation_status": "debug_contrast_verified",
+  "optional_tool_backends": [
+    "hspice",
+    "spectre"
+  ],
+  "public_release_safe": true
+}

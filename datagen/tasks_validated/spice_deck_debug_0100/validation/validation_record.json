@@ -1,0 +1,63 @@
+{
+  "task_id": "spice_deck_debug_0100",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:29:38.425031+00:00",
+  "notes": "Buggy exit=255, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 255,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "invalid_directive",
+        "message": "**error** ([PATH]) .inc/.include should have a file name with appropriate path. Please enter file name with correct path. Syntax:.inc/.include <./path/file name> before or at \"M1\""
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">info:         ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "ceacc9c05fdbae948dadc4c2d76fa42b102297239b21410f62fa3a180d685501",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "Warning:'1 connection nodes' occurs 1 times"
+      }
+    ],
+    "raw_log_sha256": "aff75a171bd6451d0b5f70bdd3565fe4b7b0b7f64eeb99aebe7b7cda156aa744",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "invalid_directive",
+    "observed_error_categories": [
+      "invalid_directive",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.122
+  }
+}

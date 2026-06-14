@@ -1,0 +1,36 @@
+{
+  "task_id": "spice_deck_debug_0095",
+  "domain": "spice_deck_debug",
+  "task_family": "syntax_error",
+  "expected_error_category": "invalid_directive",
+  "difficulty": "easy",
+  "tags": [
+    "malformed",
+    "syntax",
+    "include"
+  ],
+  "prompt_file": "prompt.md",
+  "visible_files": [
+    "visible/spice_deck_debug_0095_bug.sp"
+  ],
+  "hidden_files": [
+    "hidden/spice_deck_debug_0095_fixed.sp"
+  ],
+  "expected_outputs": [
+    "spice_deck_debug_0095_fixed.sp"
+  ],
+  "grader": {
+    "type": "exact_match",
+    "criteria": "Fixed SPICE deck must be functionally equivalent to oracle solution"
+  },
+  "timeout_sec": 300,
+  "license_notes": "Apache-2.0, synthetic content",
+  "generation_source": "synthetic",
+  "oracle_description": "Remove the malformed `.include` line (no filename).",
+  "validation_status": "candidate_unvalidated",
+  "optional_tool_backends": [
+    "hspice",
+    "spectre"
+  ],
+  "public_release_safe": true
+}

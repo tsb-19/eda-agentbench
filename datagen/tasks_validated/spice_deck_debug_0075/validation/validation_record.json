@@ -1,0 +1,63 @@
+{
+  "task_id": "spice_deck_debug_0075",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:29:19.880438+00:00",
+  "notes": "Buggy exit=1, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 1,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "unsupported_dialect",
+        "message": "**error** ([PATH]) Invalid model level   99 . Specify a valid model level."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">info:         ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "aecda1768099a0c112326965203e255b5423124dd3cc56c36294a112e3c3abfd",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "e2fc3a7595eca74b7f05cda9f2fa3517e60e6411e975de1543d4dbef6423c4ea",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "unsupported_dialect",
+    "observed_error_categories": [
+      "unknown",
+      "unsupported_dialect"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.143
+  }
+}

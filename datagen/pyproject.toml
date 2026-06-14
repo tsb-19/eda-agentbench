@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eda-agentbench-datagen"
+version = "0.1.0"
+description = "SPICE deck-debug dataset generation/validation module for EDA-AgentBench"
+requires-python = ">=3.9"
+license = {text = "Apache-2.0"}
+dependencies = [
+    "jsonschema>=4.0",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-timeout>=2.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+timeout = 30
+markers = [
+    "static: tests that require no EDA tools",
+    "commercial: tests that require commercial EDA tools",
+]

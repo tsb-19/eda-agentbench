@@ -1,0 +1,10 @@
+.title CMOS Latch - Missing Model
+M1 out in vdd vdd pmos W=2u L=180n
+M2 out in gnd gnd nmos_bad W=1u L=180n
+M3 in out vdd vdd pmos W=2u L=180n
+M4 in out gnd gnd nmos_bad W=1u L=180n
+.model pmos pmos (level=1 vto=-0.7 kp=50u)
+Vdd vdd 0 1.8
+Vin in 0 PULSE(0 1.8 1n 100p 100p 2n 4n)
+.tran 10p 8n
+.end

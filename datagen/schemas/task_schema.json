@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:eda-agentbench:schema:spice-deck-debug-task",
+  "title": "EDA-AgentBench SPICE Deck Debug Task",
+  "description": "Schema for a single SPICE deck debug task candidate (this factory's only domain)",
+  "type": "object",
+  "required": [
+    "task_id",
+    "domain",
+    "task_family",
+    "difficulty",
+    "tags",
+    "prompt_file",
+    "visible_files",
+    "hidden_files",
+    "expected_outputs",
+    "grader",
+    "timeout_sec",
+    "license_notes",
+    "generation_source",
+    "oracle_description",
+    "validation_status",
+    "optional_tool_backends",
+    "public_release_safe"
+  ],
+  "properties": {
+    "task_id": {
+      "type": "string",
+      "pattern": "^spice_deck_debug_\\d{4}$",
+      "description": "Unique identifier: spice_deck_debug_NNNN (4-digit zero-padded)"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["spice_deck_debug"],
+      "description": "High-level domain category (this factory owns only spice_deck_debug)"
+    },
+    "task_family": {
+      "type": "string",
+      "description": "Sub-family within the domain (e.g., 'combinational_bug', 'setup_violation')"
+    },
+    "difficulty": {
+      "type": "string",
+      "enum": ["easy", "medium", "hard"],
+      "description": "Difficulty level"
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 1,
+      "description": "Searchable tags for filtering tasks"
+    },
+    "prompt_file": {
+      "type": "string",
+      "description": "Relative path to the prompt.md file"
+    },
+    "visible_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files visible to the agent during evaluation"
+    },
+    "hidden_files": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "List of files hidden from the agent (used for grading)"
+    },
+    "expected_outputs": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Expected output files or patterns the agent should produce"
+    },
+    "grader": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["exact_match", "regex_match", "semantic_match", "custom"],
+          "description": "Grading strategy"
+        },
+        "criteria": {
+          "type": "string",
+          "description": "Grading criteria description"
+        }
+      },
+      "required": ["type", "criteria"]
+    },
+    "timeout_sec": {
+      "type": "integer",
+      "minimum": 10,
+      "maximum": 3600,
+      "description": "Maximum allowed time in seconds for task completion"
+    },
+    "license_notes": {
+      "type": "string",
+      "description": "License information for task content"
+    },
+    "generation_source": {
+      "type": "string",
+      "enum": ["synthetic", "derived", "manual"],
+      "description": "How this task was generated"
+    },
+    "oracle_description": {
+      "type": "string",
+      "description": "Description of the expected correct solution or answer"
+    },
+    "validation_status": {
+      "type": "string",
+      "enum": [
+        "candidate_unvalidated",
+        "validated_static",
+        "commercial_smoke_passed",
+        "debug_contrast_verified",
+        "validation_failed",
+        "oracle_parser_verified"
+      ],
+      "description": "Current validation status"
+    },
+    "optional_tool_backends": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Commercial tool backends that can validate this task"
+    },
+    "public_release_safe": {
+      "type": "boolean",
+      "description": "Whether this task is safe for public release (no proprietary data)"
+    },
+    "expected_error_category": {
+      "type": "string",
+      "description": "Expected error category for debug tasks (e.g., missing_model, wrong_pin_count)"
+    }
+  },
+  "additionalProperties": false
+}

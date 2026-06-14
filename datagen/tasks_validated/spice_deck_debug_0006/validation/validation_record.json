@@ -1,0 +1,68 @@
+{
+  "task_id": "spice_deck_debug_0006",
+  "domain": "spice_deck_debug",
+  "backend": "hspice",
+  "tool_name": "Synopsys HSPICE",
+  "tool_version_normalized": "unknown",
+  "validation_status": "debug_contrast_verified",
+  "validation_time_utc": "2026-06-12T04:27:48.617487+00:00",
+  "notes": "Buggy exit=255, timed_out=False",
+  "buggy_run": {
+    "command_backend": "hspice",
+    "expected_status": "fail",
+    "actual_status": "fail",
+    "exit_code": 255,
+    "normalized_errors": [
+      {
+        "severity": "error",
+        "category": "missing_model",
+        "message": "**error** ([PATH]) definition of model drect not found. Please specify a defined model name."
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": "***** job aborted"
+      },
+      {
+        "severity": "error",
+        "category": "unknown",
+        "message": ">info:         ***** hspice job aborted"
+      }
+    ],
+    "raw_log_sha256": "dd618d24f779b2eb4f2bc7f1c44393a70e89719aff32ba1cb57d83667281d7f0",
+    "raw_log_retained": true
+  },
+  "golden_run": {
+    "command_backend": "hspice",
+    "expected_status": "pass",
+    "actual_status": "pass",
+    "exit_code": 0,
+    "normalized_errors": [
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** the ratio of tstop to tstep is unduly large, transient analysis will continue with larger step."
+      },
+      {
+        "severity": "warning",
+        "category": "unknown",
+        "message": "**warning** no tran outputs specified, analysis omitted"
+      }
+    ],
+    "raw_log_sha256": "0205038f3836749922f3326698fb4f9e5a041117b84262df5c0529c4af3ce360",
+    "raw_log_retained": true
+  },
+  "debug_contrast": {
+    "buggy_failed_as_expected": true,
+    "golden_passed_as_expected": true,
+    "error_category_match": true,
+    "expected_error_category": "missing_model",
+    "observed_error_categories": [
+      "missing_model",
+      "unknown"
+    ]
+  },
+  "parsed_metrics": {
+    "elapsed_sec": 0.111
+  }
+}

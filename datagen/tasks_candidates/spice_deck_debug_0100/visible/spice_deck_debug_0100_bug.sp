@@ -1,0 +1,9 @@
+.title Current Mirror - Invalid Directive
+.inc
+M1 ref ref gnd gnd nmos W=4u L=180n
+M2 out ref gnd gnd nmos W=4u L=180n
+R1 vdd ref 10k
+Vdd vdd gnd 1.8
+.model nmos nmos (level=1 vto=0.7 kp=120u)
+.op
+.end
