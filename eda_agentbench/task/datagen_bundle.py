@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 
 
-class ExternalBundleError(Exception):
+class BundleError(Exception):
     pass
 
 
@@ -17,7 +17,7 @@ _REQUIRED_MANIFEST_FIELDS = ["task_id", "backend", "backend_env_var", "editable_
 def load_manifest(manifest_path: Path) -> list[dict]:
     """Load manifest.jsonl, returning list of entry dicts."""
     if not manifest_path.is_file():
-        raise ExternalBundleError(f"Manifest not found: {manifest_path}")
+        raise BundleError(f"Manifest not found: {manifest_path}")
     entries: list[dict] = []
     for i, line in enumerate(manifest_path.read_text().splitlines()):
         line = line.strip()
@@ -26,10 +26,10 @@ def load_manifest(manifest_path: Path) -> list[dict]:
         try:
             entry = json.loads(line)
         except json.JSONDecodeError as e:
-            raise ExternalBundleError(f"Invalid JSON on line {i+1} of {manifest_path}: {e}")
+            raise BundleError(f"Invalid JSON on line {i+1} of {manifest_path}: {e}")
         for field in _REQUIRED_MANIFEST_FIELDS:
             if field not in entry:
-                raise ExternalBundleError(f"Missing '{field}' in manifest line {i+1}")
+                raise BundleError(f"Missing '{field}' in manifest line {i+1}")
         entries.append(entry)
     return entries
 
@@ -37,20 +37,20 @@ def load_manifest(manifest_path: Path) -> list[dict]:
 def load_grader_contract(contract_path: Path) -> dict:
     """Load and validate a grader_contract.json file."""
     if not contract_path.is_file():
-        raise ExternalBundleError(f"Grader contract not found: {contract_path}")
+        raise BundleError(f"Grader contract not found: {contract_path}")
     data = json.loads(contract_path.read_text())
     for field in _REQUIRED_GRADER_FIELDS:
         if field not in data:
-            raise ExternalBundleError(f"Missing '{field}' in {contract_path}")
+            raise BundleError(f"Missing '{field}' in {contract_path}")
     sc = data.get("success_criteria", {})
     if not sc.get("execution_based"):
-        raise ExternalBundleError(
+        raise BundleError(
             f"success_criteria.execution_based must be true in {contract_path}")
     return data
 
 
-def validate_external_task(task_dir: Path, manifest_entry: dict) -> list[str]:
-    """Validate an external bundle task directory. Returns list of error strings."""
+def validate_bundle_task(task_dir: Path, manifest_entry: dict) -> list[str]:
+    """Validate a datagen bundle task directory. Returns list of error strings."""
     errors: list[str] = []
     task_id = manifest_entry["task_id"]
 
@@ -63,7 +63,7 @@ def validate_external_task(task_dir: Path, manifest_entry: dict) -> list[str]:
             contract = load_grader_contract(contract_path)
             if contract["task_id"] != task_id:
                 errors.append(f"{task_id}: task_id mismatch in grader_contract")
-        except ExternalBundleError as e:
+        except BundleError as e:
             errors.append(f"{task_id}: {e}")
 
     # editable_files must be under visible/

@@ -14,7 +14,7 @@
 |-------|-------|---------|--------|
 | P1 RTL 调试 | 1001 | VCS | 1 个手工制作 + 1000 个生成 |
 | P4 SPICE 仿真 | 102 | HSPICE, Spectre | 2 个冒烟 + 100 个生成 |
-| P5 SPICE 网表调试 | 10 | HSPICE | 从外部包导入 |
+| P5 SPICE 网表调试 | 10 | HSPICE | 由 datagen 模块生成 |
 | **合计** | **1113** | | |
 
 ### P1 缺陷类型分布
@@ -90,7 +90,7 @@
 5. **无 P6 lint track**：无 SpyGlass 任务。
 6. **无 P7 物理 track**：无 ICC2/Innovus/StarRC/Sentaurus 任务。
 7. **P4 仅含 RC 滤波器**：单一电路拓扑，无运放或数字 SPICE 任务。
-8. **P5 仅含执行任务**：10 个来自外部包的任务，尚无生成的任务。
+8. **P5 仅含执行任务**：10 个来自 datagen 包的任务，尚无生成的任务。
 9. **无 `generate` CLI 命令**：生成需要直接运行 Python 脚本。
 10. **Python 3.9**：使用 `from __future__ import annotations` 进行前向引用。
 11. **Spectre 测量**：使用 `-format nutascii` + Python 波形解析（Spectre 21.1 不支持 `.measure`）。

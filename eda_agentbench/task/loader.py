@@ -70,7 +70,7 @@ class TaskLoader:
         errors: list[str] = []
         files = meta["files"]
 
-        # P5 external bundle tasks use visible/ instead of files/
+        # P5 datagen bundle tasks use visible/ instead of files/
         if meta.get("track") == "p5_spice_deck_debug":
             for f in files["visible"]:
                 if not (task_path / f).is_file():

@@ -378,6 +378,30 @@ def cmd_run_agent_dataset(args) -> None:
     print(f"\nSummary written to: {summary_path}")
 
 
+def _safe_rmtree(path: Path) -> None:
+    """Remove a temp directory robustly.
+
+    EDA tools (e.g. VCS ``simv.daidir/``) can leave read-only files or dirs that
+    defeat ``shutil.rmtree``; the old ``rmtree(ignore_errors=True)`` would then
+    silently leak the directory under ``/tmp``. Retry after making each offending
+    entry writable, and if the directory still survives, warn rather than leak
+    silently.
+    """
+    import os
+    import stat
+
+    def _onerror(func, p, _exc):
+        try:
+            os.chmod(p, stat.S_IRWXU)
+            func(p)
+        except OSError:
+            pass
+
+    shutil.rmtree(path, onerror=_onerror)
+    if Path(path).exists():
+        print(f"warning: could not fully remove temp dir {path}", file=sys.stderr)
+
+
 def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
                       timeout: int, runs_root: Path | None = None) -> tuple[Path, ScoreResult]:
     """Core evaluation logic. Returns (runs_dir, ScoreResult).
@@ -603,7 +627,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         return runs_dir, score_result
 
     finally:
-        shutil.rmtree(work_dir, ignore_errors=True)
+        _safe_rmtree(work_dir)
 
 
 def cmd_evaluate_dataset(args) -> None:
@@ -783,7 +807,7 @@ def cmd_evaluate_dataset(args) -> None:
         finally:
             # Clean up buggy temp dir
             if submission_mode != "solution" and submission_path != (task_path / "files"):
-                shutil.rmtree(submission_path, ignore_errors=True)
+                _safe_rmtree(submission_path)
 
     # Write summary
     summary = _build_dataset_summary(

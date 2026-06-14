@@ -1,4 +1,4 @@
-"""Tests for P5 SPICE Deck Debug: external loader, schema, evaluator, integration."""
+"""Tests for P5 SPICE Deck Debug: datagen bundle loader, schema, evaluator, integration."""
 
 from __future__ import annotations
 
@@ -9,8 +9,8 @@ from pathlib import Path
 
 import pytest
 
-from eda_agentbench.task.external_loader import (
-    load_manifest, load_grader_contract, validate_external_task, ExternalBundleError,
+from eda_agentbench.task.datagen_bundle import (
+    load_manifest, load_grader_contract, validate_bundle_task, BundleError,
 )
 from eda_agentbench.schema import validate_metadata
 from eda_agentbench.task.loader import TaskLoader, TaskValidationError
@@ -60,7 +60,7 @@ def test_grader_contract_loads():
 
 def test_grader_contract_missing_file():
     """Missing grader_contract.json raises error."""
-    with pytest.raises(ExternalBundleError, match="not found"):
+    with pytest.raises(BundleError, match="not found"):
         load_grader_contract(Path("/nonexistent/grader_contract.json"))
 
 
@@ -74,20 +74,20 @@ def test_grader_contract_requires_execution_based():
         "backend": "hspice",
     }
     (tmp / "grader_contract.json").write_text(json.dumps(contract))
-    with pytest.raises(ExternalBundleError, match="execution_based"):
+    with pytest.raises(BundleError, match="execution_based"):
         load_grader_contract(tmp / "grader_contract.json")
     shutil.rmtree(tmp)
 
 
 # --- External Task Validation ---
 
-def test_validate_external_task_passes():
-    """Valid external task passes validation."""
+def test_validate_bundle_task_passes():
+    """Valid datagen bundle task passes validation."""
     if not (BUNDLE_ROOT / "manifest.jsonl").is_file():
         pytest.skip("External bundle not available")
     entries = load_manifest(BUNDLE_ROOT / "manifest.jsonl")
     task_dir = BUNDLE_ROOT / "spice_deck_debug_0001"
-    errors = validate_external_task(task_dir, entries[0])
+    errors = validate_bundle_task(task_dir, entries[0])
     assert errors == [], f"Unexpected errors: {errors}"
 
 
@@ -102,7 +102,7 @@ def test_validate_editable_under_visible():
         "editable_files": ["hidden/spice_deck_debug_0001_fixed.sp"],  # wrong: under hidden/
         "grader_contract_file": "grader_contract.json",
     }
-    errors = validate_external_task(BUNDLE_ROOT / "spice_deck_debug_0001", entry)
+    errors = validate_bundle_task(BUNDLE_ROOT / "spice_deck_debug_0001", entry)
     assert any("not under visible" in e for e in errors)
 
 
@@ -117,7 +117,7 @@ def test_validate_backend_env_var():
         "editable_files": ["visible/spice_deck_debug_0001_bug.sp"],
         "grader_contract_file": "grader_contract.json",
     }
-    errors = validate_external_task(BUNDLE_ROOT / "spice_deck_debug_0001", entry)
+    errors = validate_bundle_task(BUNDLE_ROOT / "spice_deck_debug_0001", entry)
     assert any("EDA_HSPICE_CMD" in e for e in errors)
 
 
@@ -241,6 +241,25 @@ def test_evaluator_explanation_always_passes():
     assert comp.raw_score == 1.0
 
 
+def test_evaluator_fail_when_tool_did_not_run():
+    """Regression: a log without 'job concluded' (tool missing / timeout / empty /
+    unrelated output) must score 0.0, never 1.0."""
+    if not IMPORTED_ROOT.is_dir():
+        pytest.skip("P5 tasks not imported")
+    from eda_agentbench.evaluator.spice_deck_debug import SPICEDeckDebugEvaluator
+    task_dir = IMPORTED_ROOT / "spice_deck_debug_0001"
+    meta = json.loads((task_dir / "metadata.json").read_text())
+    evaluator = SPICEDeckDebugEvaluator(task_dir, meta)
+    for bad_log in [
+        "ERROR: HSPICE not found at 'hspice'",
+        "",
+        "HSPICE timed out after 300s",
+        "some unrelated output with no completion banner",
+    ]:
+        comp = evaluator.evaluate_component("execution_pass", Path(), bad_log)
+        assert comp.raw_score == 0.0, f"log {bad_log!r} should score 0.0, got {comp.raw_score}"
+
+
 # --- Integration: P5 via CLI (requires HSPICE) ---
 
 @pytest.fixture
@@ -346,5 +365,5 @@ def test_report_includes_p5_track():
 
 def test_missing_bundle_manifest():
     """Missing manifest.jsonl raises clear error."""
-    with pytest.raises(ExternalBundleError, match="not found"):
+    with pytest.raises(BundleError, match="not found"):
         load_manifest(Path("/nonexistent/manifest.jsonl"))

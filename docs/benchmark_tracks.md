@@ -173,7 +173,7 @@ Buggy versions have R_bug (4-20x too high), solutions have R_sol (correct value)
 
 **Key difference from P4**: P4 tasks have correct syntax but wrong component values. P5 tasks have broken syntax/structure that prevents the simulator from running at all.
 
-**Task structure** (external bundle layout):
+**Task structure** (datagen bundle layout):
 - `visible/*_bug.sp` — buggy deck (editable)
 - `hidden/*_fixed.sp` — golden fixed deck (for solution mode)
 - `oracle/answer.md` — human-readable expected fix

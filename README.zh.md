@@ -190,7 +190,7 @@ task_xxxxxx/
     design.sv
 ```
 
-外部包布局（P5）：
+datagen 包布局（P5）：
 ```
 spice_deck_debug_NNNN/
   prompt.md

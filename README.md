@@ -190,7 +190,7 @@ task_xxxxxx/
     design.sv
 ```
 
-External bundle layout (P5):
+datagen bundle layout (P5):
 ```
 spice_deck_debug_NNNN/
   prompt.md

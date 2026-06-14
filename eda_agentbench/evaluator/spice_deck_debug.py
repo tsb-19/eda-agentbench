@@ -73,27 +73,38 @@ class SPICEDeckDebugEvaluator(BaseEvaluator):
             )
 
     def _eval_execution(self, weight: float, run_log: str) -> ScoreComponent:
-        """Check if HSPICE ran successfully with no fatal errors."""
-        # Check for HSPICE success indicators
-        hspice_abort = bool(re.search(r"hspice job aborted", run_log, re.IGNORECASE))
-        hspice_concluded = bool(re.search(r"job concluded", run_log, re.IGNORECASE))
-        hspice_error = bool(re.search(r"\*\*error\*\*", run_log, re.IGNORECASE))
+        """Execution-based pass/fail for an HSPICE run.
+
+        Passing requires *positive* evidence that HSPICE actually completed: the
+        "job concluded" banner must be present, with no abort and no fatal errors.
+        A log that lacks that banner — because the tool was not found, timed out,
+        crashed, or produced no output — scores 0, never 1. (Previously a log with
+        none of the failure markers incorrectly scored 1.0, so a missing simulator
+        could be mistaken for success.)
+        """
+        text = run_log or ""
+        hspice_concluded = bool(re.search(r"job concluded", text, re.IGNORECASE))
+        hspice_abort = bool(re.search(r"hspice job aborted", text, re.IGNORECASE))
 
         # Check for fatal errors from grader contract patterns
-        fatal_categories = _check_fatal_errors(run_log, self.contract)
+        fatal_categories = _check_fatal_errors(text, self.contract)
 
-        if hspice_abort or (hspice_error and not hspice_concluded):
-            score = 0.0
-            details = f"HSPICE failed: abort={hspice_abort}, errors={fatal_categories}"
-        elif hspice_concluded or (not hspice_abort and not hspice_error):
+        passed = hspice_concluded and not hspice_abort and not fatal_categories
+        if passed:
             score = 1.0
-            details = "HSPICE execution passed"
+            details = "HSPICE execution passed (job concluded, no fatal errors)"
         else:
             score = 0.0
-            details = f"HSPICE inconclusive: errors={fatal_categories}"
+            if not text.strip():
+                details = "HSPICE produced no output (did not run)"
+            elif not hspice_concluded:
+                details = (f"HSPICE did not complete ('job concluded' not found); "
+                           f"abort={hspice_abort}, errors={fatal_categories}")
+            else:
+                details = f"HSPICE reported fatal errors: {fatal_categories}"
 
         return ScoreComponent(
             name="execution_pass", weight=weight, raw_score=score,
             weighted_score=score * weight, details=details,
-            tool_output_snippet=run_log[:500] if run_log else None,
+            tool_output_snippet=text[:500] if text else None,
         )

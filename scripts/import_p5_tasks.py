@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import P5 SPICE deck debug tasks from external bundle."""
+"""Import P5 SPICE deck debug tasks from datagen bundle."""
 from __future__ import annotations
 import json
 import shutil
@@ -8,14 +8,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from eda_agentbench.task.external_loader import load_manifest, validate_external_task, ExternalBundleError
+from eda_agentbench.task.datagen_bundle import load_manifest, validate_bundle_task, BundleError
 
 DEFAULT_BUNDLE = Path(__file__).resolve().parent.parent / "datagen" / "tasks_eval_private"
 DEFAULT_DEST = Path(__file__).resolve().parent.parent / "tasks" / "p5_spice_deck_debug" / "imported"
 
 
 def convert_metadata(manifest_entry: dict, contract: dict, bundle_root: Path) -> dict:
-    """Convert external bundle metadata to main schema format."""
+    """Convert datagen bundle metadata to main schema format."""
     task_id = manifest_entry["task_id"]
     editable = manifest_entry["editable_files"]
 
@@ -50,7 +50,7 @@ def convert_metadata(manifest_entry: dict, contract: dict, bundle_root: Path) ->
             "evaluator": "spice_deck_debug.SPICEDeckDebugEvaluator",
         },
         "sanitizer": {"enabled": True},
-        "source": "external_bundle",
+        "source": "datagen_bundle",
         "expected_error_category": manifest_entry.get("expected_error_category"),
         "grader_contract": contract.get("success_criteria", {}),
     }
@@ -58,7 +58,7 @@ def convert_metadata(manifest_entry: dict, contract: dict, bundle_root: Path) ->
 
 def import_task(task_id: str, manifest_entry: dict, bundle_root: Path,
                 dest_root: Path, dry_run: bool = False) -> Path | None:
-    """Import a single task from the external bundle."""
+    """Import a single task from the datagen bundle."""
     src = bundle_root / task_id
     dst = dest_root / task_id
 
@@ -73,7 +73,7 @@ def import_task(task_id: str, manifest_entry: dict, bundle_root: Path,
         print(f"  ERROR: {e}")
         return None
 
-    errors = validate_external_task(src, manifest_entry)
+    errors = validate_bundle_task(src, manifest_entry)
     if errors:
         print(f"  VALIDATION ERRORS:")
         for e in errors:
@@ -96,7 +96,7 @@ def import_task(task_id: str, manifest_entry: dict, bundle_root: Path,
 
 def main():
     import argparse
-    parser = argparse.ArgumentParser(description="Import P5 tasks from external bundle")
+    parser = argparse.ArgumentParser(description="Import P5 tasks from datagen bundle")
     parser.add_argument("--bundle-root", type=Path, default=DEFAULT_BUNDLE)
     parser.add_argument("--dest", type=Path, default=DEFAULT_DEST)
     parser.add_argument("--dry-run", action="store_true")
@@ -109,7 +109,7 @@ def main():
     manifest_path = bundle_root / "manifest.jsonl"
     try:
         manifest = load_manifest(manifest_path)
-    except ExternalBundleError as e:
+    except BundleError as e:
         print(f"ERROR: {e}")
         sys.exit(1)
 
