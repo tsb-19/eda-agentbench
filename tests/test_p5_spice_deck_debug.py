@@ -15,7 +15,7 @@ from eda_agentbench.task.external_loader import (
 from eda_agentbench.schema import validate_metadata
 from eda_agentbench.task.loader import TaskLoader, TaskValidationError
 
-BUNDLE_ROOT = Path(__file__).resolve().parent.parent.parent / "eda-bench-prototypes" / "tasks_eval_private"
+BUNDLE_ROOT = Path(__file__).resolve().parent.parent / "datagen" / "tasks_eval_private"
 IMPORTED_ROOT = Path(__file__).resolve().parent.parent / "tasks" / "p5_spice_deck_debug" / "imported"
 
 

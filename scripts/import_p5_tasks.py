@@ -10,7 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from eda_agentbench.task.external_loader import load_manifest, validate_external_task, ExternalBundleError
 
-DEFAULT_BUNDLE = Path(__file__).resolve().parent.parent.parent / "eda-bench-prototypes" / "tasks_eval_private"
+DEFAULT_BUNDLE = Path(__file__).resolve().parent.parent / "datagen" / "tasks_eval_private"
 DEFAULT_DEST = Path(__file__).resolve().parent.parent / "tasks" / "p5_spice_deck_debug" / "imported"
 
 

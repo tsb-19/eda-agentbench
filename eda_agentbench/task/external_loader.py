@@ -1,4 +1,4 @@
-"""Load and validate tasks from an external bundle (e.g., eda-bench-prototypes)."""
+"""Load and validate tasks from a generated bundle (produced by the in-repo datagen/ module)."""
 
 from __future__ import annotations
 

@@ -17,3 +17,9 @@ eda-bench = "eda_agentbench.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["eda_agentbench*"]
+
+# Only collect the harness's own tests at the repo root. The data-generation
+# module under datagen/ has its own tests + deps and is run from that directory
+# (cd datagen && pytest); keep it out of the root test run.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
