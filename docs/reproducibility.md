@@ -37,7 +37,7 @@ Given the same seed, generators produce identical tasks. Each task's `metadata.j
 
 ### P5 Import
 
-P5 tasks are imported from an external bundle via `scripts/import_p5_tasks.py`. The import is a read-only copy from the sibling repository `../eda-bench-prototypes/tasks_eval_private/`. The main repository does not modify the external bundle.
+P5 tasks are imported from a generated bundle via `scripts/import_p5_tasks.py`. The import is a read-only copy from the in-repo data-generation module at `datagen/tasks_eval_private/`. The importer does not modify the bundle.
 
 ## Evaluation Modes
 

@@ -62,7 +62,7 @@
 
 ### 私有预言包
 
-外部 P5 包源（`../eda-bench-prototypes/tasks_eval_private/`）不包含在主仓库发布中。仅发布 `tasks/p5_spice_deck_debug/imported/` 下的导入副本。
+P5 评估包（`datagen/tasks_eval_private/`，由仓库内 `datagen/` 模块生成）已被 git 忽略，不包含在任何发布中。仅发布 `tasks/p5_spice_deck_debug/imported/` 下的导入副本。
 
 ## 发布检查清单
 

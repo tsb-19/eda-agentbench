@@ -18,21 +18,21 @@ Each task provides a buggy `.sp` file that HSPICE rejects. The agent must identi
 | Oracle required | Yes (target values) | No (any working fix accepted) |
 | Exact diff | N/A | Not required |
 
-## External Bundle Source
+## Dataset Source (`datagen/`)
 
-P5 tasks are imported from the sibling repository:
+P5 tasks are produced by the in-repo data-generation module and imported from:
 
 ```
-../eda-bench-prototypes/tasks_eval_private/
+datagen/tasks_eval_private/
 ```
 
-This bundle was generated and validated externally. The main benchmark imports it read-only via:
+This bundle is generated and validated by the `datagen/` module (see `datagen/README.md`). The benchmark imports it read-only via:
 
 ```
 python3 scripts/import_p5_tasks.py
 ```
 
-The import converts external metadata to the main schema while preserving `grader_contract.json`, `visible/`, `hidden/`, `oracle/`, and `validation/` directories.
+The import converts the datagen metadata to the main schema while preserving `grader_contract.json`, `visible/`, `hidden/`, `oracle/`, and `validation/` directories.
 
 ## Task Structure
 
@@ -131,7 +131,7 @@ All valid fixes that produce exit code 0 and no fatal errors are scored equally.
 
 ## Public vs Private Bundle
 
-The external bundle at `../eda-bench-prototypes/tasks_eval_private/` is the **private eval bundle**. It contains:
+The bundle at `datagen/tasks_eval_private/` (produced by the `datagen/` module) is the **private eval bundle**. It contains:
 
 - Buggy decks (visible to agent)
 - Fixed decks (hidden, for solution mode evaluation)

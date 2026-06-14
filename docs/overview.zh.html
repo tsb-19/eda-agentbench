@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDA-AgentBench · 速览</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#ece9e0; --card:#fcfbf7; --card2:#f6f3ea;
+    --ink:#17212f; --ink2:#586273; --ink3:#8a93a1;
+    --accent:#c2410c; --accent-d:#9a330a; --accent-soft:#f1ddd0;
+    --hair:#d6d0c2; --hair-c:#e7e2d5;
+    --run:#17212f; --read:#c2410c;
+    --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --cjk:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--sans); line-height:1.62; padding:26px 22px 36px;
+    font-size:13.5px;
+  }
+  .poster{max-width:1320px;margin:0 auto}
+  strong{font-weight:600}
+  em{font-style:normal;color:var(--accent-d);font-weight:600}
+
+  /* ---------- masthead ---------- */
+  header.mast{
+    position:relative;overflow:hidden;border-radius:4px;
+    background:
+      linear-gradient(0deg,rgba(194,65,12,.06),rgba(194,65,12,.06)),
+      #141d2b;
+    color:#f3efe6;padding:30px 34px;border:1px solid #0c131d;
+  }
+  header.mast::before{ /* drafting grid */
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(243,239,230,.07) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(243,239,230,.07) 1px,transparent 1px);
+    background-size:30px 30px;mask:linear-gradient(105deg,#000,transparent 75%);
+    -webkit-mask:linear-gradient(105deg,#000,transparent 75%);
+  }
+  header.mast::after{ /* corner tick */
+    content:"";position:absolute;top:14px;right:14px;width:26px;height:26px;
+    border-top:2px solid var(--accent);border-right:2px solid var(--accent);opacity:.85;
+  }
+  .mast .row{position:relative;display:flex;justify-content:space-between;gap:28px;flex-wrap:wrap;align-items:flex-end}
+  .mast .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;color:var(--accent);
+    text-transform:uppercase;margin-bottom:8px}
+  .mast h1{font-family:var(--mono);font-weight:600;margin:0;font-size:40px;letter-spacing:-.5px;line-height:1}
+  .mast .zh{font-size:16px;color:#cdd3dc;margin:10px 0 0;font-weight:500}
+  .mast .sub{font-size:13px;color:#aab2bf;margin:12px 0 0;max-width:680px;line-height:1.66}
+  .mast .tags{position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .mast .tags span{font-size:11.5px;color:#dfe3ea;border:1px solid rgba(243,239,230,.22);
+    border-radius:3px;padding:4px 10px;background:rgba(243,239,230,.04)}
+  .mast .tags b{color:var(--accent);font-weight:600;font-family:var(--mono);margin-right:2px}
+  /* stats cluster */
+  .cluster{display:flex;gap:0;border:1px solid rgba(243,239,230,.2);border-radius:4px;overflow:hidden}
+  .cluster .s{padding:12px 18px;text-align:center;border-right:1px solid rgba(243,239,230,.16);min-width:96px}
+  .cluster .s:last-child{border-right:0}
+  .cluster .n{font-family:var(--mono);font-size:27px;font-weight:600;line-height:1.05;color:#f3efe6}
+  .cluster .n small{font-size:14px;color:var(--accent)}
+  .cluster .l{font-size:10.5px;color:#9aa3b2;margin-top:3px;letter-spacing:.02em}
+
+  /* ---------- grid + cards ---------- */
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px}
+  .card{background:var(--card);border:1px solid var(--hair-c);border-radius:4px;padding:17px 19px;
+    position:relative;animation:rise .5s both}
+  .card.full{grid-column:1 / -1}
+  h2.kick{font-size:15.5px;margin:0 0 12px;display:flex;align-items:center;gap:10px;
+    padding-bottom:9px;border-bottom:1px solid var(--hair)}
+  h2.kick .idx{font-family:var(--mono);font-size:12px;font-weight:600;color:#fff;background:var(--accent);
+    padding:2px 7px;border-radius:3px;letter-spacing:.04em}
+  h2.kick .t{font-weight:600;letter-spacing:.01em}
+  .card p{margin:7px 0}
+  ul.tight{margin:8px 0 0;padding:0;list-style:none}
+  ul.tight li{margin:9px 0;padding-left:18px;position:relative}
+  ul.tight li::before{content:"";position:absolute;left:0;top:9px;width:7px;height:7px;
+    background:var(--accent);border-radius:1px;transform:rotate(45deg)}
+  ul.tight li b{font-weight:600}
+  .lead{color:var(--ink);font-weight:500}
+  .muted{color:var(--ink2)}
+  .note{font-size:11.5px;color:var(--ink2);margin-top:11px;padding-top:9px;border-top:1px dashed var(--hair);line-height:1.6}
+  .gloss{font-size:.92em;color:var(--ink2)}
+
+  .mono{font-family:var(--mono)}
+  .tool{font-family:var(--mono);font-size:.9em;color:var(--accent-d);font-weight:500;white-space:nowrap}
+  .cmd{font-family:var(--mono);font-size:11.5px;background:var(--ink);color:#f3efe6;border-radius:3px;
+    padding:9px 12px;display:block;margin-top:8px;overflow-x:auto;line-height:1.5}
+  .cmd .fl{color:#e0884f}
+
+  /* ---------- tables ---------- */
+  table{border-collapse:collapse;width:100%;font-size:12.5px;margin-top:2px}
+  th,td{border-bottom:1px solid var(--hair-c);padding:7px 9px;text-align:left;vertical-align:top}
+  thead th{border-bottom:2px solid var(--ink);font-weight:600;font-size:12px;color:var(--ink)}
+  td.r,th.r{text-align:right;font-family:var(--mono);font-variant-numeric:tabular-nums}
+  tbody tr:hover td{background:var(--card2)}
+  td .pc{font-family:var(--mono);font-weight:600;color:var(--accent-d);font-size:12px}
+  .badge{display:inline-block;font-size:10.5px;font-weight:600;border-radius:3px;padding:1px 7px;border:1px solid}
+  .badge.run{color:#fff;background:var(--run);border-color:var(--run)}
+  .badge.read{color:var(--accent-d);background:var(--accent-soft);border-color:#e7c2ab}
+  caption,.tbl-note{caption-side:bottom}
+
+  /* ---------- flow ---------- */
+  .flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap;margin-top:4px}
+  .step{flex:1 1 150px;background:var(--card2);border:1px solid var(--hair-c);border-radius:4px;
+    padding:10px 12px;margin:4px;position:relative}
+  .step .sn{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600}
+  .step b{display:block;font-size:12.5px;margin:3px 0 2px;font-weight:600}
+  .step small{color:var(--ink2);font-size:11px;line-height:1.45;display:block}
+
+  /* ---------- legend ---------- */
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11.5px;color:var(--ink2);margin-top:10px;align-items:center}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .sw{width:11px;height:11px;border-radius:2px;display:inline-block}
+
+  svg text{font-family:var(--cjk)}
+  svg .m{font-family:var(--mono)}
+
+  footer{margin-top:18px;padding-top:14px;border-top:2px solid var(--ink);font-size:12px;color:var(--ink2);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+  footer a{color:var(--accent-d);text-decoration:none;font-family:var(--mono)}
+  footer .mono{color:var(--ink)}
+
+  /* stagger */
+  .card:nth-child(1){animation-delay:.04s}.card:nth-child(2){animation-delay:.10s}
+  .card:nth-child(3){animation-delay:.16s}.card:nth-child(4){animation-delay:.22s}
+  .card:nth-child(5){animation-delay:.28s}.card:nth-child(6){animation-delay:.34s}
+  .card:nth-child(7){animation-delay:.40s}.card:nth-child(8){animation-delay:.46s}
+  .card:nth-child(9){animation-delay:.52s}
+  @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+  @media (max-width:900px){ .grid{grid-template-columns:1fr} .card.full{grid-column:auto} .mast h1{font-size:32px} }
+  @media (prefers-reduced-motion:reduce){ .card{animation:none} }
+  @media print{
+    body{background:#fff;padding:0;font-size:11.5px}
+    @page{size:A3 portrait;margin:9mm}
+    .card,header.mast{box-shadow:none;animation:none!important;opacity:1!important;transform:none!important;break-inside:avoid}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <!-- ===================== MASTHEAD ===================== -->
+  <header class="mast">
+    <div class="row">
+      <div>
+        <div class="kicker">芯片设计 · AI 智能体能力基准</div>
+        <h1>EDA-AgentBench</h1>
+        <div class="zh">用真实的商用芯片设计软件,衡量大模型与 AI 智能体能否胜任工程任务</div>
+        <p class="sub">考的不是 EDA 名词背诵,而是动手能力:让模型修改设计后,用产线上真正在用的 Synopsys / Cadence 软件跑一遍——看它能不能跑通、结果达不达标。覆盖从写代码到布局布线的完整芯片设计流程。</p>
+      </div>
+      <div class="cluster">
+        <div class="s"><div class="n">2710</div><div class="l">道题</div></div>
+        <div class="s"><div class="n">10</div><div class="l">个赛道</div></div>
+        <div class="s"><div class="n">8</div><div class="l">款商用工具</div></div>
+        <div class="s"><div class="n">7</div><div class="l">个流程环节</div></div>
+      </div>
+    </div>
+    <div class="tags">
+      <span><b>·</b>判分看工具真实运行结果</span>
+      <span><b>·</b>一半测试用例对模型保密</span>
+      <span><b>·</b>改动评分文件即判失败</span>
+      <span><b>·</b>生成过程完全可复现</span>
+      <span><b>·</b>支持「直接答题」与「自主调用工具」两种考法</span>
+    </div>
+  </header>
+
+  <div class="grid">
+
+    <!-- 01 痛点 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">01</span><span class="t">为什么做 · 痛点</span></h2>
+      <p class="lead">AI 正涌入芯片设计,但现有的同类评测基本停留在「纸上谈兵」:</p>
+      <ul class="tight">
+        <li>用的是<b>免费开源仿真器</b>,而芯片公司产线上真正在用的是 VCS、HSPICE、PrimeTime 这类<b>商用软件</b>,两者并不通用,评测结果难以反映真实环境。</li>
+        <li>只考「<b>照着需求写一段电路代码</b>」<span class="gloss">(即 RTL,用代码描述的电路逻辑)</span>,几乎不碰后面同样关键的功能验证、电路仿真、逻辑综合、时序分析、布局布线等环节。</li>
+        <li>判分靠<b>比对文字「像不像对」</b>,而不是让真工具跑一遍看结果对不对——也就防不住模型「背答案」。</li>
+      </ul>
+      <p class="note">缺一个「用真软件、覆盖全流程、按真实运行结果判分」的智能体基准——这正是本项目要补的空白。</p>
+    </div>
+
+    <!-- 02 核心设计 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">02</span><span class="t">核心设计 · 怎么保证靠谱</span></h2>
+      <ul class="tight">
+        <li><b>按真实运行结果判分</b>:让真工具跑一遍,看它编不编得过、隐藏测试过不过、电路时序是否从违规变达标<span class="gloss">(时序裕量 WNS 由负转正)</span>、仿真指标是否落进规格范围。工具结果说了算,模型写的文字解释只占很小权重。</li>
+        <li><b>一半测试用例保密</b>:模型只能看到公开测试;判分时另用它从没见过的隐藏测试,逼它写出真正通用的解,而非只糊弄眼前几个例子。</li>
+        <li><b>防作弊</b>:评分相关文件在运行前后做指纹比对,一旦被改动即判失败,也不许直接打印「通过」蒙混。</li>
+        <li><b>完全可复现</b>:生成过程锁定随机数,任何人重跑都得到一模一样的数据集;还能每个赛道各抽一题、约两分钟做快速自检。</li>
+      </ul>
+      <p class="note"><b>数据从哪来——三种方式各取所长:</b>① 用受控模板批量生成,规模大、答案干净;② 从一个正确设计里故意注入缺陷,天然适合「找错改错」类任务;③ 直接跑真工具、采集它输出的日志与报告,最贴近真实的工具反馈。</p>
+    </div>
+
+    <!-- 03 架构 -->
+    <div class="card full">
+      <h2 class="kick"><span class="idx">03</span><span class="t">单一仓库 · 数据如何生产与评测</span></h2>
+      <svg viewBox="0 0 1000 250" width="100%" role="img" aria-label="单一仓库的数据生产与评测架构图">
+        <defs>
+          <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L9,4 L0,8 z" fill="#c2410c"/>
+          </marker>
+        </defs>
+        <!-- 单一仓库外框 -->
+        <rect x="6" y="30" width="988" height="212" rx="6" fill="#faf8f3" stroke="#17212f" stroke-width="1.3"/>
+        <text x="20" y="22" class="m" font-size="12" font-weight="600" fill="#17212f">eda-agentbench · 单一仓库</text>
+
+        <!-- datagen 模块 -->
+        <rect x="24" y="58" width="396" height="170" rx="4" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
+        <text x="38" y="82" font-size="12.5" font-weight="700" fill="#0f766e">datagen/ 模块 · 数据工厂</text>
+        <text x="38" y="99" font-size="10.5" fill="#586273">仓库内子目录,只负责生产 P5(网表纠错)数据</text>
+        <rect x="38" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
+        <text x="90" y="131" font-size="11" text-anchor="middle" fill="#17212f">候选生成</text>
+        <text x="150" y="131" font-size="13" text-anchor="middle" fill="#0d9488">→</text>
+        <rect x="160" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
+        <text x="212" y="131" font-size="11" text-anchor="middle" fill="#17212f">自动验证</text>
+        <text x="272" y="131" font-size="13" text-anchor="middle" fill="#0d9488">→</text>
+        <rect x="282" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
+        <text x="334" y="131" font-size="11" text-anchor="middle" fill="#17212f">整理成型</text>
+        <rect x="38" y="156" width="348" height="44" rx="4" fill="#fdf0e8" stroke="#e7c2ab"/>
+        <text x="212" y="176" font-size="11.5" text-anchor="middle" fill="#9a330a" font-weight="600">导出评测包</text>
+        <text x="212" y="192" font-size="10" text-anchor="middle" fill="#586273">含隐藏答案 / 参考解</text>
+
+        <!-- 导入箭头 -->
+        <line x1="420" y1="178" x2="470" y2="178" stroke="#c2410c" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="445" y="170" font-size="9.5" text-anchor="middle" fill="#9a330a" font-weight="600">导入</text>
+
+        <!-- 评测核心 -->
+        <rect x="472" y="58" width="510" height="170" rx="4" fill="#eef1f5" stroke="#17212f" stroke-width="1"/>
+        <text x="488" y="82" font-size="12.5" font-weight="700" fill="#17212f">评测核心</text>
+        <rect x="488" y="92" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
+        <text x="502" y="111" font-size="11" fill="#17212f">generators/ → 直接生成其余 9 个赛道(P1–P4、P6–P8)</text>
+        <rect x="488" y="128" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
+        <text x="502" y="147" font-size="11" fill="#17212f">datagen 产出的 P5 → 导入 tasks/(100 道,自包含)</text>
+        <rect x="488" y="164" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
+        <text x="502" y="183" font-size="11" fill="#17212f">评分引擎 · 受控沙盒运行环境 · 抽样快速评测</text>
+        <rect x="488" y="200" width="478" height="22" rx="4" fill="#17212f"/>
+        <text x="727" y="215" font-size="11.5" text-anchor="middle" fill="#f3efe6" font-weight="600">2710 道题 · 10 个赛道</text>
+      </svg>
+      <p class="note">P5 的数据由仓库内 <b>datagen/ 模块</b>生产、验证、导出,再导入为评测任务;其余 9 个赛道由 <b>generators/</b> 直接生成。评测只读取导入后的本地任务,<b>不依赖 datagen</b>——数据生产与评测在同一仓库内、各司其职。</p>
+    </div>
+
+    <!-- 04 流程 -->
+    <div class="card full">
+      <h2 class="kick"><span class="idx">04</span><span class="t">一道题怎么打分</span></h2>
+      <div class="flow">
+        <div class="step"><span class="sn">01</span><b>只改允许改的文件</b><small>模型在受控沙盒里改设计,不能碰评分文件</small></div>
+        <div class="step"><span class="sn">02</span><b>调用真工具跑一遍</b><small>VCS · HSPICE · PrimeTime · Design Compiler · SpyGlass…</small></div>
+        <div class="step"><span class="sn">03</span><b>公开测试 + 隐藏测试</b><small>先跑公开用例,再跑模型没见过的隐藏用例</small></div>
+        <div class="step"><span class="sn">04</span><b>查有没有作弊</b><small>评分文件指纹比对,改动即判失败</small></div>
+        <div class="step"><span class="sn">05</span><b>各项加权汇总</b><small>编译/测试/指标等按权重合成一份结构化评分</small></div>
+        <div class="step"><span class="sn">06</span><b>总分 ≥ 0.5 通过</b><small>正确答案应得满分,原始缺陷版应当失分</small></div>
+      </div>
+      <p class="note">用两把尺子校准可信度:全部 2710 道题,喂<b>正确答案必须拿满分</b>、喂<b>原始缺陷版必须扣分</b>——「对的拿满分、错的必失分」两头都成立。其中约 <b>1550 道</b>按工具真实运行结果判分;另约 <b>1160 道</b>是「读报告答题」,用人工合成的报告即可评测,<b>无需购买对应软件授权</b>。</p>
+    </div>
+
+    <!-- 05 赛道 -->
+    <div class="card full">
+      <h2 class="kick"><span class="idx">05</span><span class="t">10 个赛道 · 覆盖从前端到后端</span></h2>
+      <table>
+        <thead><tr><th>赛道</th><th class="r">题量</th><th>用到的工具</th><th>考什么</th><th>判分</th></tr></thead>
+        <tbody>
+          <tr><td><span class="pc">P1</span> RTL 调试</td><td class="r">1001</td><td class="tool">VCS</td><td>借仿真报错,修好有缺陷的电路代码(覆盖 10 类常见错误)</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P2</span> 测试平台编写</td><td class="r">101</td><td class="tool">VCS</td><td>写一套验证程序,要能抓出被人为改坏的设计</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P3</span> 时序报告阅读</td><td class="r">1008</td><td class="tool">合成报告</td><td>从时序分析报告里读出关键数值并答题</td><td><span class="badge read">读报告</span></td></tr>
+          <tr><td><span class="pc">P4</span> SPICE 电路仿真</td><td class="r">302</td><td class="tool">HSPICE · Spectre</td><td>调整元件参数,让电路时序指标落进规格范围</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P5</span> SPICE 网表纠错</td><td class="r">100</td><td class="tool">HSPICE</td><td>修好让仿真器根本跑不起来的网表<span class="gloss">(电路连接清单)</span>错误</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P6</span> 综合报告阅读</td><td class="r">51</td><td class="tool">合成报告</td><td>从逻辑综合报告里读出面积、单元、时序并答题</td><td><span class="badge read">读报告</span></td></tr>
+          <tr><td><span class="pc">P6</span> 综合约束纠错</td><td class="r">13</td><td class="tool">Design Compiler</td><td>修好写错的时序约束文件,让综合工具能接受</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P7</span> 代码规范修复</td><td class="r">16</td><td class="tool">SpyGlass</td><td>消除代码规范检查<span class="gloss">(lint)</span>报出的违规</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P7</span> 时序约束调试</td><td class="r">17</td><td class="tool">PrimeTime</td><td>修好约束,让时序分析能干净跑完</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P8</span> 布线报告阅读</td><td class="r">101</td><td class="tool">合成报告</td><td>从布局布线报告里读出关键结果并答题</td><td><span class="badge read">读报告</span></td></tr>
+        </tbody>
+      </table>
+      <p class="note">「合成报告」= 用程序人工合成的报告,无需购买相应商用软件即可评测;其余赛道调用真实工具运行判分。</p>
+    </div>
+
+    <!-- 06 分布 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">06</span><span class="t">各赛道题量分布</span></h2>
+      <svg viewBox="0 0 540 282" width="100%" role="img" aria-label="各赛道题量条形图">
+        <!-- 1 P3 1008 read -->
+        <text x="6" y="22" font-size="11" fill="#3a4452">P3 时序报告阅读</text>
+        <rect x="176" y="11" width="300" height="15" rx="2" fill="#c2410c"/>
+        <text x="482" y="22" class="m" font-size="11" font-weight="600" fill="#9a330a">1008</text>
+        <!-- 2 P1 1001 run -->
+        <text x="6" y="48" font-size="11" fill="#3a4452">P1 RTL 调试</text>
+        <rect x="176" y="37" width="298" height="15" rx="2" fill="#17212f"/>
+        <text x="480" y="48" class="m" font-size="11" font-weight="600" fill="#17212f">1001</text>
+        <!-- 3 P4 302 run -->
+        <text x="6" y="74" font-size="11" fill="#3a4452">P4 SPICE 仿真</text>
+        <rect x="176" y="63" width="90" height="15" rx="2" fill="#17212f"/>
+        <text x="272" y="74" class="m" font-size="11" font-weight="600" fill="#17212f">302</text>
+        <!-- 4 P2 101 run -->
+        <text x="6" y="100" font-size="11" fill="#3a4452">P2 测试平台编写</text>
+        <rect x="176" y="89" width="30" height="15" rx="2" fill="#17212f"/>
+        <text x="212" y="100" class="m" font-size="11" font-weight="600" fill="#17212f">101</text>
+        <!-- 5 P8 101 read -->
+        <text x="6" y="126" font-size="11" fill="#3a4452">P8 布线报告阅读</text>
+        <rect x="176" y="115" width="30" height="15" rx="2" fill="#c2410c"/>
+        <text x="212" y="126" class="m" font-size="11" font-weight="600" fill="#9a330a">101</text>
+        <!-- 6 P5 100 run -->
+        <text x="6" y="152" font-size="11" fill="#3a4452">P5 SPICE 网表纠错</text>
+        <rect x="176" y="141" width="30" height="15" rx="2" fill="#17212f"/>
+        <text x="212" y="152" class="m" font-size="11" font-weight="600" fill="#17212f">100</text>
+        <!-- 7 P6QA 51 read -->
+        <text x="6" y="178" font-size="11" fill="#3a4452">P6 综合报告阅读</text>
+        <rect x="176" y="167" width="15" height="15" rx="2" fill="#c2410c"/>
+        <text x="197" y="178" class="m" font-size="11" font-weight="600" fill="#9a330a">51</text>
+        <!-- 8 P7PT 17 run -->
+        <text x="6" y="204" font-size="11" fill="#3a4452">P7 时序约束调试</text>
+        <rect x="176" y="193" width="6" height="15" rx="1.5" fill="#17212f"/>
+        <text x="188" y="204" class="m" font-size="11" font-weight="600" fill="#17212f">17</text>
+        <!-- 9 P7SG 16 run -->
+        <text x="6" y="230" font-size="11" fill="#3a4452">P7 代码规范修复</text>
+        <rect x="176" y="219" width="6" height="15" rx="1.5" fill="#17212f"/>
+        <text x="188" y="230" class="m" font-size="11" font-weight="600" fill="#17212f">16</text>
+        <!-- 10 P6DC 13 run -->
+        <text x="6" y="256" font-size="11" fill="#3a4452">P6 综合约束纠错</text>
+        <rect x="176" y="245" width="5" height="15" rx="1.5" fill="#17212f"/>
+        <text x="187" y="256" class="m" font-size="11" font-weight="600" fill="#17212f">13</text>
+      </svg>
+      <div class="legend">
+        <span><i class="sw" style="background:#17212f"></i>真跑工具判分</span>
+        <span><i class="sw" style="background:#c2410c"></i>读报告答题</span>
+      </div>
+      <p class="note">P1、P3 已规模化;P6、P7 目前是小规模原型,后续各扩到 50 道以上。</p>
+    </div>
+
+    <!-- 07 意义 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">07</span><span class="t">意义 · 为什么值得做</span></h2>
+      <ul class="tight">
+        <li><b>首个</b>把「真实商用工具 + 完整设计流程 + 按运行结果判分」三件事合到一起的芯片设计智能体基准,补上了同类评测的系统性空白。</li>
+        <li>考的是<b>真本事</b>:能不能让真工具跑通、让结果达标,而不是背 EDA 名词。</li>
+        <li>结果<b>可信、可比、可复算</b>:数据生成可复现,一半测试用例保密,评分文件防篡改。</li>
+        <li><b>易扩展</b>:新工具、新环节都能按统一格式低成本接入;数据生产(datagen 模块)与评测代码在同一仓库内分离,造数据不污染评测。</li>
+      </ul>
+    </div>
+
+    <!-- 08 差异 -->
+    <div class="card full">
+      <h2 class="kick"><span class="idx">08</span><span class="t">与同类工作的差异</span></h2>
+      <table>
+        <thead><tr><th style="width:13%">维度</th><th style="width:38%">同类「写代码」基准<span class="muted" style="font-weight:400">(以 VerilogEval、RTLLM 为代表的典型特征)</span></th><th>EDA-AgentBench</th></tr></thead>
+        <tbody>
+          <tr><td>用什么工具</td><td>免费开源仿真器(iverilog、verilator)</td><td>芯片公司在用的<b>商用软件</b>:VCS、HSPICE、Spectre、PrimeTime、Design Compiler、SpyGlass、ICC2、Innovus</td></tr>
+          <tr><td>覆盖范围</td><td>只到一步:写电路代码</td><td><b>完整流程</b>:写代码 → 功能验证 → 电路仿真 → 逻辑综合 → 时序分析 → 规范检查 → 布局布线</td></tr>
+          <tr><td>任务种类</td><td>多为「照需求写一个模块」</td><td><b>10 类</b>:找错改错、写验证、读报告答题、改约束、修规范……</td></tr>
+          <tr><td>怎么判分</td><td>比对功能或文字,跑一次了事</td><td><b>让真工具跑出结果说了算</b>,且留一半隐藏测试</td></tr>
+          <tr><td>防作弊</td><td>基本没有</td><td>评分文件指纹校验,解必须通用</td></tr>
+          <tr><td>怎么考</td><td>一次性给出代码</td><td><b>直接答题</b> + <b>沙盒里自主调用工具反复迭代</b>两种</td></tr>
+          <tr><td>规模</td><td>几十到上百</td><td><b>2710</b> 道,且可复现、支持抽样</td></tr>
+        </tbody>
+      </table>
+      <p class="note">* 左栏是同类基准的<em>典型</em>特征,用于定位差异;各家具体设计与数字随版本不同。</p>
+    </div>
+
+    <!-- 09 下一步 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">09</span><span class="t">下一步</span></h2>
+      <ul class="tight">
+        <li>三个小规模原型赛道——<b>综合约束纠错、代码规范修复、时序约束调试</b>——各扩到 50 道题以上。</li>
+        <li>网表纠错赛道新增对另一种仿真器(<b>Spectre</b>)方言的支持。</li>
+        <li>向<b>后端</b>深入:真实布局布线、寄生参数提取、器件级仿真等专家级赛道<span class="gloss">(对应 ICC2 / Innovus / StarRC / Sentaurus 等工具)</span>。</li>
+        <li>完善<b>智能体运行环境</b>(已有可用初版),提供更细的工具反馈与更严的资源管控。</li>
+      </ul>
+    </div>
+
+    <!-- 10 从哪看起 -->
+    <div class="card">
+      <h2 class="kick"><span class="idx">10</span><span class="t">想深入 · 从哪看起</span></h2>
+      <ul class="tight">
+        <li><b>项目说明(README)</b> — 安装、上手与评测命令</li>
+        <li><b>赛道说明</b> — 每个赛道的结构与判分细则</li>
+        <li><b>数据卡片</b> — 数据集组成与验证结果</li>
+        <li><b>评测规格</b> — 评测流程,以及「哪些文件模型能看、能改」的规则</li>
+        <li><b>当前状态</b> — 实时进展与已知限制</li>
+      </ul>
+      <p class="note" style="border:0;padding-top:6px">两分钟上手:对每个赛道各抽一题、用正确答案跑一遍,应当全部满分——</p>
+      <code class="cmd">eda-bench evaluate-dataset tasks <span class="fl">--sample-per-track</span> 1 <span class="fl">--seed</span> 42 <span class="fl">--submission-mode</span> solution</code>
+    </div>
+
+  </div>
+
+  <footer>
+    <span class="mono">EDA-AgentBench · Phase 8A · 2710 tasks / 10 tracks · Apache-2.0</span>
+    <span>仓库 <a href="https://github.com/tsb-19/eda-agentbench">tsb-19/eda-agentbench</a> &nbsp;·&nbsp; 数据生产模块 <span class="mono">datagen/</span></span>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -37,7 +37,7 @@ python scripts/generate_p4_spice_tasks.py --count 10 --seed 42
 
 ### P5 导入
 
-P5 任务通过 `scripts/import_p5_tasks.py` 从外部包导入。导入是从兄弟仓库 `../eda-bench-prototypes/tasks_eval_private/` 的只读副本。主仓库不修改外部包。
+P5 任务通过 `scripts/import_p5_tasks.py` 从生成的包导入。导入是从仓库内数据生成模块 `datagen/tasks_eval_private/` 的只读副本。导入器不修改该包。
 
 ## 评估模式
 

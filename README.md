@@ -282,7 +282,7 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 - [Scoring Rules](docs/scoring.md) — How tasks are scored
 - [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
 - [Roadmap](docs/roadmap.md) — Future phases
-- [Dataset Factory (eda-bench-prototypes)](https://github.com/tsb-19/eda-bench-prototypes) — Sibling repo that generates and validates the P5 SPICE-deck-debug track
+- [Dataset Factory (datagen/)](datagen/README.md) — In-repo module that generates and validates the P5 SPICE-deck-debug track
 
 ## License
 

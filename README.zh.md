@@ -282,7 +282,7 @@ spice_deck_debug_NNNN/
 - [评分规则](docs/scoring.md) — 任务评分方式
 - [添加任务](docs/adding_tasks.md) — 如何创建新任务
 - [路线图](docs/roadmap.md) — 未来阶段
-- [数据工厂 (eda-bench-prototypes)](https://github.com/tsb-19/eda-bench-prototypes) — 生成并验证 P5 SPICE 网表调试赛道的兄弟仓库
+- [数据工厂 (datagen/)](datagen/README.md) — 生成并验证 P5 SPICE 网表调试赛道的仓库内模块
 
 ## 许可证
 
