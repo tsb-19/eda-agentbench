@@ -2,6 +2,10 @@
 
 # Phase 6 Design and Benchmark Roadmap
 
+> **Historical planning doc.** Captures the Phase 6 design as of the date below;
+> the numbers reflect the v0.3 baseline at that time, not current status. See
+> [current_status.md](current_status.md) and [roadmap.md](roadmap.md) for the live state.
+
 **Date**: 2026-06-12
 **Baseline**: v0.3 (2312 tasks, 5 tracks, tag v0.3-phase5f-2312)
 
