@@ -76,7 +76,7 @@ Components:
 
 **Evaluation logic:**
 
-- `tool_run`: checks for tool completion without errors (HSPICE: `.lis` parsing; Spectre: `spectre ended`)
+- `tool_run`: requires a positive completion banner with no errors (HSPICE: `job concluded`; Spectre: `spectre completes with 0 errors`). A missing/crashed/timed-out tool scores 0.
 - `output_generated`: checks for measurement values in output (HSPICE: `.lis`; Spectre: `metrics.json`)
 - `public_metric`: checks if the public measurement (e.g., `tdrise`) falls within `[min, max]`
 - `hidden_metric`: checks if the hidden measurement (e.g., `tdfall`) falls within `[min, max]`

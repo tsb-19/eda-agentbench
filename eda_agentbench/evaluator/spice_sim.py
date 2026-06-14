@@ -123,32 +123,51 @@ class SPICESimEvaluator(BaseEvaluator):
             )
 
     def _eval_tool_run(self, weight: float, run_log: str) -> ScoreComponent:
-        """Check if SPICE simulator ran without fatal errors.
+        """Pass/fail for whether the SPICE simulator actually ran to completion.
 
-        Supports HSPICE (job concluded/aborted) and Spectre (spectre ended/error).
+        Passing requires *positive* evidence of completion with no errors:
+          - HSPICE: "job concluded" and not "job aborted".
+          - Spectre: "spectre completes with N errors ..." with N == 0
+            (older builds print "spectre ended", accepted as completion).
+        A log lacking any completion banner — tool not found, crash, timeout, or
+        empty output — scores 0, never 1. (Previously any log without an abort
+        marker scored 1.0; worse, the Spectre "ended" marker never matched this
+        tool version, so every Spectre pass relied entirely on that default.)
         """
-        # HSPICE indicators
-        hspice_abort = bool(re.search(r"job aborted", run_log, re.IGNORECASE))
-        hspice_ok = bool(re.search(r"job concluded", run_log, re.IGNORECASE))
-        # Spectre indicators
-        spectre_error = bool(re.search(r"Error.*spectre", run_log, re.IGNORECASE))
-        spectre_fatal = bool(re.search(r"fatal", run_log, re.IGNORECASE))
-        spectre_ok = bool(re.search(r"spectre ended", run_log, re.IGNORECASE))
+        text = run_log or ""
+        # HSPICE markers
+        hspice_ok = bool(re.search(r"job concluded", text, re.IGNORECASE))
+        hspice_abort = bool(re.search(r"job aborted", text, re.IGNORECASE))
+        # Spectre marker: "spectre completes with N errors, M warnings, ..."
+        # (success == 0 errors); accept legacy "spectre ended" as completion too.
+        spectre_completes = re.search(r"spectre completes with\s+(\d+)\s+error",
+                                      text, re.IGNORECASE)
+        spectre_ended = bool(spectre_completes) or bool(
+            re.search(r"spectre ended", text, re.IGNORECASE))
+        spectre_errors = int(spectre_completes.group(1)) if spectre_completes else 0
 
-        has_abort = hspice_abort or spectre_error or spectre_fatal
-        has_concluded = hspice_ok or spectre_ok
+        has_concluded = hspice_ok or spectre_ended
+        has_error = hspice_abort or spectre_errors > 0
 
-        if has_abort and not has_concluded:
-            score = 0.0
-            details = "SPICE run failed"
-        else:
+        passed = has_concluded and not has_error
+        if passed:
             score = 1.0
             details = "SPICE run completed"
+        else:
+            score = 0.0
+            if not text.strip():
+                details = "SPICE produced no output (did not run)"
+            elif not has_concluded:
+                details = ("SPICE did not complete (no 'job concluded'/'spectre "
+                           "completes' banner); tool missing, crashed, or timed out")
+            else:
+                details = (f"SPICE run reported errors "
+                           f"(hspice_abort={hspice_abort}, spectre_errors={spectre_errors})")
 
         return ScoreComponent(
             name="tool_run", weight=weight, raw_score=score,
             weighted_score=score * weight, details=details,
-            tool_output_snippet=run_log[:500] if run_log else None,
+            tool_output_snippet=text[:500] if text else None,
         )
 
     def _eval_output_generated(self, weight: float, work_dir: Path) -> ScoreComponent:

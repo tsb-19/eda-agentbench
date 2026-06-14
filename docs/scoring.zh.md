@@ -76,7 +76,7 @@
 
 **评估逻辑：**
 
-- `tool_run`：检查工具完成且无错误（HSPICE：解析 `.lis`；Spectre：`spectre ended`）
+- `tool_run`：要求有明确的完成标志且无错误（HSPICE：`job concluded`；Spectre：`spectre completes with 0 errors`）。工具缺失/崩溃/超时一律判 0。
 - `output_generated`：检查输出中的测量值（HSPICE：`.lis`；Spectre：`metrics.json`）
 - `public_metric`：检查公开测量值（如 `tdrise`）是否在 `[min, max]` 范围内
 - `hidden_metric`：检查隐藏测量值（如 `tdfall`）是否在 `[min, max]` 范围内

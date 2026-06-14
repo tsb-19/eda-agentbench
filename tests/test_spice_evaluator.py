@@ -216,3 +216,67 @@ def test_spectre_metadata_valid():
     }
     errors = validate_metadata(meta)
     assert errors == [], f"Spectre metadata validation errors: {errors}"
+
+
+# --- P4 tool_run execution gating (regression) ---
+
+def _spice_evaluator():
+    from eda_agentbench.evaluator.spice_sim import SPICESimEvaluator
+    meta = {"scoring": {"weights": {"tool_run": 0.3}}}
+    return SPICESimEvaluator(Path("/nonexistent"), meta)
+
+
+def test_tool_run_pass_hspice_concluded():
+    """HSPICE 'job concluded' with no abort scores 1.0."""
+    ev = _spice_evaluator()
+    comp = ev.evaluate_component("tool_run", Path("/nonexistent"),
+                                 "tdrise = 1.1e-08\n***** job concluded\n")
+    assert comp.raw_score == 1.0
+
+
+def test_tool_run_pass_spectre_completes():
+    """Real SPECTRE191 success banner 'spectre completes with 0 errors' scores 1.0."""
+    ev = _spice_evaluator()
+    comp = ev.evaluate_component(
+        "tool_run", Path("/nonexistent"),
+        "Time used: CPU = 497 ms\nspectre completes with 0 errors, 0 warnings, and 2 notices.\n")
+    assert comp.raw_score == 1.0
+
+
+def test_tool_run_pass_spectre_ended_legacy():
+    """Legacy 'spectre ended' wording is still accepted as completion."""
+    ev = _spice_evaluator()
+    comp = ev.evaluate_component("tool_run", Path("/nonexistent"),
+                                 "Aggregate audit (3 of 3) ...\nspectre ended at 12:00:00\n")
+    assert comp.raw_score == 1.0
+
+
+def test_tool_run_fail_on_spectre_errors():
+    """Spectre completing *with errors* scores 0.0."""
+    ev = _spice_evaluator()
+    comp = ev.evaluate_component(
+        "tool_run", Path("/nonexistent"),
+        "Error found by spectre.\nspectre completes with 3 errors, 1 warning, and 0 notices.\n")
+    assert comp.raw_score == 0.0
+
+
+def test_tool_run_fail_when_tool_did_not_run():
+    """Regression: a log without a completion banner (tool missing / timeout /
+    empty / unrelated output) must score 0.0, never 1.0."""
+    ev = _spice_evaluator()
+    for bad_log in [
+        "",
+        "HSPICE not found in PATH",
+        "Simulation timed out",
+        "some unrelated output with no completion banner",
+    ]:
+        comp = ev.evaluate_component("tool_run", Path("/nonexistent"), bad_log)
+        assert comp.raw_score == 0.0, f"log {bad_log!r} should score 0.0, got {comp.raw_score}"
+
+
+def test_tool_run_fail_on_hspice_abort():
+    """An aborted HSPICE run (no conclusion banner) scores 0.0."""
+    ev = _spice_evaluator()
+    comp = ev.evaluate_component("tool_run", Path("/nonexistent"),
+                                 ">error ***** hspice job aborted\n")
+    assert comp.raw_score == 0.0
