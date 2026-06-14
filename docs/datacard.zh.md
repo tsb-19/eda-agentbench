@@ -13,12 +13,14 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 | P1 RTL 调试 | 1001 | VCS | mutation_synthetic | 编译 + 公开测试 + 隐藏测试 + 解释 |
 | P2 测试平台/SVA 生成 | 101 | VCS | mutation_synthetic | 编译 + golden_pass + mutant_1 + mutant_2 |
 | P3 时序报告 QA | 1008 | pt（合成） | template_synthetic | 答案匹配 |
-| P4 SPICE 仿真 | 102 | HSPICE, Spectre | template_synthetic | 工具运行 + 输出 + 公开指标 + 隐藏指标 + 解释 |
+| P4 SPICE 仿真 | 302 | HSPICE, Spectre | template_synthetic | 工具运行 + 输出 + 公开指标 + 隐藏指标 + 解释 |
 | P5 SPICE 网表调试 | 100 | HSPICE | flow_synthetic | 基于执行（退出码 + 无致命错误）+ 解释 |
 | P6 DC 综合 QA | 51 | dc（合成） | template_synthetic | 答案匹配 |
 | P6 DC 约束调试 | 13 | dc | template_synthetic | 基于执行（约束 + 执行） |
 | P7 SpyGlass Lint 调试 | 16 | spyglass | template_synthetic | 基于执行（lint 违规） |
-| **合计** | **2592** | | | |
+| P7 PrimeTime STA 调试 | 17 | pt | template_synthetic | 时序检查 + 执行通过 + 解释 |
+| P8 PnR 报告问答 | 101 | icc2/innovus（合成） | template_synthetic | 答案匹配 + 解释 |
+| **合计** | **2710** | | | |
 
 ### P1 RTL 调试（1001 个任务）
 
@@ -58,13 +60,14 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 - 不需要真实 PrimeTime 工具（使用合成报告）
 - 评分：answer_match（1.0）
 
-### P4 SPICE 仿真（102 个任务）
+### P4 SPICE 仿真（302 个任务）
 
 - 2 个冒烟任务（1 个 HSPICE，1 个 Spectre）
-- 100 个生成任务：50 个 HSPICE + 50 个 Spectre
-- 数据类型：`template_synthetic`（带参数化元件值的 RC 滤波器电路）
+- 300 个生成任务，3 种电路类型（每种 100 个：50 个 HSPICE + 50 个 Spectre）
+- 电路类型：RC 上升延迟、RC 下降延迟、RLC 响应
+- 数据类型：`template_synthetic`（带参数化元件值的 RC/RLC 电路）
 
-每个任务修复一个 RC 滤波器电路以满足上升/下降时间规格。缺陷版本的电阻值过高 5-10 倍，导致边沿缓慢。解答版本将其替换为正确的电阻。
+每个任务修复一个电路以满足上升/下降时间规格。缺陷版本的电阻值过高 4-20 倍（RLC 为过阻尼），导致边沿缓慢。解答版本将其替换为正确的值。
 
 ### P5 SPICE 网表调试（100 个任务）
 
@@ -91,6 +94,30 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 - 不需要真实 DC 工具（使用合成报告）
 - 评分：answer_match（1.0）
 
+### P6 DC 约束调试（13 个任务，原型）
+
+- 1 个冒烟 + 12 个生成，6 种可靠缺陷类别
+- 数据类型：`template_synthetic`；基于执行的 SDC 修复（Design Compiler）
+- 评分：constraint_pass（0.6）+ execution_pass（0.3）+ explanation（0.1）
+
+### P7 SpyGlass Lint 调试（16 个任务，原型）
+
+- 1 个冒烟 + 15 个生成，3 种可靠 Lint 缺陷类别
+- 基于执行，使用真实 SpyGlass（sg_shell）
+- 评分：lint_pass（0.9）+ explanation（0.1）
+
+### P7 PrimeTime STA 调试（17 个任务，原型）
+
+- 1 个冒烟 + 16 个生成，4 种可靠 STA 缺陷类别
+- 基于执行，使用真实 PrimeTime（pt_shell）
+- 评分：timing_check（0.6）+ execution_pass（0.3）+ explanation（0.1）
+
+### P8 PnR 报告问答（101 个任务，原型）
+
+- 1 个冒烟 + 100 个生成，9 种问题类型
+- 基于解析器的合成 ICC2/Innovus 报告 QA（不需要真实工具）
+- 评分：answer_match（0.9）+ explanation（0.1）
+
 ## 评估模式
 
 每个任务支持两种提交模式用于验证：
@@ -104,13 +131,13 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 
 | 模式 | 任务 | 平均分 | Buggy 较低 |
 |------|-------|-----------|-------------|
-| Solution | 2363/2363 | 1.00 | N/A |
-| Buggy | 2363/2363 | < 1.00 | 2363/2363 |
+| Solution | 2710/2710 | 1.00 | N/A |
+| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
 
 ## 测试套件
 
-- 265 个 pytest 测试（全部通过，2 个跳过）
-- 每个 track 的冒烟脚本（VCS、P2、P3、HSPICE、Spectre、P5、P6）
+- pytest：全部通过
+- 每个 track 的冒烟脚本（VCS、P2、P3、HSPICE、Spectre、P5、P6、P7 SpyGlass、P7 PrimeTime、P8）
 - 数据集评估冒烟（所有 track）
 
 ## 文件可见性
@@ -127,7 +154,7 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 确定性数据集产物位于 `reports/` 下：
 
 - `task_inventory.json` / `task_inventory.csv` — 包含元数据的完整任务清单
-- `benchmark_summary.md` — 人类可读的摘要（v0.3-phase6b-2363）
+- `benchmark_summary.md` — 人类可读的摘要（数据集变更后请重新生成）
 - 按 track 分布：`p1_bug_distribution.csv`、`p2_template_mutant_distribution.csv`、`p3_question_type_distribution.csv`、`p5_error_category_distribution.csv`、`p6_question_type_distribution.csv`
 - `leaderboard_template.csv` — 用于记录模型评估结果的空模板
 
@@ -135,10 +162,10 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 
 ## 已知限制
 
-1. 尚无 Agent 运行器（仅支持提交/工作区模式）。
-2. P1 和 P4 使用精确解答匹配；P5 接受任何功能正确的修复。
-3. P4 仅覆盖 RC 滤波器拓扑（无运放或数字 SPICE）。
-4. P5 有 100 个任务（执行验证，7 种错误类别）。
+1. Agent 运行器 MVP 可用（`run-agent`、`run-agent-dataset`）；尚无交互式循环或逐次工具调用记录。
+2. P1 和 P4 使用精确解答匹配；P5 / P6 约束 / P7 调试 track 接受任何功能正确的修复（基于执行）。
+3. P4 覆盖 RC 和 RLC 拓扑（无运放或数字 SPICE）。
+4. P6/P7 调试 track 和 P8 报告问答均为原型；尚未扩展。
 5. 提交模式下无 LLM API 集成用于解释评分。
 
 ## 预期用途

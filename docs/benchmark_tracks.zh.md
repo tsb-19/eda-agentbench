@@ -12,6 +12,9 @@
 | P6 DC 综合 QA | `p6_dc_synthesis_qa` | 51 | dc（合成） | DC 综合报告问答 | 答案匹配 |
 | P6 DC 约束调试 | `p6_dc_constraint_debug` | 13 | dc | SDC 约束修复 | 约束通过 + 执行通过 |
 | P7 SpyGlass Lint 调试 | `p7_spyglass_lint_debug` | 16 | spyglass | RTL lint 违规修复 | Lint 通过（基于执行） |
+| P7 PrimeTime STA 调试 | `p7_primetime_sta_debug` | 17 | pt | SDC/时序约束修复 | 时序检查 + 执行通过 |
+| P8 PnR 报告问答 | `p8_pnr_report_qa` | 101 | icc2/innovus（合成） | PnR 报告字段提取与问答 | 答案匹配 |
+| **合计** | | **2710** | | | |
 
 ## P1: RTL 调试
 
@@ -203,6 +206,42 @@
 
 **为什么不要求精确 diff**：SPICE 网表可以通过多种有效方式修复。任何 HSPICE 可以执行的语法正确修复都会被接受。
 
+## P6: DC 综合 QA
+
+**目标**：回答关于合成 Design Compiler 综合报告（面积、单元数、时序等）的问题。
+
+**衡量内容**：Agent 解析和提取综合报告信息的能力。
+
+**任务结构**：合成的标准化综合报告（可见）+ 答案文件（可编辑）+ `solution/`。
+
+- 51 个任务（1 个冒烟 + 50 个生成），10 种问题类型（轮询，每种 5 个）
+- 50 个模块名，30 个时钟名；不需要真实 DC 工具（合成报告）
+
+**评分权重**：
+```json
+{
+  "answer_match": 1.0
+}
+```
+
+## P6: DC 约束调试
+
+**目标**：修复损坏的 SDC 约束文件，使 Design Compiler 能够接受。
+
+**衡量内容**：Agent 利用 DC 反馈诊断和修复 SDC 约束错误的能力。
+
+- 13 个任务（1 个冒烟 + 12 个生成），6 种可靠缺陷类别
+- 基于执行：接受等价的非完全相同修复（无精确 diff）
+
+**评分权重**：
+```json
+{
+  "constraint_pass": 0.6,
+  "execution_pass": 0.3,
+  "explanation": 0.1
+}
+```
+
 ## P7: SpyGlass Lint 调试
 
 **目标**：修复 Synopsys SpyGlass 检测到的 RTL lint 违规，使 lint 检查零违规通过。
@@ -231,10 +270,47 @@ width_mismatch、unused_signal、undriven_signal、missing_default、implicit_ne
 
 **验证**：solution=1.00，buggy=0.10（所有任务在真实 SpyGlass 下产生有效对比）。
 
+## P7: PrimeTime STA 调试
+
+**目标**：修复 SDC/时序约束错误，使 PrimeTime 能够运行干净的 STA。
+
+**衡量内容**：Agent 利用真实 PrimeTime（pt_shell）反馈诊断时序约束问题的能力。
+
+- 17 个任务（1 个冒烟 + 16 个生成），4 种可靠 STA 缺陷类别
+- 基于执行，使用真实 PrimeTime
+
+**评分权重**：
+```json
+{
+  "timing_check": 0.6,
+  "execution_pass": 0.3,
+  "explanation": 0.1
+}
+```
+
+## P8: PnR 报告问答
+
+**目标**：回答关于合成 ICC2/Innovus 布局布线报告的问题。
+
+**衡量内容**：Agent 解析和提取 PnR 报告信息的能力。
+
+- 101 个任务（1 个冒烟 + 100 个生成），9 种问题类型
+- 基于解析器；不需要真实 ICC2/Innovus 工具（合成报告）
+
+**评分权重**：
+```json
+{
+  "answer_match": 0.9,
+  "explanation": 0.1
+}
+```
+
 ## 未来 Track（规划中）
 
 | Track | ID | 工具 | 状态 |
 |-------|----|---------|--------|
-| P5 Spectre 方言 | `p5_spice_deck_debug` | Spectre | Spectre 方言修复 |
+| P5 Spectre 方言 | `p5_spice_deck_debug` | Spectre | Spectre 方言网表修复 |
+| P6 DC 约束扩展 | `p6_dc_constraint_debug` | dc | 扩展到 50+ 任务 |
 | P7 SpyGlass Lint 扩展 | `p7_spyglass_lint_debug` | SpyGlass | 扩展到 50+ 任务 |
-| P7 物理设计 | `p7_physical` | ICC2/Innovus/StarRC | 未来 |
+| P7 PrimeTime STA 扩展 | `p7_primetime_sta_debug` | pt | 扩展到 50+ 任务 |
+| 专家级物理设计 | `p_physical` | ICC2/Innovus/StarRC/Sentaurus | PnR 执行、寄生参数提取、TCAD |

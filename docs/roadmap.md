@@ -5,48 +5,32 @@
 ## Completed
 
 - **Phase 0 (P0)**: Unified benchmark harness, CLI, schema, evaluators
-- **Phase 1 (P1)**: RTL Debug smoke task + 100 generated tasks
-- **Phase 2A-C**: HSPICE smoke, Spectre smoke, SPICE evaluator
-- **Phase 2D**: Dataset evaluation and report CLI
-- **Phase 2E**: Controlled scaling to 113 tasks
+- **Phase 1 (P1)**: RTL Debug (1001 tasks: 1 handcrafted + 1000 generated)
+- **Phase 2A–E**: HSPICE/Spectre smoke, SPICE evaluator, dataset + report CLI, controlled scaling
+- **Phase 4A–F**: P2 Testbench/SVA Gen, P3 Timing Report QA, docs/datacard/release policy, integration audit, P2 naming cleanup, sampled evaluation mode
+- **Phase 5A/B/E/F**: P3 scaled to 1008, P2 scaled to 101, PrimeTime prototype (8 tasks), P5 scaled to 100
+- **Phase 6A/B/C/D**: P4 scaled to 302 (RC rise/fall + RLC), P6 DC Synthesis QA (51), P6 DC Constraint Debug (13), baseline runner + leaderboard
+- **Phase 7A/B/C**: P7 SpyGlass Lint Debug (16), P7 PrimeTime STA Debug (17), Agentic Runner MVP
+- **Phase 8A**: P8 PnR Report QA prototype (101 tasks)
 
-## Next Phases (Suggested)
+Total: **2710 tasks across 10 tracks**. See [current_status.md](current_status.md) for the live inventory.
 
-### Phase 3A: P2 RTL Generation
+## Next Phases
 
-- Tasks where the agent writes RTL from a specification
-- Smoke: simple combinational module (adder, mux, decoder)
-- Generator: template-based with parameterized specs
-- Scoring: compile + public test + hidden test + explanation
+### Scale the debug prototypes
+- P6 DC Constraint Debug: scale to 50+ tasks
+- P7 SpyGlass Lint Debug: scale to 50+ tasks
+- P7 PrimeTime STA Debug: scale to 50+ tasks
 
-### Phase 3B: Agentic Runner
+### P5 Spectre dialect
+- Spectre-dialect SPICE deck repair (P5 is currently HSPICE only)
 
-- Sandboxed workspace execution with tool-call limits
-- Agent can read files, edit allowed files, run commands
-- Resource enforcement: wall time, token count, tool calls
-- Submission mode preserved as fallback
+### Expert physical-design tracks
+- ICC2 / Innovus place-and-route execution tasks (beyond P8 report QA)
+- StarRC parasitic extraction
+- Sentaurus TCAD
 
-### Phase 3C: P5 Timing / DC / PrimeTime
-
-- Tasks involving SDC constraints, timing reports, synthesis
-- Tools: Design Compiler, PrimeTime
-- Smoke: fix a timing violation in a small gate-level netlist
-
-### Phase 3D: P6 SpyGlass Lint
-
-- Tasks where the agent fixes lint violations
-- Tool: SpyGlass
-- Smoke: resolve a CDC or RDC lint warning
-
-### Phase 3E: LLM / API Integration
-
-- Explanation scoring via LLM judge
-- API endpoint for programmatic submission
-- Leaderboard infrastructure
-
-### Phase 3F: Larger-Scale Generation
-
-- 1000+ tasks per track
-- Randomized circuit parameters (not just 5 configs)
-- Multiple circuit topologies for P4
-- Flow-synthetic tasks from real EDA runs
+### Agentic + scoring infrastructure
+- Interactive agentic loop with per-tool-call transcripts (beyond the current MVP)
+- LLM-judged explanation scoring (currently defaults to 1.0 in submission mode)
+- Leaderboard / API submission infrastructure

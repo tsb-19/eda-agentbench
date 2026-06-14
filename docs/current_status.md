@@ -2,7 +2,7 @@
 
 # Current Benchmark Status
 
-**Phase**: 7 — P7 SpyGlass + PrimeTime + Agentic Runner
+**Phase**: 8A — P8 PnR Report QA
 
 ## Task Inventory
 
@@ -17,7 +17,8 @@
 | P6 DC Constraint Debug | 13 | dc | 1 smoke + 12 generated (6 bug categories) |
 | P7 SpyGlass Lint Debug | 16 | spyglass | 1 smoke + 15 generated (3 bug categories) |
 | P7 PrimeTime STA Debug | 17 | pt | 1 smoke + 16 generated (4 bug categories) |
-| **Total** | **2609** | | |
+| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | 1 smoke + 100 generated (9 question types) |
+| **Total** | **2710** | | |
 
 ## P1 Bug Type Distribution
 
@@ -54,7 +55,6 @@
 - Scoring: answer_match (1.0)
 - No real PrimeTime tool required for synthetic tasks (uses synthetic reports)
 - 8 PT prototype tasks: handcrafted or real PrimeTime-backed reports (IDs 900000–900007)
-- Full solution evaluation: 1008/1008 = 1.00
 
 ## P4 Configuration Distribution
 
@@ -79,16 +79,7 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 
 ## P5 Error Category Distribution
 
-## P6 DC Synthesis QA (Prototype)
-
-51 tasks (1 smoke + 50 generated). Parser-based QA on synthetic DC synthesis reports:
-- Agent answers questions about synthesis report fields (area, cell count, timing, etc.)
-- 10 question types with round-robin distribution (5 each)
-- 50 module names, 30 clock names
-- Scoring: answer_match (1.0)
-- No real DC tool required (synthetic reports)
-- Full solution evaluation: 51/51 = 1.00
-- DC detected on system: YES
+100 imported tasks (execution-validated debug-contrast bundle), 7 error categories:
 
 | Category | Count |
 |----------|-------|
@@ -100,40 +91,72 @@ Plus 2 smoke tasks (1 HSPICE, 1 Spectre).
 | unsupported_dialect | 14 |
 | invalid_directive | 14 |
 
+Scoring: execution_pass (0.9) + explanation (0.1). Accepts any functionally correct fix (execution-based, no exact diff).
+
+## P6 DC Synthesis QA (Prototype)
+
+51 tasks (1 smoke + 50 generated). Parser-based QA on synthetic DC synthesis reports:
+- Agent answers questions about synthesis report fields (area, cell count, timing, etc.)
+- 10 question types with round-robin distribution (5 each)
+- 50 module names, 30 clock names
+- Scoring: answer_match (1.0)
+- No real DC tool required (synthetic reports)
+
+## P6 DC Constraint Debug (Prototype)
+
+13 tasks (1 smoke + 12 generated, 6 reliable bug categories). Execution-based SDC constraint repair:
+- Agent fixes a broken SDC constraint file so Design Compiler accepts it
+- Scoring: constraint_pass (0.6) + execution_pass (0.3) + explanation (0.1)
+- Accepts equivalent non-identical fixes (execution-based, no exact diff)
+
+## P7 SpyGlass Lint Debug (Prototype)
+
+16 tasks (1 smoke + 15 generated, 3 reliable lint bug categories). Execution-based with real SpyGlass (sg_shell):
+- Agent fixes RTL lint violations until the lint check passes with zero violations
+- Scoring: lint_pass (0.9) + explanation (0.1)
+
+## P7 PrimeTime STA Debug (Prototype)
+
+17 tasks (1 smoke + 16 generated, 4 reliable STA bug categories). Execution-based with real PrimeTime (pt_shell):
+- Agent fixes timing constraint errors for PrimeTime
+- Scoring: timing_check (0.6) + execution_pass (0.3) + explanation (0.1)
+
+## P8 PnR Report QA (Prototype)
+
+101 tasks (1 smoke + 100 generated). Parser-based QA on synthetic ICC2/Innovus PnR reports:
+- Agent answers questions about place-and-route report fields
+- 9 question types
+- Scoring: answer_match (0.9) + explanation (0.1)
+- No real ICC2/Innovus tool required (synthetic reports)
+
 ## Test Suite
 
-| Category | Count | Status |
-|----------|-------|--------|
-| pytest tests | 360+ | All passing |
-| RTL smoke tests | 5 | Passing |
-| P2 smoke tests | 4 | Passing |
-| P3 smoke tests | 7 | Passing |
-| HSPICE smoke tests | 7 | Passing |
-| Spectre smoke tests | 12 | Passing |
-| P5 batch evaluation | 100/100 + 100/100 | Passing |
-| P7 SpyGlass smoke | 1 | Passing |
-| P7 PrimeTime smoke | 1 | Passing |
-| Agentic runner tests | 38 | Passing |
+- pytest: all passing
+- Smoke scripts per track: RTL (VCS), P2, P3, HSPICE, Spectre, P5 batch, P6 DC, P7 SpyGlass, P7 PrimeTime, P8 PnR
+- Dataset evaluation smoke (all tracks)
+- Agentic runner tests
 
 ## Dataset Evaluation Results
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2609/2609 | 1.00 | N/A |
-| Buggy | 2609/2609 | < 1.00 | 2609/2609 |
+| Solution | 2710/2710 | 1.00 | N/A |
+| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
 
 All tasks verified: solution scores perfect, buggy scores strictly less.
 
-## Tools Detected
+## Tools by Track
 
-| Tool | Vendor | Status |
-|------|--------|--------|
-| VCS | Synopsys | Available |
-| HSPICE | Synopsys | Available |
-| Spectre | Cadence | Available |
-| PrimeTime | Synopsys | Available |
-| SpyGlass | Synopsys | Available |
-| DC | Synopsys | Available |
+| Tool | Vendor | Used By |
+|------|--------|---------|
+| VCS | Synopsys | P1, P2 |
+| HSPICE | Synopsys | P4, P5 |
+| Spectre | Cadence | P4 |
+| Design Compiler | Synopsys | P6 DC Constraint Debug |
+| PrimeTime | Synopsys | P7 PrimeTime STA Debug |
+| SpyGlass | Synopsys | P7 SpyGlass Lint Debug |
+
+P3, P6 DC Synthesis QA, and P8 use synthetic reports (parser-based) and require no real tool.
 
 ## CLI Commands
 
@@ -155,38 +178,30 @@ Deterministic benchmark summary and inventory artifacts are generated by:
 python scripts/export_benchmark_summary.py
 ```
 
-See `reports/benchmark_summary.md` for the full v0.3-phase5f-2312 summary. Other artifacts include `task_inventory.json`, `task_inventory.csv`, track/tool/scoring distributions, per-track breakdowns, and a leaderboard template.
+See `reports/benchmark_summary.md` for the full summary. Other artifacts include `task_inventory.json`, `task_inventory.csv`, track/tool/scoring distributions, per-track breakdowns, and a leaderboard template. (Regenerate after dataset changes.)
 
 ## Known Limitations
 
 1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`). Single shell-command agent interface; no interactive loop or per-tool-call transcript.
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
-3. P2 naming was cleaned up in Phase 4E: `p2_tb_sva_gen` track, `tb_sva_gen.TBSVAGenEvaluator`.
-4. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
-5. P6 DC Synthesis QA is a prototype (51 tasks); not yet scaled.
-6. P7 SpyGlass Lint Debug is a prototype (16 tasks); not yet scaled.
+3. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
+4. P6 DC Synthesis QA is a prototype (51 tasks); not yet scaled.
+5. P6 DC Constraint Debug is a prototype (13 tasks); not yet scaled to 50+.
+6. P7 SpyGlass Lint Debug is a prototype (16 tasks); not yet scaled to 50+.
 7. P7 PrimeTime STA Debug is a prototype (17 tasks); not yet scaled.
-8. No P8 physical track (no ICC2/Innovus/StarRC/Sentaurus tasks).
-9. P4 has 3 circuit types: RC rise delay, RC fall delay, RLC settling (302 tasks total).
-10. P5 has 100 tasks (execution-validated, 7 error categories).
-11. No `generate` CLI command (generation requires running Python scripts directly).
-12. Spectre measurement uses `-format nutascii` + Python waveform parsing.
+8. P8 PnR Report QA is a report-QA prototype (101 tasks). No physical place-and-route execution track yet (no ICC2/Innovus PnR runs, StarRC, or Sentaurus).
+9. No `generate` CLI command (generation requires running Python scripts directly).
+10. Spectre measurement uses `-format nutascii` + Python waveform parsing.
 
-## Next Phases
+## Phase History
 
-- **Phase 4A**: P2 Testbench/SVA Generation — DONE
-- **Phase 4B**: P3 Timing Report QA — DONE
-- **Phase 4C**: Docs/Datacard/Release Policy — DONE
-- **Phase 4D**: Integration audit — DONE
-- **Phase 4E**: P2 naming cleanup — DONE
-- **Phase 4F**: Sampled evaluation mode — DONE
-- **Phase 5A**: P3 scale to 1000 — DONE
-- **Phase 5B**: P2 scale to 101 — DONE
-- **Phase 5E**: PT prototype (8 tasks) — DONE
-- **Phase 5F**: P5 scale to 100 — DONE
-- **Phase 6A**: P4 scale to 302 (RC rise/fall + RLC settling) — DONE
-- **Phase 6B**: P6 DC Synthesis QA prototype (51 tasks) — DONE
-- **Phase 6D**: Baseline runner and leaderboard — DONE
-- **Phase 7A**: P7 SpyGlass Lint Debug prototype (16 tasks) — DONE
-- **Phase 7B**: P7 PrimeTime STA Debug prototype (17 tasks) — DONE
-- **Phase 7C**: Agentic Runner MVP — DONE
+- **Phase 0 (P0)**: unified harness, CLI, schema, evaluators — DONE
+- **Phase 1 (P1)**: RTL Debug + generation — DONE
+- **Phase 2A–E**: HSPICE/Spectre smoke, SPICE evaluator, dataset/report CLI, scaling — DONE
+- **Phase 4A–F**: P2, P3, docs/datacard/release, integration audit, P2 naming, sampled eval — DONE
+- **Phase 5A/B/E/F**: P3→1000, P2→101, PT prototype, P5→100 — DONE
+- **Phase 6A/B/C/D**: P4→302, P6 DC Synthesis QA, P6 DC Constraint Debug, baseline runner/leaderboard — DONE
+- **Phase 7A/B/C**: P7 SpyGlass, P7 PrimeTime, Agentic Runner MVP — DONE
+- **Phase 8A**: P8 PnR Report QA prototype (101 tasks) — DONE (current)
+
+See [roadmap.md](roadmap.md) for upcoming work.

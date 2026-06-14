@@ -14,6 +14,9 @@
 | P6 DC Synthesis QA | `p6_dc_synthesis_qa` | 51 | dc (synthetic) | DC synthesis report QA | Answer match |
 | P6 DC Constraint Debug | `p6_dc_constraint_debug` | 13 | dc | SDC constraint repair | Constraint pass + execution pass |
 | P7 SpyGlass Lint Debug | `p7_spyglass_lint_debug` | 16 | spyglass | RTL lint violation repair | Lint pass (execution-based) |
+| P7 PrimeTime STA Debug | `p7_primetime_sta_debug` | 17 | pt | SDC/timing constraint repair | Timing check + execution pass |
+| P8 PnR Report QA | `p8_pnr_report_qa` | 101 | icc2/innovus (synthetic) | PnR report field extraction and QA | Answer match |
+| **Total** | | **2710** | | | |
 
 ## P1: RTL Debug
 
@@ -205,6 +208,42 @@ Buggy versions have R_bug (4-20x too high), solutions have R_sol (correct value)
 
 **Why exact diff is not required**: A SPICE deck can be fixed in multiple valid ways. Any syntactically valid fix that HSPICE can execute is accepted.
 
+## P6: DC Synthesis QA
+
+**Goal**: Answer questions about synthetic Design Compiler synthesis reports (area, cell count, timing, etc.).
+
+**What it measures**: The agent's ability to parse and extract information from synthesis reports.
+
+**Task structure**: synthetic normalized synthesis report (visible) + answer file (editable) + `solution/`.
+
+- 51 tasks (1 smoke + 50 generated), 10 question types (round-robin, 5 each)
+- 50 module names, 30 clock names; no real DC tool required (synthetic reports)
+
+**Scoring weights**:
+```json
+{
+  "answer_match": 1.0
+}
+```
+
+## P6: DC Constraint Debug
+
+**Goal**: Fix a broken SDC constraint file so Design Compiler accepts it.
+
+**What it measures**: The agent's ability to diagnose and repair SDC constraint errors using DC feedback.
+
+- 13 tasks (1 smoke + 12 generated), 6 reliable bug categories
+- Execution-based: accepts equivalent non-identical fixes (no exact diff)
+
+**Scoring weights**:
+```json
+{
+  "constraint_pass": 0.6,
+  "execution_pass": 0.3,
+  "explanation": 0.1
+}
+```
+
 ## P7: SpyGlass Lint Debug
 
 **Goal**: Fix RTL lint violations detected by Synopsys SpyGlass so the lint check passes with zero violations.
@@ -233,10 +272,47 @@ width_mismatch, unused_signal, undriven_signal, missing_default, implicit_net
 
 **Validation**: solution=1.00, buggy=0.10 (all tasks produce valid contrast with real SpyGlass).
 
+## P7: PrimeTime STA Debug
+
+**Goal**: Fix SDC/timing constraint errors so PrimeTime runs clean STA.
+
+**What it measures**: The agent's ability to diagnose timing-constraint problems using real PrimeTime (pt_shell) feedback.
+
+- 17 tasks (1 smoke + 16 generated), 4 reliable STA bug categories
+- Execution-based with real PrimeTime
+
+**Scoring weights**:
+```json
+{
+  "timing_check": 0.6,
+  "execution_pass": 0.3,
+  "explanation": 0.1
+}
+```
+
+## P8: PnR Report QA
+
+**Goal**: Answer questions about synthetic ICC2/Innovus place-and-route reports.
+
+**What it measures**: The agent's ability to parse and extract information from PnR reports.
+
+- 101 tasks (1 smoke + 100 generated), 9 question types
+- Parser-based; no real ICC2/Innovus tool required (synthetic reports)
+
+**Scoring weights**:
+```json
+{
+  "answer_match": 0.9,
+  "explanation": 0.1
+}
+```
+
 ## Future Tracks (Planned)
 
 | Track | ID | Tool(s) | Status |
 |-------|----|---------|--------|
-| P5 Spectre dialect | `p5_spice_deck_debug` | Spectre | Spectre dialect repair |
+| P5 Spectre dialect | `p5_spice_deck_debug` | Spectre | Spectre-dialect deck repair |
+| P6 DC Constraint scale | `p6_dc_constraint_debug` | dc | Scale to 50+ tasks |
 | P7 SpyGlass Lint scale | `p7_spyglass_lint_debug` | SpyGlass | Scale to 50+ tasks |
-| P7 Physical Design | `p7_physical` | ICC2/Innovus/StarRC | Future |
+| P7 PrimeTime STA scale | `p7_primetime_sta_debug` | pt | Scale to 50+ tasks |
+| Expert physical design | `p_physical` | ICC2/Innovus/StarRC/Sentaurus | PnR execution, parasitic extraction, TCAD |

@@ -13,12 +13,14 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | P1 RTL Debug | 1001 | VCS | mutation_synthetic | compile + public test + hidden test + explanation |
 | P2 Testbench/SVA Gen | 101 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
 | P3 Timing Report QA | 1008 | pt (synthetic) | template_synthetic | answer_match |
-| P4 SPICE Sim | 102 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
+| P4 SPICE Sim | 302 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | template_synthetic | answer_match |
 | P6 DC Constraint Debug | 13 | dc | template_synthetic | execution-based (constraint + execution) |
 | P7 SpyGlass Lint Debug | 16 | spyglass | template_synthetic | execution-based (lint violations) |
-| **Total** | **2592** | | | |
+| P7 PrimeTime STA Debug | 17 | pt | template_synthetic | timing check + execution pass + explanation |
+| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | template_synthetic | answer_match + explanation |
+| **Total** | **2710** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -58,13 +60,14 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 - No real PrimeTime tool required (uses synthetic reports)
 - Scoring: answer_match (1.0)
 
-### P4 SPICE Sim (102 tasks)
+### P4 SPICE Sim (302 tasks)
 
 - 2 smoke tasks (1 HSPICE, 1 Spectre)
-- 100 generated tasks: 50 HSPICE + 50 Spectre
-- Data type: `template_synthetic` (RC filter circuits with parameterized component values)
+- 300 generated tasks across 3 circuit types (100 each: 50 HSPICE + 50 Spectre)
+- Circuit types: RC rise delay, RC fall delay, RLC response
+- Data type: `template_synthetic` (RC/RLC circuits with parameterized component values)
 
-Each task fixes an RC filter circuit to meet rise/fall time specifications. The buggy version has a resistance value that is 5-10x too high, causing slow edges. The solution replaces it with the correct resistance.
+Each task fixes a circuit to meet rise/fall time specifications. The buggy version has a resistance value that is 4-20x too high (overdamped, for RLC), causing slow edges. The solution replaces it with the correct value.
 
 ### P5 SPICE Deck Debug (100 tasks)
 
@@ -91,6 +94,30 @@ Each task fixes an RC filter circuit to meet rise/fall time specifications. The 
 - No real DC tool required (uses synthetic reports)
 - Scoring: answer_match (1.0)
 
+### P6 DC Constraint Debug (13 tasks, prototype)
+
+- 1 smoke + 12 generated, 6 reliable bug categories
+- Data type: `template_synthetic`; execution-based SDC repair (Design Compiler)
+- Scoring: constraint_pass (0.6) + execution_pass (0.3) + explanation (0.1)
+
+### P7 SpyGlass Lint Debug (16 tasks, prototype)
+
+- 1 smoke + 15 generated, 3 reliable lint bug categories
+- Execution-based with real SpyGlass (sg_shell)
+- Scoring: lint_pass (0.9) + explanation (0.1)
+
+### P7 PrimeTime STA Debug (17 tasks, prototype)
+
+- 1 smoke + 16 generated, 4 reliable STA bug categories
+- Execution-based with real PrimeTime (pt_shell)
+- Scoring: timing_check (0.6) + execution_pass (0.3) + explanation (0.1)
+
+### P8 PnR Report QA (101 tasks, prototype)
+
+- 1 smoke + 100 generated, 9 question types
+- Parser-based QA on synthetic ICC2/Innovus reports (no real tool required)
+- Scoring: answer_match (0.9) + explanation (0.1)
+
 ## Evaluation Modes
 
 Each task supports two submission modes for validation:
@@ -104,13 +131,13 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2363/2363 | 1.00 | N/A |
-| Buggy | 2363/2363 | < 1.00 | 2363/2363 |
+| Solution | 2710/2710 | 1.00 | N/A |
+| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
 
 ## Test Suite
 
-- 265 pytest tests (all passing, 2 skipped)
-- Smoke scripts per track (VCS, P2, P3, HSPICE, Spectre, P5, P6)
+- pytest: all passing
+- Smoke scripts per track (VCS, P2, P3, HSPICE, Spectre, P5, P6, P7 SpyGlass, P7 PrimeTime, P8)
 - Dataset evaluation smoke (all tracks)
 
 ## File Visibility
@@ -127,7 +154,7 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 Deterministic dataset artifacts are available under `reports/`:
 
 - `task_inventory.json` / `task_inventory.csv` — full task inventory with metadata
-- `benchmark_summary.md` — human-readable summary (v0.3-phase6b-2363)
+- `benchmark_summary.md` — human-readable summary (regenerate after dataset changes)
 - Per-track distributions: `p1_bug_distribution.csv`, `p2_template_mutant_distribution.csv`, `p3_question_type_distribution.csv`, `p5_error_category_distribution.csv`, `p6_question_type_distribution.csv`
 - `leaderboard_template.csv` — empty template for recording model evaluation results
 
@@ -135,10 +162,10 @@ Generate with: `python scripts/export_benchmark_summary.py`
 
 ## Known Limitations
 
-1. No agentic runner yet (submission/workspace mode only).
-2. P1 and P4 use exact solution matching; P5 accepts any functionally correct fix.
-3. P4 covers RC filter topology only (no op-amp or digital SPICE).
-4. P5 has 100 tasks (execution-validated, 7 error categories).
+1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`); no interactive loop or per-tool-call transcript yet.
+2. P1 and P4 use exact solution matching; P5 / P6 Constraint / P7 debug tracks accept any functionally correct fix (execution-based).
+3. P4 covers RC and RLC topologies (no op-amp or digital SPICE).
+4. P6/P7 debug tracks and P8 report QA are prototypes; not yet scaled.
 5. No LLM API integration for explanation scoring in submission mode.
 
 ## Intended Use

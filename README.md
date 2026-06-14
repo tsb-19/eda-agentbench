@@ -14,7 +14,7 @@ EDA-AgentBench tests whether an agent can:
 
 All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
 
-## Current Coverage (Phase 7 — P7 SpyGlass + PrimeTime + Agentic Runner)
+## Current Coverage (Phase 8A — P8 PnR Report QA)
 
 | Track | Tasks | Tool(s) | Description |
 |-------|-------|---------|-------------|
@@ -27,7 +27,8 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 | P6 DC Constraint Debug | 13 | dc | Fix broken SDC constraint files |
 | P7 SpyGlass Lint Debug | 16 | spyglass | Fix RTL lint violations detected by SpyGlass |
 | P7 PrimeTime STA Debug | 17 | pt | Fix timing constraint errors for PrimeTime |
-| **Total** | **2609** | | |
+| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | Answer questions about PnR reports |
+| **Total** | **2710** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
 - 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
@@ -38,6 +39,7 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 - 13 P6 DC Constraint tasks: 1 smoke + 12 generated (6 bug categories)
 - 16 P7 SpyGlass tasks: 1 smoke + 15 generated (3 lint bug categories)
 - 17 P7 PrimeTime tasks: 1 smoke + 16 generated (4 STA bug categories)
+- 101 P8 PnR Report QA tasks: 1 smoke + 100 generated (9 question types)
 
 ## Tool Dependencies
 
@@ -46,7 +48,10 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 | VCS | Synopsys | P1 RTL Debug, P2 Testbench/SVA Gen |
 | HSPICE | Synopsys | P4 SPICE Sim, P5 SPICE Deck Debug |
 | Spectre | Cadence | P4 SPICE Sim |
-| PrimeTime | Synopsys | P3 Timing Report QA (synthetic reports, no real tool needed) |
+| PrimeTime | Synopsys | P7 PrimeTime STA Debug (P3 uses synthetic reports, no real tool) |
+| Design Compiler | Synopsys | P6 DC Constraint Debug (P6 DC Synthesis QA uses synthetic reports) |
+| SpyGlass | Synopsys | P7 SpyGlass Lint Debug |
+| ICC2 / Innovus | Synopsys / Cadence | P8 PnR Report QA (synthetic reports, no real tool) |
 
 Expected install paths:
 
@@ -140,7 +145,7 @@ eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
 For quick integration checks (runs in ~2 minutes instead of ~50 minutes):
 
 ```bash
-# Sample 1 task per track (covers all 5 tracks)
+# Sample 1 task per track (covers all 10 tracks)
 eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
 eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode buggy
 
@@ -164,8 +169,8 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | Mode | Tasks | Avg Score | Notes |
 |------|-------|-----------|-------|
-| Solution | 2312/2312 | 1.00 | Correct answer always scores perfect |
-| Buggy | 2312/2312 | < 1.00 | Buggy baseline always scores < 1.00 |
+| Solution | 2710/2710 | 1.00 | Correct answer always scores perfect |
+| Buggy | 2710/2710 | < 1.00 | Buggy baseline always scores < 1.00 |
 
 ## Task Structure
 
@@ -227,6 +232,27 @@ Each task produces a `score.json` with weighted components:
 - execution_pass: 0.9
 - explanation: 0.1
 
+**DC Synthesis QA (P6):**
+- answer_match: 1.0
+
+**DC Constraint Debug (P6):**
+- constraint_pass: 0.6
+- execution_pass: 0.3
+- explanation: 0.1
+
+**SpyGlass Lint Debug (P7):**
+- lint_pass: 0.9
+- explanation: 0.1
+
+**PrimeTime STA Debug (P7):**
+- timing_check: 0.6
+- execution_pass: 0.3
+- explanation: 0.1
+
+**PnR Report QA (P8):**
+- answer_match: 0.9
+- explanation: 0.1
+
 Pass threshold: 0.5. See [docs/scoring.md](docs/scoring.md) for details.
 
 ## Anti-Cheat
@@ -246,7 +272,8 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 - [Agentic Runner](docs/agentic_runner.md) — Agentic evaluation mode
 - [Benchmark Tracks](docs/benchmark_tracks.md) — Detailed track descriptions and scoring
 - [Dataset Card](docs/datacard.md) — Dataset composition and validation results
-- [Current Status](docs/current_status.md) — Phase 3C status and known limitations
+- [Current Status](docs/current_status.md) — Current benchmark status (Phase 8A) and known limitations
+- [v0 Status (frozen)](docs/current_v0_status.md) — Frozen v0 milestone snapshot (1113 tasks)
 - [Reproducibility](docs/reproducibility.md) — Deterministic generation and evaluation
 - [Public Release Policy](docs/public_release_policy.md) — Release checklist and exclusions
 - [Commercial Tool Policy](docs/commercial_tool_policy.md) — Supported tools and licensing
@@ -255,7 +282,8 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 - [Scoring Rules](docs/scoring.md) — How tasks are scored
 - [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
 - [Roadmap](docs/roadmap.md) — Future phases
+- [Dataset Factory (eda-bench-prototypes)](https://github.com/tsb-19/eda-bench-prototypes) — Sibling repo that generates and validates the P5 SPICE-deck-debug track
 
 ## License
 
-TBD
+Apache-2.0

@@ -90,7 +90,7 @@ Always implement environment detection instead of hardcoding one shell setup.
 
 1. P0: unified benchmark harness
 2. P1: VCS/Xcelium RTL debug (1001 tasks)
-3. P4: HSPICE/Spectre netlist simulation (102 tasks)
+3. P4: HSPICE/Spectre netlist simulation (302 tasks)
 4. P5: SPICE Deck Debug (100 tasks, imported from external bundle)
 
 ### Next Phases
@@ -106,12 +106,14 @@ Always implement environment detection instead of hardcoding one shell setup.
 13. Phase 7A: P7 SpyGlass Lint Debug prototype — DONE
 14. Phase 7B: P7 PrimeTime STA Debug prototype — DONE
 15. Phase 7C: Agentic Runner MVP — DONE
+16. Phase 8A: P8 PnR Report QA prototype — DONE
 
 ### Later
 
 - P5 Spectre dialect repair
 - P6 DC Constraint Debug scale to 50+
 - P7 SpyGlass Lint Debug scale to 50+
+- P7 PrimeTime STA Debug scale to 50+
 - ICC2/Innovus/StarRC/Sentaurus expert tracks
 
 Do not start expert tracks before Phase 4A–4C are stable.
@@ -326,14 +328,13 @@ Use stable placeholders such as:
 
 ## Sibling Repository Contract
 
-The dataset factory lives in a sibling repository:
-
-```text
-../eda-bench-prototypes/
-```
+The dataset factory lives in the sibling repository
+[eda-bench-prototypes](https://github.com/tsb-19/eda-bench-prototypes), expected
+to be checked out next to this repo on disk.
 
 Rules:
-* Main repo (`eda-agentbench`) may **read** exported bundles from `../eda-bench-prototypes/tasks_eval_private/`.
+* The factory produces **only** the P5 `spice_deck_debug` track. All other tracks (P1–P4, P6–P8) are generated in this repo's own `generators/`.
+* Main repo (`eda-agentbench`) may **read** exported bundles from the sibling's `tasks_eval_private/` (resolved on disk as `../eda-bench-prototypes/tasks_eval_private/`).
 * Main repo must **not modify** any files inside `../eda-bench-prototypes/`.
 * P5 imported tasks are local copies under `tasks/p5_spice_deck_debug/imported/`.
 * To re-import or import new bundles, run `python3 scripts/import_p5_tasks.py`.

@@ -14,7 +14,7 @@ EDA-AgentBench 测试智能体是否能够：
 
 所有任务仅使用**商用 EDA 工具**，不需要开源 EDA 工具。
 
-## 当前覆盖范围（Phase 7 — P7 SpyGlass + PrimeTime + Agentic Runner）
+## 当前覆盖范围（Phase 8A — P8 PnR 报告问答）
 
 | 路道 | 任务数 | 工具 | 描述 |
 |------|--------|------|------|
@@ -27,7 +27,8 @@ EDA-AgentBench 测试智能体是否能够：
 | P6 DC 约束调试 | 13 | dc | 修复损坏的 SDC 约束文件 |
 | P7 SpyGlass Lint 调试 | 16 | spyglass | 修复由 SpyGlass 检测到的 RTL Lint 违规 |
 | P7 PrimeTime STA 调试 | 17 | pt | 修复 PrimeTime 的时序约束错误 |
-| **合计** | **2609** | | |
+| P8 PnR 报告问答 | 101 | icc2/innovus（合成） | 回答关于 PnR 报告的问题 |
+| **合计** | **2710** | | |
 
 - 1001 个 P1 任务：1 个手工制作的冒烟测试 + 1000 个生成（10 种缺陷类型 x 各 100 个）
 - 101 个 P2 任务：1 个冒烟测试 + 100 个生成（10 个设计模板，20 个变异体）
@@ -38,6 +39,7 @@ EDA-AgentBench 测试智能体是否能够：
 - 13 个 P6 DC 约束任务：1 个冒烟测试 + 12 个生成（6 个缺陷类别）
 - 16 个 P7 SpyGlass 任务：1 个冒烟测试 + 15 个生成（3 个 Lint 缺陷类别）
 - 17 个 P7 PrimeTime 任务：1 个冒烟测试 + 16 个生成（4 个 STA 缺陷类别）
+- 101 个 P8 PnR 报告问答任务：1 个冒烟测试 + 100 个生成（9 种问题类型）
 
 ## 工具依赖
 
@@ -46,7 +48,10 @@ EDA-AgentBench 测试智能体是否能够：
 | VCS | Synopsys | P1 RTL 调试，P2 测试平台/SVA 生成 |
 | HSPICE | Synopsys | P4 SPICE 仿真，P5 SPICE 网表调试 |
 | Spectre | Cadence | P4 SPICE 仿真 |
-| PrimeTime | Synopsys | P3 时序报告问答（使用合成报告，不需要真实工具） |
+| PrimeTime | Synopsys | P7 PrimeTime STA 调试（P3 使用合成报告，不需要真实工具） |
+| Design Compiler | Synopsys | P6 DC 约束调试（P6 DC 综合问答使用合成报告） |
+| SpyGlass | Synopsys | P7 SpyGlass Lint 调试 |
+| ICC2 / Innovus | Synopsys / Cadence | P8 PnR 报告问答（合成报告，不需要真实工具） |
 
 预期安装路径：
 
@@ -140,7 +145,7 @@ eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
 用于快速集成检查（约 2 分钟完成，而非约 50 分钟）：
 
 ```bash
-# 每个路道采样 1 个任务（覆盖所有 5 个路道）
+# 每个路道采样 1 个任务（覆盖所有 10 个路道）
 eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
 eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode buggy
 
@@ -164,8 +169,8 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | 模式 | 任务数 | 平均得分 | 备注 |
 |------|--------|----------|------|
-| 解答 | 2312/2312 | 1.00 | 正确解答始终获得满分 |
-| 缺陷 | 2312/2312 | < 1.00 | 有缺陷的基线始终得分 < 1.00 |
+| 解答 | 2710/2710 | 1.00 | 正确解答始终获得满分 |
+| 缺陷 | 2710/2710 | < 1.00 | 有缺陷的基线始终得分 < 1.00 |
 
 ## 任务结构
 
@@ -227,6 +232,27 @@ spice_deck_debug_NNNN/
 - execution_pass：0.9
 - explanation：0.1
 
+**DC 综合问答（P6）：**
+- answer_match：1.0
+
+**DC 约束调试（P6）：**
+- constraint_pass：0.6
+- execution_pass：0.3
+- explanation：0.1
+
+**SpyGlass Lint 调试（P7）：**
+- lint_pass：0.9
+- explanation：0.1
+
+**PrimeTime STA 调试（P7）：**
+- timing_check：0.6
+- execution_pass：0.3
+- explanation：0.1
+
+**PnR 报告问答（P8）：**
+- answer_match：0.9
+- explanation：0.1
+
 通过阈值：0.5。详情请参阅 [docs/scoring.md](docs/scoring.md)。
 
 ## 防作弊
@@ -246,7 +272,8 @@ spice_deck_debug_NNNN/
 - [智能体运行器](docs/agentic_runner.md) — 智能体评估模式
 - [基准路道](docs/benchmark_tracks.md) — 路道详细描述和评分规则
 - [数据集卡片](docs/datacard.md) — 数据集组成和验证结果
-- [当前状态](docs/current_status.md) — Phase 3C 状态和已知限制
+- [当前状态](docs/current_status.md) — 当前基准测试状态（Phase 8A）和已知限制
+- [v0 状态（已冻结）](docs/current_v0_status.md) — 冻结的 v0 里程碑快照（1113 个任务）
 - [可复现性](docs/reproducibility.md) — 确定性生成和评估
 - [公开发布策略](docs/public_release_policy.md) — 发布检查清单和排除项
 - [商用工具策略](docs/commercial_tool_policy.md) — 支持的工具和许可证
@@ -255,7 +282,8 @@ spice_deck_debug_NNNN/
 - [评分规则](docs/scoring.md) — 任务评分方式
 - [添加任务](docs/adding_tasks.md) — 如何创建新任务
 - [路线图](docs/roadmap.md) — 未来阶段
+- [数据工厂 (eda-bench-prototypes)](https://github.com/tsb-19/eda-bench-prototypes) — 生成并验证 P5 SPICE 网表调试赛道的兄弟仓库
 
 ## 许可证
 
-待定
+Apache-2.0
