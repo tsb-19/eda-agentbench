@@ -16,7 +16,7 @@ SMOKE_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p7_primetime_sta
 GENERATED_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p7_primetime_sta_debug" / "generated"
 
 # 4 bug types × 4 templates = 16 generated tasks
-EXPECTED_GENERATED_COUNT = 16
+EXPECTED_GENERATED_COUNT = 52
 EXPECTED_BUG_TYPES = {"missing_clock", "wrong_port_name", "syntax_error", "invalid_get_ports"}
 
 
@@ -169,7 +169,7 @@ def test_generator_batch_creates_count(tmp_path):
 
 
 def test_generator_bug_type_diversity(tmp_path):
-    """16 tasks cover all 4 bug types (4 each)."""
+    """52 tasks cover all 4 bug types (13 each)."""
     from collections import Counter
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
@@ -180,11 +180,11 @@ def test_generator_bug_type_diversity(tmp_path):
         types[meta["generator"]["bug_type"]] += 1
     assert set(types.keys()) == EXPECTED_BUG_TYPES
     for bt, count in types.items():
-        assert count == 4, f"{bt}: expected 4, got {count}"
+        assert count == 13, f"{bt}: expected 13, got {count}"
 
 
 def test_generator_rtl_diversity(tmp_path):
-    """16 tasks cover 4 RTL templates (4 each)."""
+    """52 tasks cover 13 RTL templates (4 each)."""
     from collections import Counter
     from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
     gen = P7PrimeTimeSTADebugGenerator(seed=42, output_dir=tmp_path)
@@ -193,7 +193,7 @@ def test_generator_rtl_diversity(tmp_path):
     for p in paths:
         meta = json.loads((p / "metadata.json").read_text())
         templates[meta["generator"]["rtl_template"]] += 1
-    assert len(templates) == 4
+    assert len(templates) == 13
     for tmpl, count in templates.items():
         assert count == 4, f"{tmpl}: expected 4, got {count}"
 
@@ -380,6 +380,21 @@ def test_evaluator_unknown_component():
     evaluator = PrimeTimeSTADebugEvaluator(SMOKE_DIR, meta)
     comp = evaluator.evaluate_component("nonexistent", Path(), "")
     assert comp.raw_score == 0.0
+
+
+def test_evaluator_fail_when_tool_did_not_run():
+    """Regression: empty / no-marker / crash logs score 0.0 for both marker
+    components -- never a false 1.0 (the same false-pass class as P5/P4/P1).
+    A missing TIMING_CHECK_OK marker means pt_shell never confirmed success."""
+    from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = PrimeTimeSTADebugEvaluator(SMOKE_DIR, meta)
+    for bad_log in ["", "random PT output, no markers\n", "Segmentation fault (core dumped)\n"]:
+        for comp_name in ("timing_check", "execution_pass"):
+            comp = evaluator.evaluate_component(comp_name, Path(), bad_log)
+            assert comp.raw_score == 0.0, f"{comp_name} on {bad_log!r} should be 0.0, got {comp.raw_score}"
 
 
 # --- Anti-Cheat Tests ---

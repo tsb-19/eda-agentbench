@@ -1,0 +1,57 @@
+{
+  "task_id": "sg_lint_0022",
+  "track": "p7_spyglass_lint_debug",
+  "tool": [
+    "spyglass"
+  ],
+  "difficulty": "medium",
+  "data_type": "template_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 300,
+  "max_tool_calls": 30,
+  "max_patch_attempts": 8,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "design.v",
+      "spyglass.prj",
+      "run_public.sh",
+      "run_public.tcl"
+    ],
+    "editable": [
+      "design.v"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_hidden.tcl"
+    ],
+    "forbidden": [
+      "spyglass.prj",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_hidden.sh",
+      "run_hidden.tcl"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "lint_pass": 0.9,
+      "explanation": 0.1
+    },
+    "evaluator": "spyglass_lint_debug.SpyGlassLintDebugEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p7_spyglass_lint_debug_gen.py",
+    "seed": 42,
+    "bug_type": "multi_driven",
+    "top_module": "sq_decr",
+    "task_index": 22
+  },
+  "expected_error_category": "multi_driven",
+  "version": "1.0.0"
+}

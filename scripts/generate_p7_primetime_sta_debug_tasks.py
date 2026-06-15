@@ -2,7 +2,7 @@
 """Generate P7 PrimeTime STA Debug tasks.
 
 Usage:
-    python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 20 --seed 42
+    python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 52 --seed 42
     python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 1 --seed 1 --output-dir tasks/p7_primetime_sta_debug/smoke
 """
 
@@ -21,7 +21,7 @@ from generators.p7_primetime_sta_debug_gen import P7PrimeTimeSTADebugGenerator
 
 def main():
     parser = argparse.ArgumentParser(description="Generate P7 PrimeTime STA Debug tasks")
-    parser.add_argument("--count", type=int, default=16, help="Number of tasks to generate (4 bug types x 4 templates)")
+    parser.add_argument("--count", type=int, default=52, help="Number of tasks to generate (4 bug types x 13 templates)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--output-dir", type=str,
                         default="tasks/p7_primetime_sta_debug/generated",

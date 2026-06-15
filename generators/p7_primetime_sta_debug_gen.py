@@ -224,6 +224,209 @@ module mux_reg (clk, rst_n, sel, d0, d1, d2, d3, q);
 endmodule
 """
 
+_RTL_SHIFT = """\
+module shift_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       din,
+    output reg  [7:0] dout
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            dout <= 8'd0;
+        else
+            dout <= {dout[6:0], din};
+    end
+endmodule
+"""
+
+_RTL_CMP = """\
+module comparator_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg        gt,
+    output reg        eq
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            gt <= 1'b0;
+            eq <= 1'b0;
+        end else begin
+            gt <= (a > b);
+            eq <= (a == b);
+        end
+    end
+endmodule
+"""
+
+_RTL_DECODER = """\
+module decoder_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [1:0] sel,
+    output reg  [3:0] onehot
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            onehot <= 4'd0;
+        else
+            onehot <= (4'd1 << sel);
+    end
+endmodule
+"""
+
+_RTL_ALU = """\
+module alu_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [1:0] op,
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg  [7:0] result
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            result <= 8'd0;
+        else begin
+            case (op)
+                2'd0: result <= a + b;
+                2'd1: result <= a - b;
+                2'd2: result <= a & b;
+                2'd3: result <= a | b;
+            endcase
+        end
+    end
+endmodule
+"""
+
+_RTL_ACC = """\
+module accumulator (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        en,
+    input  wire [7:0]  data,
+    output reg  [15:0] acc
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            acc <= 16'd0;
+        else if (en)
+            acc <= acc + {8'd0, data};
+    end
+endmodule
+"""
+
+_RTL_UPDOWN = """\
+module updown_counter (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       up,
+    output reg  [7:0] cnt
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            cnt <= 8'd0;
+        else if (up)
+            cnt <= cnt + 8'd1;
+        else
+            cnt <= cnt - 8'd1;
+    end
+endmodule
+"""
+
+_RTL_PARITY = """\
+module parity_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [7:0] data,
+    output reg        par
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            par <= 1'b0;
+        else
+            par <= ^data;
+    end
+endmodule
+"""
+
+_RTL_TOGGLE = """\
+module toggle_ff (
+    input  wire clk,
+    input  wire rst_n,
+    input  wire en,
+    output reg  tff
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            tff <= 1'b0;
+        else if (en)
+            tff <= ~tff;
+    end
+endmodule
+"""
+
+_RTL_MOD10 = """\
+module mod10_counter (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       en,
+    output reg  [3:0] mcnt
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            mcnt <= 4'd0;
+        else if (en)
+            mcnt <= (mcnt == 4'd9) ? 4'd0 : mcnt + 4'd1;
+    end
+endmodule
+"""
+
+
+def _make_netlist(top: str, clk: str, in_ports: list, out_ports: list) -> str:
+    """Auto-generate a DFFX1 structural netlist from a port spec.
+
+    in_ports/out_ports are lists of (name, width) tuples (clk excluded). One DFF
+    is emitted per output bit so PrimeTime sees a clk->reg->output timing graph;
+    register D inputs are scalar `<name>_next[_<i>]` nets (PT accepts dangling).
+    Matches the hand-written netlist style and keeps every bit-select on a
+    declared port (see test_netlists_have_no_undeclared_bus_selects).
+    """
+    names = [clk] + [n for n, _ in in_ports] + [n for n, _ in out_ports]
+    lines = [
+        f"// Gate-level netlist for {top} — used by PrimeTime STA",
+        f"module {top} ({', '.join(names)});",
+        f"  input {clk};",
+    ]
+    for n, w in in_ports:
+        lines.append(f"  input {('[' + str(w - 1) + ':0] ') if w > 1 else ''}{n};")
+    for n, w in out_ports:
+        lines.append(f"  output {('[' + str(w - 1) + ':0] ') if w > 1 else ''}{n};")
+    for n, w in out_ports:
+        if w > 1:
+            for i in range(w):
+                lines.append(f"  DFFX1 {n}_reg_{i} (.D({n}_next_{i}), .CK({clk}), .Q({n}[{i}]));")
+        else:
+            lines.append(f"  DFFX1 {n}_reg (.D({n}_next), .CK({clk}), .Q({n}));")
+    lines.append("endmodule")
+    return "\n".join(lines) + "\n"
+
+
+# New templates (design.v + auto-generated structural netlist). (name, rtl, in_ports, out_ports)
+_NEW_SPECS = [
+    ("shift_reg", _RTL_SHIFT, [("rst_n", 1), ("din", 1)], [("dout", 8)]),
+    ("comparator_reg", _RTL_CMP, [("rst_n", 1), ("a", 8), ("b", 8)], [("gt", 1), ("eq", 1)]),
+    ("decoder_reg", _RTL_DECODER, [("rst_n", 1), ("sel", 2)], [("onehot", 4)]),
+    ("alu_reg", _RTL_ALU, [("rst_n", 1), ("op", 2), ("a", 8), ("b", 8)], [("result", 8)]),
+    ("accumulator", _RTL_ACC, [("rst_n", 1), ("en", 1), ("data", 8)], [("acc", 16)]),
+    ("updown_counter", _RTL_UPDOWN, [("rst_n", 1), ("up", 1)], [("cnt", 8)]),
+    ("parity_reg", _RTL_PARITY, [("rst_n", 1), ("data", 8)], [("par", 1)]),
+    ("toggle_ff", _RTL_TOGGLE, [("rst_n", 1), ("en", 1)], [("tff", 1)]),
+    ("mod10_counter", _RTL_MOD10, [("rst_n", 1), ("en", 1)], [("mcnt", 4)]),
+]
+
 RTL_TEMPLATES = [
     {"name": "counter", "rtl": _RTL_COUNTER, "netlist": _NETLIST_COUNTER,
      "top": "counter", "clk": "clk",
@@ -238,6 +441,15 @@ RTL_TEMPLATES = [
      "top": "mux_reg", "clk": "clk",
      "inputs": ["clk", "rst_n", "sel", "d0", "d1", "d2", "d3"], "outputs": ["q"]},
 ]
+
+for _name, _rtl, _inp, _outp in _NEW_SPECS:
+    RTL_TEMPLATES.append({
+        "name": _name, "rtl": _rtl,
+        "netlist": _make_netlist(_name, "clk", _inp, _outp),
+        "top": _name, "clk": "clk",
+        "inputs": ["clk"] + [n for n, _ in _inp],
+        "outputs": [n for n, _ in _outp],
+    })
 
 
 # ---------------------------------------------------------------------------
@@ -285,23 +497,23 @@ def _bug_missing_clock(rtl: dict, period_ns: float) -> tuple[str, str, str, str]
         "Missing create_clock definition — PrimeTime has no clocks, timing checks fail"
 
 
+def _first_nonclk_port(rtl: dict) -> str | None:
+    """First non-clock port (prefer inputs, then outputs) — keeps port bugs template-agnostic."""
+    clk = rtl["clk"]
+    cands = [p for p in rtl["inputs"] if p != clk] + list(rtl["outputs"])
+    return cands[0] if cands else None
+
+
 def _bug_wrong_port_name(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Wrong port name in constraint (typo).
+    """Wrong port name in constraint (typo) — template-agnostic.
 
     Detection: source log contains "Can't find" → port_or_clock_not_found.
     """
     sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    for i, line in enumerate(lines):
-        if "get_ports" in line and "{clk}" not in line:
-            for old, new in [("{rst_n}", "{reset_n}"), ("{en}", "{enable}"),
-                             ("{start}", "{go}"), ("{a}", "{in_a}"), ("{b}", "{in_b}"),
-                             ("{sel}", "{selector}"), ("{d0}", "{data0}")]:
-                if old in line:
-                    lines[i] = line.replace(old, new)
-                    break
-            break
-    return "\n".join(lines), "wrong_port_name", "easy", \
+    port = _first_nonclk_port(rtl)
+    if port is not None:
+        sdc = sdc.replace(f"[get_ports {{{port}}}]", f"[get_ports {{{port}_typo}}]", 1)
+    return sdc, "wrong_port_name", "easy", \
         "Wrong port name in constraint — PrimeTime reports 'Can't find port'"
 
 
@@ -321,17 +533,15 @@ def _bug_syntax_error(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
 
 
 def _bug_invalid_get_ports(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Invalid get_ports pattern (wildcard error).
+    """Invalid get_ports pattern (wildcard matches nothing) — template-agnostic.
 
     Detection: source log contains "Can't find" → port_or_clock_not_found.
     """
     sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    for i, line in enumerate(lines):
-        if "set_input_delay" in line and "rst_n" in line:
-            lines[i] = line.replace("[get_ports {rst_n}]", "[get_ports {nonexistent_*}]")
-            break
-    return "\n".join(lines), "invalid_get_ports", "medium", \
+    port = _first_nonclk_port(rtl)
+    if port is not None:
+        sdc = sdc.replace(f"[get_ports {{{port}}}]", "[get_ports {nonexistent_*}]", 1)
+    return sdc, "invalid_get_ports", "medium", \
         "Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'"
 
 

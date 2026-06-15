@@ -24,11 +24,11 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 | P4 SPICE Sim | 302 | HSPICE, Spectre | Fix RC/RLC filter rise/fall time |
 | P5 SPICE Deck Debug | 100 | HSPICE | Fix broken SPICE simulation decks |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | Answer questions about DC synthesis reports |
-| P6 DC Constraint Debug | 13 | dc | Fix broken SDC constraint files |
-| P7 SpyGlass Lint Debug | 16 | spyglass | Fix RTL lint violations detected by SpyGlass |
-| P7 PrimeTime STA Debug | 17 | pt | Fix timing constraint errors for PrimeTime |
+| P6 DC Constraint Debug | 61 | dc | Fix broken SDC constraint files |
+| P7 SpyGlass Lint Debug | 50 | spyglass | Fix RTL lint violations detected by SpyGlass |
+| P7 PrimeTime STA Debug | 53 | pt | Fix timing constraint errors for PrimeTime |
 | P8 PnR Report QA | 101 | icc2/innovus (synthetic) | Answer questions about PnR reports |
-| **Total** | **2710** | | |
+| **Total** | **2828** | | |
 
 - 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
 - 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
@@ -36,9 +36,9 @@ All tasks use **commercial EDA tools** only. No open-source EDA tools are requir
 - 302 P4 tasks: 2 smoke + 300 generated (3 circuit types, 50 HSPICE + 50 Spectre each)
 - 100 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
 - 51 P6 DC QA tasks: 1 smoke + 50 generated (10 question types)
-- 13 P6 DC Constraint tasks: 1 smoke + 12 generated (6 bug categories)
-- 16 P7 SpyGlass tasks: 1 smoke + 15 generated (3 lint bug categories)
-- 17 P7 PrimeTime tasks: 1 smoke + 16 generated (4 STA bug categories)
+- 61 P6 DC Constraint tasks: 1 smoke + 60 generated (6 bug categories × 10 RTL templates)
+- 50 P7 SpyGlass tasks: 1 smoke + 49 generated (3 lint categories × design library)
+- 53 P7 PrimeTime tasks: 1 smoke + 52 generated (4 bug types × 13 templates)
 - 101 P8 PnR Report QA tasks: 1 smoke + 100 generated (9 question types)
 
 ## Tool Dependencies
@@ -169,8 +169,8 @@ eda-bench report runs/dataset_XXXXXXXX --format all
 
 | Mode | Tasks | Avg Score | Notes |
 |------|-------|-----------|-------|
-| Solution | 2710/2710 | 1.00 | Correct answer always scores perfect |
-| Buggy | 2710/2710 | < 1.00 | Buggy baseline always scores < 1.00 |
+| Solution | 2828/2828 | 1.00 | Correct answer always scores perfect |
+| Buggy | 2828/2828 | < 1.00 | Buggy baseline always scores < 1.00 |
 
 ## Task Structure
 

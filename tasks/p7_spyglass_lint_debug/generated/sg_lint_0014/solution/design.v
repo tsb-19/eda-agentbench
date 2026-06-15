@@ -1,13 +1,15 @@
-module seq_blocking_clean (
+module sq_updown (
     input  wire       clk,
     input  wire       rst_n,
-    input  wire [7:0] d,
-    output reg  [7:0] q
+    input  wire       up,
+    output reg  [7:0] c
 );
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
-            q <= 8'd0;
+            c <= 8'd0;
+        else if (up)
+            c <= c + 8'd1;
         else
-            q <= d;
+            c <= c - 8'd1;
     end
 endmodule

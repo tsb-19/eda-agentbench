@@ -1,4 +1,4 @@
-module seq_blocking_clean (
+module sq_reg (
     input  wire       clk,
     input  wire       rst_n,
     input  wire [7:0] d,

@@ -15,7 +15,7 @@ OUTPUT_DIR = Path(__file__).resolve().parent.parent / "tasks" / "p6_dc_constrain
 def main():
     import argparse
     parser = argparse.ArgumentParser(description="Generate P6 DC Constraint Debug tasks")
-    parser.add_argument("--count", type=int, default=20, help="Number of tasks to generate")
+    parser.add_argument("--count", type=int, default=60, help="Number of tasks to generate (6 bug categories x 10 RTL templates)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--output-dir", type=str, default=str(OUTPUT_DIR), help="Output directory")
     args = parser.parse_args()

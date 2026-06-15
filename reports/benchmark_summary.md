@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
 **Tag:** `v0.3-phase6b-2363`  
-**Total tasks:** 2710  
+**Total tasks:** 2828  
 **Tracks:** 10  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -14,33 +14,33 @@
 | P3 Timing Report QA | 1008 |
 | P4 SPICE Sim | 302 |
 | P5 SPICE Deck Debug | 100 |
-| P6 DC Constraint Debug | 13 |
+| P6 DC Constraint Debug | 61 |
 | P6 DC Synthesis QA | 51 |
-| P7 PrimeTime STA Debug | 17 |
-| P7 SpyGlass Lint Debug | 16 |
+| P7 PrimeTime STA Debug | 53 |
+| P7 SpyGlass Lint Debug | 50 |
 | P8 PnR Report QA | 101 |
-| **Total** | **2710** |
+| **Total** | **2828** |
 
 ## Tool Distribution
 
 | Tool | Task Count |
 |------|----------:|
-| dc | 64 |
+| dc | 112 |
 | hspice | 251 |
 | icc2 | 45 |
 | innovus | 56 |
-| pt | 1025 |
+| pt | 1061 |
 | spectre | 151 |
-| spyglass | 16 |
+| spyglass | 50 |
 | vcs | 1102 |
 
 ## Difficulty Distribution
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1321 |
-| hard | 407 |
-| medium | 982 |
+| easy | 1384 |
+| hard | 415 |
+| medium | 1029 |
 
 ## Data Type Distribution
 
@@ -48,7 +48,7 @@
 |-----------|------:|
 | flow_synthetic | 100 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1508 |
+| template_synthetic | 1626 |
 
 ## Scoring Methodology
 

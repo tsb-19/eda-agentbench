@@ -53,14 +53,23 @@ pt_sta_debug_NNNN/
 
 ## 设计模板
 
-4 个 RTL 模板及对应的结构网表：
+13 个 RTL 模板，每个都配有对应的基于 DFF 的结构网表：
 
-| 模板 | 端口 | 描述 |
-|------|------|------|
-| counter | clk, rst_n, en, count[7:0] | 8 位计数器 |
-| fsm_ctrl | clk, rst_n, start, busy, done | FSM 控制器 |
-| adder_pipe | clk, rst_n, a[15:0], b[15:0], sum[16:0] | 流水线加法器 |
-| mux_reg | clk, rst_n, sel[1:0], d0-d3[7:0], q[7:0] | 多路复用器 + 寄存器 |
+| 模板 | 描述 |
+|------|------|
+| counter | 8 位计数器 |
+| updown_counter | 加/减计数器 |
+| mod10_counter | 模 10 计数器 |
+| accumulator | 累加寄存器 |
+| toggle_ff | 翻转触发器 |
+| shift_reg | 移位寄存器 |
+| parity_reg | 寄存奇偶校验 |
+| adder_pipe | 流水线加法器 |
+| alu_reg | 寄存 ALU |
+| comparator_reg | 寄存比较器 |
+| decoder_reg | 寄存译码器 |
+| mux_reg | 多路复用器 + 寄存器 |
+| fsm_ctrl | FSM 控制器 |
 
 ## 评分
 
@@ -101,12 +110,12 @@ bash scripts/run_primetime_sta_debug_smoke.sh
 ## 生成器
 
 ```bash
-python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 16 --seed 42
+python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 52 --seed 42
 ```
 
 使用基于种子的周期变化（2.0、3.0、5.0、10.0 ns）进行确定性生成。
-4 种缺陷类型和 4 个 RTL 模板轮询（16 种唯一组合）。
+4 种缺陷类型和 13 个 RTL 模板轮询（52 种唯一组合）。
 
 任务 ID 方案：
 - 冒烟测试：`pt_sta_debug_0000`（使用 `--id-start 0` 生成）
-- 生成任务：`pt_sta_debug_0001` 到 `pt_sta_debug_0016`（默认 `--id-start 1`）
+- 生成任务：`pt_sta_debug_0001` 到 `pt_sta_debug_0052`（默认 `--id-start 1`）

@@ -7,7 +7,7 @@ Fix the design file so that the lint check passes with zero violations.
 
 ## Bug Category
 
-Signal 'q' driven by two always blocks — multi-driven net error
+Signal 'q' driven by two always blocks — multi-driven net
 
 ## Files
 

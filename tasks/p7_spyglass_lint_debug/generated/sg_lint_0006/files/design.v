@@ -1,11 +1,10 @@
-module comb_mux (
-    input  wire [3:0] a,
-    input  wire [3:0] b,
-    input  wire       sel,
-    output reg  [3:0] y
+module cmb_min (
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg  [7:0] y
 );
     always @(*) begin
-        if (sel)
+        if (a < b)
             y = a;
     end
 endmodule

@@ -78,7 +78,7 @@ These categories were tested but SpyGlass default lint does **not** flag them:
 - **SpyGlass detection**: S-2021.09-SP1 available at `/EDA/soft2/synopsys/spyglass/`
 - **Solution mode**: 1.00 (all tasks pass lint)
 - **Buggy mode**: 0.10 (all tasks fail lint with violations)
-- **pytest**: 31/31 pass
+- **pytest**: 35/35 pass
 - **Smoke test**: PASS (solution=1.00, buggy=0.10)
 
 ## SpyGlass Command Notes

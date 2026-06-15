@@ -1,13 +1,13 @@
-module comb_mux (
-    input  wire [3:0] a,
-    input  wire [3:0] b,
-    input  wire       sel,
-    output reg  [3:0] y
+module cmb_andor (
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    input  wire       op,
+    output reg  [7:0] y
 );
     always @(*) begin
-        if (sel)
-            y = a;
+        if (op)
+            y = a & b;
         else
-            y = b;
+            y = a | b;
     end
 endmodule

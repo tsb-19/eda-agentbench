@@ -62,7 +62,17 @@ The evaluator uses `^CONSTRAINTS_OK` (anchored) to avoid matching echoed TCL cod
 
 ## RTL Templates
 
+10 small synthesizable templates (`compile_ultra` with `lsi_10k.db`):
+
 - `counter` — 8-bit counter with enable
+- `updown_counter` — up/down counter
+- `accumulator` — accumulator register
+- `shift_reg` — shift register
+- `adder_pipe` — pipelined adder
+- `alu_reg` — registered ALU
+- `comparator_reg` — registered comparator
+- `decoder_reg` — registered decoder
+- `mux_reg` — mux + register
 - `fsm_ctrl` — 3-state FSM controller
 
 ## Scoring
@@ -81,6 +91,6 @@ The evaluator uses `^CONSTRAINTS_OK` (anchored) to avoid matching echoed TCL cod
 ## Known Limitations
 
 - DC is lenient with many constraint issues; only 6 categories produce detectable failures
-- Prototype scale: 13 tasks (1 smoke + 12 generated)
+- Scale: 61 tasks (1 smoke + 60 generated, 6 bug categories × 10 RTL templates)
 - No Spectre dialect support
 - No agentic runner integration yet

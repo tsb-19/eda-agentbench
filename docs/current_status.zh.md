@@ -14,11 +14,11 @@
 | P4 SPICE 仿真 | 302 | HSPICE, Spectre | 2 个冒烟 + 300 个生成（3 种电路类型） |
 | P5 SPICE 网表调试 | 100 | HSPICE | 由 datagen 模块生成 |
 | P6 DC 综合 QA | 51 | dc（合成） | 1 个冒烟 + 50 个生成（10 种问题类型） |
-| P6 DC 约束调试 | 13 | dc | 1 个冒烟 + 12 个生成（6 种缺陷类别） |
-| P7 SpyGlass Lint 调试 | 16 | spyglass | 1 个冒烟 + 15 个生成（3 种缺陷类别） |
-| P7 PrimeTime STA 调试 | 17 | pt | 1 个冒烟 + 16 个生成（4 种缺陷类别） |
+| P6 DC 约束调试 | 61 | dc | 1 个冒烟 + 60 个生成（6 种缺陷类别 × 10 个 RTL 模板） |
+| P7 SpyGlass Lint 调试 | 50 | spyglass | 1 个冒烟 + 49 个生成（3 个 Lint 类别 × 设计库） |
+| P7 PrimeTime STA 调试 | 53 | pt | 1 个冒烟 + 52 个生成（4 种缺陷类型 × 13 个模板） |
 | P8 PnR 报告问答 | 101 | icc2/innovus（合成） | 1 个冒烟 + 100 个生成（9 种问题类型） |
-| **合计** | **2710** | | |
+| **合计** | **2828** | | |
 
 ## P1 缺陷类型分布
 
@@ -102,22 +102,22 @@
 - 评分：answer_match（1.0）
 - 不需要真实 DC 工具（合成报告）
 
-## P6 DC 约束调试（原型）
+## P6 DC 约束调试（已规模化）
 
-13 个任务（1 个冒烟 + 12 个生成，6 种可靠缺陷类别）。基于执行的 SDC 约束修复：
+61 个任务（1 个冒烟 + 60 个生成，6 种缺陷类别 × 10 个 RTL 模板）。基于执行的 SDC 约束修复：
 - Agent 修复损坏的 SDC 约束文件，使 Design Compiler 能够接受
 - 评分：constraint_pass（0.6）+ execution_pass（0.3）+ explanation（0.1）
 - 接受等价的非完全相同修复（基于执行，无精确 diff）
 
-## P7 SpyGlass Lint 调试（原型）
+## P7 SpyGlass Lint 调试（已规模化）
 
-16 个任务（1 个冒烟 + 15 个生成，3 种可靠 Lint 缺陷类别）。基于执行，使用真实 SpyGlass（sg_shell）：
+50 个任务（1 个冒烟 + 49 个生成，3 个 Lint 类别 × 设计库）。基于执行，使用真实 SpyGlass（sg_shell）：
 - Agent 修复 RTL Lint 违规，直至 Lint 检查零违规通过
 - 评分：lint_pass（0.9）+ explanation（0.1）
 
-## P7 PrimeTime STA 调试（原型）
+## P7 PrimeTime STA 调试（已规模化）
 
-17 个任务（1 个冒烟 + 16 个生成，4 种可靠 STA 缺陷类别）。基于执行，使用真实 PrimeTime（pt_shell）：
+53 个任务（1 个冒烟 + 52 个生成，4 种缺陷类型 × 13 个模板）。基于执行，使用真实 PrimeTime（pt_shell）：
 - Agent 修复 PrimeTime 的时序约束错误
 - 评分：timing_check（0.6）+ execution_pass（0.3）+ explanation（0.1）
 
@@ -140,8 +140,8 @@
 
 | 模式 | 任务 | 平均分 | Buggy 较低 |
 |------|-------|-----------|-------------|
-| Solution | 2710/2710 | 1.00 | N/A |
-| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
+| Solution | 2828/2828 | 1.00 | N/A |
+| Buggy | 2828/2828 | < 1.00 | 2828/2828 |
 
 所有任务已验证：solution 得分完美，buggy 得分严格更低。
 
@@ -186,9 +186,9 @@ python scripts/export_benchmark_summary.py
 2. 无 LLM API 集成（提交模式下解释评分默认为 1.0）。
 3. P3 在 metadata 中使用 `tool: ["pt"]`，但跳过工具检测（合成报告，无真实 PrimeTime）。
 4. P6 DC 综合 QA 是原型（51 个任务）；尚未扩展。
-5. P6 DC 约束调试是原型（13 个任务）；尚未扩展到 50+。
-6. P7 SpyGlass Lint 调试是原型（16 个任务）；尚未扩展到 50+。
-7. P7 PrimeTime STA 调试是原型（17 个任务）；尚未扩展。
+5. P6 DC 约束调试已规模化至 61 个任务（在真实 Design Compiler 上经 b04 验证）。
+6. P7 SpyGlass Lint 调试已规模化至 50 个任务（在真实 SpyGlass 上经 b04 验证）。
+7. P7 PrimeTime STA 调试已规模化至 53 个任务（在真实 PrimeTime 上经 b04 验证）。
 8. P8 PnR 报告问答是报告 QA 原型（101 个任务）。尚无物理布局布线执行 track（无 ICC2/Innovus PnR 运行、StarRC 或 Sentaurus）。
 9. 无 `generate` CLI 命令（生成需要直接运行 Python 脚本）。
 10. Spectre 测量使用 `-format nutascii` + Python 波形解析。
@@ -202,6 +202,7 @@ python scripts/export_benchmark_summary.py
 - **阶段 5A/B/E/F**：P3→1000、P2→101、PT 原型、P5→100 — 已完成
 - **阶段 6A/B/C/D**：P4→302、P6 DC 综合 QA、P6 DC 约束调试、基线运行器/排行榜 — 已完成
 - **阶段 7A/B/C**：P7 SpyGlass、P7 PrimeTime、Agent 运行器 MVP — 已完成
-- **阶段 8A**：P8 PnR 报告问答原型（101 个任务）— 已完成（当前）
+- **阶段 8A**：P8 PnR 报告问答原型（101 个任务）— 已完成
+- **阶段 8B**：规模化真实工具调试赛道 — P6 DC 约束→61、P7 SpyGlass→50、P7 PrimeTime→53（均经 b04 验证）— 已完成（当前）
 
 后续工作参见 [roadmap.md](roadmap.md)。

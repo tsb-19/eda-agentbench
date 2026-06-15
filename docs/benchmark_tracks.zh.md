@@ -10,11 +10,11 @@
 | P4 SPICE 仿真 | `p4_spice_sim` | 302 | HSPICE, Spectre | 基于指标的 RC/RLC/SPICE 优化 | 工具运行 + 输出 + 公开指标 + 隐藏指标 + 解释 |
 | P5 SPICE 网表调试 | `p5_spice_deck_debug` | 100 | HSPICE | 基于执行的网表/网表修复 | 执行通过 + 解释 |
 | P6 DC 综合 QA | `p6_dc_synthesis_qa` | 51 | dc（合成） | DC 综合报告问答 | 答案匹配 |
-| P6 DC 约束调试 | `p6_dc_constraint_debug` | 13 | dc | SDC 约束修复 | 约束通过 + 执行通过 |
-| P7 SpyGlass Lint 调试 | `p7_spyglass_lint_debug` | 16 | spyglass | RTL lint 违规修复 | Lint 通过（基于执行） |
-| P7 PrimeTime STA 调试 | `p7_primetime_sta_debug` | 17 | pt | SDC/时序约束修复 | 时序检查 + 执行通过 |
+| P6 DC 约束调试 | `p6_dc_constraint_debug` | 61 | dc | SDC 约束修复 | 约束通过 + 执行通过 |
+| P7 SpyGlass Lint 调试 | `p7_spyglass_lint_debug` | 50 | spyglass | RTL lint 违规修复 | Lint 通过（基于执行） |
+| P7 PrimeTime STA 调试 | `p7_primetime_sta_debug` | 53 | pt | SDC/时序约束修复 | 时序检查 + 执行通过 |
 | P8 PnR 报告问答 | `p8_pnr_report_qa` | 101 | icc2/innovus（合成） | PnR 报告字段提取与问答 | 答案匹配 |
-| **合计** | | **2710** | | | |
+| **合计** | | **2828** | | | |
 
 ## P1: RTL 调试
 
@@ -230,7 +230,7 @@
 
 **衡量内容**：Agent 利用 DC 反馈诊断和修复 SDC 约束错误的能力。
 
-- 13 个任务（1 个冒烟 + 12 个生成），6 种可靠缺陷类别
+- 61 个任务（1 个冒烟 + 60 个生成），6 种缺陷类别 × 10 个 RTL 模板
 - 基于执行：接受等价的非完全相同修复（无精确 diff）
 
 **评分权重**：
@@ -276,7 +276,7 @@ width_mismatch、unused_signal、undriven_signal、missing_default、implicit_ne
 
 **衡量内容**：Agent 利用真实 PrimeTime（pt_shell）反馈诊断时序约束问题的能力。
 
-- 17 个任务（1 个冒烟 + 16 个生成），4 种可靠 STA 缺陷类别
+- 53 个任务（1 个冒烟 + 52 个生成），4 种 STA 缺陷类别 × 13 个模板
 - 基于执行，使用真实 PrimeTime
 
 **评分权重**：
@@ -310,7 +310,4 @@ width_mismatch、unused_signal、undriven_signal、missing_default、implicit_ne
 | Track | ID | 工具 | 状态 |
 |-------|----|---------|--------|
 | P5 Spectre 方言 | `p5_spice_deck_debug` | Spectre | Spectre 方言网表修复 |
-| P6 DC 约束扩展 | `p6_dc_constraint_debug` | dc | 扩展到 50+ 任务 |
-| P7 SpyGlass Lint 扩展 | `p7_spyglass_lint_debug` | SpyGlass | 扩展到 50+ 任务 |
-| P7 PrimeTime STA 扩展 | `p7_primetime_sta_debug` | pt | 扩展到 50+ 任务 |
 | 专家级物理设计 | `p_physical` | ICC2/Innovus/StarRC/Sentaurus | PnR 执行、寄生参数提取、TCAD |

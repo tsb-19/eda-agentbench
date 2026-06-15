@@ -53,14 +53,23 @@ These categories were considered but deferred because PrimeTime accepts them sil
 
 ## Design Templates
 
-4 RTL templates with corresponding structural netlists:
+13 RTL templates, each paired with a corresponding DFF-based structural netlist:
 
-| Template | Ports | Description |
-|----------|-------|-------------|
-| counter | clk, rst_n, en, count[7:0] | 8-bit counter |
-| fsm_ctrl | clk, rst_n, start, busy, done | FSM controller |
-| adder_pipe | clk, rst_n, a[15:0], b[15:0], sum[16:0] | Pipelined adder |
-| mux_reg | clk, rst_n, sel[1:0], d0-d3[7:0], q[7:0] | Mux + register |
+| Template | Description |
+|----------|-------------|
+| counter | 8-bit counter |
+| updown_counter | up/down counter |
+| mod10_counter | modulo-10 counter |
+| accumulator | accumulator register |
+| toggle_ff | toggle flip-flop |
+| shift_reg | shift register |
+| parity_reg | registered parity |
+| adder_pipe | pipelined adder |
+| alu_reg | registered ALU |
+| comparator_reg | registered comparator |
+| decoder_reg | registered decoder |
+| mux_reg | mux + register |
+| fsm_ctrl | FSM controller |
 
 ## Scoring
 
@@ -101,12 +110,12 @@ Expected results:
 ## Generator
 
 ```bash
-python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 16 --seed 42
+python3 scripts/generate_p7_primetime_sta_debug_tasks.py --count 52 --seed 42
 ```
 
 Deterministic generation with seed-based period variation (2.0, 3.0, 5.0, 10.0 ns).
-Round-robin across 4 bug types and 4 RTL templates (16 unique combinations).
+Round-robin across 4 bug types and 13 RTL templates (52 unique combinations).
 
 Task ID scheme:
 - Smoke: `pt_sta_debug_0000` (generated with `--id-start 0`)
-- Generated: `pt_sta_debug_0001` through `pt_sta_debug_0016` (default `--id-start 1`)
+- Generated: `pt_sta_debug_0001` through `pt_sta_debug_0052` (default `--id-start 1`)

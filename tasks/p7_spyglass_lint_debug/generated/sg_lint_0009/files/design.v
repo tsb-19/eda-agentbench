@@ -1,11 +1,10 @@
-module comb_mux (
-    input  wire [7:0] a,
-    input  wire [7:0] b,
-    input  wire       sel,
-    output reg  [7:0] y
+module cmb_gate (
+    input  wire [3:0] d,
+    input  wire       en,
+    output reg  [3:0] q
 );
     always @(*) begin
-        if (sel)
-            y = a;
+        if (en)
+            q = d;
     end
 endmodule

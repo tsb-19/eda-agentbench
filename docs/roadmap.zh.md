@@ -12,15 +12,11 @@
 - **阶段 6A/B/C/D**：P4 扩展至 302（RC 上升/下降 + RLC）、P6 DC 综合问答（51）、P6 DC 约束调试（13）、基线运行器 + 排行榜
 - **阶段 7A/B/C**：P7 SpyGlass Lint 调试（16）、P7 PrimeTime STA 调试（17）、Agent 运行器 MVP
 - **阶段 8A**：P8 PnR 报告问答原型（101 个任务）
+- **阶段 8B**：规模化真实工具调试赛道 — P6 DC 约束 13→61、P7 SpyGlass 16→50、P7 PrimeTime 17→53（均在真实工具上经 b04 验证）
 
-合计：**10 条 track 共 2710 个任务**。实时清单参见 [current_status.md](current_status.md)。
+合计：**10 条 track 共 2828 个任务**。实时清单参见 [current_status.md](current_status.md)。
 
 ## 后续阶段
-
-### 扩展调试原型
-- P6 DC 约束调试：扩展至 50+ 个任务
-- P7 SpyGlass Lint 调试：扩展至 50+ 个任务
-- P7 PrimeTime STA 调试：扩展至 50+ 个任务
 
 ### P5 Spectre 方言
 - Spectre 方言的 SPICE 网表修复（P5 当前仅支持 HSPICE）

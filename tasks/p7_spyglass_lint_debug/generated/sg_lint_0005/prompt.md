@@ -7,7 +7,7 @@ Fix the design file so that the lint check passes with zero violations.
 
 ## Bug Category
 
-Blocking assignment (=) in sequential always block — use non-blocking (<=)
+Blocking assignment (=) in a sequential always block — use non-blocking (<=)
 
 ## Files
 

@@ -409,12 +409,12 @@ def test_smoke_id_not_in_generated():
 
 
 def test_total_task_count():
-    """Total P7 SpyGlass task count is 16 (1 smoke + 15 generated)."""
+    """Total P7 SpyGlass task count is 50 (1 smoke + 49 generated)."""
     if not SMOKE_DIR.is_dir() or not GENERATED_DIR.is_dir():
         pytest.skip("Tasks not generated")
     smoke_count = sum(1 for d in SMOKE_DIR.iterdir() if d.is_dir())
     gen_count = sum(1 for d in GENERATED_DIR.iterdir() if d.is_dir())
-    assert smoke_count + gen_count == 16, f"Expected 16, got {smoke_count + gen_count}"
+    assert smoke_count + gen_count == 50, f"Expected 50, got {smoke_count + gen_count}"
 
 
 def test_generated_ids_start_at_one():

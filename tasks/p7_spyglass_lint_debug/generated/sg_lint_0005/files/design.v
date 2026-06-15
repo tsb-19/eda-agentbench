@@ -1,13 +1,13 @@
-module seq_blocking_clean (
+module sq_cnt (
     input  wire       clk,
     input  wire       rst_n,
-    input  wire [7:0] d,
-    output reg  [7:0] q
+    input  wire       en,
+    output reg  [7:0] cnt
 );
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
-            q = 8'd0;
-        else
-            q = d;
+            cnt = 8'd0;
+        else if (en)
+            cnt = cnt + 8'd1;
     end
 endmodule

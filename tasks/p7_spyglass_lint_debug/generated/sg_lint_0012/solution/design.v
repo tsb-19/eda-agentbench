@@ -1,13 +1,14 @@
-module comb_mux (
-    input  wire [3:0] a,
-    input  wire [3:0] b,
-    input  wire       sel,
-    output reg  [3:0] y
+module cmb_eqmux (
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    input  wire [7:0] c,
+    input  wire [7:0] d,
+    output reg  [7:0] y
 );
     always @(*) begin
-        if (sel)
-            y = a;
+        if (a == b)
+            y = c;
         else
-            y = b;
+            y = d;
     end
 endmodule

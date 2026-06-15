@@ -329,12 +329,225 @@ endmodule
         "Blocking assignment (=) in sequential always block — use non-blocking (<=)"
 
 
-# Registry of bug generators — only categories with reliable SpyGlass detection
-BUG_GENERATORS = [
-    _bug_latch_inference,
-    _bug_multi_driven,
-    _bug_blocking_in_seq,
+# ---------------------------------------------------------------------------
+# Design-diverse library.  latch_inference uses curated combinational
+# (clean, buggy) pairs; multi_driven and blocking_in_seq are produced by
+# deterministic transforms over a shared library of sequential designs.
+# Every (design, category) entry is validated on real SpyGlass before being
+# kept (clean -> 0 violations, buggy -> >=1).
+# ---------------------------------------------------------------------------
+
+# Combinational designs for latch_inference, built compactly. clean has complete
+# branches; buggy drops one -> inferred latch.
+
+def _mk_comb_ifelse(name: str, decl: str, cond: str, then_s: str, else_s: str):
+    head = f"module {name} (\n{decl}\n);\n    always @(*) begin\n"
+    clean = head + f"        if ({cond})\n            {then_s}\n        else\n            {else_s}\n    end\nendmodule\n"
+    buggy = head + f"        if ({cond})\n            {then_s}\n    end\nendmodule\n"
+    return (name, clean, buggy)
+
+
+def _mk_comb_case(name: str, decl: str, sel: str, items: list):
+    """clean = all case items (complete); buggy = drop the last item (incomplete -> latch)."""
+    head = f"module {name} (\n{decl}\n);\n    always @(*) begin\n        case ({sel})\n"
+    tail = "\n        endcase\n    end\nendmodule\n"
+    clean = head + "\n".join(f"            {it}" for it in items) + tail
+    buggy = head + "\n".join(f"            {it}" for it in items[:-1]) + tail
+    return (name, clean, buggy)
+
+
+_D8 = "    input  wire [7:0] a,\n    input  wire [7:0] b,\n    output reg  [7:0] y"
+_COMB_IFELSE = [
+    ("cmb_mux2", "    input  wire [7:0] a,\n    input  wire [7:0] b,\n    input  wire       sel,\n    output reg  [7:0] y", "sel", "y = a;", "y = b;"),
+    ("cmb_max", _D8, "a > b", "y = a;", "y = b;"),
+    ("cmb_min", _D8, "a < b", "y = a;", "y = b;"),
+    ("cmb_gate", "    input  wire [3:0] d,\n    input  wire       en,\n    output reg  [3:0] q", "en", "q = d;", "q = 4'd0;"),
+    ("cmb_eqmux", "    input  wire [7:0] a,\n    input  wire [7:0] b,\n    input  wire [7:0] c,\n    input  wire [7:0] d,\n    output reg  [7:0] y", "a == b", "y = c;", "y = d;"),
+    ("cmb_andor", "    input  wire [7:0] a,\n    input  wire [7:0] b,\n    input  wire       op,\n    output reg  [7:0] y", "op", "y = a & b;", "y = a | b;"),
+    ("cmb_xorsel", "    input  wire [7:0] a,\n    input  wire [7:0] b,\n    input  wire       op,\n    output reg  [7:0] y", "op", "y = a ^ b;", "y = a;"),
+    ("cmb_invsel", "    input  wire [7:0] a,\n    input  wire       sel,\n    output reg  [7:0] y", "sel", "y = a;", "y = ~a;"),
+    ("cmb_masksel", "    input  wire [7:0] a,\n    input  wire       sel,\n    output reg  [7:0] y", "sel", "y = a & 8'h0f;", "y = a & 8'hf0;"),
+    ("cmb_byterev", "    input  wire [7:0] a,\n    input  wire       sel,\n    output reg  [7:0] y", "sel", "y = {a[3:0], a[7:4]};", "y = a;"),
+    ("cmb_cmpeq", _D8, "a == b", "y = 8'hff;", "y = 8'h00;"),
+    ("cmb_selconst", "    input  wire [7:0] a,\n    input  wire       sel,\n    output reg  [7:0] y", "sel", "y = a;", "y = 8'haa;"),
+    ("cmb_clamp", "    input  wire [7:0] d,\n    input  wire [7:0] lim,\n    output reg  [7:0] y", "d > lim", "y = lim;", "y = d;"),
 ]
+
+_COMB_CASE = [
+    _mk_comb_case("cmb_mux4",
+                  "    input  wire [1:0] sel,\n    input  wire [7:0] d0,\n    input  wire [7:0] d1,\n    input  wire [7:0] d2,\n    input  wire [7:0] d3,\n    output reg  [7:0] y",
+                  "sel", ["2'd0: y = d0;", "2'd1: y = d1;", "2'd2: y = d2;", "2'd3: y = d3;"]),
+    _mk_comb_case("cmb_decode",
+                  "    input  wire [1:0] sel,\n    output reg  [3:0] y",
+                  "sel", ["2'd0: y = 4'b0001;", "2'd1: y = 4'b0010;", "2'd2: y = 4'b0100;", "2'd3: y = 4'b1000;"]),
+    _mk_comb_case("cmb_seg",
+                  "    input  wire [1:0] sel,\n    output reg  [7:0] y",
+                  "sel", ["2'd0: y = 8'h3f;", "2'd1: y = 8'h06;", "2'd2: y = 8'h5b;", "2'd3: y = 8'h4f;"]),
+]
+
+# if/else-if chains (clean has trailing else; buggy drops it -> latch).
+_COMB_CHAIN = [
+    ("cmb_cmp3", """\
+module cmb_cmp3 (
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg  [1:0] y
+);
+    always @(*) begin
+        if (a > b)
+            y = 2'd2;
+        else if (a == b)
+            y = 2'd1;
+        else
+            y = 2'd0;
+    end
+endmodule
+""", """\
+module cmb_cmp3 (
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg  [1:0] y
+);
+    always @(*) begin
+        if (a > b)
+            y = 2'd2;
+        else if (a == b)
+            y = 2'd1;
+    end
+endmodule
+"""),
+    ("cmb_prio4", """\
+module cmb_prio4 (
+    input  wire [3:0] r,
+    output reg  [1:0] y
+);
+    always @(*) begin
+        if (r[3])
+            y = 2'd3;
+        else if (r[2])
+            y = 2'd2;
+        else if (r[1])
+            y = 2'd1;
+        else
+            y = 2'd0;
+    end
+endmodule
+""", """\
+module cmb_prio4 (
+    input  wire [3:0] r,
+    output reg  [1:0] y
+);
+    always @(*) begin
+        if (r[3])
+            y = 2'd3;
+        else if (r[2])
+            y = 2'd2;
+        else if (r[1])
+            y = 2'd1;
+    end
+endmodule
+"""),
+]
+
+_COMB_DESIGNS = [_mk_comb_ifelse(*t) for t in _COMB_IFELSE] + _COMB_CASE + _COMB_CHAIN
+
+# Sequential designs for multi_driven / blocking_in_seq, built compactly.
+# Each uses non-blocking (<=) only and no "<=" comparisons, so the blocking
+# transform (<= -> =) is safe. (name, clean, out, width).
+
+_CR = "    input  wire       clk,\n    input  wire       rst_n,\n"
+
+
+def _mk_seq(name: str, decl: str, body: str, out: str, width: int):
+    rtl = (f"module {name} (\n{decl}\n);\n"
+           f"    always @(posedge clk or negedge rst_n) begin\n{body}\n    end\nendmodule\n")
+    return (name, rtl, out, width)
+
+
+_SEQ_DESIGNS = [
+    _mk_seq("sq_reg", _CR + "    input  wire [7:0] d,\n    output reg  [7:0] q",
+            "        if (!rst_n)\n            q <= 8'd0;\n        else\n            q <= d;", "q", 8),
+    _mk_seq("sq_cnt", _CR + "    input  wire       en,\n    output reg  [7:0] cnt",
+            "        if (!rst_n)\n            cnt <= 8'd0;\n        else if (en)\n            cnt <= cnt + 8'd1;", "cnt", 8),
+    _mk_seq("sq_acc", _CR + "    input  wire [7:0]  x,\n    output reg  [15:0] s",
+            "        if (!rst_n)\n            s <= 16'd0;\n        else\n            s <= s + {8'd0, x};", "s", 16),
+    _mk_seq("sq_shift", _CR + "    input  wire       din,\n    output reg  [7:0] q",
+            "        if (!rst_n)\n            q <= 8'd0;\n        else\n            q <= {q[6:0], din};", "q", 8),
+    _mk_seq("sq_updown", _CR + "    input  wire       up,\n    output reg  [7:0] c",
+            "        if (!rst_n)\n            c <= 8'd0;\n        else if (up)\n            c <= c + 8'd1;\n        else\n            c <= c - 8'd1;", "c", 8),
+    _mk_seq("sq_toggle", _CR + "    input  wire en,\n    output reg  t",
+            "        if (!rst_n)\n            t <= 1'b0;\n        else if (en)\n            t <= ~t;", "t", 1),
+    _mk_seq("sq_load", _CR + "    input  wire       ld,\n    input  wire [7:0] d,\n    output reg  [7:0] r",
+            "        if (!rst_n)\n            r <= 8'd0;\n        else if (ld)\n            r <= d;", "r", 8),
+    _mk_seq("sq_decr", _CR + "    input  wire       en,\n    output reg  [7:0] c",
+            "        if (!rst_n)\n            c <= 8'hff;\n        else if (en)\n            c <= c - 8'd1;", "c", 8),
+    # sq_mod10 culled: its clean version trips SpyGlass lint_rtl (non-discriminating
+    # under both multi_driven and blocking_in_seq), confirmed on b04.
+    _mk_seq("sq_sat", _CR + "    input  wire       en,\n    output reg  [7:0] c",
+            "        if (!rst_n)\n            c <= 8'd0;\n        else if (en && c != 8'hff)\n            c <= c + 8'd1;", "c", 8),
+    _mk_seq("sq_xoracc", _CR + "    input  wire [7:0] x,\n    output reg  [7:0] a",
+            "        if (!rst_n)\n            a <= 8'd0;\n        else\n            a <= a ^ x;", "a", 8),
+    _mk_seq("sq_par", _CR + "    input  wire [7:0] d,\n    output reg  p",
+            "        if (!rst_n)\n            p <= 1'b0;\n        else\n            p <= ^d;", "p", 1),
+    _mk_seq("sq_gray", _CR + "    input  wire [7:0] bin,\n    output reg  [7:0] g",
+            "        if (!rst_n)\n            g <= 8'd0;\n        else\n            g <= (bin >> 1) ^ bin;", "g", 8),
+    _mk_seq("sq_capture", _CR + "    input  wire       valid,\n    input  wire [7:0] din,\n    output reg  [7:0] data",
+            "        if (!rst_n)\n            data <= 8'd0;\n        else if (valid)\n            data <= din;", "data", 8),
+    _mk_seq("sq_sticky", _CR + "    input  wire setf,\n    output reg  flag",
+            "        if (!rst_n)\n            flag <= 1'b0;\n        else if (setf)\n            flag <= 1'b1;", "flag", 1),
+    _mk_seq("sq_rotate", _CR + "    input  wire       en,\n    output reg  [7:0] r",
+            "        if (!rst_n)\n            r <= 8'd1;\n        else if (en)\n            r <= {r[6:0], r[7]};", "r", 8),
+    _mk_seq("sq_addk", _CR + "    input  wire [7:0] k,\n    output reg  [7:0] y",
+            "        if (!rst_n)\n            y <= 8'd0;\n        else\n            y <= y + k;", "y", 8),
+]
+
+
+def _mk_multi_driven(clean: str, out: str, width: int) -> str:
+    """Inject a second always block driving `out` -> multi-driven net."""
+    inject = (f"\n    always @(posedge clk or negedge rst_n) begin\n"
+              f"        if (!rst_n)\n"
+              f"            {out} <= {{{width}{{1'b0}}}};\n"
+              f"    end\n")
+    return clean.replace("endmodule", inject + "endmodule", 1)
+
+
+def _mk_blocking(clean: str) -> str:
+    """Convert non-blocking (<=) to blocking (=) in the sequential block."""
+    return clean.replace("<=", "=")
+
+
+def _interleave(*lists) -> list:
+    """Round-robin interleave so any contiguous range covers all categories."""
+    out, i = [], 0
+    while True:
+        added = False
+        for lst in lists:
+            if i < len(lst):
+                out.append(lst[i])
+                added = True
+        if not added:
+            return out
+        i += 1
+
+
+_LATCH_SPECS = [
+    (clean, buggy, "latch_inference", "easy",
+     "Incomplete if/case in a combinational always block — creates an inferred latch")
+    for _name, clean, buggy in _COMB_DESIGNS
+]
+_MULTI_SPECS = [
+    (clean, _mk_multi_driven(clean, out, w), "multi_driven", "medium",
+     f"Signal '{out}' driven by two always blocks — multi-driven net")
+    for _name, clean, out, w in _SEQ_DESIGNS
+]
+_BLOCKING_SPECS = [
+    (clean, _mk_blocking(clean), "blocking_in_seq", "medium",
+     "Blocking assignment (=) in a sequential always block — use non-blocking (<=)")
+    for _name, clean, out, w in _SEQ_DESIGNS
+]
+
+# Each spec is (clean_rtl, buggy_rtl, bug_name, difficulty, description).
+TASK_SPECS = _interleave(_LATCH_SPECS, _MULTI_SPECS, _BLOCKING_SPECS)
 
 EXPECTED_BUG_TYPE_NAMES = [
     "latch_inference", "multi_driven", "blocking_in_seq",
@@ -430,9 +643,8 @@ class P7SpyGlassLintDebugGenerator(BaseGenerator):
     """Generates P7 SpyGlass Lint Debug tasks with deterministic seeds."""
 
     def generate_one(self, task_index: int) -> Path:
-        bug_fn = BUG_GENERATORS[task_index % len(BUG_GENERATORS)]
-        # Use rng for any randomization within the bug function
-        correct_rtl, buggy_rtl, bug_name, difficulty, description = bug_fn(self.rng)
+        spec = TASK_SPECS[task_index % len(TASK_SPECS)]
+        correct_rtl, buggy_rtl, bug_name, difficulty, description = spec
 
         # Extract top module name from RTL
         m = re.search(r"module\s+(\w+)", correct_rtl)

@@ -16,11 +16,11 @@ EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic
 | P4 SPICE Sim | 302 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
 | P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
 | P6 DC Synthesis QA | 51 | dc (synthetic) | template_synthetic | answer_match |
-| P6 DC Constraint Debug | 13 | dc | template_synthetic | execution-based (constraint + execution) |
-| P7 SpyGlass Lint Debug | 16 | spyglass | template_synthetic | execution-based (lint violations) |
-| P7 PrimeTime STA Debug | 17 | pt | template_synthetic | timing check + execution pass + explanation |
+| P6 DC Constraint Debug | 61 | dc | template_synthetic | execution-based (constraint + execution) |
+| P7 SpyGlass Lint Debug | 50 | spyglass | template_synthetic | execution-based (lint violations) |
+| P7 PrimeTime STA Debug | 53 | pt | template_synthetic | timing check + execution pass + explanation |
 | P8 PnR Report QA | 101 | icc2/innovus (synthetic) | template_synthetic | answer_match + explanation |
-| **Total** | **2710** | | | |
+| **Total** | **2828** | | | |
 
 ### P1 RTL Debug (1001 tasks)
 
@@ -94,21 +94,21 @@ Each task fixes a circuit to meet rise/fall time specifications. The buggy versi
 - No real DC tool required (uses synthetic reports)
 - Scoring: answer_match (1.0)
 
-### P6 DC Constraint Debug (13 tasks, prototype)
+### P6 DC Constraint Debug (61 tasks)
 
-- 1 smoke + 12 generated, 6 reliable bug categories
+- 1 smoke + 60 generated, 6 bug categories × 10 RTL templates
 - Data type: `template_synthetic`; execution-based SDC repair (Design Compiler)
 - Scoring: constraint_pass (0.6) + execution_pass (0.3) + explanation (0.1)
 
-### P7 SpyGlass Lint Debug (16 tasks, prototype)
+### P7 SpyGlass Lint Debug (50 tasks)
 
-- 1 smoke + 15 generated, 3 reliable lint bug categories
+- 1 smoke + 49 generated, 3 lint categories × design library
 - Execution-based with real SpyGlass (sg_shell)
 - Scoring: lint_pass (0.9) + explanation (0.1)
 
-### P7 PrimeTime STA Debug (17 tasks, prototype)
+### P7 PrimeTime STA Debug (53 tasks)
 
-- 1 smoke + 16 generated, 4 reliable STA bug categories
+- 1 smoke + 52 generated, 4 bug types × 13 templates
 - Execution-based with real PrimeTime (pt_shell)
 - Scoring: timing_check (0.6) + execution_pass (0.3) + explanation (0.1)
 
@@ -131,8 +131,8 @@ These modes validate that tasks are well-calibrated: correct answers always pass
 
 | Mode | Tasks | Avg Score | Buggy Lower |
 |------|-------|-----------|-------------|
-| Solution | 2710/2710 | 1.00 | N/A |
-| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
+| Solution | 2828/2828 | 1.00 | N/A |
+| Buggy | 2828/2828 | < 1.00 | 2828/2828 |
 
 ## Test Suite
 
@@ -165,7 +165,7 @@ Generate with: `python scripts/export_benchmark_summary.py`
 1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`); no interactive loop or per-tool-call transcript yet.
 2. P1 and P4 use exact solution matching; P5 / P6 Constraint / P7 debug tracks accept any functionally correct fix (execution-based).
 3. P4 covers RC and RLC topologies (no op-amp or digital SPICE).
-4. P6/P7 debug tracks and P8 report QA are prototypes; not yet scaled.
+4. P6 DC Constraint / P7 SpyGlass / P7 PrimeTime debug tracks scaled to 50+ (b04-validated); P6 DC Synthesis QA and P8 report QA remain prototypes.
 5. No LLM API integration for explanation scoring in submission mode.
 
 ## Intended Use

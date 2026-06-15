@@ -3,7 +3,7 @@
 
 # Read design and set top
 read_file -type verilog design.v
-set_option top seq_blocking_clean
+set_option top sq_shift
 
 # Run lint goal
 current_goal lint/lint_rtl

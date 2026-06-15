@@ -62,7 +62,17 @@ TCL 脚本使用 `redirect -file` 捕获 SDC 源输出，然后检查：
 
 ## RTL 模板
 
+10 个小型可综合模板（使用 `lsi_10k.db` 经 `compile_ultra`）：
+
 - `counter` — 带使能的 8 位计数器
+- `updown_counter` — 加/减计数器
+- `accumulator` — 累加寄存器
+- `shift_reg` — 移位寄存器
+- `adder_pipe` — 流水线加法器
+- `alu_reg` — 寄存 ALU
+- `comparator_reg` — 寄存比较器
+- `decoder_reg` — 寄存译码器
+- `mux_reg` — 多路复用器 + 寄存器
 - `fsm_ctrl` — 3 状态 FSM 控制器
 
 ## 评分
@@ -81,6 +91,6 @@ TCL 脚本使用 `redirect -file` 捕获 SDC 源输出，然后检查：
 ## 已知限制
 
 - DC 对许多约束问题较为宽容；仅 6 个类别能产生可检测的故障
-- 原型规模：13 个任务（1 个冒烟 + 12 个生成）
+- 规模：61 个任务（1 个冒烟 + 60 个生成，6 种缺陷类别 × 10 个 RTL 模板）
 - 不支持 Spectre 方言
 - 尚未集成智能体运行器

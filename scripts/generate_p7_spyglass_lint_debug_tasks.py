@@ -4,8 +4,8 @@
 Usage:
     python scripts/generate_p7_spyglass_lint_debug_tasks.py [--count N] [--seed S]
 
-Default: 32 tasks (4 per bug category × 8 categories), seed=42.
-Smoke task is always generated as sg_lint_0000.
+Default: 49 generated tasks (sequential/combinational design library × 3 reliable
+lint categories) + 1 smoke task (sg_lint_0000), seed=42.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ TASKS_DIR = REPO_ROOT / "tasks" / "p7_spyglass_lint_debug"
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate P7 SpyGlass Lint Debug tasks")
-    parser.add_argument("--count", type=int, default=15, help="Number of tasks to generate")
+    parser.add_argument("--count", type=int, default=49, help="Number of tasks to generate")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
     parser.add_argument("--output-dir", type=Path, default=TASKS_DIR / "generated",
                         help="Output directory for generated tasks")

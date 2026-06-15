@@ -115,6 +115,118 @@ module mux_reg (
 endmodule
 """
 
+_RTL_SHIFT = """\
+module shift_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       din,
+    output reg  [7:0] dout
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            dout <= 8'd0;
+        else
+            dout <= {dout[6:0], din};
+    end
+endmodule
+"""
+
+_RTL_CMP = """\
+module comparator_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg        gt,
+    output reg        eq
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            gt <= 1'b0;
+            eq <= 1'b0;
+        end else begin
+            gt <= (a > b);
+            eq <= (a == b);
+        end
+    end
+endmodule
+"""
+
+_RTL_DECODER = """\
+module decoder_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [1:0] sel,
+    output reg  [3:0] onehot
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            onehot <= 4'd0;
+        else
+            onehot <= (4'd1 << sel);
+    end
+endmodule
+"""
+
+_RTL_ALU = """\
+module alu_reg (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire [1:0] op,
+    input  wire [7:0] a,
+    input  wire [7:0] b,
+    output reg  [7:0] result
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            result <= 8'd0;
+        else begin
+            case (op)
+                2'd0: result <= a + b;
+                2'd1: result <= a - b;
+                2'd2: result <= a & b;
+                2'd3: result <= a | b;
+            endcase
+        end
+    end
+endmodule
+"""
+
+_RTL_ACC = """\
+module accumulator (
+    input  wire        clk,
+    input  wire        rst_n,
+    input  wire        en,
+    input  wire [7:0]  data,
+    output reg  [15:0] acc
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            acc <= 16'd0;
+        else if (en)
+            acc <= acc + {8'd0, data};
+    end
+endmodule
+"""
+
+_RTL_UPDOWN = """\
+module updown_counter (
+    input  wire       clk,
+    input  wire       rst_n,
+    input  wire       up,
+    output reg  [7:0] cnt
+);
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            cnt <= 8'd0;
+        else if (up)
+            cnt <= cnt + 8'd1;
+        else
+            cnt <= cnt - 8'd1;
+    end
+endmodule
+"""
+
 RTL_TEMPLATES = [
     {"name": "counter", "rtl": _RTL_COUNTER, "top": "counter",
      "clk": "clk", "inputs": ["clk", "rst_n", "en"], "outputs": ["count"]},
@@ -124,6 +236,18 @@ RTL_TEMPLATES = [
      "clk": "clk", "inputs": ["clk", "rst_n", "a", "b"], "outputs": ["sum"]},
     {"name": "mux_reg", "rtl": _RTL_MUX, "top": "mux_reg",
      "clk": "clk", "inputs": ["clk", "rst_n", "sel", "d0", "d1", "d2", "d3"], "outputs": ["q"]},
+    {"name": "shift_reg", "rtl": _RTL_SHIFT, "top": "shift_reg",
+     "clk": "clk", "inputs": ["clk", "rst_n", "din"], "outputs": ["dout"]},
+    {"name": "comparator_reg", "rtl": _RTL_CMP, "top": "comparator_reg",
+     "clk": "clk", "inputs": ["clk", "rst_n", "a", "b"], "outputs": ["gt", "eq"]},
+    {"name": "decoder_reg", "rtl": _RTL_DECODER, "top": "decoder_reg",
+     "clk": "clk", "inputs": ["clk", "rst_n", "sel"], "outputs": ["onehot"]},
+    {"name": "alu_reg", "rtl": _RTL_ALU, "top": "alu_reg",
+     "clk": "clk", "inputs": ["clk", "rst_n", "op", "a", "b"], "outputs": ["result"]},
+    {"name": "accumulator", "rtl": _RTL_ACC, "top": "accumulator",
+     "clk": "clk", "inputs": ["clk", "rst_n", "en", "data"], "outputs": ["acc"]},
+    {"name": "updown_counter", "rtl": _RTL_UPDOWN, "top": "updown_counter",
+     "clk": "clk", "inputs": ["clk", "rst_n", "up"], "outputs": ["cnt"]},
 ]
 
 
@@ -172,33 +296,33 @@ def _bug_missing_clock(rtl: dict, period_ns: float) -> tuple[str, str, str, str]
         "Missing create_clock definition — DC reports 'Can't find clock'"
 
 
+def _first_nonclk_port(rtl: dict) -> str | None:
+    """First non-clock port (prefer inputs, then outputs) — used to inject port bugs.
+
+    Keeps the port-name bugs template-agnostic so any RTL template works.
+    """
+    clk = rtl["clk"]
+    cands = [p for p in rtl["inputs"] if p != clk] + list(rtl["outputs"])
+    return cands[0] if cands else None
+
+
 def _bug_wrong_port_name(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Wrong port name in constraint (typo)."""
+    """Wrong port name in constraint (typo) — template-agnostic."""
     sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    for i, line in enumerate(lines):
-        if "get_ports" in line and "{clk}" not in line:
-            # Replace the first non-clock port reference with a wrong name
-            for old, new in [("{rst_n}", "{reset_n}"), ("{en}", "{enable}"),
-                             ("{start}", "{go}"), ("{a}", "{in_a}"), ("{b}", "{in_b}"),
-                             ("{sel}", "{selector}"), ("{d0}", "{data0}")]:
-                if old in line:
-                    lines[i] = line.replace(old, new)
-                    break
-            break
-    return "\n".join(lines), "wrong_port_name", "easy", \
+    port = _first_nonclk_port(rtl)
+    if port is not None:
+        sdc = sdc.replace(f"[get_ports {{{port}}}]", f"[get_ports {{{port}_typo}}]", 1)
+    return sdc, "wrong_port_name", "easy", \
         "Wrong port name in constraint — DC reports 'Can't find port'"
 
 
 def _bug_invalid_get_ports(rtl: dict, period_ns: float) -> tuple[str, str, str, str]:
-    """Invalid get_ports pattern (wildcard error)."""
+    """Invalid get_ports pattern (wildcard matches nothing) — template-agnostic."""
     sdc = _correct_sdc(rtl, period_ns)
-    lines = sdc.split("\n")
-    for i, line in enumerate(lines):
-        if "set_input_delay" in line and "rst_n" in line:
-            lines[i] = line.replace("[get_ports {rst_n}]", "[get_ports {nonexistent_*}]")
-            break
-    return "\n".join(lines), "invalid_get_ports", "medium", \
+    port = _first_nonclk_port(rtl)
+    if port is not None:
+        sdc = sdc.replace(f"[get_ports {{{port}}}]", "[get_ports {nonexistent_*}]", 1)
+    return sdc, "invalid_get_ports", "medium", \
         "Invalid get_ports pattern — DC reports 'Can't find ports matching'"
 
 

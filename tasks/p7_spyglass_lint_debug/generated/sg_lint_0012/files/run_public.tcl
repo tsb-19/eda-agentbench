@@ -3,7 +3,7 @@
 
 # Read design and set top
 read_file -type verilog design.v
-set_option top comb_mux
+set_option top cmb_eqmux
 
 # Run lint goal
 current_goal lint/lint_rtl

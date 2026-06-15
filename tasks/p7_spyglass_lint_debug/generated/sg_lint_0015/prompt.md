@@ -7,7 +7,7 @@ Fix the design file so that the lint check passes with zero violations.
 
 ## Bug Category
 
-Incomplete if-else in combinational always block — creates inferred latch
+Incomplete if/case in a combinational always block — creates an inferred latch
 
 ## Files
 

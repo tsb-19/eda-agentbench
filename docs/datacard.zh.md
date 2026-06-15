@@ -16,11 +16,11 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 | P4 SPICE 仿真 | 302 | HSPICE, Spectre | template_synthetic | 工具运行 + 输出 + 公开指标 + 隐藏指标 + 解释 |
 | P5 SPICE 网表调试 | 100 | HSPICE | flow_synthetic | 基于执行（退出码 + 无致命错误）+ 解释 |
 | P6 DC 综合 QA | 51 | dc（合成） | template_synthetic | 答案匹配 |
-| P6 DC 约束调试 | 13 | dc | template_synthetic | 基于执行（约束 + 执行） |
-| P7 SpyGlass Lint 调试 | 16 | spyglass | template_synthetic | 基于执行（lint 违规） |
-| P7 PrimeTime STA 调试 | 17 | pt | template_synthetic | 时序检查 + 执行通过 + 解释 |
+| P6 DC 约束调试 | 61 | dc | template_synthetic | 基于执行（约束 + 执行） |
+| P7 SpyGlass Lint 调试 | 50 | spyglass | template_synthetic | 基于执行（lint 违规） |
+| P7 PrimeTime STA 调试 | 53 | pt | template_synthetic | 时序检查 + 执行通过 + 解释 |
 | P8 PnR 报告问答 | 101 | icc2/innovus（合成） | template_synthetic | 答案匹配 + 解释 |
-| **合计** | **2710** | | | |
+| **合计** | **2828** | | | |
 
 ### P1 RTL 调试（1001 个任务）
 
@@ -94,21 +94,21 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 - 不需要真实 DC 工具（使用合成报告）
 - 评分：answer_match（1.0）
 
-### P6 DC 约束调试（13 个任务，原型）
+### P6 DC 约束调试（61 个任务）
 
-- 1 个冒烟 + 12 个生成，6 种可靠缺陷类别
+- 1 个冒烟 + 60 个生成，6 种缺陷类别 × 10 个 RTL 模板
 - 数据类型：`template_synthetic`；基于执行的 SDC 修复（Design Compiler）
 - 评分：constraint_pass（0.6）+ execution_pass（0.3）+ explanation（0.1）
 
-### P7 SpyGlass Lint 调试（16 个任务，原型）
+### P7 SpyGlass Lint 调试（50 个任务）
 
-- 1 个冒烟 + 15 个生成，3 种可靠 Lint 缺陷类别
+- 1 个冒烟 + 49 个生成，3 个 Lint 类别 × 设计库
 - 基于执行，使用真实 SpyGlass（sg_shell）
 - 评分：lint_pass（0.9）+ explanation（0.1）
 
-### P7 PrimeTime STA 调试（17 个任务，原型）
+### P7 PrimeTime STA 调试（53 个任务）
 
-- 1 个冒烟 + 16 个生成，4 种可靠 STA 缺陷类别
+- 1 个冒烟 + 52 个生成，4 种缺陷类型 × 13 个模板
 - 基于执行，使用真实 PrimeTime（pt_shell）
 - 评分：timing_check（0.6）+ execution_pass（0.3）+ explanation（0.1）
 
@@ -131,8 +131,8 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 
 | 模式 | 任务 | 平均分 | Buggy 较低 |
 |------|-------|-----------|-------------|
-| Solution | 2710/2710 | 1.00 | N/A |
-| Buggy | 2710/2710 | < 1.00 | 2710/2710 |
+| Solution | 2828/2828 | 1.00 | N/A |
+| Buggy | 2828/2828 | < 1.00 | 2828/2828 |
 
 ## 测试套件
 
@@ -165,7 +165,7 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 1. Agent 运行器 MVP 可用（`run-agent`、`run-agent-dataset`）；尚无交互式循环或逐次工具调用记录。
 2. P1 和 P4 使用精确解答匹配；P5 / P6 约束 / P7 调试 track 接受任何功能正确的修复（基于执行）。
 3. P4 覆盖 RC 和 RLC 拓扑（无运放或数字 SPICE）。
-4. P6/P7 调试 track 和 P8 报告问答均为原型；尚未扩展。
+4. P6 DC 约束 / P7 SpyGlass / P7 PrimeTime 调试 track 已规模化至 50+（经 b04 验证）；P6 DC 综合 QA 与 P8 报告问答仍为原型。
 5. 提交模式下无 LLM API 集成用于解释评分。
 
 ## 预期用途

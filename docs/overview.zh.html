@@ -158,7 +158,7 @@
         <p class="sub">考的不是 EDA 名词背诵,而是动手能力:让模型修改设计后,用产线上真正在用的 Synopsys / Cadence 软件跑一遍——看它能不能跑通、结果达不达标。覆盖从写代码到布局布线的完整芯片设计流程。</p>
       </div>
       <div class="cluster">
-        <div class="s"><div class="n">2710</div><div class="l">道题</div></div>
+        <div class="s"><div class="n">2828</div><div class="l">道题</div></div>
         <div class="s"><div class="n">10</div><div class="l">个赛道</div></div>
         <div class="s"><div class="n">8</div><div class="l">款商用工具</div></div>
         <div class="s"><div class="n">7</div><div class="l">个流程环节</div></div>
@@ -242,7 +242,7 @@
         <rect x="488" y="164" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
         <text x="502" y="183" font-size="11" fill="#17212f">评分引擎 · 受控沙盒运行环境 · 抽样快速评测</text>
         <rect x="488" y="200" width="478" height="22" rx="4" fill="#17212f"/>
-        <text x="727" y="215" font-size="11.5" text-anchor="middle" fill="#f3efe6" font-weight="600">2710 道题 · 10 个赛道</text>
+        <text x="727" y="215" font-size="11.5" text-anchor="middle" fill="#f3efe6" font-weight="600">2828 道题 · 10 个赛道</text>
       </svg>
       <p class="note">P5 的数据由仓库内 <b>datagen/ 模块</b>生产、验证、导出,再导入为评测任务;其余 9 个赛道由 <b>generators/</b> 直接生成。评测只读取导入后的本地任务,<b>不依赖 datagen</b>——数据生产与评测在同一仓库内、各司其职。</p>
     </div>
@@ -258,7 +258,7 @@
         <div class="step"><span class="sn">05</span><b>各项加权汇总</b><small>编译/测试/指标等按权重合成一份结构化评分</small></div>
         <div class="step"><span class="sn">06</span><b>总分 ≥ 0.5 通过</b><small>正确答案应得满分,原始缺陷版应当失分</small></div>
       </div>
-      <p class="note">用两把尺子校准可信度:全部 2710 道题,喂<b>正确答案必须拿满分</b>、喂<b>原始缺陷版必须扣分</b>——「对的拿满分、错的必失分」两头都成立。其中约 <b>1550 道</b>按工具真实运行结果判分;另约 <b>1160 道</b>是「读报告答题」,用人工合成的报告即可评测,<b>无需购买对应软件授权</b>。</p>
+      <p class="note">用两把尺子校准可信度:全部 2828 道题,喂<b>正确答案必须拿满分</b>、喂<b>原始缺陷版必须扣分</b>——「对的拿满分、错的必失分」两头都成立。其中约 <b>1668 道</b>按工具真实运行结果判分;另约 <b>1160 道</b>是「读报告答题」,用人工合成的报告即可评测,<b>无需购买对应软件授权</b>。</p>
     </div>
 
     <!-- 05 赛道 -->
@@ -273,9 +273,9 @@
           <tr><td><span class="pc">P4</span> SPICE 电路仿真</td><td class="r">302</td><td class="tool">HSPICE · Spectre</td><td>调整元件参数,让电路时序指标落进规格范围</td><td><span class="badge run">真跑</span></td></tr>
           <tr><td><span class="pc">P5</span> SPICE 网表纠错</td><td class="r">100</td><td class="tool">HSPICE</td><td>修好让仿真器根本跑不起来的网表<span class="gloss">(电路连接清单)</span>错误</td><td><span class="badge run">真跑</span></td></tr>
           <tr><td><span class="pc">P6</span> 综合报告阅读</td><td class="r">51</td><td class="tool">合成报告</td><td>从逻辑综合报告里读出面积、单元、时序并答题</td><td><span class="badge read">读报告</span></td></tr>
-          <tr><td><span class="pc">P6</span> 综合约束纠错</td><td class="r">13</td><td class="tool">Design Compiler</td><td>修好写错的时序约束文件,让综合工具能接受</td><td><span class="badge run">真跑</span></td></tr>
-          <tr><td><span class="pc">P7</span> 代码规范修复</td><td class="r">16</td><td class="tool">SpyGlass</td><td>消除代码规范检查<span class="gloss">(lint)</span>报出的违规</td><td><span class="badge run">真跑</span></td></tr>
-          <tr><td><span class="pc">P7</span> 时序约束调试</td><td class="r">17</td><td class="tool">PrimeTime</td><td>修好约束,让时序分析能干净跑完</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P6</span> 综合约束纠错</td><td class="r">61</td><td class="tool">Design Compiler</td><td>修好写错的时序约束文件,让综合工具能接受</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P7</span> 代码规范修复</td><td class="r">50</td><td class="tool">SpyGlass</td><td>消除代码规范检查<span class="gloss">(lint)</span>报出的违规</td><td><span class="badge run">真跑</span></td></tr>
+          <tr><td><span class="pc">P7</span> 时序约束调试</td><td class="r">53</td><td class="tool">PrimeTime</td><td>修好约束,让时序分析能干净跑完</td><td><span class="badge run">真跑</span></td></tr>
           <tr><td><span class="pc">P8</span> 布线报告阅读</td><td class="r">101</td><td class="tool">合成报告</td><td>从布局布线报告里读出关键结果并答题</td><td><span class="badge read">读报告</span></td></tr>
         </tbody>
       </table>
@@ -310,28 +310,28 @@
         <text x="6" y="152" font-size="11" fill="#3a4452">P5 SPICE 网表纠错</text>
         <rect x="176" y="141" width="30" height="15" rx="2" fill="#17212f"/>
         <text x="212" y="152" class="m" font-size="11" font-weight="600" fill="#17212f">100</text>
-        <!-- 7 P6QA 51 read -->
-        <text x="6" y="178" font-size="11" fill="#3a4452">P6 综合报告阅读</text>
-        <rect x="176" y="167" width="15" height="15" rx="2" fill="#c2410c"/>
-        <text x="197" y="178" class="m" font-size="11" font-weight="600" fill="#9a330a">51</text>
-        <!-- 8 P7PT 17 run -->
+        <!-- 7 P6DC 61 run -->
+        <text x="6" y="178" font-size="11" fill="#3a4452">P6 综合约束纠错</text>
+        <rect x="176" y="167" width="18" height="15" rx="2" fill="#17212f"/>
+        <text x="200" y="178" class="m" font-size="11" font-weight="600" fill="#17212f">61</text>
+        <!-- 8 P7PT 53 run -->
         <text x="6" y="204" font-size="11" fill="#3a4452">P7 时序约束调试</text>
-        <rect x="176" y="193" width="6" height="15" rx="1.5" fill="#17212f"/>
-        <text x="188" y="204" class="m" font-size="11" font-weight="600" fill="#17212f">17</text>
-        <!-- 9 P7SG 16 run -->
-        <text x="6" y="230" font-size="11" fill="#3a4452">P7 代码规范修复</text>
-        <rect x="176" y="219" width="6" height="15" rx="1.5" fill="#17212f"/>
-        <text x="188" y="230" class="m" font-size="11" font-weight="600" fill="#17212f">16</text>
-        <!-- 10 P6DC 13 run -->
-        <text x="6" y="256" font-size="11" fill="#3a4452">P6 综合约束纠错</text>
-        <rect x="176" y="245" width="5" height="15" rx="1.5" fill="#17212f"/>
-        <text x="187" y="256" class="m" font-size="11" font-weight="600" fill="#17212f">13</text>
+        <rect x="176" y="193" width="16" height="15" rx="2" fill="#17212f"/>
+        <text x="198" y="204" class="m" font-size="11" font-weight="600" fill="#17212f">53</text>
+        <!-- 9 P6QA 51 read -->
+        <text x="6" y="230" font-size="11" fill="#3a4452">P6 综合报告阅读</text>
+        <rect x="176" y="219" width="15" height="15" rx="2" fill="#c2410c"/>
+        <text x="197" y="230" class="m" font-size="11" font-weight="600" fill="#9a330a">51</text>
+        <!-- 10 P7SG 50 run -->
+        <text x="6" y="256" font-size="11" fill="#3a4452">P7 代码规范修复</text>
+        <rect x="176" y="245" width="15" height="15" rx="2" fill="#17212f"/>
+        <text x="197" y="256" class="m" font-size="11" font-weight="600" fill="#17212f">50</text>
       </svg>
       <div class="legend">
         <span><i class="sw" style="background:#17212f"></i>真跑工具判分</span>
         <span><i class="sw" style="background:#c2410c"></i>读报告答题</span>
       </div>
-      <p class="note">P1、P3 已规模化;P6、P7 目前是小规模原型,后续各扩到 50 道以上。</p>
+      <p class="note">P1、P3 已规模化;P6、P7 三个真跑调试赛道现已各扩到 50 道以上。</p>
     </div>
 
     <!-- 07 意义 -->
@@ -357,7 +357,7 @@
           <tr><td>怎么判分</td><td>比对功能或文字,跑一次了事</td><td><b>让真工具跑出结果说了算</b>,且留一半隐藏测试</td></tr>
           <tr><td>防作弊</td><td>基本没有</td><td>评分文件指纹校验,解必须通用</td></tr>
           <tr><td>怎么考</td><td>一次性给出代码</td><td><b>直接答题</b> + <b>沙盒里自主调用工具反复迭代</b>两种</td></tr>
-          <tr><td>规模</td><td>几十到上百</td><td><b>2710</b> 道,且可复现、支持抽样</td></tr>
+          <tr><td>规模</td><td>几十到上百</td><td><b>2828</b> 道,且可复现、支持抽样</td></tr>
         </tbody>
       </table>
       <p class="note">* 左栏是同类基准的<em>典型</em>特征,用于定位差异;各家具体设计与数字随版本不同。</p>
@@ -367,7 +367,6 @@
     <div class="card">
       <h2 class="kick"><span class="idx">09</span><span class="t">下一步</span></h2>
       <ul class="tight">
-        <li>三个小规模原型赛道——<b>综合约束纠错、代码规范修复、时序约束调试</b>——各扩到 50 道题以上。</li>
         <li>网表纠错赛道新增对另一种仿真器(<b>Spectre</b>)方言的支持。</li>
         <li>向<b>后端</b>深入:真实布局布线、寄生参数提取、器件级仿真等专家级赛道<span class="gloss">(对应 ICC2 / Innovus / StarRC / Sentaurus 等工具)</span>。</li>
         <li>完善<b>智能体运行环境</b>(已有可用初版),提供更细的工具反馈与更严的资源管控。</li>
@@ -391,7 +390,7 @@
   </div>
 
   <footer>
-    <span class="mono">EDA-AgentBench · Phase 8A · 2710 tasks / 10 tracks · Apache-2.0</span>
+    <span class="mono">EDA-AgentBench · Phase 8A · 2828 tasks / 10 tracks · Apache-2.0</span>
     <span>仓库 <a href="https://github.com/tsb-19/eda-agentbench">tsb-19/eda-agentbench</a> &nbsp;·&nbsp; 数据生产模块 <span class="mono">datagen/</span></span>
   </footer>
 

@@ -1,19 +1,18 @@
-module multi_driven_clean (
+module sq_acc (
     input  wire       clk,
     input  wire       rst_n,
-    input  wire [7:0] d,
-    input  wire       en,
-    output reg  [7:0] q
+    input  wire [7:0]  x,
+    output reg  [15:0] s
 );
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
-            q <= 8'd0;
-        else if (en)
-            q <= d;
+            s <= 16'd0;
+        else
+            s <= s + {8'd0, x};
     end
 
-    always @(posedge clk) begin
-        if (!en)
-            q <= 8'hFF;
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            s <= {16{1'b0}};
     end
 endmodule

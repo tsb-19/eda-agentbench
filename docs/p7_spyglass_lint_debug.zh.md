@@ -77,7 +77,7 @@ sg_lint_NNNN/
 - **SpyGlass 检测**：S-2021.09-SP1 可在 `/EDA/soft2/synopsys/spyglass/` 获取
 - **解答模式**：1.00（所有任务通过 lint）
 - **有缺陷模式**：0.10（所有任务因违规而 lint 失败）
-- **pytest**：31/31 通过
+- **pytest**：35/35 通过
 - **冒烟测试**：通过（solution=1.00，buggy=0.10）
 
 ## SpyGlass 命令说明
