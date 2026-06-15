@@ -140,3 +140,43 @@ def test_end_to_end_oracle_passes_on_qa_task(tmp_path):
     assert res["ok"] is True
     assert res["passed"] is True
     assert res["total_score"] == 1.0
+
+
+# --------------------------------------------------------------------------- #
+# OpenAIProvider: extra_body merge + reasoning capture (no network — stub urlopen)
+# --------------------------------------------------------------------------- #
+def test_provider_merges_extra_body_and_captures_reasoning(monkeypatch):
+    import json as _json
+    import contextlib
+    from eda_agentbench.llm import openai_provider as op
+
+    captured = {}
+
+    class _Resp:
+        def __init__(self, payload):
+            self._payload = payload
+
+        def read(self):
+            return _json.dumps(self._payload).encode()
+
+    @contextlib.contextmanager
+    def fake_urlopen(req, timeout=0):
+        captured["body"] = _json.loads(req.data.decode())
+        yield _Resp({
+            "model": "m1",
+            "choices": [{"finish_reason": "stop",
+                         "message": {"content": "answer", "reasoning_content": "because..."}}],
+            "usage": {"prompt_tokens": 10, "completion_tokens": 40,
+                      "completion_tokens_details": {"reasoning_tokens": 30}},
+        })
+
+    monkeypatch.setattr(op, "urlopen", fake_urlopen)
+    prov = op.OpenAIProvider(api_key="k", api_base="https://x/v1", model="m1")
+    resp = prov.generate("hi", system="sys", extra_body={"enable_thinking": True}, max_tokens=99)
+
+    assert captured["body"]["enable_thinking"] is True       # extra_body merged
+    assert captured["body"]["max_tokens"] == 99
+    assert resp.text == "answer"
+    assert resp.usage["reasoning_tokens"] == 30              # reasoning usage captured
+    assert resp.metadata["reasoning_content"] == "because..."
+

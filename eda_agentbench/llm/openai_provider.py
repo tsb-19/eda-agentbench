@@ -10,6 +10,7 @@ import json
 import os
 from pathlib import Path
 from typing import Any
+from urllib.error import HTTPError
 from urllib.request import Request, urlopen
 
 from eda_agentbench.llm.base import BaseLLMProvider, LLMResponse
@@ -74,7 +75,14 @@ class OpenAIProvider(BaseLLMProvider):
         return self._model
 
     def generate(self, prompt: str, system: str = "", **kwargs: Any) -> LLMResponse:
-        """Generate text via OpenAI-compatible API."""
+        """Generate text via OpenAI-compatible API.
+
+        Recognized kwargs: temperature, max_tokens, timeout, and ``extra_body``
+        (a dict merged into the request body — used to enable provider-specific
+        reasoning/thinking modes). If the API returns a separate
+        ``reasoning_content`` it is preserved in ``metadata`` but the answer
+        ``content`` is what's returned as ``text``.
+        """
         if not self._api_key:
             raise RuntimeError("No API key set. Use MockLLMProvider for testing.")
 
@@ -89,6 +97,9 @@ class OpenAIProvider(BaseLLMProvider):
             "temperature": kwargs.get("temperature", 0.7),
             "max_tokens": kwargs.get("max_tokens", 2000),
         }
+        extra_body = kwargs.get("extra_body") or {}
+        if isinstance(extra_body, dict):
+            body.update(extra_body)
 
         req = Request(
             f"{self._api_base}/chat/completions",
@@ -100,10 +111,16 @@ class OpenAIProvider(BaseLLMProvider):
             method="POST",
         )
 
-        with urlopen(req, timeout=120) as resp:
-            data = json.loads(resp.read())
+        try:
+            with urlopen(req, timeout=kwargs.get("timeout", 300)) as resp:
+                data = json.loads(resp.read())
+        except HTTPError as e:
+            detail = e.read().decode("utf-8", errors="replace")[:500]
+            raise RuntimeError(f"HTTP {e.code} from {self._api_base}: {detail}") from e
 
-        text = data["choices"][0]["message"]["content"]
+        choice = data["choices"][0]
+        msg = choice.get("message", {})
+        text = msg.get("content") or ""
         usage = data.get("usage", {})
 
         return LLMResponse(
@@ -112,6 +129,12 @@ class OpenAIProvider(BaseLLMProvider):
             usage={
                 "prompt_tokens": usage.get("prompt_tokens", 0),
                 "completion_tokens": usage.get("completion_tokens", 0),
+                "reasoning_tokens": (usage.get("completion_tokens_details", {}) or {}).get("reasoning_tokens", 0),
             },
-            metadata={"api_base": self._api_base},
+            metadata={
+                "api_base": self._api_base,
+                "finish_reason": choice.get("finish_reason"),
+                "reasoning_content": msg.get("reasoning_content") or "",
+            },
         )
+

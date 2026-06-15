@@ -236,6 +236,54 @@ def cmd_leaderboard(args) -> int:
 
 REPORTS_DIR = REPO_ROOT / "reports"
 
+# Full dataset size, for projecting the cost of an eventual full-set run.
+FULL_DATASET_TASKS = 2828
+
+
+def cmd_cost(args) -> int:
+    """Report CNY spent (from transcript token usage x prices) and project full-set cost."""
+    sub_root = Path(args.submissions).resolve()
+    prices = {}
+    if args.models:
+        cfg = json.loads(Path(args.models).read_text())
+        for s in cfg.get("models", []):
+            if not str(s.get("name", "")).startswith("_"):
+                prices[s["name"]] = (s.get("price_in_per_m", 0.0), s.get("price_out_per_m", 0.0))
+
+    agg: dict[str, dict] = defaultdict(lambda: {"in": 0, "out": 0, "tasks": 0, "errors": 0})
+    for tp in sub_root.rglob("transcript.json"):
+        try:
+            t = json.loads(tp.read_text())
+        except json.JSONDecodeError:
+            continue
+        m = t.get("model", "unknown")
+        a = agg[m]
+        if t.get("error"):
+            a["errors"] += 1
+            continue
+        u = t.get("usage", {})
+        a["in"] += u.get("prompt_tokens", 0)
+        a["out"] += u.get("completion_tokens", 0)
+        a["tasks"] += 1
+
+    print(f"{'model':22} {'tasks':>6} {'in_tok':>10} {'out_tok':>10} {'CNY':>9} {'CNY/task':>9} {'full-set est':>13}")
+    grand = 0.0
+    for m in sorted(agg):
+        a = agg[m]
+        pin, pout = prices.get(m, (0.0, 0.0))
+        cny = a["in"] / 1e6 * pin + a["out"] / 1e6 * pout
+        per = cny / a["tasks"] if a["tasks"] else 0.0
+        full = per * FULL_DATASET_TASKS
+        grand += cny
+        errs = f"  ({a['errors']} err)" if a["errors"] else ""
+        print(f"{m:22} {a['tasks']:>6} {a['in']:>10} {a['out']:>10} "
+              f"{cny:>9.2f} {per:>9.4f} {full:>13.0f}{errs}")
+    full_all = sum((agg[m]['in']/1e6*prices.get(m,(0,0))[0] + agg[m]['out']/1e6*prices.get(m,(0,0))[1])
+                   / max(agg[m]['tasks'],1) * FULL_DATASET_TASKS for m in agg)
+    print(f"\nThis run: ¥{grand:.2f}   |   projected FULL set ({FULL_DATASET_TASKS} tasks) "
+          f"across these {len(agg)} models: ¥{full_all:.0f}")
+    return 0
+
 
 def main(argv: list[str] | None = None) -> int:
     ap = argparse.ArgumentParser(description="Grade + aggregate model baseline.")
@@ -252,11 +300,17 @@ def main(argv: list[str] | None = None) -> int:
     lb.add_argument("--out", default=None, help="Output .md path")
     lb.add_argument("--stamp", default=None, help="Label used in the report title/filename")
 
+    c = sub.add_parser("cost", help="Report CNY spent + project full-set cost from telemetry")
+    c.add_argument("--submissions", required=True)
+    c.add_argument("--models", default=None, help="baseline_models.json (for prices)")
+
     args = ap.parse_args(argv)
     if args.command == "grade":
         return cmd_grade(args)
     if args.command == "leaderboard":
         return cmd_leaderboard(args)
+    if args.command == "cost":
+        return cmd_cost(args)
     return 1
 
 

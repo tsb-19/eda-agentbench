@@ -67,17 +67,27 @@ def load_model_specs(path: Path, allow_mock: bool) -> list[tuple[str, BaseLLMPro
 
     out: list[tuple[str, BaseLLMProvider, dict]] = []
     for spec in specs:
+        if str(spec.get("name", "")).startswith("_"):
+            continue  # skip comment-like entries
         name = spec["name"]
         env_key = spec.get("api_key_env", "")
         api_key = os.environ.get(env_key, "") if env_key else ""
+        # api_base: literal, or read from an env var named by api_base_env (e.g. BASE_URL),
+        # optionally with a path suffix appended (e.g. "/v1").
+        api_base = spec.get("api_base", "")
+        if not api_base and spec.get("api_base_env"):
+            api_base = os.environ.get(spec["api_base_env"], "").rstrip("/") + spec.get("api_base_suffix", "")
         gen_kwargs = {
             "temperature": spec.get("temperature", 0.0),
             "max_tokens": spec.get("max_tokens", 4096),
+            "timeout": spec.get("timeout", 600),
         }
+        if spec.get("extra_body"):
+            gen_kwargs["extra_body"] = spec["extra_body"]
         if api_key:
             provider: BaseLLMProvider = OpenAIProvider(
                 api_key=api_key,
-                api_base=spec.get("api_base", ""),
+                api_base=api_base,
                 model=spec.get("model_id", ""),
             )
         elif allow_mock:
