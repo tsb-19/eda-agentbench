@@ -413,7 +413,7 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         timeout: Timeout in seconds.
         runs_root: Override for runs output root (default: RUNS_ROOT).
     """
-    from eda_agentbench.task.validator import check_submission_forbidden
+    from eda_agentbench.task.validator import check_submission_forbidden, check_tcl_injection
     from eda_agentbench.tools.detector import ToolEnvironmentDetector
     from eda_agentbench.tools.env_shim import EnvShim
     from eda_agentbench.anti_cheat.guard import ForbiddenModificationGuard
@@ -428,6 +428,13 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
     if violations:
         _write_anticheat_fail(task_path, meta, violations, runs_base)
         raise RuntimeError(f"Anti-cheat fail: submission contains forbidden files: {violations}")
+
+    # Anti-cheat: an editable .sdc/.tcl must not carry Tcl that subverts a grader
+    # which sources it (e.g. `proc incr {} {}` to forge CONSTRAINTS_OK).
+    tcl_violations = check_tcl_injection(submission_path, files_spec.get("editable", []))
+    if tcl_violations:
+        _write_anticheat_fail(task_path, meta, tcl_violations, runs_base)
+        raise RuntimeError(f"Anti-cheat fail: editable file contains forbidden TCL: {tcl_violations}")
 
     is_p3 = meta.get("track") == "p3_timing_report_qa"
     is_p6 = meta.get("track") == "p6_dc_synthesis_qa"

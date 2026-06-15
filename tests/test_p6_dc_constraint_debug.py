@@ -317,6 +317,21 @@ def test_evaluator_unknown_component():
     assert comp.raw_score == 0.0
 
 
+def test_evaluator_fail_when_tool_did_not_run():
+    """Regression: empty / no-marker / crash logs score 0.0 for both marker
+    components -- never a false 1.0 (the same false-pass class as P5/P4/P1).
+    A missing CONSTRAINTS_OK marker means DC never confirmed success."""
+    from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
+    if not SMOKE_DIR.is_dir():
+        pytest.skip("Smoke task not generated")
+    meta = json.loads((SMOKE_DIR / "metadata.json").read_text())
+    evaluator = DCConstraintDebugEvaluator(SMOKE_DIR, meta)
+    for bad_log in ["", "random DC output, no markers\n", "Segmentation fault (core dumped)\n"]:
+        for comp_name in ("constraint_pass", "execution_pass"):
+            comp = evaluator.evaluate_component(comp_name, Path(), bad_log)
+            assert comp.raw_score == 0.0, f"{comp_name} on {bad_log!r} should be 0.0, got {comp.raw_score}"
+
+
 # --- Anti-Cheat Tests ---
 
 def test_submission_forbidden_design_v(tmp_path):

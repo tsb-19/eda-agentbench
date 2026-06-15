@@ -35,17 +35,23 @@ class TBSVAGenEvaluator(BaseEvaluator):
             )
 
     def _eval_compile(self, weight: float, run_log: str) -> ScoreComponent:
-        """Check if VCS compilation succeeded (no Error in compile log)."""
-        has_error = bool(re.search(r"^Error", run_log, re.MULTILINE | re.IGNORECASE))
-        has_fatal = bool(re.search(r"(compilation aborted|cannot open|not found)", run_log, re.IGNORECASE))
-        has_simv = "simv_golden" in run_log or "simv" in run_log
+        """Check if VCS compilation succeeded.
 
-        if has_error or has_fatal:
+        An empty log or a timeout is treated as failure: with no output there is
+        no evidence VCS ran, so it must not score as a successful compile.
+        (Previously a non-empty log with no explicit ``^Error`` line — e.g. a run
+        that timed out — fell through to 1.0, the same false-pass bug fixed in the
+        P1 RTL-debug evaluator.)
+        """
+        text = run_log or ""
+        has_error = bool(re.search(r"^Error", text, re.MULTILINE | re.IGNORECASE))
+        has_fatal = bool(re.search(r"(compilation aborted|cannot open|not found|timed out)",
+                                   text, re.IGNORECASE))
+        no_output = not text.strip()
+
+        if no_output or has_error or has_fatal:
             score = 0.0
-            details = "Compilation failed"
-        elif not has_simv and not run_log.strip():
-            score = 0.0
-            details = "No compilation output"
+            details = "Compilation produced no output (did not run)" if no_output else "Compilation failed"
         else:
             score = 1.0
             details = "Compilation succeeded"
@@ -53,7 +59,7 @@ class TBSVAGenEvaluator(BaseEvaluator):
         return ScoreComponent(
             name="compile", weight=weight, raw_score=score,
             weighted_score=score * weight, details=details,
-            tool_output_snippet=run_log[:500] if run_log else None,
+            tool_output_snippet=text[:500] if text else None,
         )
 
     def _eval_golden(self, weight: float, run_log: str) -> ScoreComponent:

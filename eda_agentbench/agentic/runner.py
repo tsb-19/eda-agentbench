@@ -32,6 +32,7 @@ from eda_agentbench.agentic.workspace import (
     compute_file_changes,
     detect_forbidden_modifications,
 )
+from eda_agentbench.task.validator import check_tcl_injection
 
 
 def run_single_agentic(
@@ -79,9 +80,16 @@ def run_single_agentic(
 
         # Compute changes and anti-cheat on agent workspace
         changes = compute_file_changes(before_snapshot, after_snapshot)
-        clean, violations = detect_forbidden_modifications(
+        clean_files, violations = detect_forbidden_modifications(
             changes, files_spec.get("forbidden", []),
         )
+        # Content anti-cheat: an editable .sdc/.tcl that a grader sources into its
+        # own interpreter must not carry Tcl that subverts the grader (e.g.
+        # `proc incr {} {}` to forge CONSTRAINTS_OK/TIMING_CHECK_OK).
+        tcl_violations = check_tcl_injection(
+            agent_workspace, files_spec.get("editable", []),
+        )
+        clean = clean_files and not tcl_violations
 
         # === PHASE 2: Evaluator workspace (agent output + hidden files) ===
         eval_workspace = create_evaluator_workspace(
@@ -123,9 +131,10 @@ def run_single_agentic(
                 passing_threshold=0.5,
                 evaluation_time_sec=wall_time,
                 anti_cheat={
-                    "forbidden_files_modified": True,
+                    "forbidden_files_modified": not clean_files,
                     "checked_files": files_spec.get("forbidden", []),
                     "hash_mismatches": violations,
+                    "tcl_injection": tcl_violations,
                 },
                 resource_usage={"wall_time_sec": round(wall_time, 2)},
                 metadata={
@@ -188,6 +197,7 @@ def run_single_agentic(
                     "forbidden_files_modified": False,
                     "checked_files": files_spec.get("forbidden", []),
                     "hash_mismatches": [],
+                    "tcl_injection": [],
                 },
                 resource_usage={"wall_time_sec": round(wall_time, 2)},
                 metadata={

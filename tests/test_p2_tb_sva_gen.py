@@ -186,6 +186,20 @@ def test_evaluator_compile_fail():
     assert comp.weighted_score == 0.0
 
 
+def test_evaluator_compile_fail_when_tool_did_not_run():
+    """Regression: empty / not-found / timeout logs must score 0.0, never 1.0.
+
+    A timeout produces a non-empty log with no ``^Error`` line; previously it
+    fell through to a false 1.0 (same class as the P1 RTL-debug fix).
+    """
+    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
+    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
+    evaluator = TBSVAGenEvaluator(Path("."), meta)
+    for bad_log in ["", "vcs: command not found\n", "Script run_public.sh timed out\n"]:
+        comp = evaluator.evaluate_component("compile", Path("."), bad_log)
+        assert comp.raw_score == 0.0, f"log {bad_log!r} should score 0.0, got {comp.raw_score}"
+
+
 def test_evaluator_golden_pass():
     """Evaluator detects golden design passing."""
     from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
