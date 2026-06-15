@@ -193,7 +193,7 @@
       <ul class="tight">
         <li><b>按真实运行结果判分</b>:让真工具跑一遍,看它编不编得过、隐藏测试过不过、电路时序是否从违规变达标<span class="gloss">(时序裕量 WNS 由负转正)</span>、仿真指标是否落进规格范围。工具结果说了算,模型写的文字解释只占很小权重。</li>
         <li><b>一半测试用例保密</b>:模型只能看到公开测试;判分时另用它从没见过的隐藏测试,逼它写出真正通用的解,而非只糊弄眼前几个例子。</li>
-        <li><b>防作弊</b>:评分相关文件在运行前后做指纹比对,一旦被改动即判失败,也不许直接打印「通过」蒙混。</li>
+        <li><b>防作弊</b>:评分相关文件在运行前后做指纹比对,一旦被改动即判失败,也不许直接打印「通过」蒙混。<span class="gloss">举例:约束纠错赛道里模型能编辑的约束文件本身是脚本,它可能塞进一句「直接打印『通过』」或「立刻退出」来伪造判分;为此评分先用工具把约束读进来、再原样导出成一份干净文件,真正的判定在另一个不执行任何模型代码的环节完成——注入的语句够不着、也伪造不了结果。</span></li>
         <li><b>完全可复现</b>:生成过程锁定随机数,任何人重跑都得到一模一样的数据集;还能每个赛道各抽一题、约两分钟做快速自检。</li>
       </ul>
       <p class="note"><b>数据从哪来——三种方式各取所长:</b>① 用受控模板批量生成,规模大、答案干净;② 从一个正确设计里故意注入缺陷,天然适合「找错改错」类任务;③ 直接跑真工具、采集它输出的日志与报告,最贴近真实的工具反馈。</p>
@@ -201,50 +201,66 @@
 
     <!-- 03 架构 -->
     <div class="card full">
-      <h2 class="kick"><span class="idx">03</span><span class="t">单一仓库 · 数据如何生产与评测</span></h2>
-      <svg viewBox="0 0 1000 250" width="100%" role="img" aria-label="单一仓库的数据生产与评测架构图">
+      <h2 class="kick"><span class="idx">03</span><span class="t">数据怎么来 · 三种生成方式,汇入同一评测核心</span></h2>
+      <svg viewBox="0 0 1000 272" width="100%" role="img" aria-label="三种数据生成方式汇入统一评测核心的架构图">
         <defs>
           <marker id="ah" markerWidth="10" markerHeight="10" refX="7" refY="4" orient="auto">
             <path d="M0,0 L9,4 L0,8 z" fill="#c2410c"/>
           </marker>
         </defs>
         <!-- 单一仓库外框 -->
-        <rect x="6" y="30" width="988" height="212" rx="6" fill="#faf8f3" stroke="#17212f" stroke-width="1.3"/>
-        <text x="20" y="22" class="m" font-size="12" font-weight="600" fill="#17212f">eda-agentbench · 单一仓库</text>
+        <rect x="6" y="28" width="988" height="238" rx="6" fill="#faf8f3" stroke="#17212f" stroke-width="1.3"/>
+        <text x="20" y="20" class="m" font-size="12" font-weight="600" fill="#17212f">eda-agentbench · 单一仓库 · 每个赛道各有生成器</text>
 
-        <!-- datagen 模块 -->
-        <rect x="24" y="58" width="396" height="170" rx="4" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
-        <text x="38" y="82" font-size="12.5" font-weight="700" fill="#0f766e">datagen/ 模块 · 数据工厂</text>
-        <text x="38" y="99" font-size="10.5" fill="#586273">仓库内子目录,只负责生产 P5(网表纠错)数据</text>
-        <rect x="38" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
-        <text x="90" y="131" font-size="11" text-anchor="middle" fill="#17212f">候选生成</text>
-        <text x="150" y="131" font-size="13" text-anchor="middle" fill="#0d9488">→</text>
-        <rect x="160" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
-        <text x="212" y="131" font-size="11" text-anchor="middle" fill="#17212f">自动验证</text>
-        <text x="272" y="131" font-size="13" text-anchor="middle" fill="#0d9488">→</text>
-        <rect x="282" y="110" width="104" height="34" rx="4" fill="#fff" stroke="#99f6e4"/>
-        <text x="334" y="131" font-size="11" text-anchor="middle" fill="#17212f">整理成型</text>
-        <rect x="38" y="156" width="348" height="44" rx="4" fill="#fdf0e8" stroke="#e7c2ab"/>
-        <text x="212" y="176" font-size="11.5" text-anchor="middle" fill="#9a330a" font-weight="600">导出评测包</text>
-        <text x="212" y="192" font-size="10" text-anchor="middle" fill="#586273">含隐藏答案 / 参考解</text>
+        <!-- ===== 左:三条生成策略 ===== -->
+        <!-- A 模板合成 -->
+        <rect x="20" y="40" width="300" height="62" rx="4" fill="#f0fdfa" stroke="#0d9488" stroke-width="1"/>
+        <text x="32" y="58" font-size="12" font-weight="700" fill="#0f766e">① 模板合成 <tspan class="m" font-size="9.5" font-weight="400" fill="#0d9488">template</tspan></text>
+        <text x="32" y="74" font-size="9.8" fill="#586273">受控模板批量生成,规模大、标签干净</text>
+        <text x="32" y="92" font-size="9.8" fill="#17212f" font-weight="600">P3 · P4 · P6 报告/约束 · P7 规范/约束 · P8</text>
+        <!-- B 缺陷注入 -->
+        <rect x="20" y="108" width="300" height="58" rx="4" fill="#fdf0e8" stroke="#e7c2ab" stroke-width="1"/>
+        <text x="32" y="126" font-size="12" font-weight="700" fill="#9a330a">② 缺陷注入 <tspan class="m" font-size="9.5" font-weight="400" fill="#c2410c">mutation</tspan></text>
+        <text x="32" y="142" font-size="9.8" fill="#586273">从正确设计注入已知缺陷,天生适合找错改错</text>
+        <text x="32" y="160" font-size="9.8" fill="#17212f" font-weight="600">P1 RTL 调试 · P2 测试平台编写</text>
+        <!-- C 真跑采集 -->
+        <rect x="20" y="172" width="300" height="72" rx="4" fill="#eef1f5" stroke="#17212f" stroke-width="1"/>
+        <text x="32" y="190" font-size="12" font-weight="700" fill="#17212f">③ 真跑采集 <tspan class="m" font-size="9.5" font-weight="400" fill="#586273">flow</tspan></text>
+        <text x="32" y="206" font-size="9.8" fill="#586273">datagen/ 子模块:跑真工具采日志,</text>
+        <text x="32" y="220" font-size="9.8" fill="#586273">自动校验通过才导出(候选→验证→导出)</text>
+        <text x="32" y="238" font-size="9.8" fill="#17212f" font-weight="600">P5 SPICE 网表纠错</text>
 
-        <!-- 导入箭头 -->
-        <line x1="420" y1="178" x2="470" y2="178" stroke="#c2410c" stroke-width="1.6" marker-end="url(#ah)"/>
-        <text x="445" y="170" font-size="9.5" text-anchor="middle" fill="#9a330a" font-weight="600">导入</text>
+        <!-- 汇聚箭头 -->
+        <line x1="322" y1="71"  x2="376" y2="120" stroke="#c2410c" stroke-width="1.5" marker-end="url(#ah)"/>
+        <line x1="322" y1="137" x2="376" y2="137" stroke="#c2410c" stroke-width="1.5" marker-end="url(#ah)"/>
+        <line x1="322" y1="208" x2="376" y2="155" stroke="#c2410c" stroke-width="1.5" marker-end="url(#ah)"/>
 
-        <!-- 评测核心 -->
-        <rect x="472" y="58" width="510" height="170" rx="4" fill="#eef1f5" stroke="#17212f" stroke-width="1"/>
-        <text x="488" y="82" font-size="12.5" font-weight="700" fill="#17212f">评测核心</text>
-        <rect x="488" y="92" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
-        <text x="502" y="111" font-size="11" fill="#17212f">generators/ → 直接生成其余 9 个赛道(P1–P4、P6–P8)</text>
-        <rect x="488" y="128" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
-        <text x="502" y="147" font-size="11" fill="#17212f">datagen 产出的 P5 → 导入 tasks/(100 道,自包含)</text>
-        <rect x="488" y="164" width="478" height="30" rx="4" fill="#fff" stroke="#cfd6df"/>
-        <text x="502" y="183" font-size="11" fill="#17212f">评分引擎 · 受控沙盒运行环境 · 抽样快速评测</text>
-        <rect x="488" y="200" width="478" height="22" rx="4" fill="#17212f"/>
-        <text x="727" y="215" font-size="11.5" text-anchor="middle" fill="#f3efe6" font-weight="600">2828 道题 · 10 个赛道</text>
+        <!-- ===== 中:统一任务包 ===== -->
+        <rect x="380" y="78" width="198" height="126" rx="4" fill="#fff" stroke="#17212f" stroke-width="1"/>
+        <text x="479" y="98" font-size="12" font-weight="700" fill="#17212f" text-anchor="middle">tasks/ 统一任务格式</text>
+        <text x="479" y="118" font-size="10" fill="#586273" text-anchor="middle" class="m">prompt.md · metadata.json</text>
+        <text x="479" y="135" font-size="10" fill="#586273" text-anchor="middle" class="m">files/ · hidden/ · solution/</text>
+        <text x="479" y="155" font-size="9.5" fill="#586273" text-anchor="middle">自包含 · 可复现 · 公开与隐藏分离</text>
+        <rect x="396" y="170" width="166" height="22" rx="4" fill="#17212f"/>
+        <text x="479" y="185" font-size="11" text-anchor="middle" fill="#f3efe6" font-weight="600">2828 道 · 10 赛道</text>
+
+        <line x1="578" y1="141" x2="632" y2="141" stroke="#c2410c" stroke-width="1.6" marker-end="url(#ah)"/>
+
+        <!-- ===== 右:评测核心 ===== -->
+        <rect x="636" y="40" width="346" height="210" rx="4" fill="#eef1f5" stroke="#17212f" stroke-width="1"/>
+        <text x="652" y="60" font-size="12.5" font-weight="700" fill="#17212f">评测核心 <tspan font-size="10" font-weight="400" fill="#586273">· 只读本地任务,不回头依赖生成器</tspan></text>
+        <g font-size="10.3" fill="#17212f">
+          <text x="652" y="84">▸ 受控沙盒:只暴露可见 + 可编辑文件</text>
+          <text x="652" y="106">▸ 调用真商用工具运行(VCS·HSPICE·PT·DC·SpyGlass…)</text>
+          <text x="652" y="128">▸ 公开测试 + 模型没见过的隐藏测试</text>
+          <text x="652" y="150">▸ 防作弊:评分文件指纹 + 可编辑约束输入净化</text>
+          <text x="652" y="172">▸ 各项加权 → 结构化评分 JSON</text>
+          <text x="652" y="194">▸ 每赛道抽一题 · 约两分钟快速自检</text>
+        </g>
+        <rect x="652" y="208" width="314" height="28" rx="4" fill="#fdf0e8" stroke="#e7c2ab"/>
+        <text x="809" y="226" font-size="10" text-anchor="middle" fill="#9a330a" font-weight="600">两把尺子校准:对的拿满分,错的必失分</text>
       </svg>
-      <p class="note">P5 的数据由仓库内 <b>datagen/ 模块</b>生产、验证、导出,再导入为评测任务;其余 9 个赛道由 <b>generators/</b> 直接生成。评测只读取导入后的本地任务,<b>不依赖 datagen</b>——数据生产与评测在同一仓库内、各司其职。</p>
+      <p class="note">不再是「两个独立仓库」:数据生成与评测同处一仓,每个赛道有自己的生成器,方式归为三类——<b>模板合成</b>(7 个赛道)、<b>缺陷注入</b>(P1/P2)、<b>真跑采集</b>(P5,由 <span class="mono">datagen/</span> 子模块跑真工具采集并校验后导出)。三者最终都落成统一格式的自包含任务;评测核心只读取本地任务、<b>不回头依赖任何生成器</b>——造数据与评测彻底解耦。</p>
     </div>
 
     <!-- 04 流程 -->
@@ -279,7 +295,7 @@
           <tr><td><span class="pc">P8</span> 布线报告阅读</td><td class="r">101</td><td class="tool">合成报告</td><td>从布局布线报告里读出关键结果并答题</td><td><span class="badge read">读报告</span></td></tr>
         </tbody>
       </table>
-      <p class="note">「合成报告」= 用程序人工合成的报告,无需购买相应商用软件即可评测;其余赛道调用真实工具运行判分。</p>
+      <p class="note">「合成报告」= 用程序人工合成的报告,无需购买相应商用软件即可评测;其余赛道调用真实工具运行判分。<br><b>举两例感受任务长什么样:</b>① <b>P1</b>——一个本该用非阻塞赋值 <span class="mono">&lt;=</span> 的时序逻辑被写成了阻塞赋值 <span class="mono">=</span>,仿真波形与参考不符,模型要据报错改回来;② <b>P6 约束纠错</b>——约束文件漏写了 <span class="mono">create_clock</span>(没定义时钟),Design Compiler 综合报错,模型补上正确周期后才能跑通。判分都看工具真实跑出来的结果,而非比对文字。</p>
     </div>
 
     <!-- 06 分布 -->
@@ -341,7 +357,7 @@
         <li><b>首个</b>把「真实商用工具 + 完整设计流程 + 按运行结果判分」三件事合到一起的芯片设计智能体基准,补上了同类评测的系统性空白。</li>
         <li>考的是<b>真本事</b>:能不能让真工具跑通、让结果达标,而不是背 EDA 名词。</li>
         <li>结果<b>可信、可比、可复算</b>:数据生成可复现,一半测试用例保密,评分文件防篡改。</li>
-        <li><b>易扩展</b>:新工具、新环节都能按统一格式低成本接入;数据生产(datagen 模块)与评测代码在同一仓库内分离,造数据不污染评测。</li>
+        <li><b>易扩展</b>:新工具、新环节都能按统一任务格式低成本接入;三种生成方式(模板合成 / 缺陷注入 / 真跑采集)与评测核心彻底解耦,造数据不污染评测。</li>
       </ul>
     </div>
 
@@ -391,7 +407,7 @@
 
   <footer>
     <span class="mono">EDA-AgentBench · Phase 8A · 2828 tasks / 10 tracks · Apache-2.0</span>
-    <span>仓库 <a href="https://github.com/tsb-19/eda-agentbench">tsb-19/eda-agentbench</a> &nbsp;·&nbsp; 数据生产模块 <span class="mono">datagen/</span></span>
+    <span>仓库 <a href="https://github.com/tsb-19/eda-agentbench">tsb-19/eda-agentbench</a> &nbsp;·&nbsp; P5 真跑采集子模块 <span class="mono">datagen/</span></span>
   </footer>
 
 </div>
