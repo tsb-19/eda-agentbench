@@ -372,121 +372,94 @@ EXPECTED_BUG_TYPE_NAMES = [
 
 
 def _make_tcl(rtl: dict, section: str) -> str:
-    """Generate TCL script with explicit constraint validation."""
+    """Apply-phase TCL — applies the agent's constraints in ISOLATION from grading.
+
+    No pass/fail decision happens here. The agent-editable constraints.sdc is applied
+    via `read_sdc` (which, unlike `source`, sandboxes Tcl `proc`/`exit` redefinition —
+    verified on dc_shell), then `write_sdc` serialises the GENUINE applied constraints
+    to applied_<section>.sdc, overwriting any file the agent's SDC may have written.
+    The verdict is computed by the .sh wrapper from that laundered file, so no
+    agent-controlled Tcl can reach the grading logic (see run_<section>.sh)."""
     top = rtl["top"]
-    clk = rtl["clk"]
-    inputs = [p for p in rtl["inputs"] if p != clk]
-    outputs = rtl["outputs"]
-    all_ports = [clk] + inputs + outputs
-
-    if section == "public":
-        report_cmds = "report_timing -max_paths 5\nreport_area"
-    else:
-        report_cmds = (
-            "report_timing -max_paths 10 -delay max\n"
-            "report_timing -max_paths 10 -delay min"
-        )
-
     return f"""\
-# DC Constraint Debug — {section} TCL script
-# Set library
+# DC Constraint Debug — {section} apply phase (isolated from grading)
 set target_library "lsi_10k.db"
 set link_library "* $target_library gtech.db"
-
-# Track errors
-set error_count 0
-set fail_reasons {{}}
 
 # Read RTL
 analyze -format verilog [list design.v]
 elaborate {top}
 link
 
-# Read constraints and capture output for error checking
-set source_log "source_output.log"
-redirect -file $source_log {{ source -echo -verbose constraints.sdc }}
-
-# --- Constraint validation checks ---
-
-# Check source output for DC errors
-set fh [open $source_log r]
-set source_content [read $fh]
-close $fh
-
-if {{[regexp {{Error:}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "dc_error_in_source"
-}}
-
-if {{[regexp {{Can't find}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "port_or_clock_not_found"
-}}
-
-if {{[regexp -nocase {{unknown command}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "unsupported_command"
-}}
-
-# Check 1: Clocks must exist
-set all_clks [all_clocks]
-if {{[sizeof_collection $all_clks] == 0}} {{
-    incr error_count
-    lappend fail_reasons "no_clocks_created"
-}}
-
-# Check 2: All ports must resolve
-foreach port {{{" ".join(all_ports)}}} {{
-    if {{[catch {{get_ports $port}} result]}} {{
-        incr error_count
-        lappend fail_reasons "port_not_found:$port"
-    }}
-}}
-
-# Compile
-if {{[catch {{compile_ultra -no_autoungroup}} result]}} {{
-    incr error_count
-    lappend fail_reasons "compile_failed"
-}}
-
-# Report
-{report_cmds}
-
-# Emit result
-if {{$error_count > 0}} {{
-    set reason_str [join $fail_reasons ","]
-    echo "CONSTRAINTS_FAIL: $reason_str"
-    exit 1
-}} else {{
-    echo "CONSTRAINTS_OK"
-    exit 0
-}}
+# Apply agent constraints. read_sdc sandboxes Tcl `proc`/`exit`; write_sdc then
+# launders the genuine applied constraints to a fresh file (overwriting anything the
+# agent's SDC wrote). Grading reads ONLY that file, in the .sh wrapper.
+read_sdc constraints.sdc
+write_sdc -nosplit applied_{section}.sdc
+exit 0
 """
 
 
-def _make_sh(section: str) -> str:
-    """Generate bash run script."""
+def _make_sh(rtl: dict, section: str) -> str:
+    """Verdict-phase bash — grades the laundered applied_<section>.sdc (no agent code).
+
+    A correct fix yields an applied SDC with a clock, an input delay for every
+    non-clock input, and an output delay for every output. Any constraint bug
+    (missing clock, wrong/invalid port, syntax error) leaves a required line absent;
+    unsupported commands surface as tool-native errors the agent cannot suppress.
+    The agent's constraints.sdc cannot forge a pass: read_sdc sandboxes proc/exit,
+    write_sdc overwrites any file it wrote, and the marker is emitted only here."""
+    clk = rtl["clk"]
+    req_in = " ".join(p for p in rtl["inputs"] if p != clk)
+    req_out = " ".join(rtl["outputs"])
     return f"""\
 #!/bin/bash
-# DC Constraint Debug — {section} run script
+# DC Constraint Debug — {section} run script (two-phase, forge-resistant)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 DC_CMD="${{EDA_DC_CMD:-dc_shell}}"
+APPLIED="applied_{section}.sdc"
+REQ_IN="{req_in}"
+REQ_OUT="{req_out}"
 
-# Check if dc_shell is available
 if ! command -v "$DC_CMD" &>/dev/null; then
     echo "SKIP: dc_shell not found (EDA_DC_CMD=$DC_CMD)"
     exit 0
 fi
 
-# Run dc_shell and capture both stdout and stderr
-DC_OUTPUT=$("$DC_CMD" -f run_{section}.tcl 2>&1)
-DC_EXIT=$?
+# --- Phase 1: apply agent constraints (agent Tcl sandboxed via read_sdc) ---
+rm -f "$APPLIED"
+APPLY_OUT=$("$DC_CMD" -f run_{section}.tcl 2>&1)
+# Prefix raw tool output so an agent-injected "CONSTRAINTS_OK" cannot match ^CONSTRAINTS_OK
+echo "$APPLY_OUT" | sed 's/^/[apply] /'
 
-echo "$DC_OUTPUT"
+# --- Phase 2: verdict from the laundered applied SDC (no agent-controlled code here) ---
+ok=1
+reasons=""
+if [ ! -s "$APPLIED" ]; then
+    ok=0; reasons="no_applied_sdc"
+else
+    grep -q "create_clock" "$APPLIED" || {{ ok=0; reasons="$reasons,no_clock"; }}
+    for p in $REQ_IN; do
+        grep -Eq "set_input_delay.*\\b$p\\b" "$APPLIED" || {{ ok=0; reasons="$reasons,no_input_delay:$p"; }}
+    done
+    for p in $REQ_OUT; do
+        grep -Eq "set_output_delay.*\\b$p\\b" "$APPLIED" || {{ ok=0; reasons="$reasons,no_output_delay:$p"; }}
+    done
+fi
+# Tool-native errors the agent cannot remove (e.g. unsupported command, bad port)
+if echo "$APPLY_OUT" | grep -Eq "unknown command|Can't find|cannot find"; then
+    ok=0; reasons="$reasons,tool_error"
+fi
 
-exit $DC_EXIT
+if [ "$ok" = 1 ]; then
+    echo "CONSTRAINTS_OK"
+    exit 0
+else
+    echo "CONSTRAINTS_FAIL: ${{reasons#,}}"
+    exit 1
+fi
 """
 
 
@@ -520,9 +493,9 @@ class P6DCConstraintDebugGenerator(BaseGenerator):
         (task_dir / "solution" / "constraints.sdc").write_text(correct_sdc)
 
         # Write run scripts
-        (task_dir / "files" / "run_public.sh").write_text(_make_sh("public"))
+        (task_dir / "files" / "run_public.sh").write_text(_make_sh(rtl, "public"))
         (task_dir / "files" / "run_public.tcl").write_text(_make_tcl(rtl, "public"))
-        (task_dir / "hidden" / "run_hidden.sh").write_text(_make_sh("hidden"))
+        (task_dir / "hidden" / "run_hidden.sh").write_text(_make_sh(rtl, "hidden"))
         (task_dir / "hidden" / "run_hidden.tcl").write_text(_make_tcl(rtl, "hidden"))
 
         # Make scripts executable

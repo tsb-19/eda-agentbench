@@ -463,17 +463,22 @@ def test_generated_no_raw_logs():
 
 
 def test_generated_tcl_has_timing_checks():
-    """Generated TCL scripts contain explicit timing validation."""
+    """Grader isolates agent SDC: the apply-phase TCL applies constraints via
+    read_sdc + write_sdc (no in-interpreter grading, no `source`), and the .sh
+    verdict computes pass/fail from the laundered file and emits the markers."""
     if not GENERATED_DIR.is_dir():
         pytest.skip("Generated tasks not created")
     for task_dir in sorted(GENERATED_DIR.iterdir()):
         if not task_dir.is_dir():
             continue
         tcl = (task_dir / "files" / "run_public.tcl").read_text()
-        assert "all_clocks" in tcl, f"{task_dir.name}: missing clock check"
-        assert "TIMING_CHECK_OK" in tcl, f"{task_dir.name}: missing TIMING_CHECK_OK"
-        assert "TIMING_CHECK_FAIL" in tcl, f"{task_dir.name}: missing TIMING_CHECK_FAIL"
-        assert "expected_clock_missing" in tcl, f"{task_dir.name}: missing expected clock name check"
+        assert "read_sdc constraints.sdc" in tcl, f"{task_dir.name}: apply phase must read_sdc"
+        assert "write_sdc" in tcl, f"{task_dir.name}: apply phase must launder via write_sdc"
+        assert "source -echo" not in tcl, f"{task_dir.name}: must not source agent SDC into grader"
+        sh = (task_dir / "files" / "run_public.sh").read_text()
+        assert "TIMING_CHECK_OK" in sh, f"{task_dir.name}: missing TIMING_CHECK_OK in verdict"
+        assert "TIMING_CHECK_FAIL" in sh, f"{task_dir.name}: missing TIMING_CHECK_FAIL in verdict"
+        assert "create_clock" in sh, f"{task_dir.name}: verdict must check applied clock"
 
 
 def test_generated_no_duplicate_ids():

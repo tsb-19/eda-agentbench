@@ -136,6 +136,7 @@ For dataset runs, a `summary.json` is written at `runs/<run_id>/`.
 - **Forbidden file check**: SHA-256 snapshot/verify of forbidden visible files
 - **Hidden file isolation**: Hidden files never enter the agent workspace
 - **Score zeroing**: Anti-cheat violations force score to 0
+- **SDC grader isolation (P6 / P7-PT)**: the agent's editable `constraints.sdc` is ingested with `read_sdc` and re-emitted with `write_sdc` in a process that runs no grading; a separate bash phase computes the pass/fail verdict from that laundered file. Injected Tcl (`proc incr {} {}`, `exit 0`, `echo CONSTRAINTS_OK`) cannot reach or forge the marker. A secondary denylist (`check_tcl_injection`) flags obvious injection attempts as an explicit violation.
 - **Timeout**: Agent command is killed after timeout period
 
 ## Test Agents

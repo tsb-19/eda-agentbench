@@ -1,74 +1,15 @@
-# DC Constraint Debug — hidden TCL script
-# Set library
+# DC Constraint Debug — hidden apply phase (isolated from grading)
 set target_library "lsi_10k.db"
 set link_library "* $target_library gtech.db"
-
-# Track errors
-set error_count 0
-set fail_reasons {}
 
 # Read RTL
 analyze -format verilog [list design.v]
 elaborate adder_pipe
 link
 
-# Read constraints and capture output for error checking
-set source_log "source_output.log"
-redirect -file $source_log { source -echo -verbose constraints.sdc }
-
-# --- Constraint validation checks ---
-
-# Check source output for DC errors
-set fh [open $source_log r]
-set source_content [read $fh]
-close $fh
-
-if {[regexp {Error:} $source_content]} {
-    incr error_count
-    lappend fail_reasons "dc_error_in_source"
-}
-
-if {[regexp {Can't find} $source_content]} {
-    incr error_count
-    lappend fail_reasons "port_or_clock_not_found"
-}
-
-if {[regexp -nocase {unknown command} $source_content]} {
-    incr error_count
-    lappend fail_reasons "unsupported_command"
-}
-
-# Check 1: Clocks must exist
-set all_clks [all_clocks]
-if {[sizeof_collection $all_clks] == 0} {
-    incr error_count
-    lappend fail_reasons "no_clocks_created"
-}
-
-# Check 2: All ports must resolve
-foreach port {clk rst_n a b sum} {
-    if {[catch {get_ports $port} result]} {
-        incr error_count
-        lappend fail_reasons "port_not_found:$port"
-    }
-}
-
-# Compile
-if {[catch {compile_ultra -no_autoungroup} result]} {
-    incr error_count
-    lappend fail_reasons "compile_failed"
-}
-
-# Report
-report_timing -max_paths 10 -delay max
-report_timing -max_paths 10 -delay min
-
-# Emit result
-if {$error_count > 0} {
-    set reason_str [join $fail_reasons ","]
-    echo "CONSTRAINTS_FAIL: $reason_str"
-    exit 1
-} else {
-    echo "CONSTRAINTS_OK"
-    exit 0
-}
+# Apply agent constraints. read_sdc sandboxes Tcl `proc`/`exit`; write_sdc then
+# launders the genuine applied constraints to a fresh file (overwriting anything the
+# agent's SDC wrote). Grading reads ONLY that file, in the .sh wrapper.
+read_sdc constraints.sdc
+write_sdc -nosplit applied_hidden.sdc
+exit 0

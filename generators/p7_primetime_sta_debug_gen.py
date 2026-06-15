@@ -560,142 +560,89 @@ EXPECTED_BUG_TYPE_NAMES = [
 
 
 def _make_tcl(rtl: dict, section: str) -> str:
-    """Generate PrimeTime TCL script with explicit timing-constraint validation.
+    """Apply-phase TCL — applies the agent's constraints in ISOLATION from grading.
 
-    The script reads a structural netlist (design_netlist.v), links the design,
-    then sources the SDC constraints and validates them.
-
-    Checks performed:
-    1. Source log scanned for Error:, Can't find, unknown command
-    2. all_clocks must be non-empty
-    3. Expected clock name must appear in all_clocks
-    4. All design ports must resolve via get_ports
-    5. report_timing must succeed (valid timing graph)
-    """
+    No pass/fail decision happens here. The agent-editable constraints.sdc is applied
+    via `read_sdc` (which, unlike `source`, sandboxes Tcl `proc`/`exit` redefinition —
+    verified on pt_shell), then `write_sdc` serialises the GENUINE applied constraints
+    to applied_<section>.sdc, overwriting any file the agent's SDC may have written.
+    The verdict is computed by the .sh wrapper from that laundered file, so no
+    agent-controlled Tcl can reach the grading logic (see run_<section>.sh)."""
     top = rtl["top"]
-    clk = rtl["clk"]
-    inputs = [p for p in rtl["inputs"] if p != clk]
-    outputs = rtl["outputs"]
-    all_ports = [clk] + inputs + outputs
-
-    if section == "public":
-        report_cmds = "report_timing -max_paths 5\nreport_clocks"
-    else:
-        report_cmds = (
-            "report_timing -max_paths 10 -delay max\n"
-            "report_timing -max_paths 10 -delay min\n"
-            "report_clocks -skew"
-        )
-
     return f"""\
-# PrimeTime STA Debug — {section} TCL script
-# Track errors
-set error_count 0
-set fail_reasons {{}}
-
-# Read netlist and link design
+# PrimeTime STA Debug — {section} apply phase (isolated from grading)
 read_verilog design_netlist.v
 link_design {top}
 
-# Read constraints and capture output for error checking
-set source_log "source_output.log"
-redirect -file $source_log {{ source -echo -verbose constraints.sdc }}
-
-# --- Constraint validation checks ---
-
-# Check source output for PT errors
-set fh [open $source_log r]
-set source_content [read $fh]
-close $fh
-
-if {{[regexp {{Error:}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "pt_error_in_source"
-}}
-
-if {{[regexp {{Can't find}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "port_or_clock_not_found"
-}}
-
-if {{[regexp -nocase {{unknown command}} $source_content]}} {{
-    incr error_count
-    lappend fail_reasons "unsupported_command"
-}}
-
-# Check 1: Clocks must exist
-set all_clks [all_clocks]
-set num_clocks [sizeof_collection $all_clks]
-if {{$num_clocks == 0}} {{
-    incr error_count
-    lappend fail_reasons "no_clocks_created"
-}} else {{
-    # Verify expected clock name exists
-    set expected_clk "{clk}"
-    set clk_found 0
-    foreach_in_collection c $all_clks {{
-        if {{[get_object_name $c] eq $expected_clk}} {{
-            set clk_found 1
-        }}
-    }}
-    if {{$clk_found == 0}} {{
-        incr error_count
-        lappend fail_reasons "expected_clock_missing:$expected_clk"
-    }}
-}}
-
-# Check 2: All ports must resolve
-foreach port {{{" ".join(all_ports)}}} {{
-    if {{[catch {{get_ports $port}} result]}} {{
-        incr error_count
-        lappend fail_reasons "port_not_found:$port"
-    }}
-}}
-
-# Check 3: Report timing (must succeed — validates timing graph)
-if {{[catch {{report_timing -max_paths 1}} result]}} {{
-    incr error_count
-    lappend fail_reasons "report_timing_failed"
-}}
-
-# Report
-{report_cmds}
-
-# Emit result
-if {{$error_count > 0}} {{
-    set reason_str [join $fail_reasons ","]
-    echo "TIMING_CHECK_FAIL: $reason_str"
-    exit 1
-}} else {{
-    echo "TIMING_CHECK_OK"
-    exit 0
-}}
+# Apply agent constraints. read_sdc sandboxes Tcl `proc`/`exit`; write_sdc then
+# launders the genuine applied constraints to a fresh file (overwriting anything the
+# agent's SDC wrote). Grading reads ONLY that file, in the .sh wrapper.
+read_sdc constraints.sdc
+write_sdc -nosplit applied_{section}.sdc
+exit 0
 """
 
 
-def _make_sh(section: str) -> str:
-    """Generate bash run script."""
+def _make_sh(rtl: dict, section: str) -> str:
+    """Verdict-phase bash — grades the laundered applied_<section>.sdc (no agent code).
+
+    A correct fix yields an applied SDC with a clock, an input delay for every
+    non-clock input, and an output delay for every output. Any constraint bug
+    (missing clock, wrong/invalid port, syntax error) leaves a required line absent;
+    unsupported commands surface as tool-native errors the agent cannot suppress.
+    The agent's constraints.sdc cannot forge a pass: read_sdc sandboxes proc/exit,
+    write_sdc overwrites any file it wrote, and the marker is emitted only here."""
+    clk = rtl["clk"]
+    req_in = " ".join(p for p in rtl["inputs"] if p != clk)
+    req_out = " ".join(rtl["outputs"])
     return f"""\
 #!/bin/bash
-# PrimeTime STA Debug — {section} run script
+# PrimeTime STA Debug — {section} run script (two-phase, forge-resistant)
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 cd "$SCRIPT_DIR"
 
 PT_CMD="${{EDA_PT_CMD:-pt_shell}}"
+APPLIED="applied_{section}.sdc"
+REQ_IN="{req_in}"
+REQ_OUT="{req_out}"
 
-# Check if pt_shell is available
 if ! command -v "$PT_CMD" &>/dev/null; then
     echo "SKIP: pt_shell not found (EDA_PT_CMD=$PT_CMD)"
     exit 0
 fi
 
-# Run pt_shell and capture both stdout and stderr
+# --- Phase 1: apply agent constraints (agent Tcl sandboxed via read_sdc) ---
+rm -f "$APPLIED"
 PT_OUTPUT=$("$PT_CMD" -f run_{section}.tcl 2>&1)
-PT_EXIT=$?
+# Prefix raw tool output so an agent-injected "TIMING_CHECK_OK" cannot match ^TIMING_CHECK_OK
+echo "$PT_OUTPUT" | sed 's/^/[apply] /'
 
-echo "$PT_OUTPUT"
+# --- Phase 2: verdict from the laundered applied SDC (no agent-controlled code here) ---
+ok=1
+reasons=""
+if [ ! -s "$APPLIED" ]; then
+    ok=0; reasons="no_applied_sdc"
+else
+    grep -q "create_clock" "$APPLIED" || {{ ok=0; reasons="$reasons,no_clock"; }}
+    for p in $REQ_IN; do
+        grep -Eq "set_input_delay.*\\b$p\\b" "$APPLIED" || {{ ok=0; reasons="$reasons,no_input_delay:$p"; }}
+    done
+    for p in $REQ_OUT; do
+        grep -Eq "set_output_delay.*\\b$p\\b" "$APPLIED" || {{ ok=0; reasons="$reasons,no_output_delay:$p"; }}
+    done
+fi
+# Tool-native errors the agent cannot remove (e.g. unsupported command, bad port)
+if echo "$PT_OUTPUT" | grep -Eq "unknown command|Can't find|cannot find"; then
+    ok=0; reasons="$reasons,tool_error"
+fi
 
-exit $PT_EXIT
+if [ "$ok" = 1 ]; then
+    echo "TIMING_CHECK_OK"
+    exit 0
+else
+    echo "TIMING_CHECK_FAIL: ${{reasons#,}}"
+    exit 1
+fi
 """
 
 
@@ -744,9 +691,9 @@ class P7PrimeTimeSTADebugGenerator(BaseGenerator):
         (task_dir / "solution" / "constraints.sdc").write_text(correct_sdc)
 
         # Write run scripts
-        (task_dir / "files" / "run_public.sh").write_text(_make_sh("public"))
+        (task_dir / "files" / "run_public.sh").write_text(_make_sh(rtl, "public"))
         (task_dir / "files" / "run_public.tcl").write_text(_make_tcl(rtl, "public"))
-        (task_dir / "hidden" / "run_hidden.sh").write_text(_make_sh("hidden"))
+        (task_dir / "hidden" / "run_hidden.sh").write_text(_make_sh(rtl, "hidden"))
         (task_dir / "hidden" / "run_hidden.tcl").write_text(_make_tcl(rtl, "hidden"))
 
         # Make scripts executable

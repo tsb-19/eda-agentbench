@@ -136,6 +136,7 @@ runs/<run_id>/<task_id>/<timestamp>/
 - **禁止文件检查**：对禁止的可见文件进行 SHA-256 快照/验证
 - **隐藏文件隔离**：隐藏文件永远不会进入 agent 工作区
 - **分数归零**：防作弊违规将强制将分数置为 0
+- **SDC 评分隔离（P6 / P7-PT）**：agent 可编辑的 `constraints.sdc` 在一个不做任何评分的进程中用 `read_sdc` 读入、再用 `write_sdc` 重新导出为规范文件；另一个独立的 bash 阶段从这个"净化"后的文件计算通过/失败判定。注入的 Tcl（`proc incr {} {}`、`exit 0`、`echo CONSTRAINTS_OK`）无法触及或伪造判定标记。次级黑名单（`check_tcl_injection`）会将明显的注入企图标记为显式违规。
 - **超时终止**：超时后 agent 命令将被终止
 
 ## 测试 Agent

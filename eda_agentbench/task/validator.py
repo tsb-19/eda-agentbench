@@ -19,15 +19,22 @@ def check_submission_forbidden(submission_dir: Path, forbidden_files: list[str])
 
 # --- TCL injection guard for editable constraint files -----------------------
 #
-# P6 (dc_shell) and P7-PT (pt_shell) graders `source` the agent-EDITABLE
-# constraints.sdc into the SAME Tcl interpreter that then grades it. A single
-# line in that file can subvert the grader, e.g. `proc incr {args} {}` makes
-# every `incr error_count` a no-op so the grader emits CONSTRAINTS_OK /
-# TIMING_CHECK_OK on a broken constraint set. We reject such files.
+# Defense-in-depth against grader subversion via the agent-EDITABLE
+# constraints.sdc (P6 dc_shell / P7-PT pt_shell).
 #
-# This is a denylist STOP-GAP: it blocks the obvious/literal forms but a
-# determined agent can still subvert via indirection (e.g. `set c proc; $c ...`).
-# The robust fix is to source the SDC in a process isolated from grading.
+# The PRIMARY defense is structural (see generators/p6_dc_constraint_debug_gen
+# and p7_primetime_sta_debug_gen): the apply phase ingests the agent SDC with
+# `read_sdc` (which sandboxes Tcl `proc`/`exit`) and re-emits a canonical file
+# with `write_sdc`; a separate bash phase -- running no agent code -- computes
+# the pass/fail verdict from that laundered file. An injected `proc incr {} {}`,
+# `exit 0`, or `echo CONSTRAINTS_OK` can no longer reach or forge the verdict.
+#
+# This denylist is the SECONDARY layer: it flags obvious injection attempts as
+# an explicit anti-cheat violation (hard zero, recorded in the result) before
+# the tool ever runs. It is a denylist, not a sandbox -- a determined agent can
+# evade it via indirection (e.g. `set c proc; $c ...`) -- which is exactly why
+# the structural defense above, not this list, is what guarantees verdict
+# integrity.
 _TCL_INJECTION_COMMANDS = frozenset({
     # interpreter / definition manipulation (the grader-subversion vectors)
     "proc", "rename", "interp", "namespace", "eval", "uplevel", "upvar",
