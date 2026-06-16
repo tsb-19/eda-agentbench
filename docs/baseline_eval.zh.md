@@ -9,18 +9,16 @@
 
 ## 为什么推理与评分要分离
 
-商用 EDA 工具(VCS、HSPICE、Design Compiler、PrimeTime、SpyGlass)**只装在 EDA 主机 b04 上,
-而 b04 没有网络**;大模型推理又必须联网。两者无法共处一个进程,因此「同一次运行里既调模型又
-调工具」的 agentic runner 对工具赛道行不通。本工具把工作拆成两段:
+大模型推理是联网 API 调用,评分要跑商用 EDA 工具。把两者解耦,既让 harness 保持简单,也让每一步在
+最合适/可行的地方运行:
 
-1. **推理(本地、联网)**——`generate_model_submissions.py` 对每道题各调一次模型,写出一份
-   提交目录。之后**不再**调用模型。
-2. **评分(无需联网)**——`run_model_baseline.py grade` 只跑评分器:
-   - 读报告赛道(P3、P6 综合 QA、P8)不需要工具 → **本地**评分;
-   - 7 个真跑工具赛道 → **在 b04 上**评分(`scripts/b04_grade.sh`)。
+1. **推理**——`generate_model_submissions.py` 对每道题各调一次模型,写出提交目录,之后**不再**调模型。
+2. **评分**——`run_model_baseline.py grade` 只跑评分器(不调模型):
+   - 读报告赛道(P3、P6 综合 QA、P8)无需工具 → 任何机器都能评;
+   - 真跑工具赛道需要 EDA 工具在 `PATH` 上。
 
-这是一次**单轮(single-shot)**基线:模型只看一次提示 + 文件就交出修改结果,**不**根据工具反馈
-迭代。带工具反馈的 agentic 迭代评测是后续单独的赛道。
+这是一次**单轮(single-shot)**基线:模型只看一次提示 + 文件就交出修改结果,**不**根据工具反馈迭代。
+带工具反馈的 agentic 迭代评测是后续单独的赛道。
 
 ## 前置条件
 
@@ -53,7 +51,7 @@ python3 scripts/generate_model_submissions.py tasks \
 ```
 
 产出 `runs/baseline/$STAMP/submissions/<模型>/<赛道>/<task_id>/<可编辑文件>`,外加每题一份
-`transcript.json`(原始回复 + token 用量)和顶层 `manifest.json`(抽样任务 + 每赛道 `needs_b04`
+`transcript.json`(原始回复 + token 用量)和顶层 `manifest.json`(抽样任务 + 每赛道 `needs_tool`
 标志)。抽样与 `evaluate-dataset --sample-per-track N --seed S` **完全一致**,同样的 `(seed, N)`
 永远选到同一批题。
 
@@ -68,15 +66,20 @@ python3 scripts/run_model_baseline.py grade \
     --results runs/baseline/$STAMP/results
 ```
 
-### 3. 在 b04 上评分真跑工具赛道
+### 3. 评分真跑工具赛道
 
 ```bash
-scripts/b04_grade.sh runs/baseline/$STAMP/submissions runs/baseline/$STAMP/results
-# 用 git archive 把仓库 + 提交送上 b04,执行 --only tool 评分,把结果拉回,
-# 并删除远端 /tmp 工作目录。可用 B04_HOST=tsb@b04 覆盖主机。
+python3 scripts/run_model_baseline.py grade \
+    --submissions runs/baseline/$STAMP/submissions --only tool \
+    --results runs/baseline/$STAMP/results
 ```
 
-本地与 b04 的结果会汇入同一个 `results/` 目录(每个 `模型/赛道/任务` 一份 JSON)。
+真跑工具赛道(P1/P2/P4/P5/P6约束/P7)会调用真实 EDA 工具,因此 VCS、HSPICE、Design Compiler、
+PrimeTime、SpyGlass **必须装在 `PATH` 上**。请在装有这些工具的机器上评分。读报告赛道与工具赛道的
+结果会汇入同一个 `results/` 目录(每个 `模型/赛道/任务` 一份 JSON)。
+
+> 环境说明:若你的 EDA 工具在另一台机器上,那属于环境特定问题——可自行提供一层透明的 `PATH` 垫片
+> 把工具调用转发过去。这类垫片**不属于本基准**(基准默认工具在本机),请放在仓库之外。
 
 ### 4. 渲染排行榜
 
@@ -110,6 +113,6 @@ python3 -m eda_agentbench evaluate-dataset tasks \
 
 - 相同 `--seed` / `--sample-per-track` → 完全相同的题集(已在 `tests/test_model_baseline.py`
   中断言)。配置里用 `temperature: 0.0` 让回复更稳定。
-- 成本 ≈ `每赛道抽样数 × 10 赛道 × N 个模型` 次推理(15 时约 150/模型)。b04 评分为
-  `7 个工具赛道 × 抽样 × N` 次评分器运行,集中在一个用后即清的 `/tmp` 工作目录里。
+- 成本 ≈ `每赛道抽样数 × 10 赛道 × N 个模型` 次推理(15 时约 150/模型)。工具赛道评分为
+  `7 个工具赛道 × 抽样 × N` 次评分器运行。
 - 先用 `--track p3_timing_report_qa --allow-mock`(无密钥、零成本)验证链路是否打通。

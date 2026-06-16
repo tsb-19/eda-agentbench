@@ -165,7 +165,7 @@ EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsy
 1. Agent 运行器 MVP 可用（`run-agent`、`run-agent-dataset`）；尚无交互式循环或逐次工具调用记录。
 2. P1 和 P4 使用精确解答匹配；P5 / P6 约束 / P7 调试 track 接受任何功能正确的修复（基于执行）。
 3. P4 覆盖 RC 和 RLC 拓扑（无运放或数字 SPICE）。
-4. P6 DC 约束 / P7 SpyGlass / P7 PrimeTime 调试 track 已规模化至 50+（经 b04 验证）；P6 DC 综合 QA 与 P8 报告问答仍为原型。
+4. P6 DC 约束 / P7 SpyGlass / P7 PrimeTime 调试 track 已规模化至 50+（在真实工具上验证）；P6 DC 综合 QA 与 P8 报告问答仍为原型。
 5. 提交模式下无 LLM API 集成用于解释评分。
 
 ## 预期用途

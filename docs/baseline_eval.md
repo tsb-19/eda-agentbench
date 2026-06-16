@@ -11,16 +11,14 @@ evaluator core.
 
 ## Why inference and grading are separate
 
-Commercial EDA tools (VCS, HSPICE, Design Compiler, PrimeTime, SpyGlass) live **only on
-the EDA host `b04`, which has no internet**. LLM inference needs internet. So the two
-cannot share a process, and the agentic runner (which calls the agent *and* the tool in
-one run) can't span them for tool tracks. The harness splits the work:
+LLM inference is an online API call; grading runs the commercial EDA tools. Decoupling
+them keeps the harness simple and lets each step run where it's cheapest/possible:
 
-1. **Inference (here, has internet)** — `generate_model_submissions.py` calls each model
-   once per task and writes a submission directory. The model is **never** invoked again.
-2. **Grading (no internet)** — `run_model_baseline.py grade` just runs the grader:
-   - report-QA tracks (P3, P6 Synthesis QA, P8) have no tool → graded **locally**;
-   - the 7 real-tool tracks → graded **on b04** (`scripts/b04_grade.sh`).
+1. **Inference** — `generate_model_submissions.py` calls each model once per task and
+   writes a submission directory. The model is **never** invoked again.
+2. **Grading** — `run_model_baseline.py grade` just runs the grader (no model calls):
+   - report-QA tracks (P3, P6 Synthesis QA, P8) need no tool → graded anywhere;
+   - the real-tool tracks need the EDA tools on `PATH`.
 
 This is a **single-shot** baseline: the model sees the prompt + files once and returns
 the edited file(s); it does not iterate on tool feedback. Agentic iterative evaluation is
@@ -60,7 +58,7 @@ python3 scripts/generate_model_submissions.py tasks \
 
 Produces `runs/baseline/$STAMP/submissions/<model>/<track>/<task_id>/<editable file>`
 plus a per-task `transcript.json` (raw response + token usage) and a top-level
-`manifest.json` (sampled tasks + a `needs_b04` flag per track). Sampling **exactly
+`manifest.json` (sampled tasks + a `needs_tool` flag per track). Sampling **exactly
 mirrors** `evaluate-dataset --sample-per-track N --seed S`, so a given `(seed, N)` always
 selects the same tasks.
 
@@ -77,16 +75,23 @@ python3 scripts/run_model_baseline.py grade \
     --results runs/baseline/$STAMP/results
 ```
 
-### 3. Grade the real-tool tracks on b04
+### 3. Grade the real-tool tracks
 
 ```bash
-scripts/b04_grade.sh runs/baseline/$STAMP/submissions runs/baseline/$STAMP/results
-# ships repo (git archive) + submissions to b04, grades --only tool, pulls results back,
-# removes the remote /tmp workdir. Override host with B04_HOST=tsb@b04.
+python3 scripts/run_model_baseline.py grade \
+    --submissions runs/baseline/$STAMP/submissions --only tool \
+    --results runs/baseline/$STAMP/results
 ```
 
-Local and b04 results merge into the same `results/` tree (one JSON per
-`model/track/task`).
+The real-tool tracks (P1/P2/P4/P5/P6-Constraint/P7) run the actual EDA tools, so the
+tools (VCS, HSPICE, Design Compiler, PrimeTime, SpyGlass) **must be installed on `PATH`**.
+Run grading on a host that has them. Local and tool-track results merge into the same
+`results/` tree (one JSON per `model/track/task`).
+
+> Environment note: if your EDA tools live on a different machine, that is an
+> environment-specific concern — provide a transparent `PATH` shim that forwards tool
+> invocations to that host. Such a shim is **not** part of this benchmark (the benchmark
+> assumes local tools); keep it outside the repo.
 
 ### 4. Render the leaderboard
 
@@ -124,5 +129,5 @@ python3 -m eda_agentbench evaluate-dataset tasks \
 - Same `--seed` / `--sample-per-track` → identical task set (asserted in
   `tests/test_model_baseline.py`). Use `temperature: 0.0` in the specs for stable replies.
 - Cost ≈ `sample_per_track × 10 tracks × N models` inference calls (~150/model at 15).
-  b04 grading is `7 tool tracks × sample × N` grader runs in one cleaned `/tmp` workdir.
+  tool-track grading is `7 tool tracks × sample × N` grader runs.
 - Start with `--track p3_timing_report_qa --allow-mock` (no key, no cost) to verify wiring.

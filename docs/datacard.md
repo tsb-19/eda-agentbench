@@ -165,7 +165,7 @@ Generate with: `python scripts/export_benchmark_summary.py`
 1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`); no interactive loop or per-tool-call transcript yet.
 2. P1 and P4 use exact solution matching; P5 / P6 Constraint / P7 debug tracks accept any functionally correct fix (execution-based).
 3. P4 covers RC and RLC topologies (no op-amp or digital SPICE).
-4. P6 DC Constraint / P7 SpyGlass / P7 PrimeTime debug tracks scaled to 50+ (b04-validated); P6 DC Synthesis QA and P8 report QA remain prototypes.
+4. P6 DC Constraint / P7 SpyGlass / P7 PrimeTime debug tracks scaled to 50+ (validated on real tools); P6 DC Synthesis QA and P8 report QA remain prototypes.
 5. No LLM API integration for explanation scoring in submission mode.
 
 ## Intended Use

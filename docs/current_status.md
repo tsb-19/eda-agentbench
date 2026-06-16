@@ -186,9 +186,9 @@ See `reports/benchmark_summary.md` for the full summary. Other artifacts include
 2. No LLM API integration (explanation scoring defaults to 1.0 in submission mode).
 3. P3 uses `tool: ["pt"]` in metadata but skips tool detection (synthetic reports, no real PrimeTime).
 4. P6 DC Synthesis QA is a prototype (51 tasks); not yet scaled.
-5. P6 DC Constraint Debug scaled to 61 tasks (b04-validated on real Design Compiler).
-6. P7 SpyGlass Lint Debug scaled to 50 tasks (b04-validated on real SpyGlass).
-7. P7 PrimeTime STA Debug scaled to 53 tasks (b04-validated on real PrimeTime).
+5. P6 DC Constraint Debug scaled to 61 tasks (validated on real Design Compiler).
+6. P7 SpyGlass Lint Debug scaled to 50 tasks (validated on real SpyGlass).
+7. P7 PrimeTime STA Debug scaled to 53 tasks (validated on real PrimeTime).
 8. P8 PnR Report QA is a report-QA prototype (101 tasks). No physical place-and-route execution track yet (no ICC2/Innovus PnR runs, StarRC, or Sentaurus).
 9. No `generate` CLI command (generation requires running Python scripts directly).
 10. Spectre measurement uses `-format nutascii` + Python waveform parsing.
@@ -203,6 +203,6 @@ See `reports/benchmark_summary.md` for the full summary. Other artifacts include
 - **Phase 6A/B/C/D**: P4→302, P6 DC Synthesis QA, P6 DC Constraint Debug, baseline runner/leaderboard — DONE
 - **Phase 7A/B/C**: P7 SpyGlass, P7 PrimeTime, Agentic Runner MVP — DONE
 - **Phase 8A**: P8 PnR Report QA prototype (101 tasks) — DONE
-- **Phase 8B**: Scale real-tool debug tracks — P6 DC Constraint→61, P7 SpyGlass→50, P7 PrimeTime→53 (all b04-validated) — DONE (current)
+- **Phase 8B**: Scale real-tool debug tracks — P6 DC Constraint→61, P7 SpyGlass→50, P7 PrimeTime→53 (all validated on real tools) — DONE (current)
 
 See [roadmap.md](roadmap.md) for upcoming work.

@@ -414,7 +414,7 @@ def generate_benchmark_summary_md(records: list[dict]) -> str:
         "- **Smoke scripts:** all tracks pass end-to-end smoke tests",
         "- **Sampled evaluation:** fast eval (5 tasks/track) passes for solution mode",
         "- **P5 full batch:** 100/100 solution tasks score 1.0; 100/100 buggy tasks score < 1.0",
-        "- **Real-tool debug tracks:** P6 DC Constraint (61), P7 SpyGlass (50), P7 PrimeTime (53) — b04-validated, solution >= 0.9 / buggy < 0.9 per task",
+        "- **Real-tool debug tracks:** P6 DC Constraint (61), P7 SpyGlass (50), P7 PrimeTime (53) — validated on real tools, solution >= 0.9 / buggy < 0.9 per task",
         "",
         "## Known Limitations",
         "",

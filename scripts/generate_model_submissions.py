@@ -10,9 +10,9 @@ a submission directory:
 
 Plus a per-task transcript.json (raw response + token usage) and a top-level
 manifest.json. Grading is a SEPARATE step (scripts/run_model_baseline.py): report-QA
-tracks are graded locally; the real-tool tracks are graded on the EDA host (b04).
+tracks are graded with no tool; the real-tool tracks are graded where the EDA tools are installed.
 The model is never invoked during grading, so this inference/grading split keeps the
-LLM (internet) and the EDA tools (b04, no internet) in different processes.
+LLM API call and the EDA-tool execution in different processes/hosts.
 
 Usage:
     python scripts/generate_model_submissions.py tasks \
@@ -38,7 +38,7 @@ from eda_agentbench.llm.base import BaseLLMProvider  # noqa: E402
 from eda_agentbench.llm.openai_provider import OpenAIProvider, _load_dotenv  # noqa: E402
 from eda_agentbench.task.loader import TaskLoader, TaskValidationError  # noqa: E402
 
-# Report-QA tracks need no commercial tool: graded locally. Everything else -> b04.
+# Report-QA tracks need no commercial tool. Everything else needs the real EDA tools.
 LOCAL_QA_TRACKS = {
     "p3_timing_report_qa",
     "p6_dc_synthesis_qa",
@@ -216,7 +216,7 @@ def parse_submission(text: str, editable: list[str], is_p5: bool) -> tuple[dict[
 
     # Fallback (single editable file): the model ignored the contract. Recover the file
     # content robustly so a prose-wrapped-but-correct answer isn't turned into a broken
-    # file (which would unfairly fail — and waste an expensive tool/b04 run):
+    # file (which would unfairly fail — and waste an expensive tool run):
     #   1. one enclosing fence -> its body;
     #   2. fenced code block(s) amid prose -> the largest block (the full file);
     #   3. otherwise the whole reply.
@@ -323,14 +323,24 @@ def main(argv: list[str] | None = None) -> int:
         is_p5 = track == "p5_spice_deck_debug"
         editable = list(meta["files"].get("editable", []))
         prompt = build_prompt(tp, meta, args.max_visible_bytes)
-        needs_b04 = track not in LOCAL_QA_TRACKS
+        needs_tool = track not in LOCAL_QA_TRACKS
 
-        entry = {"task_id": task_id, "track": track, "task_path": str(tp),
-                 "needs_b04": needs_b04, "submissions": {}}
+        # Store task_path RELATIVE to the repo root so the manifest is portable to another host
+        # (where the repo lives under a different absolute path). Falls back to absolute
+        # if the task tree is outside the repo.
+        try:
+            task_rel = str(tp.resolve().relative_to(REPO_ROOT))
+        except ValueError:
+            task_rel = str(tp)
+
+        entry = {"task_id": task_id, "track": track, "task_path": task_rel,
+                 "needs_tool": needs_tool, "submissions": {}}
 
         for name, provider, gen_kwargs in models:
             sub_dir = out_root / name / track / task_id
-            rec = {"submission_dir": str(sub_dir), "parse_ok": False, "error": None}
+            # Relative to the submissions root -> portable to another host.
+            rec = {"submission_dir": f"{name}/{track}/{task_id}",
+                   "parse_ok": False, "error": None}
             try:
                 t0 = time.time()
                 resp = _generate_with_retry(provider, prompt, gen_kwargs, args.max_retries)
@@ -361,9 +371,9 @@ def main(argv: list[str] | None = None) -> int:
         manifest["tasks"].append(entry)
 
     (out_root / "manifest.json").write_text(json.dumps(manifest, indent=2))
-    n_b04 = sum(1 for t in manifest["tasks"] if t["needs_b04"])
+    n_tool = sum(1 for t in manifest["tasks"] if t["needs_tool"])
     print(f"\nWrote submissions + manifest to {out_root}")
-    print(f"  {len(sampled) - n_b04} local-QA tasks, {n_b04} tool tasks (grade on b04)")
+    print(f"  {len(sampled) - n_tool} report-QA tasks, {n_tool} real-tool tasks (need EDA tools on PATH)")
     return 0
 
 

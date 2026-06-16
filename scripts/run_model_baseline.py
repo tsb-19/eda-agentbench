@@ -3,12 +3,12 @@
 
 Pairs with scripts/generate_model_submissions.py. Inference (LLM) already happened
 there; this step only RUNS THE GRADER, so it needs no internet and can run on the
-EDA host (b04). Split by track:
+host where the EDA tools are installed. Split by track:
 
   * report-QA tracks (no commercial tool) -> grade locally  (`grade --only local`)
-  * real-tool tracks (VCS/HSPICE/DC/PT/SpyGlass) -> grade on b04 (`grade --only tool`)
+  * real-tool tracks (VCS/HSPICE/DC/PT/SpyGlass) -> grade where tools live (`grade --only tool`)
 
-Results are written one JSON per (model, track, task) so local + b04 runs merge into
+Results are written one JSON per (model, track, task) so report-QA + tool runs merge into
 one results tree; `leaderboard` then renders the comparison.
 
 Subcommands:
@@ -108,8 +108,8 @@ def cmd_grade(args) -> int:
             task_path = (REPO_ROOT / task_path).resolve()
         for model, rec in t["submissions"].items():
             sub_dir = Path(rec["submission_dir"])
-            if not sub_dir.is_absolute():
-                sub_dir = (REPO_ROOT / sub_dir).resolve()
+            if not sub_dir.is_absolute():           # relative to the submissions root
+                sub_dir = (sub_root / sub_dir).resolve()
             res = _grade_one(task_path, sub_dir, runs_root)
             res.update({"model": model, "track": track, "task_id": t["task_id"]})
             dest = results_root / model / track / f"{t['task_id']}.json"
@@ -292,7 +292,7 @@ def main(argv: list[str] | None = None) -> int:
     g = sub.add_parser("grade", help="Grade submissions into a results tree")
     g.add_argument("--submissions", required=True, help="Submissions dir (has manifest.json)")
     g.add_argument("--only", choices=["local", "tool", "all"], default="all",
-                   help="local = report-QA tracks; tool = real-tool tracks (b04)")
+                   help="local = report-QA tracks; tool = real-tool tracks (need EDA tools)")
     g.add_argument("--results", default=None, help="Results output dir")
 
     lb = sub.add_parser("leaderboard", help="Render comparison from a results tree")

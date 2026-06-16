@@ -12,7 +12,7 @@
 - **Phase 6A/B/C/D**: P4 scaled to 302 (RC rise/fall + RLC), P6 DC Synthesis QA (51), P6 DC Constraint Debug (13), baseline runner + leaderboard
 - **Phase 7A/B/C**: P7 SpyGlass Lint Debug (16), P7 PrimeTime STA Debug (17), Agentic Runner MVP
 - **Phase 8A**: P8 PnR Report QA prototype (101 tasks)
-- **Phase 8B**: Scaled real-tool debug tracks — P6 DC Constraint 13→61, P7 SpyGlass 16→50, P7 PrimeTime 17→53 (all b04-validated on real tools)
+- **Phase 8B**: Scaled real-tool debug tracks — P6 DC Constraint 13→61, P7 SpyGlass 16→50, P7 PrimeTime 17→53 (all validated on real tools)
 
 Total: **2828 tasks across 10 tracks**. See [current_status.md](current_status.md) for the live inventory.
 

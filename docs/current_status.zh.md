@@ -186,9 +186,9 @@ python scripts/export_benchmark_summary.py
 2. 无 LLM API 集成（提交模式下解释评分默认为 1.0）。
 3. P3 在 metadata 中使用 `tool: ["pt"]`，但跳过工具检测（合成报告，无真实 PrimeTime）。
 4. P6 DC 综合 QA 是原型（51 个任务）；尚未扩展。
-5. P6 DC 约束调试已规模化至 61 个任务（在真实 Design Compiler 上经 b04 验证）。
-6. P7 SpyGlass Lint 调试已规模化至 50 个任务（在真实 SpyGlass 上经 b04 验证）。
-7. P7 PrimeTime STA 调试已规模化至 53 个任务（在真实 PrimeTime 上经 b04 验证）。
+5. P6 DC 约束调试已规模化至 61 个任务（在真实 Design Compiler 上验证）。
+6. P7 SpyGlass Lint 调试已规模化至 50 个任务（在真实 SpyGlass 上验证）。
+7. P7 PrimeTime STA 调试已规模化至 53 个任务（在真实 PrimeTime 上验证）。
 8. P8 PnR 报告问答是报告 QA 原型（101 个任务）。尚无物理布局布线执行 track（无 ICC2/Innovus PnR 运行、StarRC 或 Sentaurus）。
 9. 无 `generate` CLI 命令（生成需要直接运行 Python 脚本）。
 10. Spectre 测量使用 `-format nutascii` + Python 波形解析。
@@ -203,6 +203,6 @@ python scripts/export_benchmark_summary.py
 - **阶段 6A/B/C/D**：P4→302、P6 DC 综合 QA、P6 DC 约束调试、基线运行器/排行榜 — 已完成
 - **阶段 7A/B/C**：P7 SpyGlass、P7 PrimeTime、Agent 运行器 MVP — 已完成
 - **阶段 8A**：P8 PnR 报告问答原型（101 个任务）— 已完成
-- **阶段 8B**：规模化真实工具调试赛道 — P6 DC 约束→61、P7 SpyGlass→50、P7 PrimeTime→53（均经 b04 验证）— 已完成（当前）
+- **阶段 8B**：规模化真实工具调试赛道 — P6 DC 约束→61、P7 SpyGlass→50、P7 PrimeTime→53（均在真实工具上验证）— 已完成（当前）
 
 后续工作参见 [roadmap.md](roadmap.md)。
