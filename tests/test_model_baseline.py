@@ -61,6 +61,36 @@ def test_parse_p5_maps_to_basename():
     assert "deck.sp" in files  # basename target, not nested path
 
 
+def test_parse_strips_fence_inside_marker_block():
+    # Model obeyed the contract but fenced the code inside the block.
+    text = "<<<FILE: design.sv>>>\n```verilog\nmodule x; endmodule\n```\n<<<END>>>"
+    files, ok = gms.parse_submission(text, ["design.sv"], is_p5=False)
+    assert ok is True
+    assert files["design.sv"].strip() == "module x; endmodule"
+
+
+def test_parse_prose_wrapped_code_extracts_block():
+    # No contract markers; model wrapped the file in prose + a fence. The file must be
+    # recovered cleanly (else it would be a broken submission -> unfair fail / wasted run).
+    text = ("Here is the corrected module:\n\n```verilog\n"
+            "module top(input a, output b);\n  assign b = a;\nendmodule\n```\n\n"
+            "This fixes the missing assignment.")
+    files, ok = gms.parse_submission(text, ["design.sv"], is_p5=False)
+    assert ok is False  # fell back
+    assert files["design.sv"].strip().startswith("module top")
+    assert "This fixes" not in files["design.sv"]
+    assert "Here is the corrected" not in files["design.sv"]
+
+
+def test_parse_prose_multiple_blocks_takes_largest():
+    text = ("Change this line `assign b = a;` then use:\n```\nshort\n```\n"
+            "Full file:\n```verilog\nmodule top; wire a, b, c, d, e; endmodule\n```")
+    files, ok = gms.parse_submission(text, ["design.sv"], is_p5=False)
+    assert "module top" in files["design.sv"]
+    assert files["design.sv"].strip() != "short"
+
+
+
 # --------------------------------------------------------------------------- #
 # Sampler parity with the CLI algorithm (cli.py cmd_evaluate_dataset 271-288)
 # --------------------------------------------------------------------------- #

@@ -50,8 +50,16 @@ _FILE_BLOCK_RE = re.compile(
     r"<<<FILE:\s*(?P<name>[^\n>]+?)\s*>>>\n(?P<body>.*?)\n?<<<END>>>",
     re.DOTALL,
 )
-# A trailing/leading markdown fence to strip in the single-file fallback.
+# A single enclosing markdown fence (whole chunk).
 _FENCE_RE = re.compile(r"^\s*```[^\n]*\n(?P<body>.*?)\n```\s*$", re.DOTALL)
+# Any fenced code block (for prose-wrapped answers like "Here's the fix:\n```...```").
+_CODE_BLOCK_RE = re.compile(r"```[^\n]*\n(?P<body>.*?)\n?```", re.DOTALL)
+
+
+def _strip_enclosing_fence(text: str) -> str:
+    """If the chunk is wrapped in one ```lang ... ``` fence, return its inner body."""
+    m = _FENCE_RE.match(text.strip())
+    return m.group("body") if m else text
 
 
 # --------------------------------------------------------------------------- #
@@ -196,7 +204,7 @@ def parse_submission(text: str, editable: list[str], is_p5: bool) -> tuple[dict[
     found: dict[str, str] = {}
     for m in _FILE_BLOCK_RE.finditer(text):
         name = m.group("name").strip()
-        body = m.group("body")
+        body = _strip_enclosing_fence(m.group("body"))  # model may fence inside the block
         key = Path(name).name
         if key in by_name:
             found[by_name[key]] = body
@@ -206,13 +214,20 @@ def parse_submission(text: str, editable: list[str], is_p5: bool) -> tuple[dict[
     if found:
         return found, True
 
-    # Fallback: exactly one editable file -> treat the whole response as its content,
-    # stripping a single enclosing markdown fence if present.
+    # Fallback (single editable file): the model ignored the contract. Recover the file
+    # content robustly so a prose-wrapped-but-correct answer isn't turned into a broken
+    # file (which would unfairly fail — and waste an expensive tool/b04 run):
+    #   1. one enclosing fence -> its body;
+    #   2. fenced code block(s) amid prose -> the largest block (the full file);
+    #   3. otherwise the whole reply.
     if len(editable) == 1:
         body = text.strip()
-        fm = _FENCE_RE.match(body)
-        if fm:
-            body = fm.group("body")
+        if _FENCE_RE.match(body):
+            body = _strip_enclosing_fence(body)
+        else:
+            blocks = [b for b in _CODE_BLOCK_RE.findall(body)]
+            if blocks:
+                body = max(blocks, key=len)
         target = Path(editable[0]).name if is_p5 else editable[0]
         return {target: body}, False
 
