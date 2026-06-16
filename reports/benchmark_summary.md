@@ -59,7 +59,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 | Track | Scoring Components |
 |-------|-------------------|
 | P1 RTL Debug | `compile:0.1|explanation:0.1|hidden_test:0.5|public_test:0.3` |
-| P2 Testbench/SVA Gen | `compile:0.2|golden_pass:0.4|mutant_1:0.2|mutant_2:0.2` |
+| P2 Testbench/SVA Gen | `compile:0.1|golden_pass:0.2|mutant_1:0.35|mutant_2:0.35` |
 | P3 Timing Report QA | `answer_match:1.0` |
 | P4 SPICE Sim | `explanation:0.1|hidden_metric:0.2|output_generated:0.2|public_metric:0.2|tool_run:0.3` |
 | P5 SPICE Deck Debug | `execution_pass:0.9|explanation:0.1` |
