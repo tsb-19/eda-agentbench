@@ -79,10 +79,18 @@ def test_string_decorated_identifier_passes():
 
 
 def test_string_wrong_identifier_fails():
-    # Guards against over-lenient containment: a different but related name must fail.
-    for s in ["clk", "clk_main_2", "clk_aux", "the clock is clk_main"]:
+    # Guards against over-lenient containment: a different or partial name must fail,
+    # even though prose-wrapping of the *correct* name is accepted (see below).
+    for s in ["clk", "clk_main_2", "clk_aux"]:
         ok, _ = am.match_answer("clk_main", s, "string", 0.0)
         assert not ok, f"should FAIL: {s!r}"
+
+
+def test_string_correct_identifier_in_prose_passes():
+    # A correct identifier embedded in a sentence is still correct (not a wording miss).
+    for s in ["the clock is clk_main", "Answer: clk_main.", "`clk_main`"]:
+        ok, _ = am.match_answer("clk_main", s, "string", 0.0)
+        assert ok, f"should PASS: {s!r}"
 
 
 def test_path_group_names():

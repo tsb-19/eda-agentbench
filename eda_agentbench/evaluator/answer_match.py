@@ -124,7 +124,15 @@ def match_composite(expected: str, submission: str) -> tuple[bool, str]:
 def match_string(expected: str, submission: str) -> tuple[bool, str]:
     e = re.sub(r"\s+", " ", _strip_decoration(expected)).lower()
     s = re.sub(r"\s+", " ", _strip_decoration(submission)).lower()
-    return (e == s), f"string expected={expected.strip()!r}, got={submission.strip()!r}"
+    if e == s:
+        return True, f"string exact expected={expected.strip()!r}, got={submission.strip()!r}"
+    # A correct identifier wrapped in prose ("The worst startpoint is u_top/fifo[1].")
+    # is still correct: accept the expected value if it appears as a delimited token
+    # in the submission. Identifier-continuation chars on either side block partial
+    # hits, so a different signal ('clk' vs 'clk_100m', 'fifo[1]' vs 'fifo[2]') fails.
+    if e and re.search(r"(?<![A-Za-z0-9_])" + re.escape(e) + r"(?![A-Za-z0-9_])", s):
+        return True, f"string token-in-prose expected={expected.strip()!r}, got={submission.strip()!r}"
+    return (False), f"string expected={expected.strip()!r}, got={submission.strip()!r}"
 
 
 def match_int(expected: str, submission: str) -> tuple[bool, str]:
@@ -141,6 +149,21 @@ def match_bool(expected: str, submission: str) -> tuple[bool, str]:
             return True
         if t in _BOOL_FALSE:
             return False
+        # Prose answer ("Yes, timing is met." / "the path is not met"): scan for a
+        # delimited truth keyword. Check FALSE first so a negation ("not met") wins
+        # over the "met" it contains. Restricted to unambiguous words — the single
+        # char / digit aliases ("y","n","0","1") are only trusted as bare answers.
+        padded = " " + re.sub(r"\s+", " ", t) + " "
+        true_words = {"true", "yes", "met", "pass", "passed", "ok"}
+        false_words = {"false", "no", "violated", "fail", "failed", "not met"}
+
+        def has(words):
+            return any(re.search(r"(?<![A-Za-z])" + re.escape(w) + r"(?![A-Za-z])", padded)
+                       for w in words)
+        if has(false_words):
+            return False
+        if has(true_words):
+            return True
         return None
     e, s = truth(expected), truth(submission)
     return (e is not None and e == s), f"bool expected={expected.strip()!r}, got={submission.strip()!r}"
