@@ -7,6 +7,19 @@ from pathlib import Path
 
 from eda_agentbench.types import DetectedTool
 
+
+def _tool_root(probe_root: str) -> str:
+    """Resolve a probe's filesystem root, honoring the EDA_TOOL_ROOT override.
+
+    Probes are written against the conventional ``/EDA`` mount. If a site installs
+    the tools under a different prefix, set ``EDA_TOOL_ROOT`` to that prefix and it
+    replaces the leading ``/EDA`` (e.g. EDA_TOOL_ROOT=/opt/eda -> /opt/eda/soft2/...).
+    """
+    override = os.environ.get("EDA_TOOL_ROOT")
+    if override and probe_root.startswith("/EDA"):
+        return override.rstrip("/") + probe_root[len("/EDA"):]
+    return probe_root
+
 # Probe definitions with explicit tool_home paths.
 # tool_home = the directory that should be set as *_HOME env var.
 _PROBES: list[dict] = [
@@ -59,7 +72,7 @@ class ToolEnvironmentDetector:
         import glob
         import re
 
-        root = Path(probe["root"])
+        root = Path(_tool_root(probe["root"]))
         if not root.is_dir():
             return DetectedTool(
                 name=probe["name"], vendor=probe["vendor"], version="unknown",
@@ -116,8 +129,8 @@ class ToolEnvironmentDetector:
             if version_re.fullmatch(ancestor.name):
                 return ancestor
             # Also check if this is the root (for tools like XCELIUM209 where root IS the version)
-            if ancestor == Path(probe["root"]):
+            if ancestor == Path(_tool_root(probe["root"])):
                 return ancestor
 
         # Fallback: root directory
-        return Path(probe["root"])
+        return Path(_tool_root(probe["root"]))

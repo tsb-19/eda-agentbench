@@ -84,6 +84,10 @@ Expected tools may include:
 
 Always implement environment detection instead of hardcoding one shell setup.
 
+Probes target the conventional `/EDA` mount. Sites that install the tools under a
+different prefix can set the `EDA_TOOL_ROOT` environment variable, which replaces the
+leading `/EDA` in every probe root (e.g. `EDA_TOOL_ROOT=/opt/eda`).
+
 ## Benchmark Priority
 
 ### Completed
