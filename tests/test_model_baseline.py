@@ -90,6 +90,71 @@ def test_parse_prose_multiple_blocks_takes_largest():
     assert files["design.sv"].strip() != "short"
 
 
+# --------------------------------------------------------------------------- #
+# Retry/backoff on transient gateway errors (429/5xx/timeout)
+# --------------------------------------------------------------------------- #
+class _FlakyProvider(BaseLLMProvider):
+    """Raises a 429 the first `fail_n` times, then succeeds."""
+
+    def __init__(self, fail_n: int):
+        self._fail_n = fail_n
+        self.calls = 0
+
+    @property
+    def name(self): return "flaky"
+
+    @property
+    def model(self): return "flaky-v1"
+
+    def generate(self, prompt: str, system: str = "", **kwargs) -> LLMResponse:
+        self.calls += 1
+        if self.calls <= self._fail_n:
+            raise RuntimeError("HTTP 429 from gateway: RateLimitError local_rate_limited")
+        return LLMResponse(text="ok", model=self.model, usage={}, metadata={})
+
+
+def test_retry_recovers_from_rate_limit(monkeypatch):
+    monkeypatch.setattr(gms.time, "sleep", lambda *_: None)  # no real waiting
+    prov = _FlakyProvider(fail_n=2)
+    resp = gms._generate_with_retry(prov, "p", {}, max_retries=5)
+    assert resp.text == "ok"
+    assert prov.calls == 3
+
+
+def test_retry_gives_up_and_raises(monkeypatch):
+    monkeypatch.setattr(gms.time, "sleep", lambda *_: None)
+    prov = _FlakyProvider(fail_n=99)
+    try:
+        gms._generate_with_retry(prov, "p", {}, max_retries=2)
+        assert False, "should have raised"
+    except RuntimeError as e:
+        assert "429" in str(e)
+    assert prov.calls == 3  # initial + 2 retries
+
+
+def test_retry_does_not_retry_nonretryable(monkeypatch):
+    monkeypatch.setattr(gms.time, "sleep", lambda *_: None)
+
+    class _Bad(BaseLLMProvider):
+        def __init__(self): self.calls = 0
+        @property
+        def name(self): return "bad"
+        @property
+        def model(self): return "bad"
+        def generate(self, prompt, system="", **kw):
+            self.calls += 1
+            raise RuntimeError("HTTP 400 bad request")
+
+    prov = _Bad()
+    try:
+        gms._generate_with_retry(prov, "p", {}, max_retries=5)
+        assert False
+    except RuntimeError:
+        pass
+    assert prov.calls == 1  # 400 is not retried
+
+
+
 
 # --------------------------------------------------------------------------- #
 # Sampler parity with the CLI algorithm (cli.py cmd_evaluate_dataset 271-288)

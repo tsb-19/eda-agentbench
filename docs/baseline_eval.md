@@ -64,6 +64,11 @@ plus a per-task `transcript.json` (raw response + token usage) and a top-level
 mirrors** `evaluate-dataset --sample-per-track N --seed S`, so a given `(seed, N)` always
 selects the same tasks.
 
+Transient gateway failures (HTTP 429 rate-limit, 5xx, timeouts) are retried with
+exponential backoff (`--max-retries`, default 5); add `--sleep 1` to throttle between
+calls if a model is rate-limited. This matters for fairness — an un-retried 429 would
+score that model 0 and corrupt its ranking.
+
 ### 2. Grade the report-QA tracks locally
 
 ```bash

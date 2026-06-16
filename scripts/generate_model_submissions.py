@@ -244,6 +244,31 @@ def write_submission(sub_dir: Path, files: dict[str, str]) -> None:
         dest.write_text(content)
 
 
+# Transient gateway failures worth retrying (rate-limit / 5xx / timeouts). Without this,
+# a throttled model is scored 0 and its leaderboard rank is artificially destroyed.
+_RETRYABLE = ("429", "http 5", "rate limit", "ratelimit", "rate_limited",
+              "timed out", "timeout", "temporarily", "overloaded", "503", "502")
+
+
+def _is_retryable(e: Exception) -> bool:
+    m = str(e).lower()
+    return isinstance(e, TimeoutError) or any(s in m for s in _RETRYABLE)
+
+
+def _generate_with_retry(provider, prompt, gen_kwargs, max_retries: int,
+                         base_delay: float = 3.0):
+    """Call provider.generate with exponential backoff on transient errors."""
+    for attempt in range(max_retries + 1):
+        try:
+            return provider.generate(prompt, system=_SYSTEM, **gen_kwargs)
+        except Exception as e:
+            if attempt >= max_retries or not _is_retryable(e):
+                raise
+            delay = min(base_delay * (2 ** attempt) + (attempt % 3), 60.0)
+            time.sleep(delay)
+    raise RuntimeError("unreachable")  # pragma: no cover
+
+
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
@@ -259,6 +284,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     help="Per-file cap on inlined visible-file context")
     ap.add_argument("--allow-mock", action="store_true",
                     help="Permit MockLLMProvider when a key is missing (wiring dry run only)")
+    ap.add_argument("--max-retries", type=int, default=5,
+                    help="Retries on transient gateway errors (429/5xx/timeout)")
+    ap.add_argument("--sleep", type=float, default=0.0,
+                    help="Seconds to sleep between calls (throttle to avoid rate limits)")
     ap.add_argument("--limit", type=int, default=None, help="Cap total tasks (debug)")
     return ap.parse_args(argv)
 
@@ -304,7 +333,7 @@ def main(argv: list[str] | None = None) -> int:
             rec = {"submission_dir": str(sub_dir), "parse_ok": False, "error": None}
             try:
                 t0 = time.time()
-                resp = provider.generate(prompt, system=_SYSTEM, **gen_kwargs)
+                resp = _generate_with_retry(provider, prompt, gen_kwargs, args.max_retries)
                 dt = time.time() - t0
                 files, parse_ok = parse_submission(resp.text, editable, is_p5)
                 write_submission(sub_dir, files)
@@ -326,6 +355,8 @@ def main(argv: list[str] | None = None) -> int:
                      ("fallback" if rec["error"] is None else "ERR")
             print(f"  [{name}] {track}/{task_id}: {status}")
             entry["submissions"][name] = rec
+            if args.sleep > 0:
+                time.sleep(args.sleep)
 
         manifest["tasks"].append(entry)
 

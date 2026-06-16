@@ -57,6 +57,9 @@ python3 scripts/generate_model_submissions.py tasks \
 标志)。抽样与 `evaluate-dataset --sample-per-track N --seed S` **完全一致**,同样的 `(seed, N)`
 永远选到同一批题。
 
+网关瞬时错误(HTTP 429 限流、5xx、超时)会按指数退避自动重试(`--max-retries`,默认 5);若某模型
+被限流,可加 `--sleep 1` 在每次调用间节流。这关乎公平——未重试的 429 会把该模型记 0 分、污染其排名。
+
 ### 2. 本地评分读报告赛道
 
 ```bash
