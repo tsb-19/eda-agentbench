@@ -164,141 +164,171 @@ def test_generator_scoring_weights_sum(tmp_path):
 
 # --- Evaluator unit tests ---
 
-def test_evaluator_compile_pass():
-    """Evaluator detects successful compilation."""
+WEIGHTS = {"compile": 0.1, "golden_pass": 0.2, "mutant_1": 0.35, "mutant_2": 0.35}
+
+
+def _ev():
     from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
+    return TBSVAGenEvaluator(Path("."), {"scoring": {"weights": WEIGHTS}})
+
+
+# Realistic VCS run fragments: boilerplate (banner/timestamp/binary name/report) plus
+# the testbench's own $display behavioral lines. Normalization must keep only the latter.
+_GOLDEN_RUN = """\
+=== Golden Design ===
+1 module and 0 UDP read.
+../simv_golden up to date
+Chronologic VCS simulator copyright 1991-2021
+Compiler version S-2021.09; Runtime version S-2021.09;  Jun 16 12:44 2026
+CHECK: data_out=a5 valid=1 ready=0
+ALL_TESTS_PASS: 5/5
+$finish at simulation time                  125
+           V C S   S i m u l a t i o n   R e p o r t
+CPU Time:      0.300 seconds;       Data structure size:   0.0Mb
+Tue Jun 16 12:44:52 2026
+"""
+
+_MUTANT_DIFF_RUN = """\
+=== Mutant 1 ===
+../simv_mutant1 up to date
+Chronologic VCS simulator copyright 1991-2021
+Compiler version S-2021.09; Runtime version S-2021.09;  Jun 16 12:45 2026
+CHECK: data_out=00 valid=0 ready=1
+FAIL: capture expected a5
+$finish at simulation time                  125
+CPU Time:      0.310 seconds;       Data structure size:   0.0Mb
+Tue Jun 16 12:45:01 2026
+"""
+
+# Same behavioral output as golden (only boilerplate differs) -> NOT caught.
+_MUTANT_SAME_RUN = """\
+=== Mutant 2 ===
+../simv_mutant2 up to date
+Chronologic VCS simulator copyright 1991-2021
+Compiler version S-2021.09; Runtime version S-2021.09;  Jun 16 12:46 2026
+CHECK: data_out=a5 valid=1 ready=0
+ALL_TESTS_PASS: 5/5
+$finish at simulation time                  125
+CPU Time:      0.290 seconds;       Data structure size:   0.0Mb
+Tue Jun 16 12:46:10 2026
+"""
+
+
+def _packed(golden, mutant):
+    from eda_agentbench.evaluator.tb_sva_gen import _GOLDEN_MUTANT_SEP
+    return golden + "\n" + _GOLDEN_MUTANT_SEP + "\n" + mutant
+
+
+def test_normalize_strips_boilerplate_keeps_behavior():
+    from eda_agentbench.evaluator.tb_sva_gen import _normalize_transcript
+    norm = _normalize_transcript(_GOLDEN_RUN)
+    assert norm == ["CHECK: data_out=a5 valid=1 ready=0", "ALL_TESTS_PASS: 5/5"]
+    # No banner/timestamp/binary-name/report lines survive.
+    joined = "\n".join(norm)
+    for vol in ["VCS", "simv", "CPU Time", "$finish", "Jun", "==="]:
+        assert vol not in joined
+
+
+def test_normalize_empty_for_do_nothing_tb():
+    from eda_agentbench.evaluator.tb_sva_gen import _normalize_transcript
+    stub = "=== Golden Design ===\n../simv_golden up to date\n$finish at simulation time 0\n"
+    assert _normalize_transcript(stub) == []
+
+
+def test_evaluator_compile_pass():
     log = "Chronologic VCS compiler\nsimv generated\n"
-    comp = evaluator.evaluate_component("compile", Path("."), log)
+    comp = _ev().evaluate_component("compile", Path("."), log)
     assert comp.raw_score == 1.0
-    assert comp.weighted_score == 0.2
+    assert abs(comp.weighted_score - 0.1) < 1e-9
 
 
 def test_evaluator_compile_fail():
-    """Evaluator detects compilation failure."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
     log = "Error-[UNKNOWN_ID] design.sv(5): undefined identifier\n"
-    comp = evaluator.evaluate_component("compile", Path("."), log)
+    comp = _ev().evaluate_component("compile", Path("."), log)
     assert comp.raw_score == 0.0
-    assert comp.weighted_score == 0.0
 
 
 def test_evaluator_compile_fail_when_tool_did_not_run():
-    """Regression: empty / not-found / timeout logs must score 0.0, never 1.0.
-
-    A timeout produces a non-empty log with no ``^Error`` line; previously it
-    fell through to a false 1.0 (same class as the P1 RTL-debug fix).
-    """
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
+    """Regression: empty / not-found / timeout logs must score 0.0, never 1.0."""
     for bad_log in ["", "vcs: command not found\n", "Script run_public.sh timed out\n"]:
-        comp = evaluator.evaluate_component("compile", Path("."), bad_log)
-        assert comp.raw_score == 0.0, f"log {bad_log!r} should score 0.0, got {comp.raw_score}"
+        comp = _ev().evaluate_component("compile", Path("."), bad_log)
+        assert comp.raw_score == 0.0, f"log {bad_log!r} should score 0.0"
 
 
-def test_evaluator_golden_pass():
-    """Evaluator detects golden design passing."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    log = "ALL_TESTS_PASS: 6/6\n$finish at time 100\n"
-    comp = evaluator.evaluate_component("golden_pass", Path("."), log)
+def test_golden_runs_clean_passes():
+    """golden_pass is a precondition: tb runs to completion on golden, no self-verdict."""
+    comp = _ev().evaluate_component("golden_pass", Path("."), _GOLDEN_RUN)
     assert comp.raw_score == 1.0
-    assert comp.weighted_score == 0.4
+    assert abs(comp.weighted_score - 0.2) < 1e-9
 
 
-def test_evaluator_golden_fail():
-    """Evaluator detects golden design failing."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    log = "FAIL: sel=0 expected y=1, got 0\nTEST_FAIL: 0/6\n"
-    comp = evaluator.evaluate_component("golden_pass", Path("."), log)
-    assert comp.raw_score == 0.0
-    assert comp.weighted_score == 0.0
+def test_golden_fails_on_compile_error_or_no_output():
+    ev = _ev()
+    assert ev.evaluate_component("golden_pass", Path("."), "").raw_score == 0.0
+    err = "Error-[SE] design_golden.sv(3): syntax error\n"
+    assert ev.evaluate_component("golden_pass", Path("."), err).raw_score == 0.0
+    crash = "../simv_golden\nSegmentation fault (core dumped)\n"
+    assert ev.evaluate_component("golden_pass", Path("."), crash).raw_score == 0.0
 
 
-def test_evaluator_mutant_caught():
-    """Evaluator detects that a mutant was caught."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    log = "FAIL: sel=0 expected y=1, got 0\nTEST_FAIL: 2/6\n"
-    comp = evaluator.evaluate_component("mutant_1", Path("."), log)
+def test_golden_pass_does_not_read_self_verdict():
+    """A tb that prints TEST_FAIL on the golden but still runs cleanly is NOT
+    failed here (the old token-based check is gone); discrimination is what counts."""
+    log = _GOLDEN_RUN.replace("ALL_TESTS_PASS: 5/5", "TEST_FAIL: something")
+    assert _ev().evaluate_component("golden_pass", Path("."), log).raw_score == 1.0
+
+
+def test_mutant_caught_when_behavior_differs():
+    comp = _ev().evaluate_component("mutant_1", Path("."), _packed(_GOLDEN_RUN, _MUTANT_DIFF_RUN))
     assert comp.raw_score == 1.0
-    assert comp.weighted_score == 0.2
+    assert abs(comp.weighted_score - 0.35) < 1e-9
 
 
-def test_evaluator_mutant_not_caught():
-    """Evaluator detects that a mutant was NOT caught (test passed on buggy design)."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    log = "ALL_TESTS_PASS: 6/6\n$finish at time 100\n"
-    comp = evaluator.evaluate_component("mutant_1", Path("."), log)
-    assert comp.raw_score == 0.0
-    assert comp.weighted_score == 0.0
-
-
-def test_evaluator_mutant_caught_by_error():
-    """Evaluator detects mutant caught via VCS error."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    log = "Error-[UNKNOWN_ID] design.sv(5): undefined identifier\n"
-    comp = evaluator.evaluate_component("mutant_1", Path("."), log)
-    assert comp.raw_score == 1.0
-
-
-def test_evaluator_mutant_caught_no_output():
-    """Evaluator treats empty output as mutant NOT caught."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-    comp = evaluator.evaluate_component("mutant_1", Path("."), "")
+def test_mutant_not_caught_when_behavior_identical():
+    comp = _ev().evaluate_component("mutant_2", Path("."), _packed(_GOLDEN_RUN, _MUTANT_SAME_RUN))
     assert comp.raw_score == 0.0
 
 
-def test_evaluator_full_score_solution(tmp_path):
-    """Full evaluation with solution gives score 1.0."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
-
-    golden_log = "=== Golden Design ===\nsimv generated\nALL_TESTS_PASS: 6/6\n$finish\n"
-    mutant1_log = "=== Mutant 1 ===\nFAIL: sel=0 expected y=1\nTEST_FAIL: 2/6\n"
-    mutant2_log = "=== Mutant 2 ===\nFAIL: output stuck\nTEST_FAIL: 0/6\n"
-
-    compile_score = evaluator.evaluate_component("compile", Path("."), golden_log)
-    golden_score = evaluator.evaluate_component("golden_pass", Path("."), golden_log)
-    m1_score = evaluator.evaluate_component("mutant_1", Path("."), mutant1_log)
-    m2_score = evaluator.evaluate_component("mutant_2", Path("."), mutant2_log)
-
-    total = compile_score.weighted_score + golden_score.weighted_score + m1_score.weighted_score + m2_score.weighted_score
-    assert abs(total - 1.0) < 0.01, f"Expected 1.0, got {total}"
+def test_mutant_caught_by_compile_error():
+    """A mutant the tb fails to compile/run against still differs from the golden
+    baseline -> distinguished -> caught."""
+    mutant_err = "=== Mutant 1 ===\nError-[SE] design_mutant1.sv(4): syntax error\n"
+    comp = _ev().evaluate_component("mutant_1", Path("."), _packed(_GOLDEN_RUN, mutant_err))
+    assert comp.raw_score == 1.0
 
 
-def test_evaluator_weak_baseline(tmp_path):
-    """Evaluation with empty testbench gives score 0.0."""
-    from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-    meta = {"scoring": {"weights": {"compile": 0.2, "golden_pass": 0.4, "mutant_1": 0.2, "mutant_2": 0.2}}}
-    evaluator = TBSVAGenEvaluator(Path("."), meta)
+def test_mutant_no_baseline_scores_zero():
+    """Missing the golden separator (no baseline) cannot be judged -> 0.0."""
+    comp = _ev().evaluate_component("mutant_1", Path("."), "some log without separator")
+    assert comp.raw_score == 0.0
 
-    # Empty TB compiles but has no test output
-    compile_log = "simv golden generated\n"
-    empty_log = "$finish at time 0\n"
 
-    compile_score = evaluator.evaluate_component("compile", Path("."), compile_log)
-    golden_score = evaluator.evaluate_component("golden_pass", Path("."), empty_log)
-    m1_score = evaluator.evaluate_component("mutant_1", Path("."), empty_log)
-    m2_score = evaluator.evaluate_component("mutant_2", Path("."), empty_log)
+def test_full_score_solution():
+    """A discriminating testbench: compiles, runs clean on golden, catches both."""
+    ev = _ev()
+    total = (
+        ev.evaluate_component("compile", Path("."), _GOLDEN_RUN).weighted_score
+        + ev.evaluate_component("golden_pass", Path("."), _GOLDEN_RUN).weighted_score
+        + ev.evaluate_component("mutant_1", Path("."), _packed(_GOLDEN_RUN, _MUTANT_DIFF_RUN)).weighted_score
+        + ev.evaluate_component("mutant_2", Path("."), _packed(_GOLDEN_RUN, _MUTANT_DIFF_RUN)).weighted_score
+    )
+    assert abs(total - 1.0) < 1e-9
 
-    total = compile_score.weighted_score + golden_score.weighted_score + m1_score.weighted_score + m2_score.weighted_score
-    assert total == 0.2, f"Expected 0.2 (compile only), got {total}"
+
+def test_weak_baseline_do_nothing_tb():
+    """A tb that compiles and runs on golden but catches nothing scores only the
+    precondition weight (0.1 compile + 0.2 golden = 0.3), well under the 0.5 pass
+    line and the 0.9 reliability gate."""
+    ev = _ev()
+    stub_golden = "=== Golden Design ===\n../simv_golden up to date\nsimv generated\n$finish at simulation time 0\n"
+    stub_mutant = "=== Mutant 1 ===\n../simv_mutant1 up to date\n$finish at simulation time 0\n"
+    total = (
+        ev.evaluate_component("compile", Path("."), stub_golden).weighted_score
+        + ev.evaluate_component("golden_pass", Path("."), stub_golden).weighted_score
+        + ev.evaluate_component("mutant_1", Path("."), _packed(stub_golden, stub_mutant)).weighted_score
+        + ev.evaluate_component("mutant_2", Path("."), _packed(stub_golden, stub_mutant)).weighted_score
+    )
+    assert abs(total - 0.3) < 1e-9, f"expected 0.3, got {total}"
 
 
 # --- Template tests ---

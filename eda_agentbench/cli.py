@@ -584,12 +584,17 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
             "public_metric": raw_pub_log,
             "hidden_metric": raw_hid_log,
         }
-        # P2 TB/SVA: extract per-section logs from hidden log
+        # P2 TB/SVA: differential grading. golden_pass sees the golden transcript;
+        # each mutant_* sees the golden transcript packed ahead of its own mutant
+        # transcript (separated by the evaluator's sentinel) so the evaluator can
+        # diff observable behavior golden-vs-mutant without reading any model verdict.
         if meta.get("track") in ("p2_rtl_gen", "p2_tb_sva_gen"):
+            from eda_agentbench.evaluator.tb_sva_gen import _GOLDEN_MUTANT_SEP
             sections = _extract_p2_log_sections(raw_hid_log)
             log_map["golden_pass"] = raw_pub_log
-            log_map["mutant_1"] = sections.get("mutant_1", raw_hid_log)
-            log_map["mutant_2"] = sections.get("mutant_2", raw_hid_log)
+            for mname in ("mutant_1", "mutant_2"):
+                mutant_log = sections.get(mname, raw_hid_log)
+                log_map[mname] = raw_pub_log + "\n" + _GOLDEN_MUTANT_SEP + "\n" + mutant_log
 
         components: list[ScoreComponent] = []
         for comp_name in meta["scoring"]["weights"]:

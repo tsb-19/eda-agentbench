@@ -1183,9 +1183,11 @@ Your testbench should:
 """
         (task_dir / "prompt.md").write_text(prompt)
 
-        # Write metadata
+        # Write metadata. Differential grading weights discrimination (catching
+        # mutants) as the dominant signal; compile + golden-runs-clean are small
+        # preconditions. See evaluator.tb_sva_gen.
         n_mutants = 2
-        mutant_weight = round(0.4 / n_mutants, 4)
+        mutant_weight = round(0.7 / n_mutants, 4)
         meta = {
             "task_id": task_id,
             "track": "p2_tb_sva_gen",
@@ -1207,8 +1209,8 @@ Your testbench should:
             "run_command": "bash run_public.sh && bash run_hidden.sh",
             "scoring": {
                 "weights": {
-                    "compile": 0.2,
-                    "golden_pass": 0.4,
+                    "compile": 0.1,
+                    "golden_pass": 0.2,
                     "mutant_1": mutant_weight,
                     "mutant_2": mutant_weight,
                 },
