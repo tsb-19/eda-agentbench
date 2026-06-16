@@ -28,7 +28,10 @@ import os
 import random
 import re
 import sys
+import threading
 import time
+from collections import deque
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -269,6 +272,79 @@ def _generate_with_retry(provider, prompt, gen_kwargs, max_retries: int,
     raise RuntimeError("unreachable")  # pragma: no cover
 
 
+class RateLimiter:
+    """Thread-safe global rate cap: at most ``rpm`` call-starts per ``window`` seconds.
+
+    Shared by all worker threads so the *aggregate* request rate across every model
+    stays under the gateway/account limit (the limit is per-account, not per-model).
+    ``rpm <= 0`` disables it. The admit/wait decision (`_reserve`) is pure and
+    clock-injectable so it can be unit-tested without real sleeping.
+    """
+
+    def __init__(self, rpm: int, window: float = 60.0):
+        self.rpm = rpm
+        self.window = window
+        self._lock = threading.Lock()
+        self._starts: deque[float] = deque()
+
+    def _reserve(self, now: float) -> float:
+        """If under the cap, record ``now`` and return 0.0; else seconds to wait."""
+        if self.rpm <= 0:
+            return 0.0
+        with self._lock:
+            while self._starts and now - self._starts[0] >= self.window:
+                self._starts.popleft()
+            if len(self._starts) < self.rpm:
+                self._starts.append(now)
+                return 0.0
+            return self.window - (now - self._starts[0])
+
+    def acquire(self) -> None:
+        while True:
+            wait = self._reserve(time.monotonic())
+            if wait <= 0:
+                return
+            time.sleep(min(wait, 5.0))
+
+
+def _run_inference_job(job: dict, max_retries: int, limiter: RateLimiter,
+                       sleep: float) -> tuple[int, str, dict, str]:
+    """Run one (task, model) submission. Never raises; returns
+    (task_index, model_name, rec, status_line). Each job writes only to its own
+    unique ``sub_dir`` so this is safe to run concurrently.
+    """
+    name = job["name"]
+    provider = job["provider"]
+    sub_dir = job["sub_dir"]
+    rec = {"submission_dir": job["submission_dir"], "parse_ok": False, "error": None}
+    try:
+        limiter.acquire()
+        t0 = time.time()
+        resp = _generate_with_retry(provider, job["prompt"], job["gen_kwargs"], max_retries)
+        dt = time.time() - t0
+        files, parse_ok = parse_submission(resp.text, job["editable"], job["is_p5"])
+        write_submission(sub_dir, files)
+        rec["parse_ok"] = parse_ok
+        (sub_dir / "transcript.json").write_text(json.dumps({
+            "task_id": job["task_id"], "track": job["track"], "model": name,
+            "model_id": provider.model, "parse_ok": parse_ok,
+            "elapsed_sec": round(dt, 2), "usage": resp.usage,
+            "raw_response": resp.text,
+        }, indent=2))
+    except Exception as e:  # network/HTTP/parse — record, keep going
+        rec["error"] = f"{type(e).__name__}: {e}"
+        sub_dir.mkdir(parents=True, exist_ok=True)
+        (sub_dir / "transcript.json").write_text(json.dumps({
+            "task_id": job["task_id"], "track": job["track"], "model": name,
+            "error": rec["error"],
+        }, indent=2))
+    if sleep > 0:
+        time.sleep(sleep)
+    status = "ok" if rec["error"] is None and rec["parse_ok"] else \
+             ("fallback" if rec["error"] is None else "ERR")
+    return job["task_index"], name, rec, f"  [{name}] {job['track']}/{job['task_id']}: {status}"
+
+
 # --------------------------------------------------------------------------- #
 # Main
 # --------------------------------------------------------------------------- #
@@ -287,7 +363,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--max-retries", type=int, default=5,
                     help="Retries on transient gateway errors (429/5xx/timeout)")
     ap.add_argument("--sleep", type=float, default=0.0,
-                    help="Seconds to sleep between calls (throttle to avoid rate limits)")
+                    help="Seconds to sleep after each call, per worker (throttle)")
+    ap.add_argument("--concurrency", type=int, default=8,
+                    help="Max concurrent API calls across all models/tracks/tasks "
+                         "(1 = sequential). Each (task,model) is independent.")
+    ap.add_argument("--rpm", type=int, default=0,
+                    help="Global cap on call-starts per minute across all workers "
+                         "(0 = unlimited; relies on --concurrency + backoff)")
     ap.add_argument("--limit", type=int, default=None, help="Cap total tasks (debug)")
     return ap.parse_args(argv)
 
@@ -316,7 +398,12 @@ def main(argv: list[str] | None = None) -> int:
         "tasks": [],
     }
 
-    for tp in sampled:
+    # 1. Build per-task info (main thread, deterministic order) and a flat job list of
+    #    every (task, model) pair. Prompt building is local/cheap; doing it here keeps
+    #    the parallel phase to pure API calls + isolated file writes.
+    task_infos: list[dict] = []
+    jobs: list[dict] = []
+    for i, tp in enumerate(sampled):
         meta = loader.load(tp)
         task_id = meta["task_id"]
         track = meta.get("track", "unknown")
@@ -325,49 +412,45 @@ def main(argv: list[str] | None = None) -> int:
         prompt = build_prompt(tp, meta, args.max_visible_bytes)
         needs_tool = track not in LOCAL_QA_TRACKS
 
-        # Store task_path RELATIVE to the repo root so the manifest is portable to another host
-        # (where the repo lives under a different absolute path). Falls back to absolute
-        # if the task tree is outside the repo.
+        # Store task_path RELATIVE to the repo root so the manifest is portable to another
+        # host (where the repo lives under a different absolute path). Falls back to
+        # absolute if the task tree is outside the repo.
         try:
             task_rel = str(tp.resolve().relative_to(REPO_ROOT))
         except ValueError:
             task_rel = str(tp)
 
-        entry = {"task_id": task_id, "track": track, "task_path": task_rel,
-                 "needs_tool": needs_tool, "submissions": {}}
-
+        task_infos.append({"task_id": task_id, "track": track, "task_path": task_rel,
+                           "needs_tool": needs_tool})
         for name, provider, gen_kwargs in models:
-            sub_dir = out_root / name / track / task_id
-            # Relative to the submissions root -> portable to another host.
-            rec = {"submission_dir": f"{name}/{track}/{task_id}",
-                   "parse_ok": False, "error": None}
-            try:
-                t0 = time.time()
-                resp = _generate_with_retry(provider, prompt, gen_kwargs, args.max_retries)
-                dt = time.time() - t0
-                files, parse_ok = parse_submission(resp.text, editable, is_p5)
-                write_submission(sub_dir, files)
-                rec["parse_ok"] = parse_ok
-                (sub_dir / "transcript.json").write_text(json.dumps({
-                    "task_id": task_id, "track": track, "model": name,
-                    "model_id": provider.model, "parse_ok": parse_ok,
-                    "elapsed_sec": round(dt, 2), "usage": resp.usage,
-                    "raw_response": resp.text,
-                }, indent=2))
-            except Exception as e:  # network/HTTP/parse — record, keep going
-                rec["error"] = f"{type(e).__name__}: {e}"
-                sub_dir.mkdir(parents=True, exist_ok=True)
-                (sub_dir / "transcript.json").write_text(json.dumps({
-                    "task_id": task_id, "track": track, "model": name,
-                    "error": rec["error"],
-                }, indent=2))
-            status = "ok" if rec["error"] is None and rec["parse_ok"] else \
-                     ("fallback" if rec["error"] is None else "ERR")
-            print(f"  [{name}] {track}/{task_id}: {status}")
-            entry["submissions"][name] = rec
-            if args.sleep > 0:
-                time.sleep(args.sleep)
+            jobs.append({
+                "task_index": i, "name": name, "provider": provider,
+                "gen_kwargs": gen_kwargs, "prompt": prompt, "editable": editable,
+                "is_p5": is_p5, "task_id": task_id, "track": track,
+                "sub_dir": out_root / name / track / task_id,
+                "submission_dir": f"{name}/{track}/{task_id}",
+            })
 
+    # 2. Run jobs concurrently. Each writes only its own dir; we collect recs by
+    #    (task_index, model) and assemble the manifest in sampled order afterward.
+    limiter = RateLimiter(args.rpm)
+    concurrency = max(1, args.concurrency)
+    results: list[dict] = [dict() for _ in task_infos]
+    print(f"Running {len(jobs)} (task,model) jobs at concurrency {concurrency}"
+          + (f", rpm cap {args.rpm}" if args.rpm > 0 else "") + " ...")
+    with ThreadPoolExecutor(max_workers=concurrency) as pool:
+        futs = [pool.submit(_run_inference_job, job, args.max_retries, limiter, args.sleep)
+                for job in jobs]
+        for fut in as_completed(futs):
+            task_index, name, rec, line = fut.result()
+            results[task_index][name] = rec
+            print(line)
+
+    # 3. Assemble manifest in sampled order, models in config order (== sequential output).
+    for i, info in enumerate(task_infos):
+        entry = {"task_id": info["task_id"], "track": info["track"],
+                 "task_path": info["task_path"], "needs_tool": info["needs_tool"],
+                 "submissions": {name: results[i][name] for name, _, _ in models}}
         manifest["tasks"].append(entry)
 
     (out_root / "manifest.json").write_text(json.dumps(manifest, indent=2))

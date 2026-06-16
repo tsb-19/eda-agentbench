@@ -275,3 +275,71 @@ def test_provider_merges_extra_body_and_captures_reasoning(monkeypatch):
     assert resp.usage["reasoning_tokens"] == 30              # reasoning usage captured
     assert resp.metadata["reasoning_content"] == "because..."
 
+
+
+# --------------------------------------------------------------------------- #
+# Concurrency: rate limiter (pure, clock-injected) + manifest assembly order
+# --------------------------------------------------------------------------- #
+def test_rate_limiter_sliding_window():
+    """At most `rpm` starts per window; the (rpm+1)th waits, then admits once the
+    oldest start ages out. `_reserve` is pure (clock injected) so no real sleeping."""
+    rl = gms.RateLimiter(rpm=2, window=60.0)
+    assert rl._reserve(0.0) == 0.0      # 1st admitted
+    assert rl._reserve(0.0) == 0.0      # 2nd admitted
+    assert rl._reserve(0.0) == 60.0     # 3rd blocked: wait the full window
+    assert rl._reserve(30.0) == 30.0    # still blocked: 30s until oldest ages out
+    assert rl._reserve(61.0) == 0.0     # both aged out -> admitted again
+
+
+def test_rate_limiter_disabled_is_noop():
+    rl = gms.RateLimiter(rpm=0)
+    for t in (0.0, 0.0, 0.0, 0.0, 0.0):
+        assert rl._reserve(t) == 0.0
+    rl.acquire()  # returns immediately (no sleep)
+
+
+class _FixedProvider(BaseLLMProvider):
+    """Deterministic provider: same output regardless of prompt/thread."""
+
+    def __init__(self, tag: str):
+        self._tag = tag
+
+    @property
+    def name(self) -> str:
+        return self._tag
+
+    @property
+    def model(self) -> str:
+        return f"{self._tag}-v1"
+
+    def generate(self, prompt: str, system: str = "", **kwargs) -> LLMResponse:
+        return LLMResponse(text="<<<FILE: answer.txt>>>\nX\n<<<END>>>",
+                           model=self.model, usage={"prompt_tokens": 1, "completion_tokens": 1},
+                           metadata={})
+
+
+def test_manifest_assembly_deterministic_under_concurrency(tmp_path, monkeypatch):
+    """The flat (task,model) job pool is assembled back into manifest.json in sampled
+    order with models in config order — so concurrency must not change the manifest."""
+    fake = [("fakeA", _FixedProvider("fakeA"), {}),
+            ("fakeB", _FixedProvider("fakeB"), {})]
+    monkeypatch.setattr(gms, "load_model_specs", lambda *a, **k: fake)
+
+    def run(out: Path, conc: int):
+        gms.main([str(TASKS_ROOT), "--models", "ignored", "--track", "p3_timing_report_qa",
+                  "--sample-per-track", "4", "--seed", "42", "--out", str(out),
+                  "--concurrency", str(conc)])
+
+    run(tmp_path / "c1", 1)
+    run(tmp_path / "c4", 4)
+    m1 = (tmp_path / "c1" / "manifest.json").read_text()
+    m4 = (tmp_path / "c4" / "manifest.json").read_text()
+    assert m1 == m4, "manifest changed with concurrency"
+    # And every (model,track,task) submission dir was written.
+    import json as _json
+    man = _json.loads(m1)
+    assert len(man["tasks"]) == 4
+    for t in man["tasks"]:
+        assert set(t["submissions"]) == {"fakeA", "fakeB"}
+        for rec in t["submissions"].values():
+            assert (tmp_path / "c4" / rec["submission_dir"] / "answer.txt").is_file()

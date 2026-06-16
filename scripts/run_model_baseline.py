@@ -24,6 +24,7 @@ import json
 import sys
 import tempfile
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -90,9 +91,13 @@ def cmd_grade(args) -> int:
     results_root = Path(args.results).resolve() if args.results \
         else sub_root.parent / "results"
     results_root.mkdir(parents=True, exist_ok=True)
-    runs_root = Path(tempfile.mkdtemp(prefix="baseline_eval_"))
+    base_runs = Path(tempfile.mkdtemp(prefix="baseline_eval_"))
 
-    n_done = n_skip = 0
+    # Build a flat job list of (task, model) pairs after the --only skip logic.
+    # Each job is independent: its own mkdtemp workspace inside _evaluate_single and
+    # (via the shim) its own sha1(cwd)-keyed remote dir, so they run concurrently.
+    jobs: list[dict] = []
+    n_skip = 0
     for t in manifest["tasks"]:
         track = t["track"]
         is_tool = track not in LOCAL_QA_TRACKS
@@ -110,14 +115,41 @@ def cmd_grade(args) -> int:
             sub_dir = Path(rec["submission_dir"])
             if not sub_dir.is_absolute():           # relative to the submissions root
                 sub_dir = (sub_root / sub_dir).resolve()
-            res = _grade_one(task_path, sub_dir, runs_root)
-            res.update({"model": model, "track": track, "task_id": t["task_id"]})
-            dest = results_root / model / track / f"{t['task_id']}.json"
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            dest.write_text(json.dumps(res, indent=2))
-            flag = "PASS" if res.get("passed") else f"{res.get('total_score', 0):.2f}"
-            print(f"  [{model}] {track}/{t['task_id']}: {flag}"
-                  + (f"  ({res['error']})" if res.get("error") else ""))
+            jobs.append({"task_path": task_path, "model": model, "sub_dir": sub_dir,
+                         "track": track, "task_id": t["task_id"], "is_tool": is_tool})
+
+    def run_job(job: dict) -> str:
+        # Namespace runs_root per model so concurrent jobs never share the
+        # second-resolution `runs_base/task_id/run_id` dir (which would clobber the
+        # on-disk score.json snapshot). The returned score is unaffected either way.
+        runs_root = base_runs / job["model"]
+        res = _grade_one(job["task_path"], job["sub_dir"], runs_root)
+        res.update({"model": job["model"], "track": job["track"], "task_id": job["task_id"]})
+        dest = results_root / job["model"] / job["track"] / f"{job['task_id']}.json"
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        dest.write_text(json.dumps(res, indent=2))
+        flag = "PASS" if res.get("passed") else f"{res.get('total_score', 0):.2f}"
+        return (f"  [{job['model']}] {job['track']}/{job['task_id']}: {flag}"
+                + (f"  ({res['error']})" if res.get("error") else ""))
+
+    local_jobs = [j for j in jobs if not j["is_tool"]]
+    tool_jobs = [j for j in jobs if j["is_tool"]]
+    local_n = max(1, args.local_concurrency)
+    tool_n = max(1, args.tool_concurrency)
+    print(f"Grading {len(jobs)} (model,task) pairs: {len(local_jobs)} local QA "
+          f"(concurrency {local_n}), {len(tool_jobs)} tool (concurrency {tool_n}); "
+          f"skipped {n_skip}.")
+
+    # Two pools because the job classes use different resources: local QA is CPU/parse
+    # on this host; tool tracks hit b04 (licenses/IO). They run concurrently and are
+    # drained together — each result writes its own unique JSON path.
+    n_done = 0
+    with ThreadPoolExecutor(max_workers=local_n) as lp, \
+         ThreadPoolExecutor(max_workers=tool_n) as tp:
+        futs = [lp.submit(run_job, j) for j in local_jobs]
+        futs += [tp.submit(run_job, j) for j in tool_jobs]
+        for fut in as_completed(futs):
+            print(fut.result())
             n_done += 1
 
     print(f"\nGraded {n_done} (model,task) pairs; skipped {n_skip}. Results -> {results_root}")
@@ -294,6 +326,11 @@ def main(argv: list[str] | None = None) -> int:
     g.add_argument("--only", choices=["local", "tool", "all"], default="all",
                    help="local = report-QA tracks; tool = real-tool tracks (need EDA tools)")
     g.add_argument("--results", default=None, help="Results output dir")
+    g.add_argument("--local-concurrency", type=int, default=8,
+                   help="Concurrent local report-QA gradings (CPU/parse on this host)")
+    g.add_argument("--tool-concurrency", type=int, default=4,
+                   help="Concurrent real-tool gradings (bounded by EDA license seats on "
+                        "the tool host; start conservative)")
 
     lb = sub.add_parser("leaderboard", help="Render comparison from a results tree")
     lb.add_argument("--results", required=True)
