@@ -8,9 +8,8 @@ from pathlib import Path
 import pytest
 
 from eda_agentbench.timing.report_parser import parse_timing_report, normalize_answer
-from eda_agentbench.evaluator.timing_report_qa import (
-    TimingReportQAEvaluator, _parse_numeric, _normalize_string,
-)
+from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
+from eda_agentbench.evaluator.answer_match import match_answer
 from generators.p3_timing_report_qa_gen import (
     P3TimingReportQAGenerator, EXPECTED_QUESTION_TYPES, QUESTION_TEMPLATES,
 )
@@ -132,70 +131,31 @@ def test_parser_summary_only():
     assert report.violating_count == 5
 
 
-# --- Evaluator tests ---
+# --- Evaluator answer-matching tests (routed through the shared matcher;
+# exhaustive form/adversarial coverage lives in tests/test_answer_match.py) ---
 
 def test_evaluator_numeric_tolerance_pass():
-    """Numeric answers within tolerance should pass."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "-0.2500", "tolerance": 0.01}
-    score = evaluator._compare_numeric("-0.2510", "-0.2500", 0.01)
-    assert score == 1.0
+    assert match_answer("-0.2500", "-0.2510", "numeric", 0.01)[0]
 
 
 def test_evaluator_numeric_tolerance_fail():
-    """Numeric answers outside tolerance should fail."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "-0.2500", "tolerance": 0.01}
-    score = evaluator._compare_numeric("-0.3000", "-0.2500", 0.01)
-    assert score == 0.0
+    assert not match_answer("-0.2500", "-0.3000", "numeric", 0.01)[0]
 
 
 def test_evaluator_numeric_zero():
-    """Numeric answer exactly zero should work."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "0.0", "tolerance": 0.01}
-    score = evaluator._compare_numeric("0.0001", "0.0", 0.01)
-    assert score == 1.0
+    assert match_answer("0.0", "0.0001", "numeric", 0.01)[0]
 
 
 def test_evaluator_string_exact():
-    """String answers should match exactly (normalized)."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "u_top/pipeline_reg", "tolerance": 0.0}
-    score = evaluator._compare_string("u_top/pipeline_reg", "u_top/pipeline_reg")
-    assert score == 1.0
+    assert match_answer("u_top/pipeline_reg", "u_top/pipeline_reg", "string", 0.0)[0]
 
 
 def test_evaluator_string_case_insensitive():
-    """String answers should be case-insensitive."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "u_top/pipeline_reg", "tolerance": 0.0}
-    score = evaluator._compare_string("U_TOP/PIPELINE_REG", "u_top/pipeline_reg")
-    assert score == 1.0
+    assert match_answer("u_top/pipeline_reg", "U_TOP/PIPELINE_REG", "string", 0.0)[0]
 
 
 def test_evaluator_string_wrong():
-    """Wrong string answers should fail."""
-    evaluator = TimingReportQAEvaluator.__new__(TimingReportQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "u_top/pipeline_reg", "tolerance": 0.0}
-    score = evaluator._compare_string("u_core/alu_out", "u_top/pipeline_reg")
-    assert score == 0.0
-
-
-def test_evaluator_numeric_parse():
-    """_parse_numeric should handle various formats."""
-    assert _parse_numeric("-0.2500") == -0.25
-    assert _parse_numeric("3.25") == 3.25
-    assert _parse_numeric("0") == 0.0
-    assert _parse_numeric("  -0.25  ") == -0.25
-    assert _parse_numeric("abc") is None
-
-
-def test_evaluator_string_normalize():
-    """_normalize_string should lowercase and strip."""
-    assert _normalize_string("  Hello World  ") == "hello world"
-    assert _normalize_string("ABC") == "abc"
-    assert _normalize_string("  spaces  ") == "spaces"
+    assert not match_answer("u_top/pipeline_reg", "u_core/alu_out", "string", 0.0)[0]
 
 
 def test_evaluator_answer_match_integration(tmp_path):

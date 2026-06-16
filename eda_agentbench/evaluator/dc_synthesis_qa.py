@@ -1,27 +1,12 @@
-"""P6 DC Synthesis QA evaluator: exact/tolerance-based answer matching."""
+"""P6 DC Synthesis QA evaluator: robust structure-aware answer matching."""
 
 from __future__ import annotations
 
-import re
 from pathlib import Path
 
+from eda_agentbench.evaluator.answer_match import match_answer
 from eda_agentbench.evaluator.base import BaseEvaluator
 from eda_agentbench.types import ScoreComponent
-
-
-def _parse_numeric(val_str: str) -> float | None:
-    """Try to parse a string as a float."""
-    try:
-        return float(val_str.strip())
-    except (ValueError, TypeError):
-        return None
-
-
-def _normalize_string(s: str) -> str:
-    """Normalize a string for comparison: lowercase, strip, collapse whitespace."""
-    s = s.strip().lower()
-    s = re.sub(r"\s+", " ", s)
-    return s
 
 
 def _read_answer_file(path: Path) -> str:
@@ -65,43 +50,16 @@ class DCSynthesisQAEvaluator(BaseEvaluator):
                 weighted_score=0.0, details="No answer.txt found in submission",
             )
 
-        # Compare based on answer type
-        if answer_type == "numeric":
-            score = self._compare_numeric(submission_answer, expected_answer, tolerance)
-        else:
-            score = self._compare_string(submission_answer, expected_answer)
+        # Compare using the robust, structure-aware matcher.
+        matched, match_detail = match_answer(
+            expected_answer, submission_answer, answer_type, tolerance)
+        score = 1.0 if matched else 0.0
 
-        details = f"expected={expected_answer!r}, got={submission_answer!r}"
-        if score == 1.0:
-            details += " PASS"
-        else:
-            details += " FAIL"
+        details = f"expected={expected_answer!r}, got={submission_answer!r} " \
+                  + ("PASS" if matched else "FAIL") + f" [{match_detail}]"
 
         return ScoreComponent(
             name="answer_match", weight=weight, raw_score=score,
             weighted_score=score * weight, details=details,
             tool_output_snippet=submission_answer[:200],
         )
-
-    def _compare_numeric(self, submission: str, expected: str, tolerance: float) -> float:
-        """Compare numeric answers with tolerance."""
-        sub_val = _parse_numeric(submission)
-        exp_val = _parse_numeric(expected)
-
-        if sub_val is None or exp_val is None:
-            # Fall back to string comparison if parsing fails
-            return 1.0 if _normalize_string(submission) == _normalize_string(expected) else 0.0
-
-        if exp_val == 0.0:
-            # Absolute tolerance for zero
-            return 1.0 if abs(sub_val) <= max(abs(tolerance), 1e-9) else 0.0
-
-        # Relative tolerance
-        rel_diff = abs(sub_val - exp_val) / abs(exp_val)
-        return 1.0 if rel_diff <= tolerance else 0.0
-
-    def _compare_string(self, submission: str, expected: str) -> float:
-        """Compare string answers with normalization."""
-        sub_norm = _normalize_string(submission)
-        exp_norm = _normalize_string(expected)
-        return 1.0 if sub_norm == exp_norm else 0.0

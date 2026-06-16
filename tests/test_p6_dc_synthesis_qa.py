@@ -8,9 +8,8 @@ from pathlib import Path
 import pytest
 
 from eda_agentbench.synthesis.dc_report_parser import parse_dc_report, DCReport
-from eda_agentbench.evaluator.dc_synthesis_qa import (
-    DCSynthesisQAEvaluator, _parse_numeric, _normalize_string,
-)
+from eda_agentbench.evaluator.dc_synthesis_qa import DCSynthesisQAEvaluator
+from eda_agentbench.evaluator.answer_match import match_answer
 from generators.p6_dc_synthesis_qa_gen import (
     DCSynthesisQAGenerator, EXPECTED_QUESTION_TYPES, QUESTION_TEMPLATES,
 )
@@ -131,67 +130,33 @@ def test_parser_partial_report():
 # --- Evaluator tests ---
 
 def test_evaluator_numeric_tolerance_pass():
-    """Numeric answers within tolerance should pass."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "21250.75", "tolerance": 0.01}
-    score = evaluator._compare_numeric("21250.00", "21250.75", 0.01)
-    assert score == 1.0
+    assert match_answer("21250.75", "21250.00", "numeric", 0.01)[0]
 
 
 def test_evaluator_numeric_tolerance_fail():
-    """Numeric answers outside tolerance should fail."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "21250.75", "tolerance": 0.01}
-    score = evaluator._compare_numeric("20000.00", "21250.75", 0.01)
-    assert score == 0.0
+    assert not match_answer("21250.75", "20000.00", "numeric", 0.01)[0]
 
 
 def test_evaluator_numeric_zero():
-    """Numeric answer exactly zero should work."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "numeric", "expected": "0.0", "tolerance": 0.01}
-    score = evaluator._compare_numeric("0.0001", "0.0", 0.01)
-    assert score == 1.0
+    assert match_answer("0.0", "0.0001", "numeric", 0.01)[0]
 
 
 def test_evaluator_string_exact():
-    """String answers should match exactly (normalized)."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "alu_top", "tolerance": 0.0}
-    score = evaluator._compare_string("alu_top", "alu_top")
-    assert score == 1.0
+    assert match_answer("alu_top", "alu_top", "string", 0.0)[0]
 
 
 def test_evaluator_string_case_insensitive():
-    """String answers should be case-insensitive."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "alu_top", "tolerance": 0.0}
-    score = evaluator._compare_string("ALU_TOP", "alu_top")
-    assert score == 1.0
+    assert match_answer("alu_top", "ALU_TOP", "string", 0.0)[0]
 
 
 def test_evaluator_string_wrong():
-    """Wrong string answers should fail."""
-    evaluator = DCSynthesisQAEvaluator.__new__(DCSynthesisQAEvaluator)
-    evaluator.answer_config = {"type": "string", "expected": "alu_top", "tolerance": 0.0}
-    score = evaluator._compare_string("fifo_ctrl", "alu_top")
-    assert score == 0.0
+    assert not match_answer("alu_top", "fifo_ctrl", "string", 0.0)[0]
 
 
-def test_evaluator_numeric_parse():
-    """_parse_numeric should handle various formats."""
-    assert _parse_numeric("21250.75") == 21250.75
-    assert _parse_numeric("3500") == 3500.0
-    assert _parse_numeric("0") == 0.0
-    assert _parse_numeric("  -0.15  ") == -0.15
-    assert _parse_numeric("abc") is None
-
-
-def test_evaluator_string_normalize():
-    """_normalize_string should lowercase and strip."""
-    assert _normalize_string("  Hello World  ") == "hello world"
-    assert _normalize_string("ABC") == "abc"
-    assert _normalize_string("  spaces  ") == "spaces"
+def test_evaluator_composite_answer():
+    # "0 errors, N warnings" must tolerate phrasing but reject wrong counts.
+    assert match_answer("0 errors, 2 warnings", "0 errors and 2 warnings", "string", 0.0)[0]
+    assert not match_answer("0 errors, 2 warnings", "0 errors, 3 warnings", "string", 0.0)[0]
 
 
 def test_evaluator_answer_match_integration(tmp_path):

@@ -8,9 +8,9 @@ Scoring model:
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
+from eda_agentbench.evaluator import answer_match as am
 from eda_agentbench.evaluator.base import BaseEvaluator
 from eda_agentbench.types import ScoreComponent
 
@@ -46,47 +46,18 @@ FLOAT_FIELDS = {
 
 
 def _compare_values(expected: str, actual: str, field: str) -> tuple[bool, str]:
-    """Compare expected and actual answer strings.
-
-    Returns (match: bool, details: str).
-    """
-    exp_clean = expected.strip()
-    act_clean = actual.strip()
-
+    """Compare expected and actual answer strings, routed through the shared
+    structure-aware matcher (tolerant of commas/units/markdown; strict on value)."""
     if field in STRING_FIELDS:
-        match = exp_clean.lower() == act_clean.lower()
-        return match, f"string match: expected={exp_clean!r}, actual={act_clean!r}"
-
+        return am.match_string(expected, actual)
     if field in BOOL_FIELDS:
-        exp_bool = exp_clean.lower() in ("true", "1", "yes")
-        act_bool = act_clean.lower() in ("true", "1", "yes")
-        match = exp_bool == act_bool
-        return match, f"bool match: expected={exp_clean!r}, actual={act_clean!r}"
-
+        return am.match_bool(expected, actual)
     if field in INT_FIELDS:
-        try:
-            exp_int = int(exp_clean)
-            act_int = int(act_clean)
-            match = exp_int == act_int
-            return match, f"int match: expected={exp_int}, actual={act_int}"
-        except ValueError:
-            return False, f"int parse error: expected={exp_clean!r}, actual={act_clean!r}"
-
+        return am.match_int(expected, actual)
     if field in FLOAT_FIELDS:
-        try:
-            exp_float = float(exp_clean)
-            act_float = float(act_clean)
-            if exp_float == 0:
-                match = abs(act_float) < 0.001
-            else:
-                match = abs(exp_float - act_float) / abs(exp_float) <= FLOAT_TOLERANCE
-            return match, f"float match: expected={exp_float:.4f}, actual={act_float:.4f}, tol={FLOAT_TOLERANCE}"
-        except ValueError:
-            return False, f"float parse error: expected={exp_clean!r}, actual={act_clean!r}"
-
-    # Default: exact string match
-    match = exp_clean == act_clean
-    return match, f"exact match: expected={exp_clean!r}, actual={act_clean!r}"
+        return am.match_numeric(expected, actual, FLOAT_TOLERANCE)
+    # Default: exact-ish string match.
+    return am.match_string(expected, actual)
 
 
 class PnRReportQAEvaluator(BaseEvaluator):
