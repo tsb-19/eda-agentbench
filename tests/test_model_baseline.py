@@ -177,8 +177,10 @@ def _cli_replica(loader: TaskLoader, sample_per_track: int, seed: int):
 
 
 def test_sampler_matches_cli_algorithm():
+    # stratify=False is the parity escape hatch: it must reproduce the CLI's flat
+    # per-track random sampling byte-for-byte.
     loader = TaskLoader(TASKS_ROOT)
-    got = gms.sample_tasks(loader, track=None, sample_per_track=3, seed=42)
+    got = gms.sample_tasks(loader, track=None, sample_per_track=3, seed=42, stratify=False)
     expected = _cli_replica(loader, sample_per_track=3, seed=42)
     assert got == expected
 
@@ -188,6 +190,39 @@ def test_sampler_is_deterministic():
     a = gms.sample_tasks(loader, track=None, sample_per_track=2, seed=7)
     b = gms.sample_tasks(loader, track=None, sample_per_track=2, seed=7)
     assert a == b
+
+
+def test_allocate_quota_balances_and_respects_availability():
+    # ample supply across 3 levels: round-robin yields 4/3/3
+    assert gms._allocate_quota({"easy": 501, "medium": 400, "hard": 100}, 10) == \
+        {"easy": 4, "medium": 3, "hard": 3}
+    # scarce 'easy' (P8 shape) spills the remainder to medium
+    assert gms._allocate_quota({"easy": 1, "medium": 100}, 10) == {"easy": 1, "medium": 9}
+    # single level (P4/P5) takes all of n
+    assert gms._allocate_quota({"easy": 302}, 10) == {"easy": 10}
+    # two even levels -> 5/5
+    assert gms._allocate_quota({"easy": 61, "medium": 40}, 10) == {"easy": 5, "medium": 5}
+    # total availability below n -> take everything, no error (sum < n)
+    assert gms._allocate_quota({"easy": 3, "medium": 3, "hard": 3}, 10) == \
+        {"easy": 3, "medium": 3, "hard": 3}
+
+
+def test_sampler_stratified_covers_difficulty_levels():
+    # On the real dataset a 10/track stratified P1 sample must span easy/medium/hard
+    # (P1 has all three) and include the discriminating hard end.
+    loader = TaskLoader(TASKS_ROOT)
+    sampled = gms.sample_tasks(loader, track=None, sample_per_track=10, seed=42, stratify=True)
+    counts: dict[str, int] = {}
+    n_p1 = 0
+    for p in sampled:
+        meta = loader.load(p)
+        if meta.get("track") == "p1_rtl_debug":
+            n_p1 += 1
+            d = meta.get("difficulty", "unknown")
+            counts[d] = counts.get(d, 0) + 1
+    assert n_p1 == 10
+    assert set(counts) >= {"easy", "medium", "hard"}
+    assert counts["hard"] >= 2
 
 
 # --------------------------------------------------------------------------- #

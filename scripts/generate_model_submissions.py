@@ -49,8 +49,14 @@ LOCAL_QA_TRACKS = {
 }
 
 # Output contract markers the model must wrap each edited file in.
+# The contract asks for exactly ``>>>`` (see _SYSTEM/prompt), but models often
+# emit ``>>`` (or more) on the FILE/END markers — a one-char slip that leaves the
+# file content fully intact. We tolerate ``>{2,}`` on both markers so a complete,
+# correct submission isn't zeroed for delimiter pedantry (we benchmark EDA ability,
+# not exact-format compliance). Verified to recover such cases with zero change to
+# already-well-formed submissions.
 _FILE_BLOCK_RE = re.compile(
-    r"<<<FILE:\s*(?P<name>[^\n>]+?)\s*>>>\n(?P<body>.*?)\n?<<<END>>>",
+    r"<<<FILE:\s*(?P<name>[^\n>]+?)\s*>{2,}[ \t]*\n(?P<body>.*?)\n?<<<END>{2,}",
     re.DOTALL,
 )
 # A single enclosing markdown fence (whole chunk).
@@ -115,30 +121,84 @@ def load_model_specs(path: Path, allow_mock: bool) -> list[tuple[str, BaseLLMPro
 
 
 # --------------------------------------------------------------------------- #
-# Sampling — replicates eda_agentbench/cli.py cmd_evaluate_dataset (lines 271-288)
-# verbatim so the baseline samples the SAME tasks for a given (seed, N).
+# Sampling
 # --------------------------------------------------------------------------- #
+# Difficulty levels in canonical (easy -> hard) order. Any other/unknown label
+# is sampled too, appended after these.
+_DIFFICULTY_ORDER = ("easy", "medium", "hard", "expert")
+
+
+def _allocate_quota(level_avail: dict[str, int], n: int) -> dict[str, int]:
+    """Spread ``n`` picks across difficulty levels as evenly as possible.
+
+    Round-robins one slot per level (in the dict's order) each pass, skipping a
+    level once its quota reaches what that level actually has. This yields a
+    balanced split (10 over easy/medium/hard -> 4/3/3), automatically respects
+    scarce levels (e.g. {easy:1, medium:100} over 10 -> 1/9; a single level ->
+    all of n), and is fully deterministic. Returns {level: count}; the counts
+    sum to min(n, total available).
+    """
+    quota = {lvl: 0 for lvl in level_avail}
+    target = min(n, sum(level_avail.values()))
+    placed = 0
+    while placed < target:
+        progressed = False
+        for lvl in level_avail:               # dict preserves canonical order
+            if placed >= target:
+                break
+            if quota[lvl] < level_avail[lvl]:
+                quota[lvl] += 1
+                placed += 1
+                progressed = True
+        if not progressed:                    # all levels exhausted
+            break
+    return quota
+
+
 def sample_tasks(loader: TaskLoader, track: str | None,
-                 sample_per_track: int, seed: int) -> list[Path]:
+                 sample_per_track: int, seed: int,
+                 stratify: bool = True) -> list[Path]:
+    """Sample up to ``sample_per_track`` tasks per track for a fixed ``seed``.
+
+    With ``stratify=True`` (default) the picks for each track are spread across
+    difficulty levels (see ``_allocate_quota``), so a small per-track sample
+    still covers easy -> hard — the spread that discriminates models. With
+    ``stratify=False`` it is flat per-track random sampling, byte-identical to
+    ``eda_agentbench/cli.py`` cmd_evaluate_dataset (the parity escape hatch used
+    when the baseline must mirror the main CLI's dataset selection).
+    """
     task_paths = loader.discover(track=track, recursive=True)
     if not task_paths:
         raise SystemExit("No tasks discovered")
 
-    by_track: dict[str, list[Path]] = {}
+    # track -> {difficulty: [paths]}. When not stratifying, everything lands in
+    # one "" bucket so the draw order matches the legacy flat algorithm exactly.
+    by_track: dict[str, dict[str, list[Path]]] = {}
     for tp in task_paths:
         try:
             meta = loader.load(tp)
             tr = meta.get("track", "unknown")
+            diff = meta.get("difficulty", "unknown") if stratify else ""
         except TaskValidationError:
-            tr = "unknown"
-        by_track.setdefault(tr, []).append(tp)
+            tr, diff = "unknown", ("unknown" if stratify else "")
+        by_track.setdefault(tr, {}).setdefault(diff, []).append(tp)
 
     rng = random.Random(seed)
     sampled: list[Path] = []
     for tr in sorted(by_track):
-        candidates = by_track[tr]
-        n = min(sample_per_track, len(candidates))
-        sampled.extend(rng.sample(candidates, n))
+        buckets = by_track[tr]
+        if not stratify:
+            candidates = buckets[""]
+            sampled.extend(rng.sample(candidates, min(sample_per_track, len(candidates))))
+            continue
+        # Present levels in canonical order, unknown/extra labels appended.
+        levels = [d for d in _DIFFICULTY_ORDER if d in buckets]
+        levels += [d for d in sorted(buckets) if d not in _DIFFICULTY_ORDER]
+        quota = _allocate_quota({d: len(buckets[d]) for d in levels}, sample_per_track)
+        for d in levels:
+            take = quota.get(d, 0)
+            if take:
+                sampled.extend(rng.sample(buckets[d], take))
     return sampled
 
 
@@ -356,6 +416,11 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     ap.add_argument("--track", default=None, help="Restrict to a single track")
     ap.add_argument("--sample-per-track", type=int, default=15)
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--no-stratify", dest="stratify", action="store_false",
+                    help="Flat random per-track sampling (matches the CLI dataset "
+                         "sampler); the default spreads each track's sample across "
+                         "difficulty levels (easy/medium/hard)")
+    ap.set_defaults(stratify=True)
     ap.add_argument("--max-visible-bytes", type=int, default=20000,
                     help="Per-file cap on inlined visible-file context")
     ap.add_argument("--allow-mock", action="store_true",
@@ -382,7 +447,8 @@ def main(argv: list[str] | None = None) -> int:
 
     models = load_model_specs(Path(args.models).resolve(), args.allow_mock)
     loader = TaskLoader(tasks_root)
-    sampled = sample_tasks(loader, args.track, args.sample_per_track, args.seed)
+    sampled = sample_tasks(loader, args.track, args.sample_per_track, args.seed,
+                           stratify=args.stratify)
     if args.limit is not None:
         sampled = sampled[: args.limit]
 
@@ -393,6 +459,7 @@ def main(argv: list[str] | None = None) -> int:
         "tasks_root": str(tasks_root),
         "seed": args.seed,
         "sample_per_track": args.sample_per_track,
+        "stratified": args.stratify,
         "track_filter": args.track,
         "models": [n for n, _, _ in models],
         "tasks": [],
@@ -407,6 +474,7 @@ def main(argv: list[str] | None = None) -> int:
         meta = loader.load(tp)
         task_id = meta["task_id"]
         track = meta.get("track", "unknown")
+        difficulty = meta.get("difficulty", "unknown")
         is_p5 = track == "p5_spice_deck_debug"
         editable = list(meta["files"].get("editable", []))
         prompt = build_prompt(tp, meta, args.max_visible_bytes)
@@ -420,8 +488,8 @@ def main(argv: list[str] | None = None) -> int:
         except ValueError:
             task_rel = str(tp)
 
-        task_infos.append({"task_id": task_id, "track": track, "task_path": task_rel,
-                           "needs_tool": needs_tool})
+        task_infos.append({"task_id": task_id, "track": track, "difficulty": difficulty,
+                           "task_path": task_rel, "needs_tool": needs_tool})
         for name, provider, gen_kwargs in models:
             jobs.append({
                 "task_index": i, "name": name, "provider": provider,
@@ -430,6 +498,19 @@ def main(argv: list[str] | None = None) -> int:
                 "sub_dir": out_root / name / track / task_id,
                 "submission_dir": f"{name}/{track}/{task_id}",
             })
+
+    # Per-track difficulty breakdown of the sample (visibility for the run).
+    def _rank(d: str) -> int:
+        return _DIFFICULTY_ORDER.index(d) if d in _DIFFICULTY_ORDER else 99
+    brk: dict[str, dict[str, int]] = {}
+    for info in task_infos:
+        d = brk.setdefault(info["track"], {})
+        d[info["difficulty"]] = d.get(info["difficulty"], 0) + 1
+    print(f"Sampling: {'stratified' if args.stratify else 'flat-random'}, "
+          f"seed {args.seed}, target {args.sample_per_track}/track")
+    for tr in sorted(brk):
+        bits = ", ".join(f"{lvl}:{brk[tr][lvl]}" for lvl in sorted(brk[tr], key=_rank))
+        print(f"  {tr}: {sum(brk[tr].values())}  ({bits})")
 
     # 2. Run jobs concurrently. Each writes only its own dir; we collect recs by
     #    (task_index, model) and assemble the manifest in sampled order afterward.
@@ -449,7 +530,8 @@ def main(argv: list[str] | None = None) -> int:
     # 3. Assemble manifest in sampled order, models in config order (== sequential output).
     for i, info in enumerate(task_infos):
         entry = {"task_id": info["task_id"], "track": info["track"],
-                 "task_path": info["task_path"], "needs_tool": info["needs_tool"],
+                 "difficulty": info["difficulty"], "task_path": info["task_path"],
+                 "needs_tool": info["needs_tool"],
                  "submissions": {name: results[i][name] for name, _, _ in models}}
         manifest["tasks"].append(entry)
 
