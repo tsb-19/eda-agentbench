@@ -30,8 +30,8 @@ Phase 8A added P8 PnR Report QA (101 tasks). 2825 total tasks across 10 tracks:
 
 Key results:
 - pytest: all pass
-- Solution mode: 2828/2828 = 1.00
-- Buggy mode: 2828/2828 all < 1.0
+- Solution mode (golden pass): local QA/parser tracks = 1.00 across the full 2825; commercial-tool tracks verified through the real Synopsys/Cadence path on a 250-task stratified cross-track sample = 1.00 (seed 7, 2026-06-17), after grounding P4 settling acceptance windows in real sims (those 97 settling tasks re-validated). The earlier blanket "2828/2828 = 1.00" predated that grounding and masked 5 broken settling tasks (fixed/dropped, 302→299); full real-tool re-validation is now automated + hash-cached via `scripts/validate_dataset.py`.
+- Buggy mode: all < 1.0, and per-task `golden − buggy` objective margin ≥ 0.15 enforced (an unfixed input must not score like a fix).
 - P6 DC Constraint accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P5 accepts equivalent non-identical fixes (execution-based, no exact diff)
 - P6/P8 are parser-based QA, no commercial tool execution required
