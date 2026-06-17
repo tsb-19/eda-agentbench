@@ -17,6 +17,6 @@ c1 out 0 4.7e-10
 
 * Measure delays
 .measure tran tdrise trig v(in) val=0.9 rise=1 targ v(out) val=0.9 rise=1
-.measure tran tdfall trig v(in) val=0.9 fall=1 targ v(out) val=0.9 fall=1
+.measure tran tdfall trig v(in) val=0.9 fall=1 td=6810.810574749528n targ v(out) val=0.9 fall=1
 
 .end

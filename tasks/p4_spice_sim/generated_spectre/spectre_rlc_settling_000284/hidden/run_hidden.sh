@@ -7,8 +7,10 @@ spectre circuit.scs +escchars +log spectre_hidden.out -format nutascii 2>&1 | te
 python3 -c "
 import re, json, os
 
-def find_crossing_time(times, values, threshold, rise=True):
+def find_crossing_time(times, values, threshold, rise=True, t_start=None):
     for i in range(1, len(values)):
+        if t_start is not None and times[i] < t_start:
+            continue
         if rise:
             if values[i-1] < threshold and values[i] >= threshold:
                 frac = (threshold - values[i-1]) / (values[i] - values[i-1])

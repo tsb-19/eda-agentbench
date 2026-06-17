@@ -77,7 +77,7 @@ c1 out 0 {c}
 
 * Measure delays
 .measure tran tdrise trig v(in) val=0.9 rise=1 targ v(out) val=0.9 rise=1
-.measure tran tdfall trig v(in) val=0.9 fall=1 targ v(out) val=0.9 fall=1
+.measure tran tdfall trig v(in) val=0.9 fall=1 td={pw} targ v(out) val=0.9 fall=1
 
 .end
 """
@@ -246,7 +246,7 @@ if in_rise is not None and out_rise is not None:
     metrics['tdrise'] = out_rise - in_rise
 
 in_fall = find_crossing_time(times, in_vals, threshold, rise=False)
-out_fall = find_crossing_time(times, out_vals, threshold, rise=False)
+out_fall = find_crossing_time(times, out_vals, threshold, rise=False, t_start=in_fall)
 if in_fall is not None and out_fall is not None:
     metrics['tdfall'] = out_fall - in_fall
 """
@@ -259,8 +259,10 @@ spectre circuit.scs +escchars +log spectre.out -format nutascii 2>&1 | tee spect
 python3 -c "
 import re, json, os
 
-def find_crossing_time(times, values, threshold, rise=True):
+def find_crossing_time(times, values, threshold, rise=True, t_start=None):
     for i in range(1, len(values)):
+        if t_start is not None and times[i] < t_start:
+            continue
         if rise:
             if values[i-1] < threshold and values[i] >= threshold:
                 frac = (threshold - values[i-1]) / (values[i] - values[i-1])
@@ -334,8 +336,10 @@ spectre circuit.scs +escchars +log spectre_hidden.out -format nutascii 2>&1 | te
 python3 -c "
 import re, json, os
 
-def find_crossing_time(times, values, threshold, rise=True):
+def find_crossing_time(times, values, threshold, rise=True, t_start=None):
     for i in range(1, len(values)):
+        if t_start is not None and times[i] < t_start:
+            continue
         if rise:
             if values[i-1] < threshold and values[i] >= threshold:
                 frac = (threshold - values[i-1]) / (values[i] - values[i-1])
