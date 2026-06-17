@@ -642,6 +642,45 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         _safe_rmtree(work_dir)
 
 
+# --------------------------------------------------------------------------- #
+# Golden / buggy submission construction — single source of truth, shared by
+# cmd_evaluate_dataset and scripts/validate_dataset.py so the dataset validator
+# grades the EXACT same inputs as the official evaluate-dataset (no drift).
+# --------------------------------------------------------------------------- #
+def solution_submission_path(task_path: Path, meta: dict) -> Path:
+    """Directory holding the known-correct submission: hidden/ for P5, else solution/."""
+    if meta.get("track") == "p5_spice_deck_debug":
+        return task_path / "hidden"
+    return task_path / "solution"
+
+
+def build_buggy_submission(task_path: Path, meta: dict) -> Path:
+    """Build the unfixed/buggy submission in a fresh temp dir (caller cleans it up).
+
+    QA tracks (p3_timing_report_qa, p6_dc_synthesis_qa) get a deliberately wrong
+    answer.txt; P5 copies the editable decks from the task root; every other track
+    copies the editable files from files/ (the buggy originals).
+    """
+    track = meta.get("track")
+    buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
+    if track in ("p3_timing_report_qa", "p6_dc_synthesis_qa"):
+        (buggy_dir / "answer.txt").write_text("WRONG_ANSWER\n")
+    else:
+        editable_files = meta["files"]["editable"]
+        if track == "p5_spice_deck_debug":
+            for ef in editable_files:
+                src = task_path / ef
+                if src.is_file():
+                    shutil.copy2(src, buggy_dir / Path(ef).name)
+        else:
+            files_dir = task_path / "files"
+            for ef in editable_files:
+                src = files_dir / ef
+                if src.is_file():
+                    shutil.copy2(src, buggy_dir / ef)
+    return buggy_dir
+
+
 def cmd_evaluate_dataset(args) -> None:
     import random
     from eda_agentbench.task.loader import TaskLoader, TaskValidationError
@@ -742,18 +781,12 @@ def cmd_evaluate_dataset(args) -> None:
         task_id = meta["task_id"]
         timeout = timeout_override or meta.get("timeout_sec", 300)
 
-        # Determine submission path
-        is_p5 = meta.get("track") == "p5_spice_deck_debug"
-        is_p3 = meta.get("track") == "p3_timing_report_qa"
-        is_p6 = meta.get("track") == "p6_dc_synthesis_qa"
+        # Determine submission path (golden or buggy) via the shared helpers, so
+        # scripts/validate_dataset.py grades the identical inputs.
         if submission_mode == "solution":
-            if is_p5:
-                # P5: solution is hidden/ (the fixed deck)
-                submission_path = task_path / "hidden"
-            else:
-                submission_path = task_path / "solution"
+            submission_path = solution_submission_path(task_path, meta)
             if not submission_path.is_dir():
-                label = "hidden/" if is_p5 else "solution/"
+                label = "hidden/" if meta.get("track") == "p5_spice_deck_debug" else "solution/"
                 print(f"[{i+1}/{len(task_paths)}] SKIP {task_path.name}: {label} not found")
                 results.append({
                     "task_path": str(task_path), "task_id": task_id,
@@ -763,26 +796,7 @@ def cmd_evaluate_dataset(args) -> None:
                 })
                 continue
         else:
-            # Buggy mode: create temp dir with wrong answer
-            buggy_dir = Path(tempfile.mkdtemp(prefix="eda_buggy_"))
-            if is_p3 or is_p6:
-                # P3/P6: write a deliberately wrong answer
-                (buggy_dir / "answer.txt").write_text("WRONG_ANSWER\n")
-            else:
-                editable_files = meta["files"]["editable"]
-                if is_p5:
-                    # P5: editable files are under visible/
-                    for ef in editable_files:
-                        src = task_path / ef
-                        if src.is_file():
-                            shutil.copy2(src, buggy_dir / Path(ef).name)
-                else:
-                    files_dir = task_path / "files"
-                    for ef in editable_files:
-                        src = files_dir / ef
-                        if src.is_file():
-                            shutil.copy2(src, buggy_dir / ef)
-            submission_path = buggy_dir
+            submission_path = build_buggy_submission(task_path, meta)
 
         print(f"[{i+1}/{len(task_paths)}] {task_id} ({meta['track']}, {submission_mode})...", end=" ", flush=True)
 
