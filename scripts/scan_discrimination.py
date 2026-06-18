@@ -33,10 +33,34 @@ from pathlib import Path
 PERFECT = 0.999
 FAIL = 0.5
 
+# Continuous-graded components: tracks whose primary signal is a fractional score
+# carried in ONE component (graded closeness / fraction-of-specs), not a binary
+# pass/fail. For these, total_score adds a fixed overhead (tool_run + output +
+# explanation ~0.4) that compresses the dynamic range and makes a do-nothing floor
+# read like a partial pass — which blinds the saturation/spread stats (a P4-damping
+# floor totals 0.60 and looks "mostly passing"). The dashboard must aggregate the
+# ISOLATED continuous component instead. Extend this set as continuous tracks land.
+CONTINUOUS_COMPONENTS = {"spec_score"}
+
 
 # --------------------------------------------------------------------------- #
 # Pure stats (unit-tested without any results tree)
 # --------------------------------------------------------------------------- #
+def primary_score(result: dict) -> float:
+    """The per-episode score the discrimination dashboard should aggregate.
+
+    Continuous-graded track -> the isolated continuous component's raw (clean
+    [0,1], no tool/output/explanation overhead). Otherwise -> total_score
+    (unchanged for binary tracks). Anti-cheat-zeroed episodes serialize no
+    components with total_score 0.0, so they correctly return 0.0.
+    """
+    for c in result.get("components") or []:
+        if c.get("name") in CONTINUOUS_COMPONENTS:
+            raw = c.get("raw")
+            return 0.0 if raw is None else max(0.0, min(1.0, float(raw)))
+    return float(result.get("total_score", 0.0))
+
+
 def task_stats(scores: list[float], *, spread_thresh: float = 0.1) -> dict:
     """Across-model stats for one task's total_scores."""
     n = len(scores)
@@ -69,15 +93,24 @@ def classify(s: dict) -> str:
 # Load
 # --------------------------------------------------------------------------- #
 def load_results(results_root: Path):
-    """task_id -> {model: total_score}; plus task_id -> track."""
+    """task_id -> {model: primary_score}; task_id -> track; set of continuous tracks."""
     scores: dict[str, dict[str, float]] = defaultdict(dict)
     track_of: dict[str, str] = {}
+    cont_tracks: set[str] = set()
     for f in glob.glob(str(results_root / "*" / "*" / "*.json")):
         d = json.loads(Path(f).read_text())
+        # Skip sidecars (e.g. <task>.agentlog.json from the agentic runner): they
+        # share task_id+model with the real result but carry no total_score, so
+        # they would clobber the real score with 0.0. Result files always have it.
+        if "total_score" not in d:
+            continue
         tid = d.get("task_id") or Path(f).stem
-        scores[tid][d.get("model", Path(f).parts[-3])] = float(d.get("total_score", 0.0))
-        track_of[tid] = d.get("track", Path(f).parts[-2])
-    return scores, track_of
+        track = d.get("track", Path(f).parts[-2])
+        scores[tid][d.get("model", Path(f).parts[-3])] = primary_score(d)
+        track_of[tid] = track
+        if any((c.get("name") in CONTINUOUS_COMPONENTS) for c in (d.get("components") or [])):
+            cont_tracks.add(track)
+    return scores, track_of, cont_tracks
 
 
 # --------------------------------------------------------------------------- #
@@ -94,7 +127,8 @@ def build_rows(scores, track_of, diff_of, spread_thresh):
     return rows
 
 
-def render(rows, top: int) -> str:
+def render(rows, top: int, cont_tracks: set | None = None) -> str:
+    cont_tracks = cont_tracks or set()
     out = []
     n = len(rows)
     allv = [v for r in rows for v in r["scores"].values()]
@@ -127,7 +161,13 @@ def render(rows, top: int) -> str:
         mean = statistics.mean(r["mean"] for r in rs)
         msp = statistics.mean(r["spread"] for r in rs)
         flag = " ⚠️ fully saturated" if ns == len(rs) else ""
-        out.append(f"| {tr} | {len(rs)} | {ns}/{len(rs)}{flag} | {nd}/{len(rs)} | {mean:.2f} | {msp:.2f} |")
+        mark = " °" if tr in cont_tracks else ""
+        out.append(f"| {tr}{mark} | {len(rs)} | {ns}/{len(rs)}{flag} | {nd}/{len(rs)} | {mean:.2f} | {msp:.2f} |")
+    if cont_tracks:
+        out.append("\n° continuous-graded track — `mean`/`mean spread` and the "
+                   "saturated/discriminating flags are computed on the ISOLATED "
+                   "continuous component (e.g. spec_score), not pass-rate; a "
+                   "do-nothing floor shows as its true low fraction, not ~0.6.")
     out.append("")
 
     # difficulty-label calibration
@@ -167,7 +207,7 @@ def main(argv=None) -> int:
     ap.add_argument("--report", default=None, help="Write per-task JSON here")
     args = ap.parse_args(argv)
 
-    scores, track_of = load_results(Path(args.results))
+    scores, track_of, cont_tracks = load_results(Path(args.results))
     if not scores:
         raise SystemExit(f"No result JSONs under {args.results}")
     diff_of = {}
@@ -176,7 +216,7 @@ def main(argv=None) -> int:
         diff_of = {t["task_id"]: t.get("difficulty", "?") for t in man.get("tasks", [])}
 
     rows = build_rows(scores, track_of, diff_of, args.spread)
-    dashboard = render(rows, args.top)
+    dashboard = render(rows, args.top, cont_tracks)
     print(dashboard)
 
     if args.md:

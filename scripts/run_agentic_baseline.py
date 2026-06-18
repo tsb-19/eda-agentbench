@@ -35,6 +35,7 @@ sys.path.insert(0, str(REPO))
 from eda_agentbench.task.loader import TaskLoader  # noqa: E402
 from eda_agentbench.agentic.runner import run_single_agentic  # noqa: E402
 from scripts.generate_model_submissions import load_model_specs, sample_tasks  # noqa: E402
+from scripts.scan_discrimination import CONTINUOUS_COMPONENTS  # noqa: E402
 
 DRIVER = REPO / "scripts" / "llm_agent_driver.py"
 
@@ -134,7 +135,15 @@ def main(argv=None) -> int:
                    f"{type(e).__name__}: {e}", "model": name, "track": track,
                    "task_id": task_id, "mode": "agentic"}
         dest.write_text(json.dumps(res, indent=2))
-        flag = "PASS" if res.get("passed") else f"{res.get('total_score', 0):.2f}"
+        # For continuous-graded tracks the binary "PASS" is misleading (a do-nothing
+        # floor still totals ~0.6 and reads as PASS), so show the isolated continuous
+        # score instead; binary tracks keep the PASS / total_score flag.
+        cont = next((c.get("raw") for c in (res.get("components") or [])
+                     if c.get("name") in CONTINUOUS_COMPONENTS), None)
+        if cont is not None:
+            flag = f"spec={float(cont):.2f}"
+        else:
+            flag = "PASS" if res.get("passed") else f"{res.get('total_score', 0):.2f}"
         clean = res.get("agent", {}).get("anti_cheat_clean", True)
         return (f"  [{name}] {track}/{task_id}: {flag}"
                 + ("" if clean else " ANTI-CHEAT-DIRTY")
