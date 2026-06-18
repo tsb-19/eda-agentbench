@@ -83,13 +83,21 @@ class OpenAIProvider(BaseLLMProvider):
         ``reasoning_content`` it is preserved in ``metadata`` but the answer
         ``content`` is what's returned as ``text``.
         """
-        if not self._api_key:
-            raise RuntimeError("No API key set. Use MockLLMProvider for testing.")
-
         messages = []
         if system:
             messages.append({"role": "system", "content": system})
         messages.append({"role": "user", "content": prompt})
+        return self.chat(messages, **kwargs)
+
+    def chat(self, messages: list[dict], **kwargs: Any) -> LLMResponse:
+        """Multi-turn variant of :meth:`generate`: takes a full OpenAI-style
+        ``messages`` list ([{role, content}, ...]) instead of a single
+        prompt+system, so callers can preserve assistant/user turn structure
+        across iterations (the agentic ReAct loop needs this). Same recognized
+        kwargs and same ``LLMResponse`` contract as :meth:`generate`.
+        """
+        if not self._api_key:
+            raise RuntimeError("No API key set. Use MockLLMProvider for testing.")
 
         body = {
             "model": self._model,

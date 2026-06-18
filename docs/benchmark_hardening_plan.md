@@ -97,74 +97,98 @@ was *more* saturated than `medium`) — so labels must be re-derived from data.
 
 ---
 
-## 3. Three families, three techniques (the technique is not one-size-fits-all)
+## 3. Evaluation protocol — the residual frontier under full tools
 
-### A. Debug / repair family — P1, P5, P6-constraint, P7-SpyGlass, P7-PrimeTime
-**Technique:** inject a *real* corner-case defect (the kind that escapes weak
-verification and bites in silicon), keep the public test on the common case only, and
-make the hidden test a deep suite of corner vectors scored by fraction-passed.
-**Gap probed:** does the model reason about the untested corner like a careful
-engineer, or only pattern-match the visible test? (axes 1, 3, 4)
-**Template:** the P1 subtle-bug pilot (`generators/p1_subtle_bugs.py`).
-**Realism gate for bug selection:** every injected bug must be one a real engineer
-could plausibly write and that a reviewer would flag as a true defect. Prefer bugs
-grounded in real datapath/control pitfalls (sign, overflow, saturation, rounding,
-reset, edge/CDC, FSM corner) over syntactic trickery.
+This is what the whole program is now organized around. It supersedes any "make the
+task hard / measure how much tools help" framing.
 
-### B. Report-QA family — P3, P6-synthesis, P8
-**Technique:** replace lookup-a-number questions with multi-step *quantitative*
-reasoning over the real report — compute the slack, derive which path/cell is the
-offender, reason about a trade-off — with plausible distractors.
-**Gap probed:** can the model analyze a real tool report like an engineer, instead of
-grepping a value? (axes 2, 5, 6)
-**P8 caveat:** P8 is already hard but flat. Fixing it is a *discrimination* problem,
-not a difficulty problem — likely it needs less ambiguity and more graded,
-competence-separating sub-questions, so a better analyst scores higher rather than
-everyone landing at 0.74.
+**Measure capability, not tool-usage skill.** The target is where the model's EDA
+ability falls short of a human engineer's. Tools are not the object of measurement —
+they are the *condition* under which the model expresses its ability fully. So we do
+not score "how well it used tools" or "how much tools lifted it"; we score whether,
+*with the tools a real engineer has*, it still cannot solve the problem.
 
-### C. Generation (P2) and numeric-sim (P4) — already discriminating
-**Technique:** leave mostly as-is; tune only. P2 (write correct SVA/testbench) spreads
-at 0.44; P4 (hit numeric targets within tolerance) is the best discriminator at 7/10.
-Both already probe real skills. Lowest priority.
+**The valuable residual = tasks that "model + realistic tools" still cannot fully
+solve, graded continuously.** Three boundaries define it:
+- Tasks model+tools *fully* solve → **retire them.** They map a capability the frontier
+  already has; zero ongoing discrimination. (One-time value: they mark where the
+  frontier *is* — but once known, they are dead weight.)
+- Tasks *no* model makes any progress on → also dead (no discrimination — the P8
+  failure mode).
+- **Sweet spot:** the partial-completion band, where models reach *different* depths.
+  The spread there is real capability difference, and "which model gets further" is the
+  signal we publish.
 
----
+**Evaluate under full tools, not single-shot.** Single-shot is at best a *floor* probe;
+it overstates difficulty, because any no-tool score only rises once the model can
+compile, read real output, and self-verify. A result that looks discriminating
+single-shot may evaporate under tools (exactly what the P1 subtle-bug pilot warns of).
+A task earns its place only if it survives full-tool evaluation.
 
-## 4. Priority & sequencing (by empirical saturation, cheapest-first within a tier)
+**Grader validity is the load-bearing requirement under tool access.** With tools, a
+weak grader gets gamed, so the bar on the grader rises:
+- Passing must require *genuinely solving* — no hardcoded PASS, no degenerate fix that
+  satisfies the visible checker while breaking real function (already forbidden by
+  CLAUDE.md). Acceptance reflects the real objective (spec / signoff), not "the tool ran
+  clean."
+- The acceptance verdict stays **hidden from the agent during iteration**, so it cannot
+  hill-climb the oracle. What the agent sees is realistic tool *diagnostic* output
+  (symptom-level: the real STA report, lint log, sim behavior) — which is what makes
+  diagnosis hard — never the graded pass/fail. **Collapse happens iff the feedback
+  reveals the graded criterion.**
+- Tool access is *realistic*, not infinite brute-force: a tool-call / cost budget, so
+  "couldn't solve" means real incapability, not exhausted retries. (Efficiency is itself
+  a real engineering quality, but a secondary axis — not the headline.)
 
-1. **Prove the debug-family technique on P1** (in flight). P1 is the worst (10/10)
-   and the cheapest to iterate: pure VCS + synthetic RTL, local iverilog pre-flight,
-   ~¥2 per model round.
-2. **Port to the other fully-saturated debug tracks:** P7-SpyGlass (10/10), then
-   P6-constraint (9/10). Same generator pattern, real lint/constraint defects.
-3. **QA family:** P6-synthesis (10/10), P3 (7/10) → quantitative multi-step questions.
-   Separately **re-target P8** toward discrimination.
-4. **Remaining debug:** P7-PrimeTime (7/10), P5 (6/10).
-5. **Skip / tune only:** P2, P4.
+**The frontier moves.** What model+tools can't do today it may do in six months.
+Hardening is therefore perpetual: retire solved tasks, curate harder real ones, keep
+tracing the edge. The signal that matters is performance on the *current residual set*,
+not an average over solved-and-unsolved.
 
-After each track is hardened, re-derive its difficulty labels from the model data.
+## 4. Per-track capability map (derive the method from the capability, case by case)
 
----
+The method is **not** one-size-fits-all. For each track ask "what does this tool / flow
+actually demand of a human engineer?", build the task to demand exactly that, then
+evaluate it under the §3 protocol. The grouping below is by grading *substrate* (how a
+score is computed), but within each the *method follows the capability*:
 
-## 5. The hardening loop (data-driven, with the realism guardrail)
+| Track(s) | Tool | Real capability it most demands | Method direction |
+|---|---|---|---|
+| P1 RTL, P5 deck | VCS / HSPICE | functional correctness + corner reasoning | corner-case defect, weak public, deep hidden — **but verify it survives full tools** (P1 single-shot did not separate models) |
+| P7 SpyGlass, P7 PrimeTime | spyglass / pt | **tool-feedback diagnosis** (symptom→root cause→fix→re-run) | **naturally agentic** — real violations to diagnose; the first true residual-under-tools test |
+| P6 constraint | DC | methodology: are the SDC constraints right | give intent, write constraints that make STA correctly pass (not over-constrain) |
+| P3, P6-syn, P8 | pt/dc/icc2 reports | quantitative analysis of a real report | multi-step *computed/derived* answers + distractors, not lookup; P8 needs discrimination, not more difficulty |
+| P2 gen | VCS | verification authoring | does the model's TB/SVA catch a battery of mutants (mutation coverage) — already spreads 0.44 |
+| P4 sim | HSPICE/Spectre | analog/numeric, meet spec across conditions | numeric closeness over measures — already the best discriminator |
+
+**The biggest under-used axis is tool-feedback iteration.** Everything in the first
+baseline was single-shot. The most EDA-authentic and likely most discriminating
+dimension — read real tool output, diagnose, fix, re-run, converge under budget — is
+exactly the one not yet measured. P7 (real lint/STA violations) and P5 (analog
+convergence) are the natural entry points, and the repo already has the `run-agent`
+runner.
+
+## 5. The hardening loop (now full-tool, with retire + realism gates)
 
 ```
-author hardened tasks   (each passes the §0 realism test)
-   -> validate goldens   (scripts/validate_dataset.py: golden=1.0, margin >= 0.15)
-   -> small model run    (5 models, ~¥2)
-   -> scan_discrimination (saturation down? spread up? mean off the ceiling?)
-   -> FAILURE-REALISM REVIEW  (read what models got wrong: is it a REAL gap?)
-   -> iterate            (if a class is "hard but flat", retarget; if contrived, cut)
+pick a track -> build a task that demands its real capability (§4), passing the §0 realism test
+   -> validate goldens         (validate_dataset.py: golden=1.0, margin >= 0.15)
+   -> evaluate UNDER FULL TOOLS (run-agent; realistic tool budget; acceptance hidden from the agent)
+   -> scan_discrimination       (saturated? dead? or in the partial band with model spread?)
+   -> RETIRE GATE               (model+tools fully solve it? -> retire; no residual value)
+   -> FAILURE-REALISM REVIEW    (read what models got wrong: is it a REAL engineering gap?)
+   -> iterate / curate harder   (frontier moves; keep only residual-band tasks)
 ```
 
-The failure-realism review is the step that keeps us honest to §0: the scan tells us
-*whether* a task discriminates; only reading the failures tells us whether it
-discriminates *for a reason that matters*.
+Two human checks the scan cannot do: the **retire gate** (is this still in the residual,
+or has model+tools made it free?) and the **failure-realism review** (does it
+discriminate for a reason that matters?). Together they keep the set honest to §0 and §3.
 
 ---
 
 ## 6. Self-assessment of the P1 pilot bugs against §0 (honest)
 
-The six subtle bugs in the current pilot, judged by the realism test:
+The six subtle bugs in the P1 subtle-bug pilot, judged by the realism test:
 
 | Bug | Real-world relevance | Verdict |
 |---|---|---|
@@ -183,12 +207,24 @@ test, not on "hardness" alone.
 
 ---
 
-## 7. Proven so far
+## 7. Proven so far (P1 study, complete)
 
 - **Multi-fault (bug count) is NOT the lever:** 1→3 easy bugs moved the mean only
-  1.000→0.993. Recall-style tasks stay saturated no matter how many you stack.
-- **The metric mechanism works:** the fractional PASS/FAIL evaluator gives continuous
-  scores; the deep hidden suite makes any incomplete fix register as a partial score.
-- **The subtle-bug content discriminates by construction:** golden=1.0, do-nothing
-  buggy=0.57–0.70, margins 0.27–0.38 through real VCS. Whether the *models* spread
-  (the real-gap question) is what the in-flight pilot answers next.
+  1.000→0.993, still 8/10 saturated.
+- **Subtler bugs + a pointing hint is NOT the lever either:** subtle+hint scored 0.998
+  (more saturated than easy multi-fault) — the hint hands over the answer.
+- **Removing the hint is the only real single-shot lever:** subtle no-hint dropped
+  saturation 8/10→2/10 and reshuffled the model ranking. Keep no-hint as the default
+  (also more realistic — real bugs are not labeled). But the ceiling is still ~0.98.
+- **The metric mechanism works:** the fractional PASS/FAIL evaluator + deep hidden suite
+  give continuous scores; the content discriminates by construction (golden=1.0,
+  do-nothing buggy 0.57–0.70 through real VCS).
+- **Decisive conclusion:** localized single-shot RTL debug is within frontier capability
+  — even the best config sits at ~0.98 *without tools*, and would saturate with them. So
+  it is **not the valuable residual.** This is the empirical proof of §3: stop polishing
+  isolated single-shot bugs; go find where model+tools still fall short (P7 first).
+- **Process wins:** local iverilog pre-flight catches golden bugs for free (one b04
+  round-trip instead of many); the failure-realism review confirmed misses are real
+  (missed −128 boundary; a fix that broke the common case; an introduced syntax error),
+  not artifacts; and it surfaced a grader nit — a bundled compile-break leaves that
+  module's corners untested, over-crediting hidden.
