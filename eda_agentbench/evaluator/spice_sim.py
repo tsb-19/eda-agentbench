@@ -105,6 +105,8 @@ class SPICESimEvaluator(BaseEvaluator):
             return self._eval_metric(weight, work_dir, "public", run_log)
         elif component_name == "hidden_metric":
             return self._eval_metric(weight, work_dir, "hidden", run_log)
+        elif component_name == "spec_score":
+            return self._eval_spec_score(weight, run_log)
         elif component_name == "explanation":
             if mode == "submission":
                 return ScoreComponent(
@@ -205,6 +207,33 @@ class SPICESimEvaluator(BaseEvaluator):
         return ScoreComponent(
             name="output_generated", weight=weight, raw_score=1.0,
             weighted_score=1.0 * weight, details=f"Output file {lis.name} generated ({len(content)} bytes)",
+        )
+
+    def _eval_spec_score(self, weight: float, run_log: str) -> ScoreComponent:
+        """Continuous multi-spec score for the P4 damping-design (hard) track.
+
+        The hidden runner's measure_specs.py emits ``SPEC_SCORE: <fraction>`` —
+        the graded-closeness mean over the {delay, overshoot, settling} specs
+        (1.0 within budget, ramping to 0 at 2x budget). A simulator crash or a
+        missing marker scores 0. This is the only continuous-grading addition to
+        this evaluator; the binary public/hidden_metric path is unchanged.
+        """
+        crashed = bool(re.search(
+            r"Segmentation fault|core dumped|spectre.*fatal|hspice.*aborted", run_log))
+        score_match = re.search(r"^SPEC_SCORE:\s*([0-9.]+)", run_log, re.MULTILINE)
+        detail_match = re.search(r"^SPEC_DETAIL:\s*(.*)", run_log, re.MULTILINE)
+        if crashed:
+            score, details = 0.0, "Simulator crashed during spec scoring"
+        elif score_match:
+            score = max(0.0, min(1.0, float(score_match.group(1))))
+            detail = detail_match.group(1).strip() if detail_match else ""
+            details = f"Spec score {score:.3f}" + (f" [{detail}]" if detail else "")
+        else:
+            score, details = 0.0, "No SPEC_SCORE marker (sim failed or specs not computed)"
+        return ScoreComponent(
+            name="spec_score", weight=weight, raw_score=score,
+            weighted_score=score * weight, details=details,
+            tool_output_snippet=run_log[:500] if run_log else None,
         )
 
     def _eval_metric(self, weight: float, work_dir: Path, metric_type: str,

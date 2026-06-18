@@ -1,0 +1,16 @@
+// RLC damping design - Spectre netlist (output across C)
+simulator lang=spectre
+global 0
+
+// Fast voltage step on `in` (edge << circuit natural period -> ideal step)
+vin (in 0) vsource type=pulse val0=0 val1=1.8 delay=9.93459e-09 rise=3.97384e-11 fall=3.97384e-11 width=1.58953e-06 period=3.17907e-06
+
+// Series RLC. R1 is the damping resistor to size; L1 and C1 are FIXED.
+l1 (in mid) inductor l=1e-05
+r1 (mid out) resistor r=1627.94
+c1 (out 0) capacitor c=1e-12
+
+// Transient: maxstep resolves the ring, stop captures the settling tail
+tran tran stop=7.94767e-07 errpreset=conservative maxstep=9.93459e-11
+
+save in out
