@@ -204,6 +204,40 @@ class TestGenerator:
         assert "ICC2" in report_icc2
         assert "Innovus" in report_innovus
 
+    def test_question_prompts_match_oracle_fields(self):
+        """Every asked question maps to an oracle field and vice-versa (drift guard)."""
+        from generators.p8_pnr_report_qa_gen import QUESTION_PROMPTS, QUESTION_TYPES
+
+        for qt, fields in QUESTION_TYPES.items():
+            asked = [key for _, key in QUESTION_PROMPTS[qt]]
+            assert set(asked) == set(fields), f"{qt}: {set(asked)} != {set(fields)}"
+
+    def test_prompt_names_exact_key_per_question(self):
+        """The prompt must name the exact oracle key for every question, so a
+        competent reader cannot lose points to a synonym key. This locks the fix
+        for the 8 fields that scored 0/N in the first baseline (validity artifact,
+        docs/benchmark_hardening_plan.md §8.2)."""
+        from generators.p8_pnr_report_qa_gen import (
+            QUESTION_PROMPTS, QUESTION_TYPES, generate_prompt,
+        )
+
+        # The 8 fields whose English phrasing diverges from the oracle key.
+        historically_broken = {
+            "setup_violations", "hold_violations", "instance_count",
+            "sequential_count", "drc_total", "buffer_count", "cell_area",
+            "route_completed",
+        }
+        all_types = list(QUESTION_TYPES.keys())
+        prompt = generate_prompt(all_types, "icc2")
+        for qt in all_types:
+            for _text, key in QUESTION_PROMPTS[qt]:
+                assert f"`{key}`" in prompt, f"prompt missing exact key `{key}`"
+        # Belt-and-braces: every historically-broken key is explicitly present.
+        for key in historically_broken:
+            assert f"`{key}`" in prompt, f"prompt missing historically-broken key `{key}`"
+        # And the old vague placeholder is gone.
+        assert "field_name" not in prompt
+
 
 class TestTaskStructure:
     """Test task structure and metadata."""

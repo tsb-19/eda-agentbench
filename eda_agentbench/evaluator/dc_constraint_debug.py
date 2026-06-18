@@ -54,18 +54,21 @@ class DCConstraintDebugEvaluator(BaseEvaluator):
     def _eval_execution(self, weight: float, run_log: str) -> ScoreComponent:
         """Check if DC ran to completion and constraints passed."""
         crashed = bool(re.search(r"Segmentation fault|core dumped|dc_shell.*aborted", run_log))
-        # Use ^ anchor to match actual markers, not echoed TCL code
+        # Use ^ anchor to match actual markers, not echoed TCL code.
+        # CONSTRAINTS_OK: execution-breaking tasks (base track). APPLIED_OK: semantic
+        # tasks (hard track) where DC accepting the SDC is the execution signal.
         constraints_ok = bool(re.search(r"^CONSTRAINTS_OK", run_log, re.MULTILINE))
+        applied_ok = bool(re.search(r"^APPLIED_OK", run_log, re.MULTILINE))
 
         if crashed:
             score = 0.0
             details = "DC crashed"
-        elif constraints_ok:
+        elif constraints_ok or applied_ok:
             score = 1.0
             details = "DC execution completed"
         else:
             score = 0.0
-            details = "DC execution failed (constraints not OK)"
+            details = "DC execution failed (constraints not applied)"
 
         return ScoreComponent(
             name="execution_pass", weight=weight, raw_score=score,
@@ -76,9 +79,16 @@ class DCConstraintDebugEvaluator(BaseEvaluator):
     def _eval_constraint(self, weight: float, run_log: str) -> ScoreComponent:
         """Check if constraints were correctly applied.
 
-        The TCL script emits CONSTRAINTS_OK or CONSTRAINTS_FAIL with details.
+        Two grading modes (auto-detected from the run log):
+          * Semantic/continuous (hard track): the hidden runner emits
+            ``CONSTRAINTS_SCORE: <fraction>`` = (spec properties satisfied) /
+            (total), so partial fixes earn partial credit.
+          * Binary (base track): the runner emits ``CONSTRAINTS_OK`` or
+            ``CONSTRAINTS_FAIL: <reasons>``.
         """
         # Use ^ anchor to match actual markers, not echoed TCL code
+        score_match = re.search(r"^CONSTRAINTS_SCORE:\s*([0-9.]+)", run_log, re.MULTILINE)
+        detail_match = re.search(r"^CONSTRAINTS_DETAIL:\s*(.*)", run_log, re.MULTILINE)
         ok = bool(re.search(r"^CONSTRAINTS_OK", run_log, re.MULTILINE))
         fail_match = re.search(r"^CONSTRAINTS_FAIL:\s*(.*)", run_log, re.MULTILINE)
         crashed = bool(re.search(r"Segmentation fault|core dumped|dc_shell.*aborted", run_log))
@@ -86,6 +96,10 @@ class DCConstraintDebugEvaluator(BaseEvaluator):
         if crashed:
             score = 0.0
             details = "DC crashed during constraint check"
+        elif score_match:
+            score = max(0.0, min(1.0, float(score_match.group(1))))
+            detail = detail_match.group(1).strip() if detail_match else ""
+            details = f"Semantic constraint score {score:.3f}" + (f" [{detail}]" if detail else "")
         elif ok:
             score = 1.0
             details = "All constraints applied correctly"

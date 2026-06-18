@@ -228,3 +228,93 @@ test, not on "hardness" alone.
   (missed −128 boundary; a fix that broke the common case; an introduced syntax error),
   not artifacts; and it surfaced a grader nit — a bundled compile-break leaves that
   module's corners untested, over-crediting hidden.
+
+---
+
+## 8. Proven so far (agentic study under full tools, 2026-06-18)
+
+The full-tool harness (chat + driver + orchestrator) is built and validated against
+the §3 protocol; the golden-through-the-path fairness gate earned its keep immediately
+by catching a real bug — the agentic runner's `_select_evaluator` had drifted from
+`cli.py` and was grading P7/P8 with the wrong evaluator (fixed). Agentic pilots then ran
+on P7, P4, P6 (base), and P6 (hard-semantic, #88). Results below; they **supersede the
+single-shot reading of §2 for these tracks**.
+
+### 8.1 The agentic-competence failure taxonomy (tool-agnostic)
+
+When a strong model fails *under tools* on a fix-task, it fails in one of three real ways
+— observed across **HSPICE/Spectre (P4) AND Design Compiler (P6)**, so the modes are
+tool-agnostic:
+
+- **never-edit** — inspects and reasons but never writes a fix (commits nothing).
+- **ran-out-no-edit** — exhausts the action/cost budget without committing a fix.
+- **broke-deck** — edits so the deck/constraints no longer run; **tools BACKFIRE**, the
+  score drops *below* the do-nothing floor (e.g. MiniMax 0.60→0.30 on a P4 probe).
+
+Distinct from these are **infra artifacts** (API 529, killed/timed-out episodes): these
+are NOT capability and MUST be excluded and cleanly re-run, never counted as a failure
+(the validity gate of `benchmark-hardening-north-star`). The taxonomy is real and the
+broke-deck mode is genuinely interesting (it is discrimination single-shot cannot
+produce). **But** on easy/saturated tasks the incidence is low, k=1-noisy, and the
+strongest models avoid all three — so *easy-task-through-the-loop is not a hard+
+discriminating set* by the standing bar (no model may fully pass the set).
+
+### 8.2 Track verdicts under tools
+
+- **P7 SpyGlass + PrimeTime — RETIRE.** Saturated single-shot (1.00 / 0.95) and tools
+  only confirm ~1.0 (probe: all 5 models PASS `pt_sta_debug_0001`). No residual.
+- **P8 PnR-QA — NOT actually hard; its difficulty was a VALIDITY ARTIFACT (#85/#86).**
+  §2 flagged P8 as "hard but flat" (mean 0.74, spread 0.09) and §0 warned it might be
+  "hard the wrong way." The real cause is narrower and worse: 8 fields scored **0/N
+  across all models and all tasks** purely because the prompt asked a prose question and
+  the grader demanded one exact JSON key, so every model answered the correct value under
+  a reasonable synonym key (`setup_violating_paths` vs oracle `setup_violations`, etc.).
+  After an empirically-derived alias-map in the evaluator, P8 answer_match recovers
+  **0.714 → 0.967** (Qwen 1.000) with no regression. **P8 comprehension is near-perfect
+  → retire-candidate, not a capability gap.** Lesson for the validator: C1(golden=1.0)+
+  C2(margin) cannot catch this; only a *competent-but-differently-keyed real submission*
+  reveals it → the Tier-2 scan (#79) must flag "a field 0/N real models ever match" as a
+  likely key/spec bug.
+- **P6 constraint-debug, base (execution-breaking bugs) — not a hard set.** Agentic over
+  10 single-shot-saturated tasks × 5 models: 2 models sweep 10/10; 6 real failures in the
+  §8.1 taxonomy (never-edit ×2, ran-out ×1, broke-deck ×2); 2 infra artifacts excluded +
+  re-run. Confirms the modes generalize; does not clear the bar.
+- **P6 constraint-debug, HARD silent-semantic (#88) — 50/50 = 1.000, fully saturated.**
+  Built to chase the residual: inject bugs DC **accepts silently** (wrong clock period,
+  wrong/missing IO delay), state the timing spec explicitly, grade **continuously** (the
+  fraction of spec properties the laundered applied SDC satisfies), and give the agent
+  **no semantic oracle** (the public runner reports only DC-acceptance). The grader is
+  proven-discriminating (gate: golden 1.0, do-nothing noop 0.50–0.68, margins 0.32–0.50),
+  yet every model fixed every bug on every task. **Making a fully-specified mechanical
+  fix-task's bug silent does not create a residual** — the models read the stated spec,
+  diff it against the SDC, and correct every deviation.
+- **P4 SPICE — THE LONE RESIDUAL.** Single-shot, 3/5 models run the deck but produce wrong
+  numerics (public/hidden metric = 0 → 0.60: "ran but wrong number"). Under tools it fans
+  out into real spread: DeepSeek 7/9 (broke-deck on two tasks), the other four 9/9. This
+  is the discrimination single-shot cannot produce, and it comes from a real capability —
+  analog/numeric reasoning toward a spec with **no clean lookup oracle**.
+
+### 8.3 The convergent lesson (P1 + P6 + #88)
+
+| Lever | Pilot | Under tools |
+|---|---|---|
+| bug **count** (1→3 faults) | P1 multi-fault | mean 1.000→0.993, 8/10 saturated — ✗ |
+| bug **subtlety** (corner-case bugs) | P1 subtle no-hint | ~0.98 ceiling → saturates under tools — ✗ |
+| bug **silence** (DC accepts, no error) | P6 hard-semantic (#88) | 50/50 = 1.000 — ✗✗ |
+| wrong numerics, **no clean oracle** | P4 SPICE | DeepSeek 7/9, real spread — ✓ |
+
+**Count, subtlety, and silence within a mechanical, fully-specified fix-task are NOT
+difficulty levers under tools.** Give a frontier model an editor and a stated spec and
+it will read both, diff them, and fix every deviation — regardless of how many bugs,
+how subtle, or whether the tool flags them. The residual lives only where the reasoning
+is **irreducible**:
+
+- **no stated oracle** — the model must itself judge what "correct/good" is (P4 numerics);
+- **noisy/ambiguous real tool output** to diagnose (a real report full of red herrings);
+- **cross-flow / quantitative tradeoff** — a fix that helps one metric hurts another, with
+  no single mechanical answer.
+
+**Next direction:** deepen **P4** (the demonstrated residual) — multi-measurement
+closeness scoring, ambiguous/under-specified targets, and tasks whose fix requires a
+genuine tradeoff or judgment — rather than another "make-the-bug-harder" pilot, which
+the table above shows is a closed branch.

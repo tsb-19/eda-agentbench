@@ -35,6 +35,25 @@ BOOL_FIELDS = {
     "timing_met", "congestion_pass", "route_completed",
 }
 
+# Accepted synonym keys per oracle field (defensive backstop).
+# The prompt historically asked a prose question but the grader demanded ONE exact
+# JSON key. Every baseline model answered these 8 fields under a reasonable synonym
+# (often the report's own label) with the CORRECT value, so all scored 0 on them
+# despite perfect comprehension — a key-spec validity artifact, not a capability gap.
+# These aliases are empirically derived from the formal baseline (near-unanimous,
+# >=15/N models agreed). The prompt now also states the exact key (see the P8
+# generator); this map keeps a competent but differently-keyed answer from scoring 0.
+FIELD_ALIASES = {
+    "setup_violations": ["setup_violating_paths"],
+    "hold_violations": ["hold_violating_paths"],
+    "instance_count": ["instances"],
+    "sequential_count": ["sequential_cells"],
+    "drc_total": ["drc_violations"],
+    "buffer_count": ["buffers_inverters"],
+    "cell_area": ["standard_cell_area"],
+    "route_completed": ["route_status_clean", "route_clean", "is_route_clean"],
+}
+
 # Fields that should be compared as floats (tolerance)
 FLOAT_FIELDS = {
     "setup_wns", "setup_tns", "hold_wns", "hold_tns",
@@ -137,6 +156,12 @@ class PnRReportQAEvaluator(BaseEvaluator):
         details_list = []
         for field, expected in oracle.items():
             actual = submission.get(field)
+            # Backstop: accept a documented synonym key if the exact key is absent.
+            if actual is None:
+                for alias in FIELD_ALIASES.get(field, ()):
+                    if submission.get(alias) is not None:
+                        actual = submission.get(alias)
+                        break
             if actual is None:
                 details_list.append(f"{field}: MISSING")
                 continue

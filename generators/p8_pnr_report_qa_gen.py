@@ -48,6 +48,82 @@ QUESTION_TYPES = {
     "flow_status": ["stage", "tool_family", "design_name"],
 }
 
+# Per-question prompt text paired with the EXACT oracle key the answer must use.
+# The first baseline scored 8 fields 0/N across all models purely because the
+# prompt asked a prose question ("How many setup violating paths?") but the grader
+# demanded one exact key (`setup_violations`); every model answered the correct
+# value under a reasonable synonym key and scored 0 — a key-spec validity artifact,
+# not a comprehension gap (see docs/benchmark_hardening_plan.md §8.2). Stating the
+# exact key per question removes the artifact at the source while keeping the task a
+# report-reading exercise (the value still has to be found and read correctly). The
+# evaluator's FIELD_ALIASES is a defensive backstop for older submissions.
+QUESTION_PROMPTS = {
+    "setup_timing": [
+        ("What is the setup WNS (in ns)?", "setup_wns"),
+        ("What is the setup TNS (in ns)?", "setup_tns"),
+        ("How many setup violating paths are there?", "setup_violations"),
+    ],
+    "hold_timing": [
+        ("What is the hold WNS (in ns)?", "hold_wns"),
+        ("What is the hold TNS (in ns)?", "hold_tns"),
+        ("How many hold violating paths are there?", "hold_violations"),
+    ],
+    "timing_path": [
+        ("What is the worst endpoint?", "worst_endpoint"),
+        ("What is the worst startpoint?", "worst_startpoint"),
+        ("Is timing met? (true/false)", "timing_met"),
+    ],
+    "utilization": [
+        ("What is the core utilization (in %)?", "core_utilization"),
+        ("What is the placement density?", "placement_density"),
+        ("How many instances are there?", "instance_count"),
+        ("How many sequential cells are there?", "sequential_count"),
+    ],
+    "area": [
+        ("What is the Standard Cell Area? (the 'Standard Cell Area' line — not Macro Area or Total Cell Area)", "cell_area"),
+        ("What is the macro area?", "macro_area"),
+        ("What is the total cell area?", "total_cell_area"),
+        ("How many buffers/inverters are there?", "buffer_count"),
+    ],
+    "congestion": [
+        ("What is the max horizontal overflow (in %)?", "max_horizontal_overflow"),
+        ("What is the max vertical overflow (in %)?", "max_vertical_overflow"),
+        ("What is the total overflow?", "total_overflow"),
+        ("How many congested bins are there?", "congested_bins"),
+        ("What is the worst congestion layer?", "worst_congestion_layer"),
+        ("Does congestion pass? (true/false)", "congestion_pass"),
+    ],
+    "routing": [
+        ("What is the total wirelength?", "total_wirelength"),
+        ("How many DRC violations are there?", "drc_total"),
+        ("How many shorts are there?", "shorts"),
+        ("How many opens are there?", "opens"),
+        ("How many antenna violations are there?", "antenna_violations"),
+        ("Is the route complete (route status clean)? (true/false)", "route_completed"),
+    ],
+    "power": [
+        ("What is the internal power (in mW)?", "internal_power"),
+        ("What is the switching power (in mW)?", "switching_power"),
+        ("What is the leakage power (in mW)?", "leakage_power"),
+        ("What is the total power (in mW)?", "total_power"),
+    ],
+    "flow_status": [
+        ("What is the tool family? (icc2/innovus)", "tool_family"),
+        ("What is the design name?", "design_name"),
+        ("What is the current stage?", "stage"),
+    ],
+}
+
+# Drift guard: every asked question must map to an oracle field of its type, and
+# every oracle field must be asked. Catches a future edit that adds a field to
+# QUESTION_TYPES without a prompt (re-introducing the 0/N artifact).
+for _qt, _fields in QUESTION_TYPES.items():
+    _asked = [k for _, k in QUESTION_PROMPTS[_qt]]
+    assert set(_asked) == set(_fields), (
+        f"QUESTION_PROMPTS[{_qt!r}] keys {sorted(set(_asked))} != "
+        f"QUESTION_TYPES[{_qt!r}] {sorted(set(_fields))}"
+    )
+
 # Endpoint/startpoint name pools
 ENDPOINTS = [
     "u_cpu/reg_pc_reg", "u_mem/data_out_reg", "u_uart/tx_shift_reg",
@@ -407,61 +483,27 @@ def generate_task_metadata(task_id: str, tool_family: str, difficulty: str,
 
 
 def generate_prompt(question_types: list[str], tool_family: str) -> str:
-    """Generate the prompt.md content."""
-    questions = []
+    """Generate the prompt.md content.
+
+    Each question explicitly names the exact JSON key to answer under (see
+    QUESTION_PROMPTS), so the task measures report comprehension rather than
+    guessing the grader's key. This removes the synonym-key validity artifact the
+    first baseline exposed (8 fields 0/N; docs/benchmark_hardening_plan.md §8.2).
+    """
+    lines = []
     for qt in question_types:
-        if qt == "setup_timing":
-            questions.append("- What is the setup WNS (in ns)?")
-            questions.append("- What is the setup TNS (in ns)?")
-            questions.append("- How many setup violating paths are there?")
-        elif qt == "hold_timing":
-            questions.append("- What is the hold WNS (in ns)?")
-            questions.append("- What is the hold TNS (in ns)?")
-            questions.append("- How many hold violating paths are there?")
-        elif qt == "timing_path":
-            questions.append("- What is the worst endpoint?")
-            questions.append("- What is the worst startpoint?")
-            questions.append("- Is timing met? (true/false)")
-        elif qt == "utilization":
-            questions.append("- What is the core utilization (in %)?")
-            questions.append("- What is the placement density?")
-            questions.append("- How many instances are there?")
-            questions.append("- How many sequential cells are there?")
-        elif qt == "area":
-            questions.append("- What is the standard cell area?")
-            questions.append("- What is the macro area?")
-            questions.append("- What is the total cell area?")
-            questions.append("- How many buffers/inverters are there?")
-        elif qt == "congestion":
-            questions.append("- What is the max horizontal overflow (in %)?")
-            questions.append("- What is the max vertical overflow (in %)?")
-            questions.append("- What is the total overflow?")
-            questions.append("- How many congested bins are there?")
-            questions.append("- What is the worst congestion layer?")
-            questions.append("- Does congestion pass? (true/false)")
-        elif qt == "routing":
-            questions.append("- What is the total wirelength?")
-            questions.append("- How many DRC violations are there?")
-            questions.append("- How many shorts are there?")
-            questions.append("- How many opens are there?")
-            questions.append("- How many antenna violations are there?")
-            questions.append("- Is route status clean? (true/false)")
-        elif qt == "power":
-            questions.append("- What is the internal power (in mW)?")
-            questions.append("- What is the switching power (in mW)?")
-            questions.append("- What is the leakage power (in mW)?")
-            questions.append("- What is the total power (in mW)?")
-        elif qt == "flow_status":
-            questions.append("- What is the tool family? (icc2/innovus)")
-            questions.append("- What is the design name?")
-            questions.append("- What is the current stage?")
+        for text, key in QUESTION_PROMPTS.get(qt, []):
+            lines.append(f"- {text}  →  write under key `{key}`")
 
     tool_name = "ICC2" if tool_family == "icc2" else "Innovus"
     return f"""# PnR Report QA Task
 
 You are given a {tool_name} physical implementation report in `report.txt`.
 
-Read the report and answer the following questions. Write your answers to `answers.json` as a JSON object with the field name as key and your answer as value.
+Read the report and answer the questions below. Write your answers to
+`answers.json` as a single JSON object. **Use exactly the key shown in backticks
+after each question** — do not invent your own key names, or the answer will not
+be scored.
 
 **Important:**
 - For numeric answers, use the exact value from the report
@@ -470,18 +512,18 @@ Read the report and answer the following questions. Write your answers to `answe
 
 ## Questions
 
-{chr(10).join(questions)}
+{chr(10).join(lines)}
 
 ## Output Format
 
-Write your answers to `answers.json`:
+Write your answers to `answers.json`, one entry per question, using the exact key
+shown for each question:
 ```json
 {{
-  "field_name": "your_answer"
+  "setup_wns": -0.42,
+  "setup_violations": 5
 }}
 ```
-
-Replace `field_name` with the actual field name (e.g., `setup_wns`, `tool_family`, etc.).
 """
 
 
