@@ -308,6 +308,15 @@ def _select_evaluator(meta: dict, task_path: Path):
     elif evaluator_spec == "dc_constraint_debug.DCConstraintDebugEvaluator":
         from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
         return DCConstraintDebugEvaluator(task_path, meta)
+    elif evaluator_spec == "spyglass_lint_debug.SpyGlassLintDebugEvaluator":
+        from eda_agentbench.evaluator.spyglass_lint_debug import SpyGlassLintDebugEvaluator
+        return SpyGlassLintDebugEvaluator(task_path, meta)
+    elif evaluator_spec == "primetime_sta_debug.PrimeTimeSTADebugEvaluator":
+        from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
+        return PrimeTimeSTADebugEvaluator(task_path, meta)
+    elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
+        from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
+        return PnRReportQAEvaluator(task_path, meta)
     else:
         from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
         return VCSRTLEvaluator(task_path, meta)
