@@ -317,4 +317,90 @@ is **irreducible**:
 **Next direction:** deepen **P4** (the demonstrated residual) — multi-measurement
 closeness scoring, ambiguous/under-specified targets, and tasks whose fix requires a
 genuine tradeoff or judgment — rather than another "make-the-bug-harder" pilot, which
-the table above shows is a closed branch.
+the table above shows is a closed branch. **[DONE — see §9.]**
+
+---
+
+## 9. Generalizing the residual recipe to other domains (2026-06-18, #90 → #93)
+
+§8.3's "deepen P4" direction is now **validated**: the **P4 damping-design** track (#90)
+makes the agent re-size one component (R) to satisfy **three coupled COMPETING specs**
+(prop-delay, overshoot, ±2% settling) that trade via the damping ratio ζ — a real
+engineering sweet-spot (ζ≈0.7), scored by continuous graded-closeness. Triple-gated
+(analytic self-test 7/7 → real-Spectre calibration → agentic fairness gate) and piloted
+5 models × 30 tasks: **no model sweeps** (best GLM/DeepSeek ~7/10 at the near-critical
+window), models spread the full [0.33, 1.0] band (GLM/DeepSeek ≫ Qwen ≫ MiniMax/Kimi).
+The first hard + discriminating residual built on purpose. **So the recipe is not a P4
+quirk — this section distills it and maps where it transfers.**
+
+### 9.1 The recipe (transferable checklist)
+
+A task is a *constructed residual* when ALL five hold. This is the design contract:
+
+1. **≥2 objectives that genuinely COMPETE through a shared knob** — improving one worsens
+   another, so no single-metric greedy/bisection wins (the §8.3 "cross-flow tradeoff").
+2. **Interior sweet-spot, not "maximize X"** — the optimum requires understanding the
+   tradeoff curve, i.e. real engineering judgment, not extremization.
+3. **Continuous graded-closeness score** — fraction/closeness per spec, mean over specs;
+   reveals the floor / partial / optimal bands that produce model spread.
+4. **No graded oracle leaked to the agent** — the agent sees realistic tool *diagnostics*
+   (the waveform, the QoR/STA report) and must self-judge; the pass verdict stays hidden
+   (the §3 collapse rule). Stating the *specs* is fine; the *solution* must be reasoned.
+5. **Acceptance grounded in real tools, never analytic** — caps calibrated from a real
+   golden run with margin (the settling-bug lesson); uncalibrated ⇒ scores 0.
+
+If any is missing the task degrades to a mechanical fix-task, which §8.3 proved frontier
+models + tools solve regardless of bug count/subtlety/silence.
+
+### 9.2 Candidate cross-domain tracks (ranked by leverage ÷ cost ÷ feasibility-risk)
+
+| Candidate | Tool | Competing tradeoff (shared knob) | Episode cost | Build effort | Feasibility risk | Domain reach |
+|---|---|---|---|---|---|---|
+| **Analog amp sizing** | Spectre/HSPICE | DC gain ↔ GBW ↔ phase-margin ↔ power (W/L, tail current, comp. cap) | low (~¥0.5, SPICE fast) | LOW (reuse P4 harness; add .ac/.stb metrics) | LOW (self-contained, no lib) | analog-adjacent (deepens P4) |
+| **PrimeTime competing-timing ECO** | pt | setup-slack ↔ hold-slack (clock latency / sizing / buffer ECO), or timing ↔ ECO-budget | low-med (STA fast, multi-iter) | MED (P7 PT flow exists; new: a design where setup/hold truly tension) | LOW-MED (P7 proves PT runs; pure timing, no power lib) | **digital — true cross-domain** |
+| **DC synthesis QoR closure** | dc | timing(WNS) ↔ area ↔ power (clock target, effort, retiming, ungroup) | med (compile mins × iters → ~¥1–3) | MED-HI (P6 has dc_shell plumbing but only elaborate+SDC; add compile_ultra + 3-report parse) | **MED-HI — needs a characterized .db**; GTECH-only limits it to timing↔area | digital — highest ceiling |
+| Floorplan/P&R QoR | icc2/innovus | congestion ↔ timing ↔ utilization | high (10s min/iter) | HIGH | HIGH (runtime) | digital backend |
+
+### 9.3 Recommended first target
+
+**Lead with the PrimeTime competing-timing ECO** — it is the cheapest *digital* track
+that actually answers "does the recipe generalize beyond SPICE," and it is feasible on
+the **already-working P7 PrimeTime flow** with no power-library dependency. Note it is a
+*different capability on the same tool* than the retired P7 PT-debug: that track was a
+mechanical "fix the broken constraint so STA passes" (saturated); this one is "balance
+competing setup/hold (or timing vs a cell/leakage budget) where no single mechanical fix
+satisfies everything" — the §4 "method follows the capability" principle.
+
+Sketch: a netlist + SDC where the worst setup path and a related hold path share clock
+structure, so speeding up setup (downstream latency, upsizing) pushes a hold path
+negative and vice-versa. The agent applies an ECO (e.g. `set_clock_latency` per pin,
+or a sizing/buffer script) to drive **both** worst-setup and worst-hold slack ≥ 0.
+Continuous score = graded closeness over {worst setup slack, worst hold slack} (extend
+to per-path-group). Calibrate from a golden ECO that meets both with small margin so
+naive single-side fixes miss. Hidden verdict; agent sees only `report_timing`.
+
+**In parallel, the analog amp-sizing track is the near-zero-cost confirmation** that the
+recipe *mechanics* (4-spec continuous closeness, real-tool calibration, tradeoff that
+defeats greedy search) transfer to a richer problem — it reuses the P4 harness almost
+verbatim. Worth building as the fast proof even though it deepens analog more than it
+crosses domains. **DC synthesis QoR is the high-ceiling stretch goal**, gated on a
+build-time check: is a characterized standard-cell `.db` available on b04? If only
+GTECH, scope it to timing↔area; if a real lib exists, the full timing/area/power
+tradeoff is the most recognizable "chip-engineer judgment" task in the suite.
+
+### 9.4 Build protocol (identical to the P4-damping triple gate)
+
+```
+design the competing-tradeoff task (§9.1 contract; §0 realism test)
+  -> local self-test of the measurement vs an analytic/known model (no tool spend)
+  -> real-tool CALIBRATION: run golden, set caps = golden×margin, verify golden=1.0 AND
+     a do-nothing/single-side baseline scores low (margin proves discrimination)
+  -> agentic FAIRNESS gate (golden cp-solution = 1.0, noop ≈ floor, anti-cheat clean)
+  -> costed pilot (5 models; k=1 first, pass@k only if a band looks noisy)
+  -> scan_discrimination (continuous-aware, §91): hard? (no model sweeps) discriminating?
+  -> RETIRE + FAILURE-REALISM gates (§5): is the spread a real capability gap?
+```
+
+The first three gates are local/cheap and have repeatedly caught real bugs before any
+model spend; do not skip them. Each new track extends `CONTINUOUS_COMPONENTS` (§91) with
+its score component so the dashboard reports it on the isolated continuous metric.
