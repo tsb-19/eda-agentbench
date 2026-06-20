@@ -233,6 +233,15 @@ test, not on "hardness" alone.
 
 ## 8. Proven so far (agentic study under full tools, 2026-06-18)
 
+> **⚠️ CONFOUND DISCOVERED 2026-06-20 (see §10).** This study's "under full tools"
+> premise was **false**: the agent subprocess never received the EDA tools on its PATH,
+> so `bash run_public.sh` returned `spectre: command not found` and the agent could not
+> run the simulator at all. The passing episodes were models that solved analytically
+> *without* the tool; the failing ones spiralled hunting for it. The §8.x taxonomy and
+> track verdicts below therefore measure agents **without tool feedback** and must be
+> re-derived on the fixed harness (commit `ee70528`). Treat §8 as provisional pending
+> the §10 re-baseline.
+
 The full-tool harness (chat + driver + orchestrator) is built and validated against
 the §3 protocol; the golden-through-the-path fairness gate earned its keep immediately
 by catching a real bug — the agentic runner's `_select_evaluator` had drifted from
@@ -404,3 +413,102 @@ design the competing-tradeoff task (§9.1 contract; §0 realism test)
 The first three gates are local/cheap and have repeatedly caught real bugs before any
 model spend; do not skip them. Each new track extends `CONTINUOUS_COMPONENTS` (§91) with
 its score component so the dashboard reports it on the isolated continuous metric.
+
+## 10. The agentic tool-availability confound + re-baseline (2026-06-20, #92→#94)
+
+**What happened.** Scaling P4-damping to 30 tasks (#92) produced a surface result that
+looked healthy (0/30 saturated, 26/30 discriminating) but had 4 "dead" tasks where all 5
+models sat at the do-nothing floor. Adding tool-output logging to the agent driver (the
+log had stored only commands, not output) exposed the cause on the very first command:
+
+```
+$ bash run_public.sh
+run_public.sh: line 6: spectre: command not found
+```
+
+**Root cause.** The agent subprocess was launched with raw `os.environ`; the EnvShim tool
+PATH was built *only for the grader*. So the grader could run Spectre (goldens calibrate to
+1.0) while the agent it graded could **not run the simulator at all**. Every agentic run
+before this (#84/#90/#92, and the §8 study) therefore measured **tool-less** agents:
+passes were models that computed the answer analytically and skipped the tool; failures
+were models that burned their action budget hunting for the missing binary (even chasing a
+red-herring empty `/home/tongsb/spectre`). The "discrimination" was substantially
+*coped-with-broken-plumbing*, not engineering — a §0 violation (difficulty from artifact).
+
+**Fix (commit `ee70528`).** Build the EnvShim env before the agent runs and pass it to the
+agent subprocess; reuse it for grading. Oracle isolation preserved (driver still strips
+`EDA_TASK_PATH`). Driver also now logs each action's `rc` + output tail, and the system
+prompt notes the tools are on PATH and WRITE is editable-only.
+
+**Validation (DeepSeek probe, same 20-action budget).** `command not found` 5/5 → 0/5;
+the agent runs real Spectre; 3 of 4 ex-dead tasks become solvable; the control recovered
+0.39→1.0; episodes finished in 5–8 actions instead of 20 wasted (also cuts cost).
+
+**Meta-lesson (extends §0):** *the harness must give the agent the same tool access the
+grader assumes.* A standing pre-flight check belongs in the fairness gate: assert the agent
+can invoke each `meta.tool` from its own shell before trusting any agentic number. And
+**log tool output** — the bug was invisible until we did.
+
+**Re-baseline result (2026-06-20, ¥118, the first *trustworthy* agentic damping number).**
+15 representative tasks (incl. the 4 ex-dead + tightest) × 5 models × **k=3**, median-scored.
+Mean spec **0.910** (was 0.55 tool-less), **0/15 dead**, k=1 within-cell stdev 0.118 (so the
+k=3 de-noise was load-bearing). Surface "discrimination" 10/15. **But the per-model pattern
+is the verdict:**
+
+| | DeepSeek | GLM-5.1 | Kimi-K2.6 | MiniMax-M3 | Qwen3.7-Max |
+|---|---|---|---|---|---|
+| tasks at 1.00 | **15/15** | **15/15** | 8/15 | 7/15 | **15/15** |
+
+Three of five models score a **perfect 1.00 across the entire set**; *no single task* pulls
+DeepSeek, GLM, or Qwen below 1.0. All the spread comes from two mid-tier models (Kimi,
+MiniMax) failing idiosyncratic subsets. **So the track collapsed at the frontier** — the
+"everyone solves it" branch, not the "still discriminates" branch.
+
+**Interpretation (this is the load-bearing lesson).** The prior "26/30 discriminating, mean
+0.55" was *not* engineering discrimination — it was the tool-availability confound measuring
+"which model copes with broken plumbing." Remove the confound and the real difficulty of the
+task surfaces: **tuning a single R for ζ≈0.7 against three coupled specs is something a
+frontier model with a working simulator does reliably in 5–8 iterations.** A single-knob
+sweet-spot search, even with competing objectives, is not at the human-engineer frontier.
+
+**Consequence for the north star.** Damping is now a *validated floor track* — it cleanly
+separates mid-tier from frontier, and it taught us the recipe (§9.1) + caught the confound
+(§10). But it produces **zero signal at the frontier**, so frontier-hard difficulty must come
+from a structurally harder track. Do **not** retighten damping by narrowing the ζ tolerance:
+an artificially tight acceptance band is contrived difficulty (a §0 "奇技淫巧" violation), not
+real engineering — real designs have real tolerance bands. The right move is the **two-stage
+Miller OTA amp-sizing track (#93)**: two knobs (ibias, cc), three-way compete (gain↔GBW↔PM),
+no single sweet-spot — which is exactly why it was built. The re-baseline result is the
+empirical mandate to invest there.
+
+## 11. The amp-sizing track ALSO collapsed — sizing-with-a-simulator may be the wrong frontier (2026-06-20, #93)
+
+We built the OTA amp-sizing track (option A), and the build gates earned their keep: the b04
+smoke caught a feedback-polarity bug (golden latched at −180 dB → fixed by swapping the diff
+pair inputs; golden then read a textbook 88.7 dB / 238 MHz / 64° PM), and calibration caught a
+1-knob design flaw (the buggy only perturbed cc, handing the agent the golden ibias for free).
+Fixed to a 2-knob buggy (over-biased + under-compensated); 20/20 calibrated cleanly; fairness
+gate clean (agents invoke spectre).
+
+**Then the cheap difficulty probe (6 tasks × 5 models × k=1, ¥11.64) collapsed at the frontier
+exactly like damping:** DeepSeek 6/6, Qwen 6/6, GLM 5.99/6 — perfect. All spread was the floor
+effect on the two weak models. **Two independent sizing tasks (damping 1-knob, amp 2-knob) now
+both collapse once the tool works.**
+
+**Mechanism (the load-bearing insight).** Reading DeepSeek's solve: it fixed the hardest task
+(238 MHz) in 13 actions by *raising cc alone* — walking GBW from 1.2 GHz down to 295 MHz while
+PM climbed 19.5°→58°; gain never moved. The "2-knob" buggy didn't force 2-knob solving because
+over-biasing ibias inflated GBW so far above its (loose, golden×0.8) floor that cc-alone had all
+the headroom it needed. More fundamentally: **the simulator is an equalizer.** Given exact
+(gain, GBW, PM) feedback every iteration, a frontier model does closed-loop search to the
+feasible region in <14 actions — adding a knob or competing specs doesn't change that. This is
+intrinsic to the task *class* (continuous sizing + a simulator), not to any one design.
+
+**The emerging conclusion (the §5 fork made concrete).** The frontier gap is probably NOT in
+"tune N knobs to meet M specs with a simulator in the loop." Levers that might still make sizing
+hard are suspect: tightening floors / forcing a 2-knob bind (under-biased buggy) mostly raise the
+*iteration count*, so they make the task hard only by exhausting the action budget — a §0 gimmick,
+not engineering. Higher-dimensional sizing (4–5 knobs) is the only non-gimmick sizing lever, and
+its payoff is uncertain. The likely-real frontier gap is in task classes with **no closed-loop
+search shortcut**: multi-step *diagnosis* (why won't this converge?), *structural* decisions (the
+fix is a topology change, not a number), and large-context debug (signal buried in a big design).

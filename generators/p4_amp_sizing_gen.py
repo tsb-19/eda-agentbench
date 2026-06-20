@@ -418,9 +418,13 @@ vin (inp 0) vsource dc={vcm:.6g} mag=1
 lfb (out inn) inductor l=1e9
 cfb (inn 0)   capacitor c=1e9
 
-// Stage 1: NMOS diff pair (m1/m2) + PMOS mirror load (m3/m4)
-m1 (n1   inp tail tail) nch w={w1:.6g} l={lch:.6g}
-m2 (out1 inn tail tail) nch w={w1:.6g} l={lch:.6g}
+// Stage 1: NMOS diff pair (m1/m2) + PMOS mirror load (m3/m4).
+// inn (feedback node) drives m1 (mirror/diode side) and the AC input inp drives
+// m2 (output side): with the CS stage inverting, this makes `out` INVERTING w.r.t.
+// inn, so the open-loop rig's out->inn feedback is NEGATIVE (stable DC bias). The
+// opposite assignment latches the bias (positive feedback -> zero measured gain).
+m1 (n1   inn tail tail) nch w={w1:.6g} l={lch:.6g}
+m2 (out1 inp tail tail) nch w={w1:.6g} l={lch:.6g}
 m3 (n1   n1  vdd  vdd)  pch w={w3:.6g} l={lch:.6g}
 m4 (out1 n1  vdd  vdd)  pch w={w3:.6g} l={lch:.6g}
 
@@ -471,8 +475,14 @@ class P4AmpSizingGenerator(BaseGenerator):
         ibias_golden = round(self.rng.uniform(20e-6, 40e-6), 12)
         # Golden Miller cap: a sane fraction of CL (pole-splitting target ~ PM 60 deg).
         cc_golden = round(self.rng.uniform(0.4, 0.8) * cl, 15)
-        ibias_buggy = ibias_golden                       # same bias...
-        cc_buggy = round(cc_golden * self.rng.uniform(0.08, 0.18), 15)  # ...but badly under-compensated
+        # Buggy start perturbs BOTH knobs so the task is genuinely 2-dimensional (not a
+        # 1-knob cc fix that hands the agent the golden ibias for free): over-biased
+        # (ibias too high -> pushes the unity-gain crossing past the non-dominant pole,
+        # eroding PM and lowering gain) AND under-compensated (cc too small -> poor PM).
+        # Recovering all three specs needs lowering ibias AND raising cc, which pull GBW
+        # in opposite directions -- the real pole/zero tradeoff an analog designer makes.
+        ibias_buggy = round(ibias_golden * self.rng.uniform(1.6, 2.2), 12)
+        cc_buggy = round(cc_golden * self.rng.uniform(0.08, 0.18), 15)  # badly under-compensated
 
         task_id = f"task_{9100 + task_index:06d}"
         task_dir = self.output_dir / f"spectre_ota_sizing_{task_index:06d}"
