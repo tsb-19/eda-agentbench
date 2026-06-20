@@ -512,3 +512,27 @@ not engineering. Higher-dimensional sizing (4–5 knobs) is the only non-gimmick
 its payoff is uncertain. The likely-real frontier gap is in task classes with **no closed-loop
 search shortcut**: multi-step *diagnosis* (why won't this converge?), *structural* decisions (the
 fix is a topology change, not a number), and large-context debug (signal buried in a big design).
+
+**The decisive test (2026-06-21, ¥12.14) — sizing is frontier-easy, confirmed.** Rather than
+pivot on the mechanism alone, we gave sizing its best shot at being hard: a *bind-forcing* buggy
+(under-biased → GBW≈0.29× golden, fails hard; AND over-compensated → must lower cc) so **no
+single-knob path reaches feasibility**, plus **tight floors** (gain×0.95, GBW×0.92, PM×0.92) to
+shrink the feasible region to a small neighborhood of the golden, plus a **generous 20-action
+budget** so failure would mean intrinsic difficulty, not a starved budget. Result on 6 tasks ×
+5 models: **DeepSeek 6/6, GLM 6/6, Qwen 6/6 — perfect.** The trajectories confirm it was a real
+bind and they aced it anyway: every strong-model solve moved *both* knobs to near-golden
+(e.g. DeepSeek 009100: i 11µ→23µ, c 540f→220f, ending 87.8 dB/233 MHz/64°) and finished well
+under budget (Qwen ~7 actions; DeepSeek ~10, only the two highest-GBW tasks reached 16–18). The
+bind had teeth for weaker models (MiniMax burned all 20 and mostly failed; Kimi was inert) — so
+the task discriminates *mid-tier* but produces **zero frontier signal**.
+
+**Verdict (closes the sizing question).** THREE sizing designs of increasing difficulty — damping
+(1-knob), amp (2-knob, slack), amp (2-knob genuine bind + tight floors + generous budget) — ALL
+collapse at the frontier. The simulator-as-equalizer is not a quirk of one design; continuous
+sizing with a simulator in the loop is **not** where the human-engineer frontier gap lives. Stop
+hardening sizing. Pivot to task classes with no closed-loop search shortcut. **Cheap first step
+(don't build new yet):** re-baseline an EXISTING debug/diagnosis track (P5 deck-debug / P6
+constraint-debug / P7 STA/lint) on the *fixed* harness — those agentic numbers are all still
+pre-fix (tool-less, §10 confound) and untrustworthy. If diagnosis-class tracks discriminate the
+frontier, that's the signal we've hunted, using validated infrastructure; if they also collapse,
+the gap is even more elusive and we design for it deliberately.
