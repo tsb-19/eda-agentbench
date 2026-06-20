@@ -135,6 +135,14 @@ def main(argv=None) -> int:
         "      Replace an editable file with the given full content.\n"
         "  FINISH\n"
         "      Stop — you are confident the fix is correct.\n\n"
+        "# ENVIRONMENT\n"
+        "- The commercial EDA tools are already installed and on PATH. Just run the "
+        "provided script (e.g. `bash run_public.sh`) directly; do NOT search for tool "
+        "binaries or export PATH — that only wastes actions.\n"
+        "- WRITE only accepts the editable file(s) listed above. For scratch math, use "
+        "RUN with python (e.g. `python3 -c \"...\"`); writing any other filename is refused.\n"
+        "- Spend your limited actions on design iterations (run the script, read the "
+        "measured numbers, change the editable file, re-run), not on exploring the setup.\n\n"
         f"You have at most {args.max_actions} actions. The final hidden acceptance test is "
         "NOT shown to you and there is no answer key — reason about correctness yourself, "
         "the way an engineer does before signoff. Do not attempt to read hidden tests, "
@@ -178,17 +186,23 @@ def main(argv=None) -> int:
                     obs = "Refused: command is empty or not allowed (do not read outside the workspace)."
                     log["actions"].append({"type": "run_refused", "cmd": cmd})
                 else:
+                    rc = None
                     try:
                         r = subprocess.run(cmd, shell=True, cwd=workspace, env=run_env,
                                            capture_output=True, text=True,
                                            timeout=min(180, max(10, int(deadline - time.time()))))
                         out = (r.stdout or "") + (("\n[stderr]\n" + r.stderr) if r.stderr else "")
+                        rc = r.returncode
                     except subprocess.TimeoutExpired:
                         out = "[command timed out]"
                     if len(out) > args.max_obs_bytes:
                         out = out[: args.max_obs_bytes] + "\n...[truncated]"
                     obs = f"$ {cmd}\n{out}"
-                    log["actions"].append({"type": "run", "cmd": cmd})
+                    # Record rc + a truncated tail of the output. The model SEES `out`;
+                    # without storing it the transcript is undiagnosable post-hoc (we
+                    # could not tell WHY episodes failed in the 30-task damping run).
+                    log["actions"].append({"type": "run", "cmd": cmd, "rc": rc,
+                                           "out": out[:1500]})
             else:  # write
                 name, content = payload[0], payload[1]
                 base = Path(name).name

@@ -70,9 +70,23 @@ def run_single_agentic(
         # Snapshot agent workspace before agent runs
         before_snapshot = snapshot_workspace(agent_workspace)
 
-        # Run agent in agent-only workspace
+        # Build the EDA tool env ONCE (tools put on PATH via the shim) and hand it to
+        # BOTH the agent and the grader. Previously only the grader received it, so the
+        # AGENT could not invoke the simulator at all ("spectre: command not found") —
+        # a measurement confound that forced models to guess instead of iterate.
+        is_report_qa = meta.get("track") in ("p3_timing_report_qa", "p6_dc_synthesis_qa")
+        detector = ToolEnvironmentDetector()
+        detected = []
+        if not is_report_qa:
+            for tool_name in meta["tool"]:
+                t = detector.detect_one(tool_name)
+                if t and t.available:
+                    detected.append(t)
+        env = EnvShim(detected).get_env()
+
+        # Run agent in agent-only workspace (with the EDA tools on PATH)
         agent_result = _run_agent_subprocess(
-            agent_cmd, agent_workspace, timeout, task_path, meta,
+            agent_cmd, agent_workspace, timeout, task_path, meta, env,
         )
 
         # Snapshot agent workspace after agent runs
@@ -98,17 +112,7 @@ def run_single_agentic(
 
         is_report_qa = meta.get("track") in ("p3_timing_report_qa", "p6_dc_synthesis_qa")
 
-        # Detect tools (skip for report QA)
-        detector = ToolEnvironmentDetector()
-        detected = []
-        if not is_report_qa:
-            for tool_name in meta["tool"]:
-                t = detector.detect_one(tool_name)
-                if t and t.available:
-                    detected.append(t)
-        env_shim = EnvShim(detected)
-        env = env_shim.get_env()
-
+        # (EDA tool env already built before the agent ran — reuse `env` for grading)
         sanitizer = LogSanitizer()
         start_time = time.time()
         raw_pub_log, raw_hid_log = _run_eda_tools(meta, eval_workspace, env, timeout)
@@ -249,9 +253,11 @@ def _run_agent_subprocess(
     timeout: int,
     task_path: Path,
     meta: dict,
+    tool_env: dict | None = None,
 ) -> AgentSubprocessResult:
-    """Run the agent command as a subprocess with EDA_* env vars."""
-    env = os.environ.copy()
+    """Run the agent command as a subprocess. `tool_env` (EnvShim output) puts the
+    EDA tools on PATH so the agent can actually run them; falls back to os.environ."""
+    env = dict(tool_env) if tool_env else os.environ.copy()
     env["EDA_WORKSPACE"] = str(workspace)
     env["EDA_TASK_PATH"] = str(task_path)
     env["EDA_TASK_ID"] = meta["task_id"]

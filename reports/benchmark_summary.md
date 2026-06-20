@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.3-phase8b-2828`  
-**Total tasks:** 2828  
+**Tag:** `v0.3-phase8b-2855`  
+**Total tasks:** 2855  
 **Tracks:** 10  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -12,14 +12,14 @@
 | P1 RTL Debug | 1001 |
 | P2 Testbench/SVA Gen | 101 |
 | P3 Timing Report QA | 1008 |
-| P4 SPICE Sim | 302 |
+| P4 SPICE Sim | 329 |
 | P5 SPICE Deck Debug | 100 |
 | P6 DC Constraint Debug | 61 |
 | P6 DC Synthesis QA | 51 |
 | P7 PrimeTime STA Debug | 53 |
 | P7 SpyGlass Lint Debug | 50 |
 | P8 PnR Report QA | 101 |
-| **Total** | **2828** |
+| **Total** | **2855** |
 
 ## Tool Distribution
 
@@ -30,7 +30,7 @@
 | icc2 | 45 |
 | innovus | 56 |
 | pt | 1061 |
-| spectre | 151 |
+| spectre | 178 |
 | spyglass | 50 |
 | vcs | 1102 |
 
@@ -38,17 +38,17 @@
 
 | Difficulty | Count |
 |------------|------:|
-| easy | 1384 |
-| hard | 415 |
+| easy | 1381 |
+| hard | 445 |
 | medium | 1029 |
 
 ## Data Type Distribution
 
 | Data Type | Count |
 |-----------|------:|
-| flow_synthetic | 100 |
+| flow_synthetic | 130 |
 | mutation_synthetic | 1102 |
-| template_synthetic | 1626 |
+| template_synthetic | 1623 |
 
 ## Scoring Methodology
 
