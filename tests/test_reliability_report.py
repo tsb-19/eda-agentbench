@@ -66,11 +66,28 @@ def test_load_trees_skips_agentlog_sidecars(tmp_path):
     assert len(by_model["M"]) == 1                # the sidecar contributed no trial
 
 
+def test_load_trees_excludes_track(tmp_path):
+    # --exclude-track drops a quarantined/contaminated track from the aggregate.
+    a = tmp_path / "A"
+    _w(a, "t1", True)                                          # default track p3_timing_report_qa
+    p = a / "M" / "p7_primetime_sta_debug"
+    p.mkdir(parents=True, exist_ok=True)
+    (p / "x1.json").write_text(json.dumps({
+        "ok": True, "passed": False,
+        "reliability": {"confidence_decision": "high", "protocol_status": "anti_cheat",
+                        "confidence_format_ok": True}}))
+    full = RR.load_trees([a], None)
+    assert len(full["M"]) == 2                                  # both tracks present
+    excl = RR.load_trees([a], None, {"p7_primetime_sta_debug"})
+    assert len(excl["M"]) == 1                                  # PT dropped
+    assert excl["M"][0]["track"] == "p3_timing_report_qa"
+
+
 def test_cost_block_threaded_and_rendered(tmp_path):
     # an agentic result carries a `cost` block; the report aggregates + renders it.
     a = tmp_path / "A"
     p = a / "M" / "p7_primetime_sta_debug"
-    p.mkdir(parents=True)
+    p.mkdir(parents=True, exist_ok=True)
     (p / "t1.json").write_text(json.dumps({
         "ok": True, "passed": True,
         "reliability": {"confidence_decision": "high", "protocol_status": "ok",

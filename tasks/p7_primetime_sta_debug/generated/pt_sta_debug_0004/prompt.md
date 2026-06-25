@@ -12,6 +12,7 @@ Invalid get_ports pattern — PrimeTime reports 'Can't find ports matching'
 ## Files
 
 - `design.v` — RTL design (do not modify)
+- `design_netlist.v` — gate-level netlist read by PrimeTime (do not modify)
 - `constraints.sdc` — constraint file (you may edit this file)
 - `run_public.sh` — public test runner (do not modify)
 - `run_public.tcl` — PrimeTime TCL script (do not modify)

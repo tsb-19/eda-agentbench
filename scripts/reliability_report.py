@@ -8,7 +8,8 @@ pass@k, pass^k (all-of-k), run-to-run variance, calibration (overconfident-wrong
 compliance, and a protocol-failure tally — the instruments for the 2026-06-24 reliability pivot.
 
   python scripts/reliability_report.py runs/relA/results runs/relB/results ... \
-      [--md out.md] [--json out.json] [--track p3_timing_report_qa]
+      [--md out.md] [--json out.json] [--track p3_timing_report_qa] \
+      [--exclude-track p7_primetime_sta_debug]
 """
 from __future__ import annotations
 
@@ -39,7 +40,8 @@ def trial_from_result(res: dict, model: str, task: str, track: str) -> dict:
             "retries": cost.get("retries")}
 
 
-def load_trees(trees: list[Path], track_filter: str | None) -> dict[str, list[dict]]:
+def load_trees(trees: list[Path], track_filter: str | None,
+               exclude_tracks: set[str] | None = None) -> dict[str, list[dict]]:
     """Return {model: [trial, ...]} across all trees (each tree contributes one trial per task)."""
     by_model: dict[str, list[dict]] = {}
     for tree in trees:
@@ -48,6 +50,8 @@ def load_trees(trees: list[Path], track_filter: str | None) -> dict[str, list[di
                 continue
             track = jp.parent.name
             if track_filter and track != track_filter:
+                continue
+            if exclude_tracks and track in exclude_tracks:   # drop contaminated/quarantined tracks
                 continue
             model = jp.parent.parent.name
             try:
@@ -96,12 +100,14 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("results", nargs="+", help="One or more results trees (one per trial pass)")
     ap.add_argument("--track", default=None, help="Restrict to a single track")
+    ap.add_argument("--exclude-track", action="append", default=None,
+                    help="Drop a track from the aggregate (repeatable); e.g. a quarantined/contaminated track")
     ap.add_argument("--md", default=None)
     ap.add_argument("--json", default=None)
     args = ap.parse_args(argv)
 
     trees = [Path(p).resolve() for p in args.results]
-    by_model = load_trees(trees, args.track)
+    by_model = load_trees(trees, args.track, set(args.exclude_track or []))
     if not by_model:
         print("no results found", file=sys.stderr)
         return 1

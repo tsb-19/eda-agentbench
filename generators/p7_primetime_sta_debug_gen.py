@@ -17,9 +17,11 @@ Removed categories (unreliable — PT accepts silently or no hard failure):
   - wrong_uncertainty: PT accepts, only shifts numbers slightly
 
 Design approach:
-  Each task includes a structural Verilog netlist (hidden) that PrimeTime can read
-  via read_verilog + link_design. The netlist uses DFF primitives so PT can
-  perform real STA without needing a synthesis library.
+  Each task includes a structural Verilog netlist (visible, read-only) that PrimeTime
+  reads via read_verilog + link_design. The netlist uses DFF primitives so PT can
+  perform real STA without needing a synthesis library. It must be agent-visible
+  because the agent-visible run_public.tcl reads it; a hidden netlist makes the public
+  flow un-runnable and tempts netlist fabrication (the Phase-2 provisioning flaw).
 
 Task ID scheme:
   Smoke task: pt_sta_debug_0000 (generated separately with seed=1)
@@ -135,7 +137,7 @@ endmodule
 """
 
 # ---------------------------------------------------------------------------
-# Structural netlist templates (hidden — read by PrimeTime)
+# Structural netlist templates (visible, read-only — read by PrimeTime)
 # Uses DFFX1 primitive for flip-flops. PT accepts unresolved cell references.
 # All internal buses must be explicitly declared to avoid implicit net issues.
 # ---------------------------------------------------------------------------
@@ -681,8 +683,11 @@ class P7PrimeTimeSTADebugGenerator(BaseGenerator):
         # Write RTL (visible to agent)
         (task_dir / "files" / "design.v").write_text(rtl["rtl"])
 
-        # Write structural netlist (hidden — used by PrimeTime)
-        (task_dir / "hidden" / "design_netlist.v").write_text(rtl["netlist"])
+        # Write structural netlist (visible, read-only — used by PrimeTime).
+        # It MUST be agent-visible: run_public.tcl does `read_verilog design_netlist.v`,
+        # so a hidden netlist makes the public flow un-runnable and tempts the agent into
+        # fabricating it (the provisioning flaw that tripped anti-cheat in the Phase-2 PT run).
+        (task_dir / "files" / "design_netlist.v").write_text(rtl["netlist"])
 
         # Write buggy SDC (editable)
         (task_dir / "files" / "constraints.sdc").write_text(buggy_sdc)
@@ -719,6 +724,7 @@ Fix the constraint file so that PrimeTime STA timing checks pass.
 ## Files
 
 - `design.v` — RTL design (do not modify)
+- `design_netlist.v` — gate-level netlist read by PrimeTime (do not modify)
 - `constraints.sdc` — constraint file (you may edit this file)
 - `run_public.sh` — public test runner (do not modify)
 - `run_public.tcl` — PrimeTime TCL script (do not modify)
@@ -755,10 +761,11 @@ syntax errors, or invalid port references.
             "max_patch_attempts": 8,
             "max_output_tokens": 32000,
             "files": {
-                "visible": ["design.v", "constraints.sdc", "run_public.sh", "run_public.tcl"],
+                "visible": ["design.v", "design_netlist.v", "constraints.sdc",
+                            "run_public.sh", "run_public.tcl"],
                 "editable": ["constraints.sdc"],
-                "hidden": ["design_netlist.v", "run_hidden.sh", "run_hidden.tcl"],
-                "forbidden": ["design.v", "run_public.sh", "run_public.tcl",
+                "hidden": ["run_hidden.sh", "run_hidden.tcl"],
+                "forbidden": ["design.v", "design_netlist.v", "run_public.sh", "run_public.tcl",
                               "run_hidden.sh", "run_hidden.tcl"],
             },
             "run_command": "bash run_public.sh && bash run_hidden.sh",

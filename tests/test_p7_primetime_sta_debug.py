@@ -143,7 +143,7 @@ def test_generator_files_exist(tmp_path):
     assert (p / "files" / "constraints.sdc").is_file()
     assert (p / "files" / "run_public.sh").is_file()
     assert (p / "files" / "run_public.tcl").is_file()
-    assert (p / "hidden" / "design_netlist.v").is_file()
+    assert (p / "files" / "design_netlist.v").is_file()   # visible, read-only (provisioning fix)
     assert (p / "hidden" / "run_hidden.sh").is_file()
     assert (p / "hidden" / "run_hidden.tcl").is_file()
     assert (p / "solution" / "constraints.sdc").is_file()
