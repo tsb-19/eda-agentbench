@@ -570,6 +570,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "pt_exception_debug.PTExceptionDebugEvaluator":
             from eda_agentbench.evaluator.pt_exception_debug import PTExceptionDebugEvaluator
             evaluator = PTExceptionDebugEvaluator(task_path, meta)
+        elif evaluator_spec == "synthetic_project.SyntheticProjectEvaluator":
+            from eda_agentbench.evaluator.synthetic_project import SyntheticProjectEvaluator
+            evaluator = SyntheticProjectEvaluator(task_path, meta)
         elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
             from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
             evaluator = PnRReportQAEvaluator(task_path, meta)

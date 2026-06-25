@@ -1,0 +1,28 @@
+{
+  "_comment": "Hidden oracle metadata: the spec-derived intended constraint set for acc_stage. Used ONLY inside the grading session (grade_spec.py). The agent never sees this file. Values are derived from spec.md budget arithmetic: input_delay = t_co(1.50)+flight(0.30)=1.80; output_delay = t_su(0.90)+flight(0.30)=1.20.",
+  "clock": {
+    "name": "clk",
+    "period_ns": 4.0,
+    "uncertainty_ns": 0.10,
+    "period_tol": 0.01,
+    "uncertainty_tol": 0.011
+  },
+  "input_delay": {
+    "value_ns": 1.8,
+    "tol": 0.051,
+    "ports": ["din", "en"],
+    "derivation": "t_co 1.50 + flight 0.30"
+  },
+  "output_delay": {
+    "value_ns": 1.2,
+    "tol": 0.051,
+    "ports": ["dout"],
+    "derivation": "t_su 0.90 + flight 0.30"
+  },
+  "forbid_exceptions": true,
+  "overconstrain": {
+    "period_min_ns": 4.0,
+    "uncertainty_max_ns": 0.10,
+    "note": "period < spec or uncertainty > spec is masking, not a fix; already rejected by the within-tolerance property checks"
+  }
+}
