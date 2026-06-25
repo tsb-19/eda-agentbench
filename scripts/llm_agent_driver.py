@@ -40,6 +40,14 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from scripts.generate_model_submissions import load_model_specs  # noqa: E402
+from eda_agentbench.reliability import parse_confidence  # noqa: E402
+
+# Agentic confidence elicitation (reliability pivot): asked on the FINISH message, parsed there.
+_CONF_FINISH = (
+    "      When you FINISH, on the SAME message add one final line outside any code block:\n"
+    "      CONFIDENCE: <HIGH | MEDIUM | LOW | ABSTAIN>\n"
+    "      stating how sure you are the fix is correct (ABSTAIN = 'needs human review'). Report "
+    "honestly — a wrong fix declared HIGH is the worst outcome.\n")
 
 # Commands that look like attempts to escape the workspace / read the oracle.
 _DENY = re.compile(r"(EDA_TASK_PATH|/hidden\b|/solution\b|/oracle\b|run_hidden|\.\./)", re.I)
@@ -55,10 +63,12 @@ def _provider_for(model_name: str, models_cfg: Path):
 
 
 def _chat_with_retry(provider, messages, gen_kwargs, retries=4):
+    """Returns (response, n_retries) — n_retries counts transient-error reattempts (0 on first try),
+    so the reliability layer can report retry count as a cost/robustness signal."""
     delay = 3.0
     for attempt in range(retries + 1):
         try:
-            return provider.chat(messages, **gen_kwargs)
+            return provider.chat(messages, **gen_kwargs), attempt
         except Exception as e:  # noqa: BLE001
             m = str(e).lower()
             transient = any(s in m for s in ("429", "http 5", "overloaded", "timeout",
@@ -99,6 +109,12 @@ def main(argv=None) -> int:
     ap.add_argument("--models", required=True, help="baseline_models.json")
     ap.add_argument("--max-actions", type=int, default=12)
     ap.add_argument("--max-obs-bytes", type=int, default=4000)
+    ap.add_argument("--elicit-confidence", action="store_true",
+                    help="Ask the agent to declare CONFIDENCE on FINISH; parse + log it "
+                         "(reliability/calibration layer). Off by default — capability runs unchanged.")
+    ap.add_argument("--temperature", type=float, default=None,
+                    help="Override the model's configured sampling temperature. Use temperature>0 "
+                         "for reliability k-trials so identical inputs yield run-to-run variance.")
     ap.add_argument("--log", default=None, help="sidecar transcript+usage JSON")
     args = ap.parse_args(argv)
 
@@ -117,6 +133,8 @@ def main(argv=None) -> int:
     # Per-call cap is fine for ReAct turns; the loop provides the iteration.
     gen_kwargs = dict(gen_kwargs)
     gen_kwargs.setdefault("max_tokens", 4096)
+    if args.temperature is not None:
+        gen_kwargs["temperature"] = args.temperature
 
     system = (
         "You are an expert IC design engineer fixing a bug in a sandboxed workspace, "
@@ -134,7 +152,9 @@ def main(argv=None) -> int:
         "  ```\n  <full new file content>\n  ```\n"
         "      Replace an editable file with the given full content.\n"
         "  FINISH\n"
-        "      Stop — you are confident the fix is correct.\n\n"
+        "      Stop — you are confident the fix is correct.\n"
+        + (_CONF_FINISH if args.elicit_confidence else "")
+        + "\n"
         "# ENVIRONMENT\n"
         "- The commercial EDA tools are already installed and on PATH. Just run the "
         "provided script (e.g. `bash run_public.sh`) directly; do NOT search for tool "
@@ -158,14 +178,16 @@ def main(argv=None) -> int:
     log: dict = {"model": args.model, "task_id": meta["task_id"], "track": meta["track"],
                  "actions": [], "usage": {"prompt_tokens": 0, "completion_tokens": 0,
                                           "reasoning_tokens": 0}, "finished": False,
-                 "edited": [], "error": None}
+                 "edited": [], "error": None, "confidence": "", "confidence_format_ok": None,
+                 "retries": 0}
 
     try:
         for step in range(args.max_actions):
             if time.time() > deadline:
                 log["actions"].append({"type": "deadline"})
                 break
-            resp = _chat_with_retry(provider, messages, gen_kwargs)
+            resp, n_retry = _chat_with_retry(provider, messages, gen_kwargs)
+            log["retries"] += n_retry
             for k in log["usage"]:
                 log["usage"][k] += (resp.usage or {}).get(k, 0)
             reply = resp.text or ""
@@ -173,6 +195,8 @@ def main(argv=None) -> int:
 
             kind, *payload = parse_action(reply)
             if kind == "finish":
+                if args.elicit_confidence:
+                    log["confidence"], log["confidence_format_ok"] = parse_confidence(reply)
                 log["actions"].append({"type": "finish"})
                 log["finished"] = True
                 break

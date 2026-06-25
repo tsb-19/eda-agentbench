@@ -34,10 +34,54 @@ sys.path.insert(0, str(REPO))
 
 from eda_agentbench.task.loader import TaskLoader  # noqa: E402
 from eda_agentbench.agentic.runner import run_single_agentic  # noqa: E402
+from eda_agentbench import reliability as R  # noqa: E402
 from scripts.generate_model_submissions import load_model_specs, sample_tasks  # noqa: E402
 from scripts.scan_discrimination import CONTINUOUS_COMPONENTS  # noqa: E402
 
 DRIVER = REPO / "scripts" / "llm_agent_driver.py"
+
+
+def _agentic_reliability_block(logp: Path, *, passed, clean: bool, timed_out: bool,
+                               run_error=None) -> dict:
+    """Join one episode's driver log (confidence + episode signals) with the runner-side outcome
+    (anti-cheat, timeout) into the canonical reliability block, mirroring single-shot
+    run_model_baseline._reliability_block. Protocol status is meaningful even without confidence
+    elicitation (NOCOMMIT / BUDGET_EXHAUSTED / ANTI_CHEAT / infra), so this is always emitted."""
+    lg: dict = {}
+    if logp and Path(logp).is_file():
+        try:
+            lg = json.loads(Path(logp).read_text())
+        except Exception:  # noqa: BLE001
+            lg = {}
+    error = run_error or lg.get("error")
+    actions = lg.get("actions") or []
+    n_valid = sum(1 for a in actions if a.get("type") in ("run", "write", "finish"))
+    conf = lg.get("confidence", "")
+    proto = R.agentic_protocol(
+        clean=clean, error=error, timed_out=timed_out, finished=bool(lg.get("finished")),
+        n_edits=len(lg.get("edited") or []), n_actions=len(actions),
+        n_valid_actions=n_valid if actions else None)
+    graded = None if (proto != "ok" or conf == "abstain" or passed is None) else bool(passed)
+    b = R.calibration_bucket(graded, conf)
+    return {"confidence_decision": conf, "confidence_format_ok": lg.get("confidence_format_ok"),
+            "protocol_status": proto, "overconfident_wrong": b == "overconfident_wrong",
+            "underconfident_correct": b == "underconfident_correct", "abstained": b == "abstain"}
+
+
+def _cost_block(logp: Path, wall_time_sec=None) -> dict:
+    """Secondary cost metrics for one episode, from the driver log: tokens, tool calls (RUN/WRITE),
+    transient retries, and the agent's wall time. Reported alongside reliability (scope point 6)."""
+    lg: dict = {}
+    if logp and Path(logp).is_file():
+        try:
+            lg = json.loads(Path(logp).read_text())
+        except Exception:  # noqa: BLE001
+            lg = {}
+    u = lg.get("usage", {})
+    tool_calls = sum(1 for a in (lg.get("actions") or []) if a.get("type") in ("run", "write"))
+    return {"tokens_in": u.get("prompt_tokens", 0), "tokens_out": u.get("completion_tokens", 0),
+            "tool_calls": tool_calls, "retries": lg.get("retries", 0),
+            "wall_time_sec": wall_time_sec}
 
 
 def _result_dict(score, agentic, name, track, task_id) -> dict:
@@ -76,6 +120,12 @@ def main(argv=None) -> int:
     ap.add_argument("--results", required=True)
     ap.add_argument("--concurrency", type=int, default=2,
                     help="Concurrent episodes (each can hit the tool host several times)")
+    ap.add_argument("--elicit-confidence", action="store_true",
+                    help="Ask each agent to declare CONFIDENCE on FINISH (reliability layer); "
+                         "off by default so capability runs are unchanged.")
+    ap.add_argument("--temperature", type=float, default=None,
+                    help="Override sampling temperature for every episode. Use >0 for reliability "
+                         "k-trials so identical inputs produce run-to-run variance.")
     args = ap.parse_args(argv)
 
     tasks_root = Path(args.tasks_root).resolve()
@@ -124,16 +174,25 @@ def main(argv=None) -> int:
         dest.parent.mkdir(parents=True, exist_ok=True)
         logp = dest.with_suffix(".agentlog.json")
         agent_cmd = (f'python3 "{DRIVER}" --model "{name}" --models "{cfg}" '
-                     f'--max-actions {args.max_actions} --log "{logp}"')
+                     f'--max-actions {args.max_actions} --log "{logp}"'
+                     + (" --elicit-confidence" if args.elicit_confidence else "")
+                     + (f" --temperature {args.temperature}" if args.temperature is not None else ""))
         try:
             _runs, score, agentic = run_single_agentic(
                 job["task_path"].resolve(), agent_cmd, job["meta"], args.timeout,
                 runs_root=base_runs / name)
             res = _result_dict(score, agentic, name, track, task_id)
+            res["reliability"] = _agentic_reliability_block(
+                logp, passed=score.passed, clean=agentic.anti_cheat_clean,
+                timed_out=agentic.agent_timed_out)
+            res["cost"] = _cost_block(logp, agentic.agent_wall_time_sec)
         except Exception as e:  # noqa: BLE001
             res = {"ok": False, "total_score": 0.0, "passed": False, "error":
                    f"{type(e).__name__}: {e}", "model": name, "track": track,
                    "task_id": task_id, "mode": "agentic"}
+            res["reliability"] = _agentic_reliability_block(
+                logp, passed=None, clean=True, timed_out=False, run_error=res["error"])
+            res["cost"] = _cost_block(logp)
         dest.write_text(json.dumps(res, indent=2))
         # For continuous-graded tracks the binary "PASS" is misleading (a do-nothing
         # floor still totals ~0.6 and reads as PASS), so show the isolated continuous

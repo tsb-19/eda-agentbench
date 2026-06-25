@@ -55,6 +55,28 @@ TRACK_DISPLAY = {
 # --------------------------------------------------------------------------- #
 # grade
 # --------------------------------------------------------------------------- #
+def _reliability_block(submission_dir: Path, passed) -> dict:
+    """Join the model's elicited confidence (transcript.json) with its grade. Empty if no
+    confidence was elicited and no inference error was recorded (keeps capability runs unchanged)."""
+    tpath = submission_dir / "transcript.json"
+    if not tpath.is_file():
+        return {}
+    try:
+        tr = json.loads(tpath.read_text())
+    except Exception:
+        return {}
+    if "confidence" not in tr and not tr.get("error"):
+        return {}
+    from eda_agentbench import reliability as _R
+    conf = tr.get("confidence", "")
+    proto = _R.protocol_from(tr.get("error"), tr.get("parse_ok", True))
+    graded = None if (proto != "ok" or conf == "abstain" or passed is None) else bool(passed)
+    b = _R.calibration_bucket(graded, conf)
+    return {"confidence_decision": conf, "confidence_format_ok": tr.get("confidence_format_ok"),
+            "protocol_status": proto, "overconfident_wrong": b == "overconfident_wrong",
+            "underconfident_correct": b == "underconfident_correct", "abstained": b == "abstain"}
+
+
 def _grade_one(task_path: Path, submission_dir: Path, runs_root: Path):
     """Return a result dict for one (task, submission). Never raises."""
     from eda_agentbench.cli import _evaluate_single
@@ -64,7 +86,8 @@ def _grade_one(task_path: Path, submission_dir: Path, runs_root: Path):
     try:
         meta = loader.load(task_path)
     except TaskValidationError as e:
-        return {"ok": False, "total_score": 0.0, "passed": False, "error": f"load: {e}"}
+        return {"ok": False, "total_score": 0.0, "passed": False, "error": f"load: {e}",
+                "reliability": _reliability_block(submission_dir, None)}
 
     timeout = meta.get("timeout_sec", 300)
     try:
@@ -74,15 +97,18 @@ def _grade_one(task_path: Path, submission_dir: Path, runs_root: Path):
                 "objective_score": score.objective_score,
                 "components": [{"name": c.name, "raw": c.raw_score, "weight": c.weight}
                                for c in score.components],
-                "anti_cheat": score.anti_cheat, "error": None}
+                "anti_cheat": score.anti_cheat, "error": None,
+                "reliability": _reliability_block(submission_dir, score.passed)}
     except RuntimeError as e:
         # Anti-cheat hard-fail or missing required tool.
         msg = str(e)
         return {"ok": True, "total_score": 0.0, "passed": False,
-                "anti_cheat_fail": "Anti-cheat" in msg, "error": msg}
+                "anti_cheat_fail": "Anti-cheat" in msg, "error": msg,
+                "reliability": _reliability_block(submission_dir, None)}
     except Exception as e:
         return {"ok": False, "total_score": 0.0, "passed": False,
-                "error": f"{type(e).__name__}: {e}"}
+                "error": f"{type(e).__name__}: {e}",
+                "reliability": _reliability_block(submission_dir, None)}
 
 
 def cmd_grade(args) -> int:

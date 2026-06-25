@@ -5,8 +5,10 @@ from __future__ import annotations
 import csv
 import filecmp
 import json
+import re
 import subprocess
 import sys
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -15,8 +17,15 @@ REPO_ROOT = Path(__file__).resolve().parent.parent
 SCRIPT = REPO_ROOT / "scripts" / "export_benchmark_summary.py"
 REPORTS_DIR = REPO_ROOT / "reports"
 
-EXPECTED_TOTAL = 2855
-EXPECTED_TRACKS = {
+# The dataset grows whenever a track is scaled or added, so this gate does NOT freeze the total or
+# the per-track counts (which made it go stale on every intended addition, e.g. 2884 -> 2892 when P9
+# grew). Instead it derives the count live from the export's own inventory and asserts that:
+#   (a) every artifact (distribution, stdout, markdown) agrees with the inventory — the export's
+#       real contract — and
+#   (b) all known CORE_TRACKS are present (a track silently vanishing is caught; new tracks are not
+#       rejected, so additions never break the gate), and
+#   (c) the total never collapses below a conservative floor (catches accidental mass task loss).
+CORE_TRACKS = {
     "p1_rtl_debug",
     "p2_tb_sva_gen",
     "p3_timing_report_qa",
@@ -27,19 +36,16 @@ EXPECTED_TRACKS = {
     "p7_spyglass_lint_debug",
     "p7_primetime_sta_debug",
     "p8_pnr_report_qa",
+    "p9_pt_exception_debug",
 }
-EXPECTED_TRACK_COUNTS = {
-    "p1_rtl_debug": 1001,
-    "p2_tb_sva_gen": 101,
-    "p3_timing_report_qa": 1008,
-    "p4_spice_sim": 329,
-    "p5_spice_deck_debug": 100,
-    "p6_dc_synthesis_qa": 51,
-    "p6_dc_constraint_debug": 61,
-    "p7_spyglass_lint_debug": 50,
-    "p7_primetime_sta_debug": 53,
-    "p8_pnr_report_qa": 101,
-}
+MIN_TOTAL = 2800  # floor only: additions never trip it; a drop below it means tasks were lost
+
+
+def _inventory() -> list[dict]:
+    """The canonical per-task list the export produces — the live source of truth for counts."""
+    with open(REPORTS_DIR / "task_inventory.json") as f:
+        return json.load(f)
+
 
 LEADERBOARD_REQUIRED_COLUMNS = [
     "model_name",
@@ -86,7 +92,11 @@ class TestExportRuns:
     def test_export_runs_without_error(self):
         result = _run_export()
         assert result.returncode == 0, f"Script failed: {result.stderr}"
-        assert "Loaded 2855 tasks" in result.stdout
+        m = re.search(r"Loaded (\d+) tasks", result.stdout)
+        assert m, f"missing 'Loaded N tasks' line in stdout:\n{result.stdout}"
+        # the reported count must match the inventory it just wrote, and respect the floor
+        n = int(m.group(1))
+        assert n == len(_inventory()) >= MIN_TOTAL
 
     def test_all_artifacts_created(self):
         _run_export()
@@ -110,23 +120,29 @@ class TestExportRuns:
 class TestTrackDistribution:
     """Test track distribution correctness."""
 
-    def test_all_five_tracks_present(self):
+    def test_all_core_tracks_present(self):
         _run_export()
         rows = _read_csv(REPORTS_DIR / "track_distribution.csv")
         tracks = {r["track"] for r in rows}
-        assert tracks == EXPECTED_TRACKS
+        # superset: every known core track must be present; newly added tracks do not fail the gate
+        assert CORE_TRACKS <= tracks, f"missing core tracks: {CORE_TRACKS - tracks}"
 
     def test_total_task_count(self):
         _run_export()
         rows = _read_csv(REPORTS_DIR / "track_distribution.csv")
         total = sum(int(r["count"]) for r in rows)
-        assert total == EXPECTED_TOTAL
+        # derived live: the distribution total must equal the inventory and clear the floor
+        assert total == len(_inventory()) >= MIN_TOTAL
 
-    def test_per_track_counts(self):
+    def test_per_track_counts_match_inventory(self):
         _run_export()
         rows = _read_csv(REPORTS_DIR / "track_distribution.csv")
-        counts = {r["track"]: int(r["count"]) for r in rows}
-        assert counts == EXPECTED_TRACK_COUNTS
+        dist = {r["track"]: int(r["count"]) for r in rows}
+        inv_counts = dict(Counter(r["track"] for r in _inventory()))
+        # the published per-track distribution must agree with the inventory grouping (no frozen
+        # numbers to bump), and no track may be empty
+        assert dist == inv_counts
+        assert all(v > 0 for v in dist.values())
 
 
 class TestP5Distribution:
@@ -233,9 +249,10 @@ class TestInventoryStructure:
 
     def test_inventory_count(self):
         _run_export()
-        with open(REPORTS_DIR / "task_inventory.json") as f:
-            data = json.load(f)
-        assert len(data) == EXPECTED_TOTAL
+        data = _inventory()
+        rows = _read_csv(REPORTS_DIR / "track_distribution.csv")
+        # inventory length must equal the published distribution total and clear the floor
+        assert len(data) == sum(int(r["count"]) for r in rows) >= MIN_TOTAL
 
     def test_inventory_has_required_fields(self):
         _run_export()
@@ -261,7 +278,7 @@ class TestScoringSummary:
         _run_export()
         rows = _read_csv(REPORTS_DIR / "scoring_summary.csv")
         tracks = {r["track"] for r in rows}
-        assert tracks == EXPECTED_TRACKS
+        assert CORE_TRACKS <= tracks, f"missing core tracks: {CORE_TRACKS - tracks}"
 
     def test_scoring_components_non_empty(self):
         _run_export()
@@ -276,12 +293,12 @@ class TestBenchmarkSummaryMd:
     def test_md_has_total_count(self):
         _run_export()
         md = (REPORTS_DIR / "benchmark_summary.md").read_text()
-        assert "2855" in md
+        assert str(len(_inventory())) in md
 
     def test_md_has_all_tracks(self):
         _run_export()
         md = (REPORTS_DIR / "benchmark_summary.md").read_text()
-        for track_name in ["P1 RTL Debug", "P2 Testbench/SVA Gen", "P3 Timing Report QA", "P4 SPICE Sim", "P5 SPICE Deck Debug", "P6 DC Synthesis QA", "P6 DC Constraint Debug", "P7 SpyGlass Lint Debug", "P7 PrimeTime STA Debug", "P8 PnR Report QA"]:
+        for track_name in ["P1 RTL Debug", "P2 Testbench/SVA Gen", "P3 Timing Report QA", "P4 SPICE Sim", "P5 SPICE Deck Debug", "P6 DC Synthesis QA", "P6 DC Constraint Debug", "P7 SpyGlass Lint Debug", "P7 PrimeTime STA Debug", "P8 PnR Report QA", "P9 PrimeTime Exception Debug"]:
             assert track_name in md, f"Missing track {track_name} in summary"
 
     def test_md_has_validation_section(self):

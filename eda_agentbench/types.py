@@ -86,6 +86,14 @@ class ScoreResult:
     metadata: dict[str, Any]
     objective_score: float = 0.0
     explanation_score: float = 0.0
+    # Reliability/calibration layer (optional; set by reliability.annotate_score when a model
+    # response is available). Backward-compatible defaults keep existing capability runs unchanged.
+    confidence_decision: str = ""        # high|medium|low|abstain|"" (none parsed)
+    format_ok: bool | None = None        # followed the output + confidence contract
+    protocol_status: str = "ok"          # ok|empty|http_429|parse_fail|nocommit|budget_exhausted|...
+    overconfident_wrong: bool = False    # failed while confident — the catastrophic mode
+    underconfident_correct: bool = False
+    abstained: bool = False
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -104,6 +112,14 @@ class ScoreResult:
             "anti_cheat": self.anti_cheat,
             "resource_usage": self.resource_usage,
             "metadata": self.metadata,
+            "reliability": {
+                "confidence_decision": self.confidence_decision,
+                "format_ok": self.format_ok,
+                "protocol_status": self.protocol_status,
+                "overconfident_wrong": self.overconfident_wrong,
+                "underconfident_correct": self.underconfident_correct,
+                "abstained": self.abstained,
+            },
         }
 
 

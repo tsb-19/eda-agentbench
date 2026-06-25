@@ -40,6 +40,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from eda_agentbench.llm.base import BaseLLMProvider  # noqa: E402
 from eda_agentbench.llm.openai_provider import OpenAIProvider, _load_dotenv  # noqa: E402
 from eda_agentbench.task.loader import TaskLoader, TaskValidationError  # noqa: E402
+from eda_agentbench import reliability  # noqa: E402
 
 # Report-QA tracks need no commercial tool. Everything else needs the real EDA tools.
 LOCAL_QA_TRACKS = {
@@ -213,6 +214,11 @@ _SYSTEM = (
     "explanation outside the blocks."
 )
 
+# Reliability mode allows ONE trailing confidence line outside the file blocks (see reliability.py).
+_SYSTEM_CONF = _SYSTEM.replace(
+    "no prose, no explanation outside the blocks.",
+    "no prose outside the blocks, except the single trailing CONFIDENCE line as instructed.")
+
 
 def _read_text(p: Path, max_bytes: int) -> str:
     try:
@@ -319,11 +325,11 @@ def _is_retryable(e: Exception) -> bool:
 
 
 def _generate_with_retry(provider, prompt, gen_kwargs, max_retries: int,
-                         base_delay: float = 3.0):
+                         base_delay: float = 3.0, system: str = _SYSTEM):
     """Call provider.generate with exponential backoff on transient errors."""
     for attempt in range(max_retries + 1):
         try:
-            return provider.generate(prompt, system=_SYSTEM, **gen_kwargs)
+            return provider.generate(prompt, system=system, **gen_kwargs)
         except Exception as e:
             if attempt >= max_retries or not _is_retryable(e):
                 raise
@@ -380,17 +386,23 @@ def _run_inference_job(job: dict, max_retries: int, limiter: RateLimiter,
     try:
         limiter.acquire()
         t0 = time.time()
-        resp = _generate_with_retry(provider, job["prompt"], job["gen_kwargs"], max_retries)
+        elicit = job.get("elicit", False)
+        resp = _generate_with_retry(provider, job["prompt"], job["gen_kwargs"], max_retries,
+                                    system=_SYSTEM_CONF if elicit else _SYSTEM)
         dt = time.time() - t0
         files, parse_ok = parse_submission(resp.text, job["editable"], job["is_p5"])
         write_submission(sub_dir, files)
         rec["parse_ok"] = parse_ok
-        (sub_dir / "transcript.json").write_text(json.dumps({
+        transcript = {
             "task_id": job["task_id"], "track": job["track"], "model": name,
             "model_id": provider.model, "parse_ok": parse_ok,
             "elapsed_sec": round(dt, 2), "usage": resp.usage,
             "raw_response": resp.text,
-        }, indent=2))
+        }
+        if elicit:
+            conf, fmt = reliability.parse_confidence(resp.text)
+            transcript["confidence"], transcript["confidence_format_ok"] = conf, fmt
+        (sub_dir / "transcript.json").write_text(json.dumps(transcript, indent=2))
     except Exception as e:  # network/HTTP/parse — record, keep going
         rec["error"] = f"{type(e).__name__}: {e}"
         sub_dir.mkdir(parents=True, exist_ok=True)
@@ -436,6 +448,9 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
                     help="Global cap on call-starts per minute across all workers "
                          "(0 = unlimited; relies on --concurrency + backoff)")
     ap.add_argument("--limit", type=int, default=None, help="Cap total tasks (debug)")
+    ap.add_argument("--elicit-confidence", action="store_true",
+                    help="Reliability mode: ask each model for a calibrated CONFIDENCE/ABSTAIN and "
+                         "record it in the transcript (for the reliability/calibration layer).")
     return ap.parse_args(argv)
 
 
@@ -478,6 +493,8 @@ def main(argv: list[str] | None = None) -> int:
         is_p5 = track == "p5_spice_deck_debug"
         editable = list(meta["files"].get("editable", []))
         prompt = build_prompt(tp, meta, args.max_visible_bytes)
+        if args.elicit_confidence:
+            prompt += reliability.CONFIDENCE_INSTRUCTION
         needs_tool = track not in LOCAL_QA_TRACKS
 
         # Store task_path RELATIVE to the repo root so the manifest is portable to another
@@ -495,6 +512,7 @@ def main(argv: list[str] | None = None) -> int:
                 "task_index": i, "name": name, "provider": provider,
                 "gen_kwargs": gen_kwargs, "prompt": prompt, "editable": editable,
                 "is_p5": is_p5, "task_id": task_id, "track": track,
+                "elicit": args.elicit_confidence,
                 "sub_dir": out_root / name / track / task_id,
                 "submission_dir": f"{name}/{track}/{task_id}",
             })
