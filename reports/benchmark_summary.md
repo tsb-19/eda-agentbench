@@ -1,7 +1,7 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.3-phase8b-2893`  
-**Total tasks:** 2893  
+**Tag:** `v0.3-phase8b-2898`  
+**Total tasks:** 2898  
 **Tracks:** 12  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
@@ -9,7 +9,7 @@
 
 | Track | Count |
 |-------|------:|
-| p10_synthetic_project | 1 |
+| p10_synthetic_project | 6 |
 | P1 RTL Debug | 1001 |
 | P2 Testbench/SVA Gen | 101 |
 | P3 Timing Report QA | 1008 |
@@ -21,7 +21,7 @@
 | P7 SpyGlass Lint Debug | 50 |
 | P8 PnR Report QA | 101 |
 | P9 PrimeTime Exception Debug | 17 |
-| **Total** | **2893** |
+| **Total** | **2898** |
 
 ## Tool Distribution
 
@@ -31,7 +31,7 @@
 | hspice | 251 |
 | icc2 | 45 |
 | innovus | 56 |
-| pt | 1079 |
+| pt | 1084 |
 | spectre | 198 |
 | spyglass | 50 |
 | vcs | 1102 |
@@ -42,14 +42,14 @@
 |------------|------:|
 | easy | 1381 |
 | hard | 477 |
-| medium | 1035 |
+| medium | 1040 |
 
 ## Data Type Distribution
 
 | Data Type | Count |
 |-----------|------:|
 | flow_synthetic | 150 |
-| mutation_synthetic | 1103 |
+| mutation_synthetic | 1108 |
 | template_synthetic | 1640 |
 
 ## Scoring Methodology
