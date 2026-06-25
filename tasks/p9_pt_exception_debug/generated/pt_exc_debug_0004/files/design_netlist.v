@@ -1,0 +1,33 @@
+// Gate-level netlist for vid_ctrl — timed by PrimeTime against tiny.db
+module vid_ctrl (clk, ctrl_in, opt_out, pix_out);
+  input clk;
+  input ctrl_in;
+  output opt_out;
+  output pix_out;
+  wire ctrl_reg_q;
+  wire opt_reg_d;
+  wire pix_reg_d;
+  wire ctrl_reg_qs_n0;
+  wire ctrl_reg_qs_n1;
+  wire ctrl_reg_qs_n2;
+  wire ctrl_reg_qs_n3;
+  wire ctrl_reg_qs_n4;
+  wire ctrl_reg_qs_n5;
+  wire ctrl_reg_qs_n6;
+  wire ctrl_reg_qs_n7;
+  wire ctrl_reg_qs_n8;
+  DFFX1 ctrl_reg (.D(ctrl_in), .CK(clk), .Q(ctrl_reg_q));
+  DFFX1 opt_reg (.D(opt_reg_d), .CK(clk), .Q(opt_out));
+  DFFX1 pix_reg (.D(pix_reg_d), .CK(clk), .Q(pix_out));
+  BUFX1 ctrl_reg_qs_b0 (.A(ctrl_reg_q), .Y(ctrl_reg_qs_n0));
+  BUFX1 ctrl_reg_qs_b1 (.A(ctrl_reg_qs_n0), .Y(ctrl_reg_qs_n1));
+  BUFX1 ctrl_reg_qs_b2 (.A(ctrl_reg_qs_n1), .Y(ctrl_reg_qs_n2));
+  BUFX1 ctrl_reg_qs_b3 (.A(ctrl_reg_qs_n2), .Y(ctrl_reg_qs_n3));
+  BUFX1 ctrl_reg_qs_b4 (.A(ctrl_reg_qs_n3), .Y(ctrl_reg_qs_n4));
+  BUFX1 ctrl_reg_qs_b5 (.A(ctrl_reg_qs_n4), .Y(ctrl_reg_qs_n5));
+  BUFX1 ctrl_reg_qs_b6 (.A(ctrl_reg_qs_n5), .Y(ctrl_reg_qs_n6));
+  BUFX1 ctrl_reg_qs_b7 (.A(ctrl_reg_qs_n6), .Y(ctrl_reg_qs_n7));
+  BUFX1 ctrl_reg_qs_b8 (.A(ctrl_reg_qs_n7), .Y(ctrl_reg_qs_n8));
+  BUFX1 ctrl_reg_qs_b9 (.A(ctrl_reg_qs_n8), .Y(opt_reg_d));
+  BUFX1 ctrl_reg_dp_b0 (.A(ctrl_reg_q), .Y(pix_reg_d));
+endmodule

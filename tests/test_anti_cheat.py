@@ -134,3 +134,42 @@ def test_tcl_injection_missing_file_ok(tmp_path):
     """A listed-but-absent editable file is not a violation."""
     from eda_agentbench.task.validator import check_tcl_injection
     assert check_tcl_injection(tmp_path, ["constraints.sdc"]) == []
+
+
+# --- Hidden-artifact shadow guard (P7-class reward-hack) ---
+
+def test_hidden_shadow_flags_fabricated_artifact():
+    """Creating a file that shadows a hidden grader/oracle/netlist is a violation."""
+    from eda_agentbench.agentic.workspace import detect_hidden_shadows
+    changes = {"design_netlist.v": "added", "run_grade.tcl": "added",
+               "constraints.sdc": "modified"}
+    hidden = ["design_netlist.v", "run_hidden.sh", "run_grade.tcl"]
+    clean, violations = detect_hidden_shadows(changes, hidden)
+    assert clean is False
+    assert any("design_netlist.v" in v for v in violations)
+    assert any("run_grade.tcl" in v for v in violations)
+    assert not any("constraints.sdc" in v for v in violations)  # legit editable, not hidden
+
+
+def test_hidden_shadow_ignores_tool_byproducts():
+    """Real tool byproducts (logs, applied SDC) don't match hidden artifact names."""
+    from eda_agentbench.agentic.workspace import detect_hidden_shadows
+    changes = {"pt_shell_command.log": "added", "applied_public.sdc": "added",
+               "constraints.sdc": "modified"}
+    clean, violations = detect_hidden_shadows(changes, ["run_hidden.sh", "run_grade.tcl"])
+    assert clean is True
+    assert violations == []
+
+
+def test_hidden_shadow_basename_match_in_subdir():
+    """A fabricated artifact in a subdir is still caught (basename match)."""
+    from eda_agentbench.agentic.workspace import detect_hidden_shadows
+    clean, violations = detect_hidden_shadows({"sub/run_grade.tcl": "added"}, ["run_grade.tcl"])
+    assert clean is False and len(violations) == 1
+
+
+def test_hidden_shadow_ignores_deletions():
+    """Deletions are ignored (hidden files aren't seeded in the agent workspace)."""
+    from eda_agentbench.agentic.workspace import detect_hidden_shadows
+    clean, _ = detect_hidden_shadows({"run_grade.tcl": "deleted"}, ["run_grade.tcl"])
+    assert clean is True

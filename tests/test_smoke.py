@@ -29,6 +29,7 @@ def latest_score_json():
     return scores[-1] if scores else None
 
 
+@pytest.mark.requires_tools
 def test_detect_tools_finds_vcs():
     rc, stdout, stderr = run_bench("detect-tools")
     assert rc == 0
@@ -42,6 +43,7 @@ def test_validate_task():
     assert "VALID" in stdout
 
 
+@pytest.mark.requires_tools
 def test_solution_scores_perfect():
     solution_dir = TASK_DIR / "solution"
     rc, stdout, stderr = run_bench("evaluate-task", str(TASK_DIR),
@@ -56,6 +58,7 @@ def test_solution_scores_perfect():
     assert score["passed"] is True
 
 
+@pytest.mark.requires_tools
 def test_buggy_scores_lower():
     buggy_dir = TASK_DIR / "buggy_submission"
     if not buggy_dir.is_dir():

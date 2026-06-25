@@ -37,6 +37,7 @@ TRACK_DISPLAY = {
     "p7_spyglass_lint_debug": "P7 SpyGlass Lint Debug",
     "p7_primetime_sta_debug": "P7 PrimeTime STA Debug",
     "p8_pnr_report_qa": "P8 PnR Report QA",
+    "p9_pt_exception_debug": "P9 PrimeTime Exception Debug",
 }
 
 LEADERBOARD_COLUMNS = [

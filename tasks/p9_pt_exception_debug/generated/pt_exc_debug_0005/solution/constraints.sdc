@@ -1,0 +1,5 @@
+create_clock -name clk -period 0.5 [get_ports clk]
+set_input_delay  0.05 -clock clk [get_ports {mosi_in tick_in}]
+set_output_delay 0.05 -clock clk [get_ports {rx_out flag_out}]
+set_multicycle_path 2 -setup -from [get_pins shift_reg/CK] -to [get_pins cap_reg/D]
+set_multicycle_path 1 -hold  -from [get_pins shift_reg/CK] -to [get_pins cap_reg/D]

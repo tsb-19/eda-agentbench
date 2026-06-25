@@ -71,3 +71,14 @@ reports/discrimination_*
 
 # Hardening pilot task dirs (regenerable from the seeded prototype_p1_* generators)
 /pilot_*/
+
+# Stray root scratch (e.g. a P4 settling metrics dump written to cwd)
+/metrics.json
+
+# Compiled iverilog sim binaries (sequential-probe cross-check scratch)
+*.vvp
+
+# Falsification-probe model outputs (regenerable by re-running the probe scripts)
+experiments/**/tr_*.txt
+experiments/**/ans_*.txt
+experiments/**/results.json

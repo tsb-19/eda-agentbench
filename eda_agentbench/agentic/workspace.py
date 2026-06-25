@@ -119,6 +119,31 @@ def detect_forbidden_modifications(
     return len(violations) == 0, violations
 
 
+def detect_hidden_shadows(
+    changes: dict[str, str],
+    hidden_files: list[str],
+) -> tuple[bool, list[str]]:
+    """Flag agent-created files that SHADOW a hidden task artifact.
+
+    The agent workspace holds only visible+editable files; hidden artifacts (graders,
+    oracles, golden netlists) are never seeded there and are overlaid only in the
+    evaluator workspace. So an added/modified file whose basename matches a declared
+    hidden artifact is an attempt to fabricate what the grader reads — the P7-class
+    reward-hack (e.g. writing a fake ``design_netlist.v`` / ``run_hidden.*`` so the
+    agent's local test passes). Tool byproducts do not match, because hidden artifact
+    names are specific. Deletions are ignored (hidden files aren't in the workspace to
+    delete). Returns: (clean, list_of_violations).
+    """
+    hidden_basenames = {Path(h).name for h in hidden_files}
+    violations: list[str] = []
+    for fpath, change_type in changes.items():
+        if change_type == "deleted":
+            continue
+        if Path(fpath).name in hidden_basenames:
+            violations.append(f"{fpath} ({change_type}) shadows hidden artifact")
+    return len(violations) == 0, violations
+
+
 def _sha256(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:

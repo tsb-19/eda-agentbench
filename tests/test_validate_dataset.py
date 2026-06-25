@@ -14,6 +14,7 @@ REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 import scripts.validate_dataset as vd  # noqa: E402
+from eda_agentbench.task import loader as L  # noqa: E402
 
 
 # --------------------------------------------------------------------------- #
@@ -170,3 +171,47 @@ def test_changed_reuse_preserves_failure_in_report(tmp_path, monkeypatch):
     monkeypatch.setattr(vd, "validate_one", _fake_validate_one(calls))
     rc = vd.main(["--tasks-root", str(root), "--glob", "*", "--cache", str(cache), "--changed"])
     assert rc == 1 and calls == []
+
+
+# --------------------------------------------------------------------------- #
+# Increment 2: tool-free structural validation + generator self-validation hook
+# --------------------------------------------------------------------------- #
+def test_structural_validate_missing_then_present_golden(tmp_path, monkeypatch):
+    task = tmp_path / "t"
+    (task / "solution").mkdir(parents=True)
+    # bypass schema: load returns a controlled meta with one editable
+    monkeypatch.setattr(L.TaskLoader, "load",
+                        lambda self, p: {"track": "x", "files": {"editable": ["a.sdc"]}})
+    assert any("golden" in i for i in L.structural_validate(task))   # solution/a.sdc missing
+    (task / "solution" / "a.sdc").write_text("create_clock ...")     # present + non-empty
+    assert L.structural_validate(task) == []
+
+
+def test_structural_validate_empty_golden_flagged(tmp_path, monkeypatch):
+    task = tmp_path / "t"
+    (task / "solution").mkdir(parents=True)
+    (task / "solution" / "a.sdc").write_text("")                     # empty != a real golden
+    monkeypatch.setattr(L.TaskLoader, "load",
+                        lambda self, p: {"track": "x", "files": {"editable": ["a.sdc"]}})
+    assert any("golden" in i for i in L.structural_validate(task))
+
+
+def test_structural_validate_reports_load_error(tmp_path):
+    # no metadata.json -> TaskLoader.load raises -> reported as an issue (real load path)
+    issues = L.structural_validate(tmp_path / "nonexistent_task")
+    assert issues and "metadata" in issues[0].lower()
+
+
+def test_generate_batch_rejects_structurally_broken_task(tmp_path):
+    from generators.base import BaseGenerator
+
+    class _BadGen(BaseGenerator):
+        def generate_one(self, i):
+            d = self.output_dir / f"t{i}"
+            d.mkdir(parents=True, exist_ok=True)
+            return d  # empty dir: no metadata.json -> structurally invalid
+
+    g = _BadGen(0, tmp_path)
+    with pytest.raises(ValueError, match="structurally invalid"):
+        g.generate_batch(1)
+    assert len(g.generate_batch(1, validate=False)) == 1   # opt-out skips the check

@@ -1,0 +1,77 @@
+{
+  "task_id": "pt_exc_debug_2001",
+  "track": "p9_pt_exception_debug",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "hard",
+  "data_type": "template_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 300,
+  "max_tool_calls": 30,
+  "max_patch_attempts": 8,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "design_netlist.v",
+      "design_rtl.v",
+      "tiny.lib",
+      "tiny.db",
+      "constraints.sdc",
+      "run_public.sh",
+      "run_public.tcl"
+    ],
+    "editable": [
+      "constraints.sdc"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_hidden.tcl",
+      "run_grade.tcl"
+    ],
+    "forbidden": [
+      "design_netlist.v",
+      "design_rtl.v",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_hidden.sh",
+      "run_hidden.tcl",
+      "run_grade.tcl"
+    ]
+  },
+  "run_command": "bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "exception_check": 0.6,
+      "execution_pass": 0.3,
+      "explanation": 0.1
+    },
+    "evaluator": "pt_exception_debug.PTExceptionDebugEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p9_pt_exception_debug_infer_gen.py",
+    "seed": 42,
+    "bug_type": "missing_multicycle_inferred",
+    "theme": "mac_unit",
+    "task_index": 0,
+    "intent_mode": "inferred",
+    "category": "B",
+    "mode": "inferred",
+    "period_ns": 0.5,
+    "mc_cycles": 2,
+    "mc_depth": 5,
+    "single_depths": [
+      3
+    ],
+    "expected_slack_1cyc": -0.1,
+    "expected_slack_ncyc": 0.4
+  },
+  "expected_error_category": "missing_multicycle_inferred",
+  "version": "1.0.0"
+}

@@ -281,6 +281,7 @@ def test_p5_validate_task(p5_task):
     assert "spice_deck_debug_0001" in output
 
 
+@pytest.mark.requires_tools
 def test_p5_solution_passes(p5_task):
     """P5 solution mode passes (requires HSPICE)."""
     from eda_agentbench.cli import _evaluate_single
@@ -290,6 +291,7 @@ def test_p5_solution_passes(p5_task):
     assert sr.passed
 
 
+@pytest.mark.requires_tools
 def test_p5_buggy_fails(p5_task):
     """P5 buggy mode fails (requires HSPICE)."""
     from eda_agentbench.cli import _evaluate_single
@@ -307,6 +309,7 @@ def test_p5_buggy_fails(p5_task):
         shutil.rmtree(buggy_dir, ignore_errors=True)
 
 
+@pytest.mark.requires_tools
 def test_p5_equivalent_fix_passes(p5_task):
     """P5 accepts equivalent non-identical fix (requires HSPICE)."""
     from eda_agentbench.cli import _evaluate_single

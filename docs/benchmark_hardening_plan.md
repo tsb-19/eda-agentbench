@@ -536,3 +536,82 @@ constraint-debug / P7 STA/lint) on the *fixed* harness — those agentic numbers
 pre-fix (tool-less, §10 confound) and untrustworthy. If diagnosis-class tracks discriminate the
 frontier, that's the signal we've hunted, using validated infrastructure; if they also collapse,
 the gap is even more elusive and we design for it deliberately.
+
+## 12. P5 deck-debug re-baseline surfaced a SECOND agentic harness bug (2026-06-22, #100)
+
+Pivoting to diagnosis (§11), we began re-baselining P5 SPICE Deck Debug (100 tasks, HSPICE, all
+tagged `easy`: 7 error categories — missing_model/duplicate_element/wrong_pin_count/
+unsupported_dialect/missing_subckt/missing_include/invalid_directive — 14–15 each). P5 is
+execution-based and effectively **binary** per task: `execution_pass` (0.9) is 1.0 iff HSPICE
+prints "job concluded" with no abort/fatal-error, else 0.0; `explanation` (0.1) is auto-1.0 in
+submission mode. So a task scores **1.0** (clean run) or **0.1** (anything else); discrimination
+shows up as pass-rate across tasks.
+
+**The single-shot grading-path gate passed** (8 tasks via `validate_dataset.py`, b04 HSPICE):
+golden=1.0, buggy fully discriminated (margin 0.9). So the *single-shot* path was fine.
+
+**But the first agentic episode exposed a grading bug that silently discarded every agent fix.**
+Reading the trace, Qwen produced a *correct* fix for task 0001 (renamed `pmos_typo`→`pmos`, added
+the `.model pmos` card) and finished — yet it would have scored 0.1. Root cause, a `visible/`-flatten
+mismatch independent of the §10 tool-availability confound:
+- `create_agent_workspace` **flattens** the task's `visible/` dir INTO the workspace root
+  (`copytree(visible, work_dir)`), so the editable `visible/foo.sp` actually lives at `foo.sp`.
+- The agent driver's `WRITE` wrote to the editable **relpath** `visible/foo.sp` — re-creating a
+  `visible/` subdir — so the fix landed at `work_dir/visible/foo.sp`.
+- `create_evaluator_workspace` overlay + `_find_deck_file` read the **flattened root** `work_dir/foo.sp`
+  (the untouched buggy original). **The fix under `visible/` was never read.** Every P5 agentic
+  episode graded the buggy deck → ~0.1 regardless of model quality. (A minimal repro confirmed
+  `grader sees the FIX? False / sees the BUGGY? True`.) This invalidates this probe's first run AND
+  all prior P5 agentic numbers.
+
+Also noted: `prompt.md` says "Read the SPICE deck file in `visible/`", but the flatten puts it at
+root — so the prompt mildly misleads (Qwen's natural `cat visible/X` failed; it recovered in 2 cheap
+local actions). Cosmetic action-tax faced equally by all models, not a fairness breaker; logged for
+a later Design-Y cleanup (preserve `visible/` end-to-end) if P5 is scaled.
+
+**Fix (minimal, no core file touched):** `scripts/llm_agent_driver.py` `WRITE` now writes the
+editable to its **actual seeded location** — prefer the relpath if present, else the flattened
+basename, matching what the grader reads. The single-shot path already used flatten+basename
+consistently (why its gate passed); only the driver deviated.
+
+**The gate that would have caught it, now in place — and the lesson.** The §10/grading-fairness-gate
+I ran earlier exercised the *single-shot* path, which does NOT touch the two-phase agent/eval
+workspace — so it could not have caught this. A fairness gate must run through the **same path being
+measured.** Built an **agentic fairness gate** (`/tmp/p5_gate/`): drive the real `run_single_agentic`
+two-phase path with a fake *perfect* agent (injects golden) and a *no-op* agent. Result across all 7
+categories: **perfect = 1.000, noop = 0.100** — the harness now grades the agent's actual work, and
+still discriminates a fix from a non-fix.
+
+**The clean re-baseline (2026-06-22, 5 models × 4 categories, ¥2.68) — trivial deck-debug is a
+static-inspection floor track, but the failure mode is *agentic discipline*, not diagnosis.**
+
+| model | 0001 missing_model | 0016 missing_subckt | 0045 wrong_pin | 0073 bad_dialect | pass |
+|---|---|---|---|---|---|
+| DeepSeek-V4-Pro | 1.0 | 1.0 | 1.0 | 1.0 | 4/4 |
+| Qwen3.7-Max | 1.0 | 1.0 | 1.0 | 1.0 | 4/4 |
+| GLM-5.1 | 1.0 | **0.1** | 1.0 | 1.0 | 3/4 |
+| Kimi-K2.6 | 1.0 | 1.0 | **0.1** | 1.0 | 3/4 |
+| MiniMax-M3 | 1.0 | **0.1** | 1.0 | **0.1** | 2/4 |
+
+**All 16 passes were solved by pure INSPECTION — not one episode ran HSPICE.** These 6–12-line decks
+with a single obvious bug are static netlist *reading*, not tool-grounded diagnosis; the simulator is
+decorative. Every 0.10 was disambiguated (real miss vs b04 flake — b04 load was ~8.7) and **all four
+are real misses, none a grading artifact**: DeepSeek/Qwen are flawless; GLM/0016 *finished without
+running hspice* and shipped an over-engineered fix (a 4-transistor CMOS buffer instead of the golden's
+trivial `Rseries in out 100`) that **forgot the `.model` cards** — re-graded through real HSPICE it
+aborts with "model pmos not found ×4"; Kimi/0045 and MiniMax/0016+0073 ran out of the action budget
+(`finished=False, edited=[]`) and never produced a fix. So the only spread is **agentic process
+discipline** (verify-before-signoff; budget management), NOT engineering: the bug-spotting is trivial
+for everyone, and the failures are precisely *not using the tool to check one's own work*.
+
+**Verdict.** P5-as-is gives ~zero diagnosis-difficulty signal at the frontier (DeepSeek/Qwen perfect,
+all by inspection). GLM/0016 is the perfect illustration of the design principle: a real diagnosis
+task must be **non-inspectable** — the root cause must require tool feedback to localize — so that
+"didn't verify with the tool" becomes outright failure rather than a rare unforced error. A
+frontier-hard diagnosis track needs at least one of: (1) non-inspectable root cause (need the tool to
+localize), (2) misleading symptom (error points away from cause), (3) large context (bug buried in a
+big design), (4) multi-step causality (fixing the surface error reveals a deeper one). Next decision:
+build such tasks deliberately, vs first re-baseline the richer existing debug tracks (P6 DC-constraint,
+P7 PrimeTime-STA) on the fixed harness — their bugs are less inspectable than a 6-line deck and their
+agentic numbers are all still pre-fix.
+

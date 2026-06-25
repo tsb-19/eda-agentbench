@@ -23,3 +23,6 @@ include = ["eda_agentbench*"]
 # (cd datagen && pytest); keep it out of the root test run.
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "requires_tools: needs real commercial EDA tools (VCS/HSPICE/etc.) on PATH or the b04 shim; excluded from the tool-free local gate (scripts/check)",
+]

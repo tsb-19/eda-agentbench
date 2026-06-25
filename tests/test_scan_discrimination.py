@@ -102,7 +102,7 @@ def test_load_results_picks_continuous_component(tmp_path):
         json.dumps({"model": "A", "track": "p4_spice_sim", "task_id": "task_009000",
                     "actions": [], "usage": {}}))
 
-    scores, track_of, cont = sd.load_results(tmp_path)
+    scores, track_of, cont, _exc = sd.load_results(tmp_path)
     # continuous task uses spec_score (0.333), not total_score (0.60)
     assert abs(scores["task_009000"]["B"] - 0.333) < 1e-9
     assert scores["task_009000"]["A"] == 1.00
@@ -110,4 +110,102 @@ def test_load_results_picks_continuous_component(tmp_path):
     # the P4 task is now correctly discriminating (spread .667), not "weak ~0.6"
     s = sd.task_stats(list(scores["task_009000"].values()))
     assert s["discriminating"] and not s["saturated"] and abs(s["spread"] - 0.667) < 1e-3
+
+
+# --------------------------------------------------------------------------- #
+# Increment 2: infra-artifact filter + suspect_broken flag
+# --------------------------------------------------------------------------- #
+def _mk_result(root, model, track, tid, total):
+    d = root / model / track
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{tid}.json").write_text(json.dumps(
+        {"task_id": tid, "track": track, "model": model, "total_score": total}))
+
+
+def _mk_agentlog(root, model, track, tid, *, error=None, actions=None):
+    d = root / model / track
+    d.mkdir(parents=True, exist_ok=True)
+    (d / f"{tid}.agentlog.json").write_text(json.dumps(
+        {"task_id": tid, "model": model, "error": error, "actions": actions or []}))
+
+
+def test_task_stats_all_zero_flag():
+    z = sd.task_stats([0.0, 0.0])
+    assert z["all_zero"] and z["dead"] and not z["saturated"]
+    assert sd.task_stats([0.1, 1.0, 1.0])["all_zero"] is False
+
+
+def test_classify_suspect_broken_vs_dead():
+    allzero = sd.task_stats([0.0, 0.0, 0.0])
+    assert sd.classify({**allzero, "golden_valid": None}) == "suspect_broken"
+    assert sd.classify({**allzero, "golden_valid": False}) == "suspect_broken"
+    assert sd.classify({**allzero, "golden_valid": True}) == "dead"   # golden confirmed -> hard
+    # a partial-but-all-failing task (not exactly zero) is plain "dead", not broken
+    assert sd.classify({**sd.task_stats([0.0, 0.3]), "golden_valid": None}) == "dead"
+
+
+def test_load_infra_episodes_detects_429_and_zero_actions(tmp_path):
+    root = tmp_path / "runs"
+    _mk_agentlog(root, "Kimi", "p6", "t0", error="RuntimeError: HTTP 429 from gw")
+    _mk_agentlog(root, "Mini", "p6", "t1", actions=[])                       # zero actions
+    _mk_agentlog(root, "DS", "p6", "t2", actions=[{"type": "run"}])          # healthy
+    _mk_agentlog(root, "X", "p6", "t3", error="RuntimeError: Timeout")       # other error
+    infra = sd.load_infra_episodes(root)
+    assert infra[("t0", "Kimi")] == "http_429"
+    assert infra[("t1", "Mini")] == "zero_actions"
+    assert ("t2", "DS") not in infra
+    assert infra[("t3", "X")].startswith("error:RuntimeError")
+
+
+def test_load_results_excludes_infra(tmp_path):
+    root = tmp_path / "runs"
+    for m, s in [("DS", 1.0), ("GLM", 1.0), ("Kimi", 0.10)]:
+        _mk_result(root, m, "p6", "t0", s)
+    _mk_agentlog(root, "Kimi", "p6", "t0", error="RuntimeError: HTTP 429")
+    infra = sd.load_infra_episodes(root)
+    scores, _track, _cont, excluded = sd.load_results(root, infra)
+    assert scores["t0"] == {"DS": 1.0, "GLM": 1.0}          # Kimi's 429 dropped
+    assert ("t0", "Kimi", "http_429") in excluded
+
+
+def test_infra_exclusion_changes_class(tmp_path):
+    # Kimi's 429-floor 0.10 makes the task look "discriminating"; excluding it as
+    # infra reveals the two real models actually saturated it (no real signal).
+    root = tmp_path / "runs"
+    for m, s in [("DS", 1.0), ("GLM", 1.0), ("Kimi", 0.10)]:
+        _mk_result(root, m, "p6", "t0", s)
+    no_filter = sd.build_rows({"t0": {"DS": 1.0, "GLM": 1.0, "Kimi": 0.10}},
+                              {"t0": "p6"}, {}, 0.1)
+    assert no_filter[0]["klass"] == "discriminating"
+    _mk_agentlog(root, "Kimi", "p6", "t0", error="RuntimeError: HTTP 429")
+    scores, track_of, _c, _e = sd.load_results(root, sd.load_infra_episodes(root))
+    assert sd.build_rows(scores, track_of, {}, 0.1)[0]["klass"] == "saturated"
+
+
+def test_build_rows_skips_fully_excluded_task():
+    assert sd.build_rows({"t0": {}}, {"t0": "p6"}, {}, 0.1) == []
+
+
+def test_load_golden_valid(tmp_path):
+    cache = tmp_path / "validate_cache.json"
+    cache.write_text(json.dumps({
+        "/abs/a": {"hash": "x", "verdict": {"task_id": "A", "golden": 1.0}},
+        "/abs/b": {"hash": "y", "verdict": {"task_id": "B", "golden": 0.6}},
+        "/abs/c": {"hash": "z", "verdict": {"task_id": "C", "golden": None}},
+    }))
+    assert sd.load_golden_valid(cache) == {"A": True, "B": False, "C": False}
+    assert sd.load_golden_valid(tmp_path / "missing.json") == {}
+
+
+def test_suspect_broken_resolved_by_cache():
+    rows = sd.build_rows({"t0": {"DS": 0.0, "GLM": 0.0}}, {"t0": "p8"}, {}, 0.1)
+    assert rows[0]["klass"] == "suspect_broken"
+    rows2 = sd.build_rows({"t0": {"DS": 0.0, "GLM": 0.0}}, {"t0": "p8"}, {}, 0.1,
+                          {"t0": True})
+    assert rows2[0]["klass"] == "dead"
+
+
+def test_render_handles_excluded_and_empty():
+    out = sd.render([], 5, set(), [("t0", "Kimi", "http_429")])
+    assert "Infra-excluded" in out and "Kimi" in out
 

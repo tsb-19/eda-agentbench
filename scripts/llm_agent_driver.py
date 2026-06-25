@@ -210,17 +210,30 @@ def main(argv=None) -> int:
                     obs = f"Refused: {name!r} is not editable. Editable: {sorted(editable_names)}"
                     log["actions"].append({"type": "write_refused", "file": name})
                 else:
-                    # Map basename back to the editable relpath, write into the workspace.
+                    # Write to the editable file's ACTUAL seeded location. The runner's
+                    # create_agent_workspace flattens the task's visible/ (P5) or files/
+                    # (other tracks) dir INTO the workspace root, so an editable listed as
+                    # "visible/foo.sp" actually lives at "foo.sp", while other tracks keep
+                    # their relpath. The grader reads that same seeded path, so writing to
+                    # the editable relpath blindly (e.g. creating a fresh visible/foo.sp)
+                    # would land the fix where the grader never looks -> every edit silently
+                    # discarded. Pick the path that was actually seeded.
                     rel = next(e for e in editable if Path(e).name == base)
-                    dest = workspace / rel
+                    if (workspace / rel).exists():
+                        target = rel
+                    elif (workspace / base).exists():
+                        target = base
+                    else:
+                        target = rel  # not seeded (agent creating a new file): use relpath
+                    dest = workspace / target
                     dest.parent.mkdir(parents=True, exist_ok=True)
                     if not content.endswith("\n"):
                         content += "\n"
                     dest.write_text(content)
-                    if rel not in log["edited"]:
-                        log["edited"].append(rel)
-                    obs = f"Wrote {len(content)} bytes to {rel}."
-                    log["actions"].append({"type": "write", "file": rel, "bytes": len(content)})
+                    if target not in log["edited"]:
+                        log["edited"].append(target)
+                    obs = f"Wrote {len(content)} bytes to {target}."
+                    log["actions"].append({"type": "write", "file": target, "bytes": len(content)})
 
             messages.append({"role": "user", "content": obs})
     except Exception as e:  # noqa: BLE001 — record, let runner grade whatever edits exist

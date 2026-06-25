@@ -42,7 +42,7 @@ from eda_agentbench.cli import (  # noqa: E402
     build_buggy_submission,
     solution_submission_path,
 )
-from eda_agentbench.task.loader import TaskLoader  # noqa: E402
+from eda_agentbench.task.loader import TaskLoader, structural_validate  # noqa: E402
 
 EPS = 1e-3
 DEFAULT_MARGIN = 0.15
@@ -208,6 +208,41 @@ def select_tasks(args, loader: TaskLoader) -> list[Path]:
     return dirs
 
 
+def structural_one(task_dir: Path, loader: TaskLoader) -> dict:
+    """Tool-free structural verdict for one task (no grading, no EDA tools)."""
+    issues = structural_validate(task_dir, loader)
+    try:
+        track = loader.load(task_dir)["track"]
+    except Exception:  # noqa: BLE001  (load failure is itself reported in `issues`)
+        track = "?"
+    return {"task_id": task_dir.name, "track": track, "golden": None,
+            "margin": None, "ok": not issues, "failures": issues}
+
+
+def _print_rollup(results: list[dict], reused: list | None = None, *, valid_msg: str,
+                  offender_label: str = "OFFENDERS") -> list[dict]:
+    """Per-track pass table + offender list + TOTAL. Returns the offender rows."""
+    reused = reused or []
+    by_track = defaultdict(list)
+    for r in results:
+        by_track[r["track"]].append(r)
+    print(f"\n{'track':<26}{'n':>4}{'pass':>9}")
+    for track in sorted(by_track):
+        rows = by_track[track]
+        print(f"{track:<26}{len(rows):>4}{sum(1 for r in rows if r['ok']):>6}/{len(rows):<3}")
+    offenders = [r for r in results if not r["ok"]]
+    print()
+    if offenders:
+        print(f"{offender_label} ({len(offenders)}):")
+        for r in sorted(offenders, key=lambda x: (x["track"], x["task_id"])):
+            print(f"  {r['track']}/{r['task_id']}: {'; '.join(r['failures'])}")
+    else:
+        print(valid_msg)
+    print(f"\nTOTAL: {len(results) - len(offenders)}/{len(results)} valid"
+          f"{f' ({len(reused)} from cache)' if reused else ''}")
+    return offenders
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description="Validate dataset tasks through the real grading path.")
     ap.add_argument("--tasks-root", default="tasks")
@@ -219,6 +254,9 @@ def main(argv=None) -> int:
                     help="Min golden.objective - buggy.objective (C2)")
     ap.add_argument("--check-determinism", action="store_true", help="C3: grade golden twice")
     ap.add_argument("--check-empty", action="store_true", help="C4: empty submission must fail")
+    ap.add_argument("--structural", action="store_true",
+                    help="Tool-free mode: only schema/structure/golden-present, NO grading and NO "
+                         "EDA tools. For the generator hook and the local pre-commit gate.")
     ap.add_argument("--cache", default=DEFAULT_CACHE, help="Per-task hash cache path")
     ap.add_argument("--no-cache", action="store_true", help="Ignore + don't write the cache")
     ap.add_argument("--changed", action="store_true",
@@ -230,6 +268,22 @@ def main(argv=None) -> int:
     dirs = select_tasks(args, loader)
     if not dirs:
         raise SystemExit(f"No tasks match (tasks-root={args.tasks_root} track={args.track} glob={args.glob})")
+
+    # Tool-free structural mode: no grading, no EDA tools, no cache. Fast enough to
+    # run over the whole dataset (the local gate) or on a generator's emitted tasks.
+    if args.structural:
+        print(f"structural: {len(dirs)} selected | tool-free (schema + files + golden present)", flush=True)
+        results = [structural_one(d, loader) for d in dirs]
+        offenders = _print_rollup(
+            results, valid_msg="ALL STRUCTURALLY VALID (schema + required files + golden present).",
+            offender_label="STRUCTURAL OFFENDERS")
+        if args.report:
+            rp = Path(args.report)
+            rp.parent.mkdir(parents=True, exist_ok=True)
+            rp.write_text(json.dumps({"mode": "structural", "selected": len(dirs),
+                                      "valid": len(results) - len(offenders), "results": results}, indent=2))
+            print(f"report -> {rp}")
+        return 1 if offenders else 0
 
     cache_path = None if args.no_cache else (REPO / args.cache if not Path(args.cache).is_absolute() else Path(args.cache))
     cache = {} if args.no_cache else load_cache(cache_path)
@@ -271,27 +325,9 @@ def main(argv=None) -> int:
         save_cache(cache_path, cache)
 
     results = fresh + reused
-
-    # Report
-    by_track = defaultdict(list)
-    for r in results:
-        by_track[r["track"]].append(r)
-    print(f"\n{'track':<26}{'n':>4}{'pass':>9}")
-    for track in sorted(by_track):
-        rows = by_track[track]
-        npass = sum(1 for r in rows if r["ok"])
-        print(f"{track:<26}{len(rows):>4}{npass:>6}/{len(rows):<3}")
-
-    offenders = [r for r in results if not r["ok"]]
-    print()
-    if offenders:
-        print(f"OFFENDERS ({len(offenders)}):")
-        for r in sorted(offenders, key=lambda x: (x["track"], x["task_id"])):
-            print(f"  {r['track']}/{r['task_id']}: {'; '.join(r['failures'])}")
-    else:
-        print("ALL TASKS VALID (golden=1.0, discriminating, + any opt-in checks).")
-    print(f"\nTOTAL: {len(results) - len(offenders)}/{len(results)} valid"
-          f"{f' ({len(reused)} from cache)' if reused else ''}")
+    offenders = _print_rollup(
+        results, reused,
+        valid_msg="ALL TASKS VALID (golden=1.0, discriminating, + any opt-in checks).")
 
     if args.report:
         rp = Path(args.report)

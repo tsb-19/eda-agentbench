@@ -31,6 +31,7 @@ from eda_agentbench.agentic.workspace import (
     snapshot_workspace,
     compute_file_changes,
     detect_forbidden_modifications,
+    detect_hidden_shadows,
 )
 from eda_agentbench.task.validator import check_tcl_injection
 
@@ -97,13 +98,20 @@ def run_single_agentic(
         clean_files, violations = detect_forbidden_modifications(
             changes, files_spec.get("forbidden", []),
         )
+        # Shadow anti-cheat: the agent must not fabricate a file that shadows a HIDDEN
+        # artifact (grader/oracle/golden netlist) the evaluator overlay provides — the
+        # P7-class reward-hack (e.g. writing a fake design_netlist.v / run_hidden.* so the
+        # local public test passes).
+        shadow_clean, shadow_violations = detect_hidden_shadows(
+            changes, files_spec.get("hidden", []),
+        )
         # Content anti-cheat: an editable .sdc/.tcl that a grader sources into its
         # own interpreter must not carry Tcl that subverts the grader (e.g.
         # `proc incr {} {}` to forge CONSTRAINTS_OK/TIMING_CHECK_OK).
         tcl_violations = check_tcl_injection(
             agent_workspace, files_spec.get("editable", []),
         )
-        clean = clean_files and not tcl_violations
+        clean = clean_files and not tcl_violations and shadow_clean
 
         # === PHASE 2: Evaluator workspace (agent output + hidden files) ===
         eval_workspace = create_evaluator_workspace(
@@ -139,6 +147,7 @@ def run_single_agentic(
                     "checked_files": files_spec.get("forbidden", []),
                     "hash_mismatches": violations,
                     "tcl_injection": tcl_violations,
+                    "hidden_shadows": shadow_violations,
                 },
                 resource_usage={"wall_time_sec": round(wall_time, 2)},
                 metadata={
@@ -202,6 +211,7 @@ def run_single_agentic(
                     "checked_files": files_spec.get("forbidden", []),
                     "hash_mismatches": [],
                     "tcl_injection": [],
+                    "hidden_shadows": [],
                 },
                 resource_usage={"wall_time_sec": round(wall_time, 2)},
                 metadata={
@@ -320,6 +330,9 @@ def _select_evaluator(meta: dict, task_path: Path):
     elif evaluator_spec == "primetime_sta_debug.PrimeTimeSTADebugEvaluator":
         from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
         return PrimeTimeSTADebugEvaluator(task_path, meta)
+    elif evaluator_spec == "pt_exception_debug.PTExceptionDebugEvaluator":
+        from eda_agentbench.evaluator.pt_exception_debug import PTExceptionDebugEvaluator
+        return PTExceptionDebugEvaluator(task_path, meta)
     elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
         from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
         return PnRReportQAEvaluator(task_path, meta)

@@ -97,3 +97,35 @@ class TaskLoader:
                 errors.append("solution/ directory not found")
 
         return errors
+
+
+def structural_validate(task_path: Path, loader: "TaskLoader | None" = None) -> list[str]:
+    """Tool-free structural validation for emit-time / local gating.
+
+    Schema + required files (via TaskLoader.load) PLUS the golden submission is
+    actually present and non-empty — the silent-broken-task failure mode that
+    TaskLoader.load alone misses (it only checks that solution/ exists, not that the
+    golden editable lives in it). Returns a list of issue strings ([] == valid). No
+    EDA tools, no grading: safe to call from a generator on every task it writes, and
+    fast enough to run over the whole dataset in a pre-commit gate.
+    """
+    loader = loader or TaskLoader(task_path.parent)
+    try:
+        meta = loader.load(task_path)
+    except TaskValidationError as e:
+        return [str(e).splitlines()[0]]
+
+    issues: list[str] = []
+    editable = (meta.get("files") or {}).get("editable", []) or []
+    if meta.get("track") == "p5_spice_deck_debug":
+        # golden is the fixed deck under hidden/
+        if not list((task_path / "hidden").glob("*_fixed.sp")):
+            issues.append("no golden hidden/*_fixed.sp")
+    elif editable:
+        # golden is solution/<editable relpath>; at least one must be present & non-empty
+        sol = task_path / "solution"
+        present = [e for e in editable
+                   if (sol / e).is_file() and (sol / e).stat().st_size > 0]
+        if not present:
+            issues.append(f"no non-empty golden in solution/ for editable {editable}")
+    return issues
