@@ -333,6 +333,9 @@ def _select_evaluator(meta: dict, task_path: Path):
     elif evaluator_spec == "pt_exception_debug.PTExceptionDebugEvaluator":
         from eda_agentbench.evaluator.pt_exception_debug import PTExceptionDebugEvaluator
         return PTExceptionDebugEvaluator(task_path, meta)
+    elif evaluator_spec == "synthetic_project.SyntheticProjectEvaluator":
+        from eda_agentbench.evaluator.synthetic_project import SyntheticProjectEvaluator
+        return SyntheticProjectEvaluator(task_path, meta)
     elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
         from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
         return PnRReportQAEvaluator(task_path, meta)

@@ -11,12 +11,15 @@ from __future__ import annotations
 import hashlib
 import importlib.util
 import json
+import os
 import re
 import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
 
+from eda_agentbench.agentic.runner import _select_evaluator
 from eda_agentbench.agentic.workspace import create_agent_workspace
 from eda_agentbench.evaluator.synthetic_project import SyntheticProjectEvaluator
 from eda_agentbench.schema import validate_metadata
@@ -213,3 +216,121 @@ def test_no_literal_answer_leak(task):
                       for f in meta["files"]["visible"] if not f.endswith((".db",)))
     assert not _has_token(visible, target), (
         f"{task.name}: drifted property ({drift}) value {_fmt(target)} leaks as a literal in files/")
+
+
+# --- 9. verdict-first public runner (the Phase-0D feedback fix) --------------
+
+# A mock pt_shell that emits a >1000-byte banner BEFORE the verdict, mimicking the real
+# PrimeTime license banner that previously pushed PUBLIC_SIGNOFF past the agent's obs cap.
+_MOCK_PT = """#!/bin/bash
+# ignore args (-f run_public.tcl); emit banner-then-verdict like real pt_shell
+printf 'PrimeTime (R) license banner padding %s\\n' $(seq 1 60)
+echo "=== WORST SETUP PATH ==="
+echo "PUBLIC_SIGNOFF: VIOLATION worst_slack=-0.300000"
+echo "PUBLIC_HINT: inspect constraints.sdc against spec.md timing budgets"
+echo "  long timing detail line ......................................"
+echo "PUBLIC_DONE"
+"""
+
+
+def _run_public_with_mock(task: Path, tmp_path: Path) -> str:
+    meta = json.loads((task / "metadata.json").read_text())
+    ws = create_agent_workspace(task, meta)
+    mock = tmp_path / "mock_pt_shell"
+    mock.write_text(_MOCK_PT)
+    mock.chmod(0o755)
+    try:
+        env = dict(os.environ, EDA_PT_CMD=str(mock))
+        p = subprocess.run(["bash", "run_public.sh"], cwd=ws, env=env,
+                           capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(ws, ignore_errors=True)
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_public_verdict_within_first_1000_bytes(task, tmp_path):
+    """PUBLIC_SIGNOFF must be hoisted to the top of run_public.sh stdout, even when the
+    underlying pt_shell prints a >1000-byte banner first (the Phase-0D feedback bug)."""
+    out = _run_public_with_mock(task, tmp_path)
+    off = out.find("PUBLIC_SIGNOFF:")
+    assert off != -1, f"{task.name}: PUBLIC_SIGNOFF absent from public stdout"
+    assert off < 1000, f"{task.name}: PUBLIC_SIGNOFF at byte {off} (>=1000) — verdict not hoisted"
+    assert "PUBLIC_HINT:" in out
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_public_stdout_no_hidden_oracle_markers(task, tmp_path):
+    """Public stdout must never carry hidden-oracle fields."""
+    out = _run_public_with_mock(task, tmp_path)
+    for leak in ("CONSTRAINT_SPEC", "spec_truth", "grade_spec", "run_hidden", "run_signoff"):
+        assert leak not in out, f"{task.name}: public stdout leaks '{leak}'"
+
+
+# --- 10. agentic evaluator DISPATCH (the Phase-0D dispatch-bug fix) ----------
+# The agentic runner has its own _select_evaluator; before the fix it had no
+# p10 branch, so every p10 agentic episode silently fell through to the
+# VCSRTLEvaluator default -> "Unknown component" for constraint_spec/signoff ->
+# 0.10 floor regardless of the agent's edit. These tests pin the dispatch.
+
+def _spec_of(ev) -> str:
+    """Reconstruct the 'module.Class' evaluator-spec string from an instance."""
+    return f"{type(ev).__module__.split('.')[-1]}.{type(ev).__name__}"
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_agentic_dispatch_selects_synthetic_evaluator(task):
+    meta = json.loads((task / "metadata.json").read_text())
+    ev = _select_evaluator(meta, task)
+    assert isinstance(ev, SyntheticProjectEvaluator), (
+        f"{task.name}: agentic dispatch returned {type(ev).__name__}, "
+        "not SyntheticProjectEvaluator (regression for the dispatch bug)")
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_agentic_and_cli_dispatch_do_not_diverge(task):
+    """The agentic _select_evaluator must resolve the SAME evaluator the metadata
+    declares (the spec cli.py resolves in submission mode) — no silent fallback."""
+    meta = json.loads((task / "metadata.json").read_text())
+    declared = meta["scoring"]["evaluator"]
+    assert declared == "synthetic_project.SyntheticProjectEvaluator"
+    ev = _select_evaluator(meta, task)
+    assert _spec_of(ev) == declared, (
+        f"{task.name}: agentic dispatch resolved '{_spec_of(ev)}' but metadata "
+        f"declares '{declared}' — agentic/CLI dispatch diverge")
+
+
+# --- 11. agentic-PATH grading: correct -> 1.0, masking -> partial -----------
+
+def _agentic_score(task: Path, log: str) -> tuple[float, float, bool]:
+    """Grade through the evaluator the AGENTIC runner selects, exactly as runner.py
+    does (mode='submission' over scoring.weights with the hidden marker log).
+    Mirrors eda_agentbench/agentic/runner.py lines ~166-197."""
+    meta = json.loads((task / "metadata.json").read_text())
+    ev = _select_evaluator(meta, task)
+    comps = [ev.evaluate_component(c, task, log, mode="submission")
+             for c in meta["scoring"]["weights"]]
+    total = sum(c.weighted_score for c in comps)
+    obj = sum(c.weighted_score for c in comps if c.name != "explanation")
+    return total, obj, total >= 0.5
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_agentic_correct_edit_scores_full(task):
+    """A spec-correct constraints.sdc scores 1.0 through the agentic grading path
+    (the dispatch bug previously floored this at 0.10)."""
+    golden = (task / "solution" / "constraints.sdc").read_text()
+    total, _obj, passed = _agentic_score(task, _marker_log(task, golden, signoff_ok=True))
+    assert passed and abs(total - 1.0) < 1e-9, f"{task.name}: agentic correct edit total={total}"
+
+
+@pytest.mark.parametrize("task", GEN_TASKS, ids=lambda p: p.name)
+def test_agentic_masking_edit_partial_not_full(task):
+    """A masking edit that makes sign-off pass but drifts the period from spec must get
+    PARTIAL credit (sign-off only), never full, through the agentic grading path."""
+    golden = (task / "solution" / "constraints.sdc").read_text()
+    masking = re.sub(r"-period \S+", "-period 99.0", golden)   # sign-off passes, spec drifts
+    total, _obj, passed = _agentic_score(task, _marker_log(task, masking, signoff_ok=True))
+    assert not passed, f"{task.name}: masking edit wrongly passed the gate, total={total}"
+    assert 0.0 < total < 1.0, f"{task.name}: masking edit total={total} not partial credit"
+
