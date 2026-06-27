@@ -1,0 +1,99 @@
+{
+  "probe": "synthetic_p12_smoke_probe",
+  "date": "2026-06-26",
+  "worktree": "/data1/tongsb/eda-agentbench-synthetic-phase0a",
+  "branch": "synthetic-phase0a",
+  "head_commit": "96bd79a",
+  "question": "Can protocol-compliant frontier agents solve the multi-artifact stale-package triangle reliably, or does p12 produce non-trivial mechanism difficulty?",
+  "scope": {
+    "task_ids": ["mf_handoff_0001"],
+    "track": "p12_multifact_handoff",
+    "models": ["Qwen3.7-Max", "DeepSeek-V4-Pro", "MiniMax-M3"],
+    "k": 3,
+    "episodes": 9,
+    "temperature": 0.7,
+    "elicit_confidence": true,
+    "concurrency": 2,
+    "max_actions": 12,
+    "per_episode_timeout_sec": 600,
+    "tool_host": "b04 (PrimeTime via transparent shim)",
+    "no_kimi": true,
+    "no_glm": true
+  },
+  "cost": {
+    "total_cny": 4.79,
+    "cap_cny": 20,
+    "by_model_cny": {"DeepSeek-V4-Pro": 2.48, "Qwen3.7-Max": 2.01, "MiniMax-M3": 0.30},
+    "tokens_in_total": 393183,
+    "tokens_out_total": 21989
+  },
+  "pre_launch_checks": {
+    "scripts_check": "green (2901/2901 structurally valid)",
+    "resolved_task_list": ["mf_handoff_0001"],
+    "real_tool_validation_b04": {
+      "golden_full": 1.0,
+      "mutant": 0.25,
+      "script_only": 0.10,
+      "sdc_only": 0.10,
+      "provenance_only": 0.25,
+      "full_coordinated": 1.0,
+      "verdict": "ALL PASS (golden=1.0, every single-edit<0.5, full=1.0)"
+    },
+    "env_symlink_absent_before": true,
+    "env_symlink_recreated_as_symlink_only": true,
+    "env_not_copied": true,
+    "git_shows_env": false,
+    "config_untracked": true,
+    "config_models_only": ["Qwen3.7-Max", "DeepSeek-V4-Pro", "MiniMax-M3"],
+    "config_inline_secrets": "none"
+  },
+  "per_trial": [
+    {"trial": "trial1", "model": "Qwen3.7-Max", "score": 1.00, "objective": 0.90, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 1.0, "explanation": 1.0}, "protocol": "ok", "confidence": "high", "abstained": false, "forbidden_edit": false, "tool_calls": 8, "wall_s": 92.2},
+    {"trial": "trial2", "model": "Qwen3.7-Max", "score": 1.00, "objective": 0.90, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 1.0, "explanation": 1.0}, "protocol": "ok", "confidence": "high", "abstained": false, "forbidden_edit": false},
+    {"trial": "trial3", "model": "Qwen3.7-Max", "score": 1.00, "objective": 0.90, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 1.0, "explanation": 1.0}, "protocol": "ok", "confidence": "high", "abstained": false, "forbidden_edit": false},
+    {"trial": "trial1", "model": "DeepSeek-V4-Pro", "score": 0.85, "objective": 0.75, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 0.0, "explanation": 1.0}, "protocol": "budget_exhausted", "confidence": "", "abstained": true, "forbidden_edit": false, "note": "coordinated flow+SDC repair complete; ran out of action/token budget before committing the optional provenance reconciliation (refinement axis). Still a pass by score."},
+    {"trial": "trial2", "model": "DeepSeek-V4-Pro", "score": 1.00, "objective": 0.90, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 1.0, "explanation": 1.0}, "protocol": "ok", "confidence": "high", "abstained": false, "forbidden_edit": false},
+    {"trial": "trial3", "model": "DeepSeek-V4-Pro", "score": 1.00, "objective": 0.90, "passed": true, "components": {"signoff": 1.0, "artifact_consistency": 1.0, "scenario_clock_consistency": 1.0, "provenance_report_consistency": 1.0, "explanation": 1.0}, "protocol": "ok", "confidence": "high", "abstained": false, "forbidden_edit": false},
+    {"trial": "trial1", "model": "MiniMax-M3", "score": 0.25, "objective": 0.15, "passed": false, "components": {"signoff": 1.0, "artifact_consistency": 0.0, "scenario_clock_consistency": 0.0, "provenance_report_consistency": 0.0, "explanation": 1.0}, "protocol": "nocommit", "confidence": "", "abstained": true, "forbidden_edit": false, "note": "reasoned about all 3 editable files but never committed an edit (stop-token artifact ]<]minimax[>[); graded the unchanged mutant baseline (stale island self-signs-off green => signoff-only 0.25)."},
+    {"trial": "trial2", "model": "MiniMax-M3", "score": 0.25, "objective": 0.15, "passed": false, "components": {"signoff": 1.0, "artifact_consistency": 0.0, "scenario_clock_consistency": 0.0, "provenance_report_consistency": 0.0, "explanation": 1.0}, "protocol": "nocommit", "abstained": true, "forbidden_edit": false},
+    {"trial": "trial3", "model": "MiniMax-M3", "score": 0.25, "objective": 0.15, "passed": false, "components": {"signoff": 1.0, "artifact_consistency": 0.0, "scenario_clock_consistency": 0.0, "provenance_report_consistency": 0.0, "explanation": 1.0}, "protocol": "nocommit", "abstained": true, "forbidden_edit": false}
+  ],
+  "aggregates_by_model": {
+    "Qwen3.7-Max": {
+      "pass_at_1": 1.00, "pass_at_k": 1.00, "pass_pow_k": 1.00, "gap": 0.00, "flip_rate": 0.00,
+      "trust": 1.00, "overconfident_wrong": 0, "format_compliance": 1.00, "abstain": 0.00,
+      "protocol_failures": {}, "tokens_in": 137369, "tokens_out": 9937, "tool_calls": 24, "wall_s": 307.6,
+      "behavior": {"full_coordinated_repair": 3, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_or_protocol_fail": 0}
+    },
+    "DeepSeek-V4-Pro": {
+      "pass_at_1_by_score": 1.00, "pass_pow_k_by_score": 1.00,
+      "pass_at_1_reliability_tool": 0.67, "pass_at_k_reliability_tool": 1.00, "pass_pow_k_reliability_tool": 0.00,
+      "gap_reliability_tool": 0.67, "flip_rate_reliability_tool": 1.00,
+      "trust": 0.60, "overconfident_wrong": 0, "format_compliance": 0.67, "abstain": 0.00,
+      "protocol_failures": {"budget_exhausted": 1}, "tokens_in": 185885, "tokens_out": 10395, "tool_calls": 27, "wall_s": 363.9,
+      "behavior": {"full_coordinated_repair": 3, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_or_protocol_fail": 0},
+      "metric_artifact_note": "All 3 DeepSeek episodes did the coordinated repair and scored >=0.85 (pass by score). The reliability tool classifies trial1's budget_exhausted abstain as a non-pass, so its tool-pass^k reads 0.00 and flip 1.00. By capability score, DeepSeek is 3/3 pass, pass^k=1.00. The 0.85 came from running out of budget before the OPTIONAL provenance refinement, not from a capability failure."
+    },
+    "MiniMax-M3": {
+      "pass_at_1": 0.00, "pass_at_k": 0.00, "pass_pow_k": 0.00, "gap": 0.00, "flip_rate": 0.00,
+      "trust": -0.20, "overconfident_wrong": 0, "format_compliance": 0.00, "abstain": 0.00,
+      "protocol_failures": {"nocommit": 3}, "tokens_in": 69929, "tokens_out": 657, "tool_calls": 25, "wall_s": 123.4,
+      "behavior": {"full_coordinated_repair": 0, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_or_protocol_fail": 3},
+      "note": "0/3 nocommit. Same stop-token artifact (]<]minimax[>[) reliability signature seen in prior probes; capability not exercised because no edit is ever committed."
+    }
+  },
+  "behavior_matrix": {
+    "_legend": "counts over 3 trials per model",
+    "Qwen3.7-Max":   {"full_coordinated_repair": 3, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_protocol_fail": 0},
+    "DeepSeek-V4-Pro": {"full_coordinated_repair": 3, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_protocol_fail": 0, "_budget_exhausted_before_optional_provenance": 1},
+    "MiniMax-M3":    {"full_coordinated_repair": 0, "single_local_repair": 0, "pt_green_symptom_suppression": 0, "forbidden_edit": 0, "nocommit_protocol_fail": 3}
+  },
+  "qualitative_failure_signatures": {
+    "Qwen3.7-Max": "none — clean coordinated repair all 3 trials, high confidence, well-calibrated.",
+    "DeepSeek-V4-Pro": "no capability failure; one trial hit the action/token budget after the coordinated repair, before the optional provenance reconciliation — a budget/abstain artifact on the refinement axis, not a wrong repair. Zero single-edit partial repairs, zero symptom suppression.",
+    "MiniMax-M3": "pure reliability/protocol failure: reasons correctly about which artifacts lag but never commits an edit; the minimax stop-token artifact truncates output; graded against the unchanged mutant. No capability signal either way."
+  },
+  "stop_conditions_triggered": "none (no gateway auth failure, no >=2 consecutive infra fails, resolved list == [mf_handoff_0001], cost Y4.79 < Y20, no Kimi/GLM, no harness bug, dispatch intact, public verdict present, oracle unambiguous)",
+  "interpretation": "SATURATED for top protocol-compliant agents. Qwen and DeepSeek both reach pass^k=1.00 by capability score (3/3 coordinated repairs each); the only sub-1.0 outcomes are DeepSeek's one budget_exhausted abstain on the OPTIONAL provenance axis and MiniMax's reliability-only nocommit. No model produced a single-edit partial repair, PT-green symptom suppression, or a forbidden edit. The stale-package triangle, as instantiated in mf_handoff_0001, does not yet produce mechanism difficulty for Qwen/DeepSeek.",
+  "implication": "Per the interpretation rules: because Qwen and DeepSeek both get pass^k=1.00 (by capability), even the first p12 prototype is saturated for top protocol-compliant agents. Difficulty must escalate further BEFORE generator work — e.g. more coupled artifacts (>2 coordinated edits), ambiguity-free but deeper triangles, additional islands, or cross-scenario/corner coupling. MiniMax remains a reliability-only signal. The most valuable observed near-miss is DeepSeek's budget-bound provenance omission, which argues for keeping provenance as a refinement axis and/or raising the coordination depth so the optional axis is not where budget runs out."
+}
