@@ -336,6 +336,9 @@ def _select_evaluator(meta: dict, task_path: Path):
     elif evaluator_spec == "synthetic_project.SyntheticProjectEvaluator":
         from eda_agentbench.evaluator.synthetic_project import SyntheticProjectEvaluator
         return SyntheticProjectEvaluator(task_path, meta)
+    elif evaluator_spec == "flow_handoff.FlowHandoffEvaluator":
+        from eda_agentbench.evaluator.flow_handoff import FlowHandoffEvaluator
+        return FlowHandoffEvaluator(task_path, meta)
     elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
         from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
         return PnRReportQAEvaluator(task_path, meta)

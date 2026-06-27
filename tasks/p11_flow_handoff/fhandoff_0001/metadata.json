@@ -1,0 +1,88 @@
+{
+  "task_id": "fhandoff_0001",
+  "track": "p11_flow_handoff",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "medium",
+  "data_type": "mutation_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 300,
+  "max_tool_calls": 30,
+  "max_patch_attempts": 8,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "spec.md",
+      "design.v",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "constraints.sdc",
+      "handoff_manifest.json",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl"
+    ],
+    "editable": [
+      "handoff_manifest.json"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_signoff.tcl",
+      "grade_handoff.py",
+      "handoff_truth.json"
+    ],
+    "forbidden": [
+      "spec.md",
+      "design.v",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "constraints.sdc",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_hidden.sh",
+      "run_signoff.tcl",
+      "grade_handoff.py",
+      "handoff_truth.json"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "signoff": 0.2,
+      "handoff_consistency": 0.55,
+      "manifest_correctness": 0.15,
+      "explanation": 0.1
+    },
+    "evaluator": "flow_handoff.FlowHandoffEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "hand_authored",
+    "seed": 0,
+    "params": {
+      "mechanism": "flow_handoff_drift",
+      "variant": "A_manifest_stale_netlist",
+      "mutation": "handoff_manifest.netlist netlist_v2.v -> netlist_v1.v (+ revision/hash reverted to stale v1)",
+      "top_module": "acc_stage",
+      "clock": "clk",
+      "scenario": "func",
+      "corner": "typ",
+      "expected_netlist": "netlist_v2.v",
+      "expected_revision": "v2",
+      "stale_netlist": "netlist_v1.v",
+      "required_interface_port": "en",
+      "golden_signoff": "OK",
+      "mutant_signoff": "OK_but_wrong_design",
+      "note": "both revisions sign off clean on their own; PT-green alone cannot distinguish. Correctness is a cross-artifact provenance+interface property checked by the hidden oracle."
+    }
+  },
+  "expected_error_category": "flow_handoff_manifest_stale_netlist",
+  "version": "0.1.0"
+}
