@@ -1,0 +1,115 @@
+{
+  "task_id": "traj_handoff_0001",
+  "track": "p13_trajectory_handoff",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "hard",
+  "data_type": "mutation_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 420,
+  "max_tool_calls": 40,
+  "max_patch_attempts": 10,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "spec.md",
+      "handoff_manifest.json",
+      "flow_config.json",
+      "constraints.sdc",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence.sh",
+      "gen_evidence.py",
+      "evidence_signoff.tcl",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl"
+    ],
+    "editable": [
+      "flow_config.json",
+      "constraints.sdc",
+      "timing_report.rpt",
+      "evidence_manifest.json"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_trajectory.py",
+      "handoff_truth.json"
+    ],
+    "forbidden": [
+      "spec.md",
+      "handoff_manifest.json",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence.sh",
+      "gen_evidence.py",
+      "evidence_signoff.tcl",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_trajectory.py",
+      "handoff_truth.json"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "signoff": 0.15,
+      "final_artifact_consistency": 0.25,
+      "scenario_clock_consistency": 0.15,
+      "evidence_generation": 0.25,
+      "provenance_consistency": 0.10,
+      "explanation": 0.10
+    },
+    "evaluator": "trajectory_handoff.TrajectoryHandoffEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "hand_authored",
+    "seed": 0,
+    "params": {
+      "mechanism": "trajectory_evidence_generation_handoff",
+      "scenario": "stale_evidence_requires_rerun",
+      "top_module": "acc_stage",
+      "expected_netlist": "netlist_v2.v",
+      "expected_clock": "clk_main",
+      "stale_netlist": "netlist_v1.v",
+      "stale_clock": "clk_old",
+      "scenario_corner": "func/typ",
+      "editable_inputs": ["flow_config.json", "constraints.sdc"],
+      "generated_evidence": ["timing_report.rpt", "evidence_manifest.json"],
+      "public_generator": "run_evidence.sh",
+      "evidence_master_gate": "EVIDENCE_OK = submitted evidence equals the hidden trusted re-run (report_digest, input_hashes, run_nonce, signoff==OK, paths>=min) AND describes the authority-correct package (v2/clk_main/func/typ). This is the hard precondition gating final/scenario/provenance.",
+      "valid_trajectory": "repair flow_config->v2 AND constraints.sdc->clk_main, then run `bash run_evidence.sh` to regenerate fresh timing_report.rpt + evidence_manifest.json bound to the repaired inputs",
+      "rejects": ["hand-edited report/manifest (digest mismatch vs hidden re-run)", "stale evidence reuse (input_hashes/nonce mismatch)", "fix-without-rerun (stale evidence)", "rerun-from-wrong-package (selected_* != authority)", "PT green on stale island", "partial repair (zero constrained paths)", "forbidden artifact edits"],
+      "run_nonce_formula": "sha256(input_hashes(flow_config,constraints,consumed_netlist) ++ selected_clock ++ scenario ++ corner ++ report_digest)[:16] -- deterministic, no wall-clock",
+      "forgery_resistance": "report_digest binds to pt_shell's actual report_timing path-table body (the 13-buffer din->cap_reg path), recomputed by the hidden re-run; a hand-crafted report cannot match without reproducing the tool output. See docs/synthetic_trajectory_handoff_design.md section 11 honest-limits.",
+      "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_ARTIFACT_CONSISTENCY_OK AND SCENARIO_CLOCK_OK AND PROVENANCE_OK AND no forbidden edits; final-state-only repair without rerun = signoff 0.15 + explanation 0.10 = 0.25 < 0.5"
+    }
+  },
+  "expected_error_category": "trajectory_handoff_stale_evidence_requires_rerun",
+  "version": "0.1.0"
+}
