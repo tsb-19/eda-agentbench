@@ -1,0 +1,256 @@
+{
+  "probe": "synthetic_phase0d",
+  "track": "p10_synthetic_project",
+  "commit": "821b954",
+  "branch": "synthetic-phase0a",
+  "scope": {
+    "tasks": [
+      "syn_proj_0002",
+      "syn_proj_0003",
+      "syn_proj_0004",
+      "syn_proj_0005",
+      "syn_proj_0006"
+    ],
+    "models": [
+      "Qwen3.7-Max",
+      "DeepSeek-V4-Pro",
+      "MiniMax-M3"
+    ],
+    "k": 3,
+    "temperature": 0.7,
+    "elicit_confidence": true,
+    "concurrency": 2,
+    "path": "agentic",
+    "tool": "PrimeTime(b04)"
+  },
+  "cost": {
+    "total_cny": 7.62,
+    "per_trial_cny": {
+      "trial1": 2.26,
+      "trial2": 2.73,
+      "trial3": 2.63
+    },
+    "tokens_in": 725046,
+    "tokens_out": 62648
+  },
+  "validity": {
+    "pre_fix_attempts_invalid": true,
+    "bugs": [
+      {
+        "id": "A1",
+        "name": "public_signoff_truncation",
+        "desc": "PUBLIC_SIGNOFF emitted at ~byte 7018 > 4000 obs cap; agents blind to verdict",
+        "fix": "verdict-first run_public.{tcl,sh}; offset 0 on real PT"
+      },
+      {
+        "id": "A2",
+        "name": "agentic_evaluator_misdispatch",
+        "desc": "_select_evaluator lacked synthetic_project branch -> VCSRTLEvaluator -> 'Unknown component' -> 0.10 floor on every p10 agentic episode",
+        "fix": "add synthetic_project.SyntheticProjectEvaluator branch mirroring cli.py"
+      }
+    ],
+    "note": "0.10 floors from pre-fix attempts are NOT difficulty evidence; high-confidence-while-blind is a calibration warning only"
+  },
+  "metrics_per_model": {
+    "Qwen3.7-Max": {
+      "pass1": 1.0,
+      "passk_any": 1.0,
+      "passk_all": 1.0,
+      "reliability_gap": 0.0,
+      "flip_rate": 0.0,
+      "overconfident_wrong_count": 0,
+      "format_compliance": 1.0,
+      "abstain_rate": 0.0,
+      "trust": 1.0,
+      "protocol_status_counts": {
+        "ok": 15
+      },
+      "mean_tokens": 12011.466666666667,
+      "mean_tool_calls": 4.6,
+      "mean_latency_s": 51.230066666666666,
+      "mean_retries": 0.0,
+      "overconf_rate": 0.0,
+      "protocol_fail_rate": 0.0
+    },
+    "DeepSeek-V4-Pro": {
+      "pass1": 1.0,
+      "passk_any": 1.0,
+      "passk_all": 1.0,
+      "reliability_gap": 0.0,
+      "flip_rate": 0.0,
+      "overconfident_wrong_count": 0,
+      "format_compliance": 1.0,
+      "abstain_rate": 0.0,
+      "trust": 1.0,
+      "protocol_status_counts": {
+        "ok": 15
+      },
+      "mean_tokens": 16548.2,
+      "mean_tool_calls": 4.733333333333333,
+      "mean_latency_s": 73.61853333333333,
+      "mean_retries": 0.0,
+      "overconf_rate": 0.0,
+      "protocol_fail_rate": 0.0
+    },
+    "MiniMax-M3": {
+      "pass1": 0.2,
+      "passk_any": 0.6,
+      "passk_all": 0.0,
+      "reliability_gap": 0.2,
+      "flip_rate": 0.6,
+      "overconfident_wrong_count": 0,
+      "format_compliance": 0.2,
+      "abstain_rate": 0.0,
+      "trust": 0.039999999999999994,
+      "protocol_status_counts": {
+        "nocommit": 12,
+        "ok": 3
+      },
+      "mean_tokens": 23953.266666666666,
+      "mean_tool_calls": 7.266666666666667,
+      "mean_latency_s": 36.84746666666667,
+      "mean_retries": 0.0,
+      "overconf_rate": 0.0,
+      "protocol_fail_rate": 0.8
+    }
+  },
+  "per_task_matrix": {
+    "Qwen3.7-Max": {
+      "syn_proj_0002": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0003": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0004": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0005": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0006": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      }
+    },
+    "DeepSeek-V4-Pro": {
+      "syn_proj_0002": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0003": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0004": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0005": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      },
+      "syn_proj_0006": {
+        "trials": [
+          1,
+          1,
+          1
+        ],
+        "n_pass": 3
+      }
+    },
+    "MiniMax-M3": {
+      "syn_proj_0002": {
+        "trials": [
+          0,
+          0,
+          0
+        ],
+        "n_pass": 0
+      },
+      "syn_proj_0003": {
+        "trials": [
+          0,
+          1,
+          0
+        ],
+        "n_pass": 1
+      },
+      "syn_proj_0004": {
+        "trials": [
+          1,
+          0,
+          0
+        ],
+        "n_pass": 1
+      },
+      "syn_proj_0005": {
+        "trials": [
+          0,
+          1,
+          0
+        ],
+        "n_pass": 1
+      },
+      "syn_proj_0006": {
+        "trials": [
+          0,
+          0,
+          0
+        ],
+        "n_pass": 0
+      }
+    }
+  },
+  "failure_signatures": {
+    "Qwen3.7-Max": "clean; high-confidence-correct on all 15",
+    "DeepSeek-V4-Pro": "clean; high-confidence-correct on all 15",
+    "MiniMax-M3": "tool-call protocol defect: stop-token artifact ']<]minimax[>[' appended to commands in 11/12 failures -> nocommit; scores 1.0 in the 3 episodes it commits cleanly; intermittent (flip 0.60); no capability gap, no masking, no overconfident-wrong"
+  },
+  "masking_overconstraint": {
+    "attempts_detected": 0,
+    "genuine_signoff_fail": 0,
+    "note": "over-constraint oracle never exercised; all failures were non-submissions"
+  },
+  "conclusion": "constraint-drift saturated as a difficulty mechanism for protocol-compliant frontier agents (Qwen/DeepSeek pass^k=1.0,trust=1.0); discrimination is purely reliability/protocol (MiniMax trust 0.04 via nocommit/format, capability intact); most-valuable masking failure mode did not occur live (null result, oracle still proven by validate_dataset)."
+}
