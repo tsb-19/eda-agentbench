@@ -1,0 +1,42 @@
+###############################################################################
+# Archived timing sign-off report  (READ-ONLY EVIDENCE -- do not hand-edit)
+#
+# PROVENANCE STAMP
+#   netlist        : netlist_v1.v
+#   netlist_sha256 : 64c06ccd792ed33c8c3296778bbb832642e98eaeaffce5e2268fc5211428da62
+#   netlist_revision: v1
+#   clock          : clk_old
+#   scenario       : func
+#   corner         : typ
+#   tool           : pt_shell (setup, max delay)
+#
+# NOTE: this archived report was generated against the LEGACY v1 / clk_old design and was never
+# regenerated after the v1->v2 re-synthesis and clk_old->clk_main rename. It "agrees" with the
+# stale flow_config.json + constraints.sdc, which is exactly why the stale island looks internally
+# consistent. It is STALE evidence: its provenance stamp does NOT match the current v2/clk_main
+# contract in handoff_manifest.json. Do not trust it; do not hand-edit it to fake agreement.
+###############################################################################
+  Startpoint: cap_reg (rising edge-triggered flip-flop clocked by clk_old)
+  Endpoint:   acc_reg (rising edge-triggered flip-flop clocked by clk_old)
+  Path Group: clk_old
+  Path Type:  max
+
+  Point                                    Incr       Path
+  -----------------------------------------------------------------
+  clock clk_old (rise edge)                0.00       0.00
+  cap_reg/CK (DFFX1)                        0.00       0.00 r
+  cap_reg/Q (DFFX1)                         0.08       0.08 r
+  <21 BUFX1 buffer chain>                   2.10       2.18 r
+  acc_reg/D (DFFX1)                         0.00       2.18 r
+  data arrival time                                    2.18
+
+  clock clk_old (rise edge)                3.00       3.00
+  clock uncertainty                        -0.15      2.85
+  acc_reg/CK (DFFX1)                        0.00       2.85 r
+  library setup time                       -0.02      2.83
+  data required time                                   2.83
+  -----------------------------------------------------------------
+  data required time                                   2.83
+  data arrival time                                   -2.18
+  -----------------------------------------------------------------
+  slack (MET)                                          0.65

@@ -1,8 +1,8 @@
 # EDA-AgentBench v0.3 — Benchmark Summary
 
-**Tag:** `v0.3-phase8b-2900`  
-**Total tasks:** 2900  
-**Tracks:** 13  
+**Tag:** `v0.3-phase8b-2901`  
+**Total tasks:** 2901  
+**Tracks:** 14  
 **Generated:** deterministic export via `scripts/export_benchmark_summary.py`
 
 ## Per-Track Task Count
@@ -11,6 +11,7 @@
 |-------|------:|
 | p10_synthetic_project | 6 |
 | p11_flow_handoff | 2 |
+| p12_multifact_handoff | 1 |
 | P1 RTL Debug | 1001 |
 | P2 Testbench/SVA Gen | 101 |
 | P3 Timing Report QA | 1008 |
@@ -22,7 +23,7 @@
 | P7 SpyGlass Lint Debug | 50 |
 | P8 PnR Report QA | 101 |
 | P9 PrimeTime Exception Debug | 17 |
-| **Total** | **2900** |
+| **Total** | **2901** |
 
 ## Tool Distribution
 
@@ -32,7 +33,7 @@
 | hspice | 251 |
 | icc2 | 45 |
 | innovus | 56 |
-| pt | 1086 |
+| pt | 1087 |
 | spectre | 198 |
 | spyglass | 50 |
 | vcs | 1102 |
@@ -42,7 +43,7 @@
 | Difficulty | Count |
 |------------|------:|
 | easy | 1381 |
-| hard | 477 |
+| hard | 478 |
 | medium | 1042 |
 
 ## Data Type Distribution
@@ -50,7 +51,7 @@
 | Data Type | Count |
 |-----------|------:|
 | flow_synthetic | 150 |
-| mutation_synthetic | 1110 |
+| mutation_synthetic | 1111 |
 | template_synthetic | 1640 |
 
 ## Scoring Methodology
@@ -63,6 +64,7 @@ total score in [0, 1]. A task passes if total_score >= 0.5.
 |-------|-------------------|
 | p10_synthetic_project | `constraint_spec:0.6|explanation:0.1|signoff:0.3` |
 | p11_flow_handoff | `explanation:0.1|handoff_consistency:0.55|manifest_correctness:0.15|signoff:0.2` |
+| p12_multifact_handoff | `artifact_consistency:0.35|explanation:0.1|provenance_report_consistency:0.15|scenario_clock_consistency:0.25|signoff:0.15` |
 | P1 RTL Debug | `compile:0.1|explanation:0.1|hidden_test:0.5|public_test:0.3` |
 | P2 Testbench/SVA Gen | `compile:0.1|golden_pass:0.2|mutant_1:0.35|mutant_2:0.35` |
 | P3 Timing Report QA | `answer_match:1.0` |
