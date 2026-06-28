@@ -1,0 +1,118 @@
+{
+  "task_id": "workflow_handoff_0002",
+  "track": "p14_workflow_handoff",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "hard",
+  "data_type": "mutation_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 600,
+  "max_tool_calls": 60,
+  "max_patch_attempts": 10,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "spec.md",
+      "handoff_manifest.json",
+      "flow_config.json",
+      "constraints.sdc",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence_stage1.sh",
+      "gen_evidence_stage1.py",
+      "evidence_signoff.tcl",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_evidence_stage2.sh",
+      "gen_evidence_stage2.py",
+      "evidence_signoff_stage2.tcl",
+      "stage2_summary.json"
+    ],
+    "editable": [
+      "flow_config.json",
+      "constraints.sdc",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "stage2_summary.json"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_stage1_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_workflow.py",
+      "handoff_truth.json",
+      "gen_evidence_stage2_trusted.py",
+      "evidence_signoff_stage2_trusted.tcl"
+    ],
+    "forbidden": [
+      "spec.md",
+      "handoff_manifest.json",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence_stage1.sh",
+      "gen_evidence_stage1.py",
+      "evidence_signoff.tcl",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_evidence_stage2.sh",
+      "gen_evidence_stage2.py",
+      "evidence_signoff_stage2.tcl",
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_stage1_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_workflow.py",
+      "handoff_truth.json",
+      "gen_evidence_stage2_trusted.py",
+      "evidence_signoff_stage2_trusted.tcl"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "signoff": 0.15,
+      "final_state": 0.2,
+      "evidence_generation": 0.25,
+      "stage_chain": 0.15,
+      "provenance": 0.15,
+      "explanation": 0.1
+    },
+    "evaluator": "workflow_handoff.WorkflowHandoffEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p14_workflow_handoff_gen.py",
+    "seed": 0,
+    "params": {
+      "mechanism": "workflow_multistage_evidence_chain_handoff",
+      "evidence_steps": 2,
+      "expected_netlist": "netlist_v2.v",
+      "expected_clock": "clk_main",
+      "stale_netlist": "netlist_v1.v",
+      "stale_clock": "clk_old",
+      "scenario_corner": "func/typ",
+      "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND PROVENANCE_OK AND no forbidden edits"
+    }
+  },
+  "expected_error_category": "workflow_handoff_stale_evidence_chain_requires_ordered_rerun",
+  "version": "0.1.0"
+}

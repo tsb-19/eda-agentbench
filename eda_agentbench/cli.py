@@ -582,6 +582,9 @@ def _evaluate_single(task_path: Path, submission_path: Path, meta: dict,
         elif evaluator_spec == "trajectory_handoff.TrajectoryHandoffEvaluator":
             from eda_agentbench.evaluator.trajectory_handoff import TrajectoryHandoffEvaluator
             evaluator = TrajectoryHandoffEvaluator(task_path, meta)
+        elif evaluator_spec == "workflow_handoff.WorkflowHandoffEvaluator":
+            from eda_agentbench.evaluator.workflow_handoff import WorkflowHandoffEvaluator
+            evaluator = WorkflowHandoffEvaluator(task_path, meta)
         elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
             from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
             evaluator = PnRReportQAEvaluator(task_path, meta)

@@ -345,6 +345,9 @@ def _select_evaluator(meta: dict, task_path: Path):
     elif evaluator_spec == "trajectory_handoff.TrajectoryHandoffEvaluator":
         from eda_agentbench.evaluator.trajectory_handoff import TrajectoryHandoffEvaluator
         return TrajectoryHandoffEvaluator(task_path, meta)
+    elif evaluator_spec == "workflow_handoff.WorkflowHandoffEvaluator":
+        from eda_agentbench.evaluator.workflow_handoff import WorkflowHandoffEvaluator
+        return WorkflowHandoffEvaluator(task_path, meta)
     elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
         from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
         return PnRReportQAEvaluator(task_path, meta)
