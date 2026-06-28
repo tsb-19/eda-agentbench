@@ -1,0 +1,143 @@
+{
+  "task_id": "workflow_handoff_0004",
+  "track": "p14_workflow_handoff",
+  "tool": [
+    "pt"
+  ],
+  "difficulty": "hard",
+  "data_type": "mutation_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 600,
+  "max_tool_calls": 60,
+  "max_patch_attempts": 10,
+  "max_output_tokens": 32000,
+  "files": {
+    "visible": [
+      "spec.md",
+      "handoff_manifest.json",
+      "flow_config.json",
+      "constraints.sdc",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence_stage1.sh",
+      "gen_evidence_stage1.py",
+      "evidence_signoff.tcl",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_evidence_stage2.sh",
+      "gen_evidence_stage2.py",
+      "evidence_signoff_stage2.tcl",
+      "stage2_summary.json",
+      "prev_corner_signoff.log"
+    ],
+    "editable": [
+      "flow_config.json",
+      "constraints.sdc",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "stage2_summary.json"
+    ],
+    "hidden": [
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_stage1_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_workflow.py",
+      "handoff_truth.json",
+      "gen_evidence_stage2_trusted.py",
+      "evidence_signoff_stage2_trusted.tcl"
+    ],
+    "forbidden": [
+      "spec.md",
+      "handoff_manifest.json",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence_stage1.sh",
+      "gen_evidence_stage1.py",
+      "evidence_signoff.tcl",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_evidence_stage2.sh",
+      "gen_evidence_stage2.py",
+      "evidence_signoff_stage2.tcl",
+      "prev_corner_signoff.log",
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_stage1_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_workflow.py",
+      "handoff_truth.json",
+      "gen_evidence_stage2_trusted.py",
+      "evidence_signoff_stage2_trusted.tcl"
+    ]
+  },
+  "run_command": "bash run_public.sh && bash run_hidden.sh",
+  "scoring": {
+    "weights": {
+      "signoff": 0.1,
+      "final_state": 0.15,
+      "evidence_generation": 0.25,
+      "stage_chain": 0.1,
+      "provenance": 0.1,
+      "authority_consistency": 0.1,
+      "hazard_recovery": 0.1,
+      "explanation": 0.1
+    },
+    "evaluator": "workflow_handoff.WorkflowHandoffEvaluator",
+    "explanation_weight": 0.1
+  },
+  "sanitizer": {
+    "enabled": true
+  },
+  "generator": {
+    "script": "p14_workflow_handoff_gen.py",
+    "seed": 0,
+    "params": {
+      "mechanism": "workflow_multistage_evidence_chain_handoff",
+      "evidence_steps": 2,
+      "expected_netlist": "netlist_v2.v",
+      "expected_clock": "clk_main",
+      "stale_netlist": "netlist_v1.v",
+      "stale_clock": "clk_old",
+      "scenario_corner": "func/typ",
+      "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND SCENARIO_CORNER_AUTHORITY_OK AND HAZARD_RECOVERY_OK AND no forbidden edits",
+      "hazard_type": "scenario_corner_cross_source_conflict",
+      "num_hazards": 1,
+      "hint_level": 1,
+      "authority_source": "handoff_manifest.json",
+      "expected_scenario": "slow",
+      "expected_corner": "func",
+      "stale_scenario": "test",
+      "stale_corner": "typ",
+      "netlist_clock_already_correct": true,
+      "conflict": "netlist_v2/clk_main are already correct; flow_config.json selects the WRONG scenario/corner (test/typ); evidence_manifest.json CLAIMS slow/func but its run used test/typ; prev_corner_signoff.log decoy reinforces test/typ",
+      "valid_recovery": "repair flow_config scenario->slow corner->func UP to the manifest authority (do NOT touch netlist/clock), then rerun stage1 then stage2",
+      "rejects": [
+        "edit manifest/spec DOWN to the wrong scenario/corner (forbidden/anti-cheat)",
+        "trust evidence_manifest scenario/corner claim or prev_corner_signoff.log decoy",
+        "accept wrong-corner evidence as current",
+        "rerun stage1 under wrong corner",
+        "stage2 from wrong-corner stage1",
+        "stage1-only",
+        "hand-edited evidence",
+        "PT green under wrong corner"
+      ]
+    }
+  },
+  "expected_error_category": "workflow_handoff_scenario_corner_conflict_requires_provenance_recovery",
+  "version": "0.1.0"
+}

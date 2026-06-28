@@ -615,17 +615,273 @@ def test_0003_deterministic_generation(tmp_path):
 
 def test_0001_0002_skeleton_unchanged_by_hazard_support(tmp_path):
     # regenerating 0001/0002 with hazard_type=None must match the committed skeleton (ex-solution),
-    # i.e. adding the cross-source preset did not perturb the v1 tasks.
+    # i.e. adding the cross-source + scenario/corner presets did not perturb the v1 tasks.
     for tid, steps, committed in (("workflow_handoff_0001", 1, T1), ("workflow_handoff_0002", 2, T2)):
         gen = build_task_skeleton(tmp_path / tid, tid, 0, steps, hazard_type=None)
         for rel in (p.relative_to(gen) for p in gen.rglob("*") if p.is_file()):
             if rel.parts[0] == "solution":
                 continue  # solution evidence is tool-baked, not part of the pure skeleton
-            if rel.name == "grade_workflow.py":
-                # the shared oracle gained a hazard block gated on hazard_type!=none; assert the
-                # committed v1 logic is preserved verbatim as a prefix (behavior identical for none).
-                new = (gen / rel).read_text()
-                old = (committed / rel).read_text()
-                assert new[:new.index("    # Hazard-recovery markers")] == old[:old.rindex("    return 0")]
-                continue
+            # the shared hidden oracle (grade_workflow.py) is a single source reused by every p14 task;
+            # it gained gated, behavior-inert blocks for the hazard presets. It is kept UNIFORM across
+            # all committed tasks (synced), so the regenerated copy must byte-match committed.
             assert (gen / rel).read_bytes() == (committed / rel).read_bytes(), rel
+
+
+# ===========================================================================
+# p14 v3 -- workflow_handoff_0004 (scenario/corner cross-source conflict)
+# ===========================================================================
+T4 = TASKS_DIR / "workflow_handoff_0004"
+
+
+def test_0004_exists_and_schema_valid():
+    meta = _meta(T4)
+    assert validate_metadata(meta) == []
+    assert structural_validate(T4) == []
+    assert meta["track"] == "p14_workflow_handoff"
+    assert meta["task_id"] == "workflow_handoff_0004"
+    gp = meta["generator"]["params"]
+    assert gp["hazard_type"] == "scenario_corner_cross_source_conflict"
+    assert abs(sum(meta["scoring"]["weights"].values()) - 1.0) < 1e-9
+    assert {"authority_consistency", "hazard_recovery"} <= set(meta["scoring"]["weights"])
+
+
+def test_0004_authority_hierarchy_and_targets():
+    truth = json.loads((T4 / "hidden" / "handoff_truth.json").read_text())
+    assert truth["hazard_type"] == "scenario_corner_cross_source_conflict"
+    assert truth["authority_source"] == "handoff_manifest.json"
+    # netlist/clock are ALREADY correct; only scenario/corner provenance is in conflict
+    assert truth["netlist_clock_already_correct"] is True
+    assert truth["expected_scenario"] == "slow"
+    assert truth["expected_corner"] == "func"
+    assert truth["stale_scenario"] == "test"
+    assert truth["stale_corner"] == "typ"
+    # the decoy log is the lowest-authority source
+    h = truth["authority_hierarchy"]
+    assert h.index("handoff_manifest.json") < h.index("flow_config.json")
+    assert h.index("flow_config.json") < h.index("evidence_manifest.json")
+    assert h.index("evidence_manifest.json") < h.index("prev_corner_signoff.log")
+
+
+def test_0004_dispatch_parity():
+    meta = _meta(T4)
+    assert meta["scoring"]["evaluator"] == "workflow_handoff.WorkflowHandoffEvaluator"
+    assert isinstance(_select_evaluator(meta, T4), WorkflowHandoffEvaluator)
+
+
+def test_0004_mutant_netlist_clock_correct_scenario_corner_wrong():
+    # the defect: netlist + clock are already right; scenario/corner are the wrong provenance
+    fc = json.loads((T4 / "files" / "flow_config.json").read_text())
+    assert fc["netlist"] == "netlist_v2.v"          # already correct
+    assert fc["corner"] == "typ"                     # wrong (authority = func)
+    csdc = (T4 / "files" / "constraints.sdc").read_text()
+    assert "clk_main" in csdc                         # clock already correct
+    sol = json.loads((T4 / "solution" / "flow_config.json").read_text())
+    assert sol["scenario"] == "slow" and sol["corner"] == "func"   # golden = authority
+    # the manifest authority names slow/func
+    man = json.loads((T4 / "files" / "handoff_manifest.json").read_text())
+    assert man["scenario"] == "slow" and man["corner"] == "func"
+
+
+def test_0004_shipped_manifest_lies_about_scenario_corner():
+    # the conflict: shipped manifest CLAIMS slow/func while the run was test/typ
+    m = json.loads((T4 / "files" / "evidence_manifest.json").read_text())
+    assert m["scenario"] == "slow" and m["corner"] == "func"   # the lie (claim)
+    assert m["selected_netlist"] == "netlist_v2.v"             # netlist claim is honest
+    fc = json.loads((T4 / "files" / "flow_config.json").read_text())
+    assert fc["scenario"] == "test" and fc["corner"] == "typ"  # flow_config tells the truth (wrong)
+
+
+def test_0004_decoy_log_present_and_forbidden():
+    assert (T4 / "files" / "prev_corner_signoff.log").exists()
+    meta = _meta(T4)
+    assert "prev_corner_signoff.log" in meta["files"]["visible"]
+    assert "prev_corner_signoff.log" in meta["files"]["forbidden"]
+    assert "prev_corner_signoff.log" not in meta["files"]["editable"]
+    log = (T4 / "files" / "prev_corner_signoff.log").read_text()
+    assert "NON-AUTHORITATIVE" in log and ("test" in log or "typ" in log)
+
+
+# -- grader behavior (tool-free, crafted submitted-vs-reference) --
+def _grade_run_sc(setup) -> str:
+    """Run grade_workflow.py for the 0004 scenario/corner hazard task."""
+    d = Path(tempfile.mkdtemp(prefix="p14sc_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(T4 / "files" / f, d / f)
+        shutil.copy2(T4 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T4 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "applied_hidden.sdc").write_text(
+            "create_clock -name clk_main -period 3.0 [get_ports clk_main]\n")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def _sc_inputs(d: Path, scenario="slow", corner="func"):
+    """flow_config: netlist/clock always correct; scenario/corner parametrize the provenance."""
+    (d / "flow_config.json").write_text(json.dumps({
+        "netlist": "netlist_v2.v", "top_module": "acc_stage", "constraints": "constraints.sdc",
+        "library": "tiny.db", "scenario": scenario, "corner": corner}, indent=2) + "\n")
+    (d / "constraints.sdc").write_text(
+        "create_clock -name clk_main -period 3.0 [get_ports clk_main]\n")
+
+
+def _sc_stage1(d: Path, scenario="slow", corner="func",
+               body="din i0 cap_reg slack MET 0.13"):
+    """Build stage1 evidence + reference. In the real harness the reference re-run stamps the
+    ACTUAL scenario/corner from the submitted flow_config, so ref.scenario/corner == flow_config."""
+    dig = _digest(body)
+    ih = _ih(d)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + "clk_main" + scenario + corner + dig).encode()).hexdigest()[:16]
+    mani = {"stage": "stage1", "upstream_evidence_digest": None, "input_hashes": ih,
+            "selected_netlist": "netlist_v2.v", "selected_sdc": "constraints.sdc",
+            "selected_clock": "clk_main", "scenario": scenario, "corner": corner,
+            "tool": "pt_shell", "tool_exit": 0, "signoff": "OK", "constrained_paths": 1,
+            "report_digest": dig, "run_nonce": nonce}
+    (d / "timing_report.rpt").write_text(f"# h\n{_BEGIN2}\n{body}\n{_END2}\n")
+    (d / "evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    (d / "ref_timing_report.rpt").write_text(f"# h\n{_BEGIN2}\n{body}\n{_END2}\n")
+    (d / "ref_evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    return mani
+
+
+def _sc_stage2(d: Path, upstream, scenario="slow", corner="func",
+               body="cap_reg r0 acc_reg slack MET 0.20"):
+    ih = _ih(d); s2dig = _digest(body)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + "clk_main" + scenario + corner + s2dig + (upstream or "")
+                            ).encode()).hexdigest()[:16]
+    s2 = {"stage": "stage2", "upstream_evidence_digest": upstream, "upstream_stage_ok": True,
+          "input_hashes": ih, "selected_netlist": "netlist_v2.v", "selected_clock": "clk_main",
+          "scenario": scenario, "corner": corner, "tool": "pt_shell", "tool_exit": 0, "signoff": "OK",
+          "stage2_constrained_paths": 1, "stage2_slack": "0.20", "stage2_report_digest": s2dig,
+          "run_nonce": nonce}
+    (d / "stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    (d / "ref_stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    return s2
+
+
+def test_0004_grader_full_slow_func_recovery_emits_markers():
+    def setup(d):
+        _sc_inputs(d, "slow", "func")
+        m = _sc_stage1(d, "slow", "func")
+        _sc_stage2(d, m["report_digest"], "slow", "func")
+    out = _grade_run_sc(setup)
+    assert "EVIDENCE_OK" in out
+    assert "AUTHORITY_CONSISTENCY_OK" in out
+    assert "HAZARD_RECOVERY_OK" in out
+    assert "SCENARIO_AUTHORITY_OK" in out
+    assert "CORNER_AUTHORITY_OK" in out
+    assert "SCENARIO_CORNER_AUTHORITY_OK" in out
+
+
+def test_0004_grader_wrong_corner_recovery_fails():
+    # agent leaves flow_config under the wrong scenario/corner (test/typ); ref reflects test/typ.
+    def setup(d):
+        _sc_inputs(d, "test", "typ")
+        m = _sc_stage1(d, "test", "typ")
+        _sc_stage2(d, m["report_digest"], "test", "typ")
+    out = _grade_run_sc(setup)
+    assert "EVIDENCE_OK" not in out                  # scenario/corner echecks deny the master gate
+    assert "SCENARIO_CORNER_AUTHORITY_OK" not in out
+    assert "HAZARD_RECOVERY_OK" not in out
+    assert "evidence_scenario_is_authority=WRONG" in out
+    assert "evidence_corner_is_authority=WRONG" in out
+
+
+def test_0004_grader_hand_edited_manifest_claim_fails():
+    # agent edits the manifest to CLAIM slow/func while flow_config (and thus the ref re-run) is test/typ.
+    def setup(d):
+        _sc_inputs(d, "test", "typ")
+        # ref re-run reflects the actual test/typ flow_config (truth the agent can't forge)
+        m_ref = _sc_stage1(d, "test", "typ")
+        # but the SUBMITTED manifest lies about slow/func
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["scenario"], sub["corner"] = "slow", "func"
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_sc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "SCENARIO_CORNER_AUTHORITY_OK" not in out
+
+
+def test_0004_grader_stage1_only_fails():
+    def setup(d):
+        _sc_inputs(d, "slow", "func")
+        _sc_stage1(d, "slow", "func")
+        # no stage2
+    out = _grade_run_sc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "HAZARD_RECOVERY_OK" not in out
+
+
+def test_0004_grader_stage2_from_wrong_corner_stage1_fails():
+    def setup(d):
+        _sc_inputs(d, "slow", "func")
+        # stage1 honest (slow/func), but stage2 binds a WRONG-corner upstream digest
+        m = _sc_stage1(d, "slow", "func")
+        wrong = hashlib.sha256(b"wrongcorner").hexdigest()
+        _sc_stage2(d, wrong, "slow", "func")
+    out = _grade_run_sc(setup)
+    assert "STAGE_CHAIN_OK" not in out
+    assert "HAZARD_RECOVERY_OK" not in out
+
+
+def test_0004_grader_decoy_claim_not_trusted():
+    # accept the prev_corner_signoff.log decoy: submit a slow/func manifest but a test/typ report body
+    def setup(d):
+        _sc_inputs(d, "slow", "func")
+        _sc_stage1(d, "slow", "func", body="din cap_reg slack MET 0.13")
+        (d / "timing_report.rpt").write_text(f"# h\n{_BEGIN2}\ndin cap_reg slack MET 0.40\n{_END2}\n")
+    out = _grade_run_sc(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+def test_0004_no_hidden_leak():
+    public_blob = ""
+    for p in (T4 / "files").iterdir():
+        public_blob += p.read_text(errors="ignore")
+    for needle in ("def grade(truth)", "SCENARIO_CORNER_AUTHORITY_SCORE", "recovery_step_expected",
+                   "expected_scenario"):
+        assert needle not in public_blob, needle
+
+
+def test_0004_public_verdict_early():
+    sh = (T4 / "files" / "run_public.sh").read_text()
+    assert "WORKFLOW_PUBLIC:" in sh
+    assert sh.index("WORKFLOW_PUBLIC:") < 1000
+
+
+def test_0004_no_answer_literal_leak():
+    # the golden solution evidence nonce must not appear in any visible file
+    solm = (T4 / "solution" / "evidence_manifest.json")
+    if solm.exists():
+        nonce = json.loads(solm.read_text())["run_nonce"]
+        for p in (T4 / "files").iterdir():
+            assert nonce not in p.read_text(errors="ignore"), p.name
+
+
+def test_0004_deterministic_generation(tmp_path):
+    a = build_task_skeleton(tmp_path / "a", "workflow_handoff_0004", 0, 2,
+                            hazard_type="scenario_corner_cross_source_conflict")
+    b = build_task_skeleton(tmp_path / "b", "workflow_handoff_0004", 0, 2,
+                            hazard_type="scenario_corner_cross_source_conflict")
+    fa = sorted(p.relative_to(a) for p in a.rglob("*") if p.is_file())
+    fb = sorted(p.relative_to(b) for p in b.rglob("*") if p.is_file())
+    assert fa == fb
+    for rel in fa:
+        assert (a / rel).read_bytes() == (b / rel).read_bytes(), rel
+
+
+def test_0001_0002_0003_grader_markers_unchanged_by_sc_support():
+    # behavior-invariance: the shared grader's output for non-sc truth (no expected_scenario) must not
+    # emit any scenario/corner markers.
+    for src in (T1 / "hidden" / "handoff_truth.json", T2 / "hidden" / "handoff_truth.json",
+                T3 / "hidden" / "handoff_truth.json"):
+        truth = json.loads(src.read_text())
+        assert "expected_scenario" not in truth   # non-sc tasks have no scenario/corner authority pin
+

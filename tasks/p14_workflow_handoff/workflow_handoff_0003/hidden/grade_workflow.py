@@ -148,6 +148,25 @@ def grade(truth):
          "net=%s clk=%s" % (sub.get("selected_netlist"), sub.get("selected_clock"))),
     ]
 
+    # scenario/corner provenance authority (v3 hazard only). PINNED to the hidden re-run: ref.scenario/
+    # ref.corner are the ACTUAL scenario/corner of the re-run on the SUBMITTED flow_config, so a
+    # hand-edited manifest claim cannot satisfy these. Folded into EVIDENCE (master gate) so a
+    # wrong-scenario/corner package stays far below pass. Gated on expected_scenario/corner being present
+    # in truth (only set for the scenario_corner hazard), so 0001/0002/0003 output is byte-identical.
+    if truth.get("expected_scenario") is not None:
+        exp_sc = truth.get("expected_scenario")
+        exp_co = truth.get("expected_corner")
+        ref_sc = ref.get("scenario") if ref else None
+        ref_co = ref.get("corner") if ref else None
+        echecks += [
+            ("evidence_scenario_is_authority",
+             bool(sub) and bool(ref) and ref_sc == exp_sc and sub.get("scenario") == ref_sc,
+             "sub=%s ref=%s want=%s" % (sub.get("scenario"), ref_sc, exp_sc)),
+            ("evidence_corner_is_authority",
+             bool(sub) and bool(ref) and ref_co == exp_co and sub.get("corner") == ref_co,
+             "sub=%s ref=%s want=%s" % (sub.get("corner"), ref_co, exp_co)),
+        ]
+
     # stage-2 chain checks (only when required). These also feed EVIDENCE_OK (master gate) so a
     # missing/stale stage-2 cannot pass on stage-1 alone.
     s2sub = _load("stage2_summary.json") if steps >= 2 else {}
@@ -188,6 +207,7 @@ def grade(truth):
 
     # FINAL state consistency
     consumed_disk = _sha_file(consumed) if consumed else ""
+    consumed_scenario = _jstr(flow_text, "scenario")
     fchecks = [
         ("consumed_is_authority", consumed == man_net, "%s vs %s" % (consumed, man_net)),
         ("consumed_is_expected", consumed == truth["expected_netlist"],
@@ -196,6 +216,15 @@ def grade(truth):
          "disk=%s" % consumed_disk[:12]),
         ("corner_matches", consumed_corner == man_corner, "%s vs %s" % (consumed_corner, man_corner)),
     ]
+    # v3 hazard: bind the consumed scenario/corner to the truth authority too (defense in depth, so the
+    # final-state axis also rejects wrong-corner flow_config). Gated on expected_scenario presence.
+    if truth.get("expected_scenario") is not None:
+        fchecks += [
+            ("consumed_scenario_is_authority", consumed_scenario == truth.get("expected_scenario"),
+             "%s vs %s" % (consumed_scenario, truth.get("expected_scenario"))),
+            ("consumed_corner_is_authority", consumed_corner == truth.get("expected_corner"),
+             "%s vs %s" % (consumed_corner, truth.get("expected_corner"))),
+        ]
     f_ok = sum(1 for _, ok, _ in fchecks if ok)
     f_full = f_ok == len(fchecks)
     f_detail = " ".join("%s=%s" % (n, "ok" if ok else "WRONG(" + i + ")") for n, ok, i in fchecks)
@@ -224,6 +253,11 @@ def main():
     truth = _load(sys.argv[1] if len(sys.argv) > 1 else "handoff_truth.json")
     (e_full, e_frac, e_detail, f_full, f_frac, f_detail,
      sc_full, sc_frac, sc_detail, p_full, p_frac, p_detail, masking) = grade(truth)
+    # re-load the data the diagnostic markers below read (grade() keeps these local; load fresh here so
+    # the reported diagnostics reflect the on-disk submission, independent of grade()'s locals).
+    sub = _load("evidence_manifest.json")
+    ref = _load("ref_evidence_manifest.json")
+    applied = _read("applied_hidden.sdc")
     if masking:
         print("HANDOFF_MASKING_DETECTED: " + masking)
     if e_full and not masking:
@@ -256,6 +290,30 @@ def main():
         if hazard_recovered:
             print("HAZARD_RECOVERY_OK")
         print("HAZARD_RECOVERY_SCORE: %.3f" % (1.0 if hazard_recovered else 0.0))
+        # scenario/corner authority diagnostics (v3 hazard). These fold into EVIDENCE (master gate) via
+        # the evidence_scenario_is_authority / evidence_corner_is_authority echecks, so the markers are
+        # reported (not separately scored) -- a wrong scenario/corner already collapses EVIDENCE_OK.
+        if truth.get("expected_scenario") is not None:
+            ref_sc = ref.get("scenario") if ref else None
+            ref_co = ref.get("corner") if ref else None
+            scen_ok = bool(sub) and bool(ref) and ref_sc == truth.get("expected_scenario") \
+                and sub.get("scenario") == ref_sc and not masking
+            corn_ok = bool(sub) and bool(ref) and ref_co == truth.get("expected_corner") \
+                and sub.get("corner") == ref_co and not masking
+            if scen_ok:
+                print("SCENARIO_AUTHORITY_OK")
+            print("SCENARIO_AUTHORITY_SCORE: %.3f" % (1.0 if scen_ok else 0.0))
+            if corn_ok:
+                print("CORNER_AUTHORITY_OK")
+            print("CORNER_AUTHORITY_SCORE: %.3f" % (1.0 if corn_ok else 0.0))
+            if scen_ok and corn_ok:
+                print("SCENARIO_CORNER_AUTHORITY_OK")
+            print("SCENARIO_CORNER_AUTHORITY_SCORE: %.3f" % (1.0 if (scen_ok and corn_ok) else 0.0))
+            if not (scen_ok and corn_ok) and bool(sub) and not masking:
+                print("WRONG_CORNER_PROVENANCE_DETECTED: evidence scenario/corner not authority-consistent "
+                      "(sub=%s/%s ref=%s/%s want=%s/%s)" % (
+                          sub.get("scenario"), sub.get("corner"), ref_sc, ref_co,
+                          truth.get("expected_scenario"), truth.get("expected_corner")))
         if not authority_consistent and bool(sub) and not masking:
             # diagnostic classification (reported, not scored)
             if sub.get("selected_netlist") == truth.get("stale_netlist") or \
