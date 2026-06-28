@@ -1,0 +1,133 @@
+{
+  "probe": "synthetic_p14_v2_0003",
+  "question": "Does the p14 v2 cross-source-conflict / wrong-authority recovery task (workflow_handoff_0003) create a real difficulty signal for top protocol-compliant agents, or is it still saturated?",
+  "status": "STOPPED_EARLY_AT_K1_COST_CAP",
+  "stop_reason": "Cost projection exceeded the ¥30 cap. trial1 alone = ¥17.02; full k=3 projection ≈ ¥51; even adding trial2 alone would reach ≈¥34 > ¥30. Per the explicit stop condition, trials 2 and 3 were NOT launched.",
+  "required_caveats": {
+    "1_k1_only": "Exactly one trial per model (3 episodes), not the planned 9.",
+    "2_trials_2_3_not_run": "Skipped because projected cost exceeded the ¥30 cap (k=2 ≈ ¥34, k=3 ≈ ¥51).",
+    "3_passpowk_flip_trust_not_available": "pass^k / flip-rate / trust over k=3 are NOT available and are not reported as completed metrics.",
+    "4_smoke_not_reliability": "This is a k=1 smoke probe, NOT a completed reliability probe.",
+    "5_capability_one_trial_only": "Qwen and DeepSeek capability success is based on one trial each only.",
+    "6_minimax_protocol_not_capability": "MiniMax failure is classified as protocol/reliability (malformed-command collapse), not authority-diagnosis capability.",
+    "7_no_wrong_authority_shortcut_passed": true,
+    "8_no_oracle_failure": true,
+    "9_no_leak_no_env_no_runs_committed": true,
+    "10_next_k3_requires_higher_cap_or_cheaper_setup": "b04 forwarder per-call ssh+rsync makes each episode ~20 min and ~¥5-6."
+  },
+  "scope": {
+    "branch": "synthetic-phase0a",
+    "head": "a7c926742b5bbf3af3a94b3127257c7c2f580590",
+    "task": "workflow_handoff_0003",
+    "resolved_task_list": ["workflow_handoff_0003"],
+    "models": ["Qwen3.7-Max", "DeepSeek-V4-Pro", "MiniMax-M3"],
+    "planned_k": 3,
+    "completed_k": 1,
+    "planned_episodes": 9,
+    "completed_episodes": 3,
+    "temperature": 0.7,
+    "elicit_confidence": true,
+    "concurrency": 2,
+    "max_tool_calls": 60,
+    "cost_cap_cny": 30
+  },
+  "pre_launch_gates": {
+    "scripts_check": "green (2905/2905 valid; p14_workflow_handoff 3/3)",
+    "task_resolves_to": "workflow_handoff_0003 (exact)",
+    "b04_acceptance_matrix": {
+      "golden": {"total_no_expl": 0.90, "evidence_ok": true, "verdict": "pass"},
+      "golden_rerun_determinism": {"stage1_nonce": "ce80c71864107f14", "stage2_nonce": "91ce214de963d9d0", "matches_committed": true},
+      "mutant_bare": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"},
+      "wrong_authority_consume_v1": {"total_no_expl": 0.00, "evidence_ok": false, "verdict": "below_pass"},
+      "final_state_only": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"},
+      "stage1_only": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"},
+      "stage2_from_stale_stage1": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"},
+      "hand_edited_semantic": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"},
+      "hand_edited_comment_only": {"total_no_expl": 0.90, "evidence_ok": true, "note": "expected canonicalization robustness; volatile/comment lines stripped from report_digest, not a leak"},
+      "trust_decoy_lying_v2_manifest": {"total_no_expl": 0.10, "evidence_ok": false, "verdict": "below_pass"}
+    },
+    "env_provisioning": {
+      "env_before": "absent",
+      "env_provisioned_as": "symlink (not copy) to /data1/tongsb/eda-agentbench/.env",
+      "env_gitignored": true,
+      "env_in_git_status": false,
+      "env_removed_after_run": true,
+      "model_config_out_of_repo": "/data1/tongsb/eda-synthetic-local-configs/baseline_models_phase0d.json",
+      "model_config_secrets_embedded": false,
+      "model_config_models": ["Qwen3.7-Max", "DeepSeek-V4-Pro", "MiniMax-M3"],
+      "kimi_or_glm_present": false,
+      "stray_in_repo_config_found_and_moved_out": "configs/baseline_models_phase0d.json (identical to out-of-repo copy; removed from repo)"
+    }
+  },
+  "results_k1": {
+    "Qwen3.7-Max": {
+      "total_score": 1.0, "objective_score": 0.9, "passed": true,
+      "components": {"signoff": 1.0, "final_state": 1.0, "evidence_generation": 1.0, "stage_chain": 1.0, "provenance": 1.0, "authority_consistency": 1.0, "hazard_recovery": 1.0, "explanation": 1.0},
+      "reliability": {"protocol_status": "ok", "confidence_decision": "high", "confidence_format_ok": true, "overconfident_wrong": false, "abstained": false},
+      "anti_cheat": {"forbidden_files_modified": false},
+      "agent": {"num_actions": 42, "finished": true, "tool_calls": 41, "wall_time_sec": 1137.8, "tokens_in": 427741, "tokens_out": 40583, "retries": 0},
+      "capability": {"scored_1_0": true, "authority_diagnosis": true, "lower_source_repair_upward": true, "fresh_ordered_chain": true, "avoided_decoy_and_stale_v1": true}
+    },
+    "DeepSeek-V4-Pro": {
+      "total_score": 1.0, "objective_score": 0.9, "passed": true,
+      "components": {"signoff": 1.0, "final_state": 1.0, "evidence_generation": 1.0, "stage_chain": 1.0, "provenance": 1.0, "authority_consistency": 1.0, "hazard_recovery": 1.0, "explanation": 1.0},
+      "reliability": {"protocol_status": "budget_exhausted", "confidence_decision": "", "confidence_format_ok": null, "overconfident_wrong": false, "abstained": true},
+      "anti_cheat": {"forbidden_files_modified": false, "note": "one write_refused on /tmp/debug.tcl correctly blocked (out-of-workspace)"},
+      "agent": {"num_actions": 46, "finished": false, "tool_calls": 42, "wall_time_sec": 1177.4, "tokens_in": 690287, "tokens_out": 60736, "retries": 0, "terminated_by": "deadline"},
+      "capability": {"scored_1_0": true, "authority_diagnosis": true, "lower_source_repair_upward": true, "fresh_ordered_chain": true, "avoided_decoy_and_stale_v1": true},
+      "protocol_note": "Correct recovery early; then spent remaining budget on over-elaborate Tcl JSON-parsing verification and hit the wall-clock deadline before emitting FINISH/confidence. Capability success, protocol/reliability failure."
+    },
+    "MiniMax-M3": {
+      "total_score": 0.2, "objective_score": 0.1, "passed": false,
+      "components": {"signoff": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0, "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0, "explanation": 1.0},
+      "reliability": {"protocol_status": "budget_exhausted", "confidence_decision": "", "confidence_format_ok": null, "overconfident_wrong": false, "abstained": true},
+      "anti_cheat": {"forbidden_files_modified": false},
+      "agent": {"num_actions": 60, "finished": false, "tool_calls": 30, "wall_time_sec": 203.2, "tokens_in": 158020, "tokens_out": 1281, "retries": 0, "terminated_by": "action_limit", "malformed_commands": 30, "example_malformed": "bash run_public.sh 2>&1]<]minimax[>[ (shell syntax error)"},
+      "capability": {"scored_1_0": false, "authority_diagnosis": "partial/unclear", "lower_source_repair_upward": false, "fresh_ordered_chain": false, "avoided_decoy_and_stale_v1": "n/a (never produced a chain)"},
+      "protocol_note": "Never produced a valid evidence chain. 30 of 60 actions were unparseable/malformed (command-injection-like garbage). Pure reliability/protocol failure, not authority-shortcut failure."
+    }
+  },
+  "metrics_k1": {
+    "note": "k=1 SMOKE probe only (run stopped at cost cap). This is NOT a completed reliability probe.",
+    "smoke_probe": true,
+    "completed_reliability_probe": false,
+    "one_shot_capability_outcome": {"Qwen3.7-Max": 1.0, "DeepSeek-V4-Pro": 1.0, "MiniMax-M3": 0.0},
+    "pass_pow_k_k3": "NOT_AVAILABLE (requires full k>=3 run; not performed)",
+    "flip_rate_k3": "NOT_AVAILABLE (requires full k>=3 run; not performed)",
+    "trust_score_k3": "NOT_AVAILABLE (requires full k>=3 run; not performed)",
+    "overconfident_wrong_count": {"Qwen3.7-Max": 0, "DeepSeek-V4-Pro": 0, "MiniMax-M3": 0},
+    "format_compliance": {"Qwen3.7-Max": "FINISH+confidence ok", "DeepSeek-V4-Pro": "no FINISH (deadline), empty confidence", "MiniMax-M3": "no FINISH (action limit), empty confidence, malformed commands"},
+    "protocol_failures": {"Qwen3.7-Max": 0, "DeepSeek-V4-Pro": "budget_exhausted/no-FINISH", "MiniMax-M3": "budget_exhausted/no-FINISH/malformed"},
+    "next_full_k3_requires": "a higher cost cap OR a cheaper setup (b04 forwarder per-call ssh+rsync makes each episode ~20 min and ~CNY 5-6)"
+  },
+  "behavior_matrix_k1": {
+    "legend": "did the model perform X? (per single trial)",
+    "authority_diagnosis": {"Qwen3.7-Max": true, "DeepSeek-V4-Pro": true, "MiniMax-M3": false},
+    "lower_source_repair_upward": {"Qwen3.7-Max": true, "DeepSeek-V4-Pro": true, "MiniMax-M3": false},
+    "wrong_authority_repair": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "trust_decoy_consume_stale_v1": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "final_state_only_no_evidence": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "stage1_only_partial_chain": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": true},
+    "stale_stage1_reuse": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "wrong_order_evidence": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "hand_edited_evidence": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "wrong_package_evidence": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "forbidden_edit": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": false, "MiniMax-M3": false},
+    "no_commit_protocol_failure": {"Qwen3.7-Max": false, "DeepSeek-V4-Pro": true, "MiniMax-M3": true}
+  },
+  "cost": {
+    "trial1_cny": 17.02,
+    "trial1_tokens_in": 1276048,
+    "trial1_tokens_out": 102600,
+    "trial1_tool_calls": 113,
+    "projected_k3_cny": 51.0,
+    "cap_cny": 30,
+    "cap_breached_projection": true
+  },
+  "interpretation": {
+    "verdict": "saturated_for_top_protocol_compliant_agents (capability) + reliability_signal (MiniMax/DeepSeek protocol)",
+    "rationale": "Both top protocol-compliant agents (Qwen, DeepSeek) achieved capability total_score=1.0 with authority-consistent recovery (chose authority v2, ran a fresh ordered stage1->stage2 chain, did not trust the lying v2-claiming manifest or stale v1). Per the stated interpretation rule, this means p14 v2 0003 is still SATURATED for top protocol-compliant agents on the capability axis, while the hazard-recovery substrate is validated (golden 1.0, all 8 adversarial shortcuts < pass on real PT). DeepSeek's no-FINISH/budget_exhausted and MiniMax's malformed-command collapse are reliability/protocol signals, classified separately from capability per the rules. No wrong-authority shortcut passed; no oracle failure observed.",
+    "single_trial_caveat": "k=1 only; this is a capability read, not a reliability read. pass^k / flip-rate / trust require the full k≥3 run, which was not done because it would breach the ¥30 cap.",
+    "harness_clean": true
+  }
+}
