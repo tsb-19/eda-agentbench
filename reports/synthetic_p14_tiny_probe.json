@@ -1,0 +1,1112 @@
+{
+  "probe": "synthetic_p14_tiny_probe",
+  "track": "p14_workflow_handoff",
+  "tasks": [
+    "workflow_handoff_0001 (evidence_steps=1)",
+    "workflow_handoff_0002 (evidence_steps=2 chain)"
+  ],
+  "models": [
+    "Qwen3.7-Max",
+    "DeepSeek-V4-Pro",
+    "MiniMax-M3"
+  ],
+  "git_head": "1d71221 feat: add workflow handoff generator prototype",
+  "design": {
+    "k": 3,
+    "episodes": 18,
+    "temperature": 0.7,
+    "elicit_confidence": true,
+    "concurrency": 2,
+    "max_tool_calls": 60,
+    "timeout_sec": 600,
+    "cost_cap_cny": 50
+  },
+  "gate3_real_pt_b04": {
+    "0001": {
+      "golden": 1.0,
+      "repair_chain": 1.0,
+      "mutant": 0.25,
+      "final_state_only": 0.25,
+      "hand_edited_report": 0.25
+    },
+    "0002": {
+      "golden": 1.0,
+      "repair_ordered_chain": 1.0,
+      "mutant": 0.25,
+      "final_state_only": 0.25,
+      "hand_edited_report": 0.25,
+      "stage1_only": 0.25,
+      "stage2_from_stale_stage1": 0.25,
+      "wrong_order": 0.25
+    },
+    "determinism": "stage1 nonce ce80c718 / stage2 nonce 91ce214d bit-identical"
+  },
+  "summary": {
+    "Qwen3.7-Max": {
+      "per_task": {
+        "workflow_handoff_0001": {
+          "scores": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "pass@1": 1.0,
+          "pass@k": 1.0,
+          "pass^k": 1.0,
+          "flip": 0,
+          "protocols": [
+            "budget_exhausted",
+            "budget_exhausted",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              true,
+              false
+            ],
+            [
+              true,
+              false
+            ],
+            [
+              true,
+              false
+            ]
+          ],
+          "tags": [
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ]
+          ]
+        },
+        "workflow_handoff_0002": {
+          "scores": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "pass@1": 1.0,
+          "pass@k": 1.0,
+          "pass^k": 1.0,
+          "flip": 0,
+          "protocols": [
+            "budget_exhausted",
+            "budget_exhausted",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              true,
+              true
+            ],
+            [
+              true,
+              true
+            ],
+            [
+              true,
+              true
+            ]
+          ],
+          "tags": [
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ]
+          ]
+        }
+      },
+      "overall_pass@1": 1.0,
+      "trust": 0.7,
+      "overconfident_wrong": 0,
+      "scored1_budget_exhausted": 6,
+      "confidences": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "protocol_counts": {
+        "budget_exhausted": 6
+      },
+      "tokens_out": 132806,
+      "tool_calls": [
+        23,
+        22,
+        28,
+        28,
+        25,
+        22
+      ],
+      "wall": [
+        577.1,
+        600.1,
+        571.9,
+        571.1,
+        581.6,
+        595.7
+      ]
+    },
+    "DeepSeek-V4-Pro": {
+      "per_task": {
+        "workflow_handoff_0001": {
+          "scores": [
+            1.0,
+            0.25,
+            1.0
+          ],
+          "pass@1": 0.667,
+          "pass@k": 1.0,
+          "pass^k": 0.0,
+          "flip": 1,
+          "protocols": [
+            "ok",
+            "empty",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              true,
+              false
+            ],
+            [
+              false,
+              false
+            ],
+            [
+              true,
+              false
+            ]
+          ],
+          "tags": [
+            [
+              "full_repair+stage1_evidence"
+            ],
+            [
+              "protocol:empty",
+              "final_state_only_no_evidence"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ]
+          ]
+        },
+        "workflow_handoff_0002": {
+          "scores": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "pass@1": 1.0,
+          "pass@k": 1.0,
+          "pass^k": 1.0,
+          "flip": 0,
+          "protocols": [
+            "budget_exhausted",
+            "budget_exhausted",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              true,
+              true
+            ],
+            [
+              true,
+              true
+            ],
+            [
+              true,
+              true
+            ]
+          ],
+          "tags": [
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+ordered_chain"
+            ]
+          ]
+        }
+      },
+      "overall_pass@1": 0.833,
+      "trust": 0.55,
+      "overconfident_wrong": 0,
+      "scored1_budget_exhausted": 4,
+      "confidences": [
+        "high",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "protocol_counts": {
+        "ok": 1,
+        "empty": 1,
+        "budget_exhausted": 4
+      },
+      "tokens_out": 122953,
+      "tool_calls": [
+        15,
+        0,
+        33,
+        36,
+        34,
+        48
+      ],
+      "wall": [
+        241.7,
+        2.9,
+        576.6,
+        571.6,
+        584.9,
+        576.9
+      ]
+    },
+    "MiniMax-M3": {
+      "per_task": {
+        "workflow_handoff_0001": {
+          "scores": [
+            1.0,
+            0.25,
+            1.0
+          ],
+          "pass@1": 0.667,
+          "pass@k": 1.0,
+          "pass^k": 0.0,
+          "flip": 1,
+          "protocols": [
+            "budget_exhausted",
+            "budget_exhausted",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              true,
+              false
+            ],
+            [
+              true,
+              false
+            ],
+            [
+              true,
+              false
+            ]
+          ],
+          "tags": [
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "evidence_rerun_but_chain_or_pkg_mismatch"
+            ],
+            [
+              "protocol:budget_exhausted",
+              "full_repair+stage1_evidence"
+            ]
+          ]
+        },
+        "workflow_handoff_0002": {
+          "scores": [
+            0.25,
+            0.1,
+            0.25
+          ],
+          "pass@1": 0.0,
+          "pass@k": 0.0,
+          "pass^k": 0.0,
+          "flip": 0,
+          "protocols": [
+            "nocommit",
+            "ok",
+            "budget_exhausted"
+          ],
+          "ran_chain": [
+            [
+              false,
+              false
+            ],
+            [
+              true,
+              true
+            ],
+            [
+              true,
+              false
+            ]
+          ],
+          "tags": [
+            [
+              "protocol:nocommit",
+              "final_state_only_no_evidence"
+            ],
+            [],
+            [
+              "protocol:budget_exhausted",
+              "stage1_only_partial_chain"
+            ]
+          ]
+        }
+      },
+      "overall_pass@1": 0.333,
+      "trust": -0.1,
+      "overconfident_wrong": 0,
+      "scored1_budget_exhausted": 2,
+      "confidences": [
+        "",
+        "",
+        "",
+        "",
+        "",
+        ""
+      ],
+      "protocol_counts": {
+        "ok": 1,
+        "nocommit": 1,
+        "budget_exhausted": 4
+      },
+      "tokens_out": 86722,
+      "tool_calls": [
+        45,
+        33,
+        28,
+        34,
+        22,
+        8
+      ],
+      "wall": [
+        571.7,
+        272.5,
+        329.1,
+        312.1,
+        176.4,
+        600.1
+      ]
+    }
+  },
+  "episodes": {
+    "Qwen3.7-Max": {
+      "workflow_handoff_0001": {
+        "trial1": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 24,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 119888,
+            "tokens_out": 20916,
+            "tool_calls": 23,
+            "retries": 0,
+            "wall_time_sec": 577.079
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 23,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 154948,
+            "tokens_out": 26291,
+            "tool_calls": 22,
+            "retries": 0,
+            "wall_time_sec": 600.102
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        },
+        "trial3": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 29,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 184854,
+            "tokens_out": 20315,
+            "tool_calls": 28,
+            "retries": 0,
+            "wall_time_sec": 571.894
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        }
+      },
+      "workflow_handoff_0002": {
+        "trial1": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 29,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 172012,
+            "tokens_out": 23582,
+            "tool_calls": 28,
+            "retries": 0,
+            "wall_time_sec": 571.077
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 26,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 174521,
+            "tokens_out": 21497,
+            "tool_calls": 25,
+            "retries": 0,
+            "wall_time_sec": 581.605
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        },
+        "trial3": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 23,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 148685,
+            "tokens_out": 20205,
+            "tool_calls": 22,
+            "retries": 0,
+            "wall_time_sec": 595.684
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        }
+      }
+    },
+    "DeepSeek-V4-Pro": {
+      "workflow_handoff_0001": {
+        "trial1": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "ok",
+          "confidence": "high",
+          "confidence_format_ok": true,
+          "overconfident_wrong": false,
+          "abstained": false,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 16,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 106416,
+            "tokens_out": 14194,
+            "tool_calls": 15,
+            "retries": 0,
+            "wall_time_sec": 241.685
+          },
+          "tags": [
+            "full_repair+stage1_evidence"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0001",
+          "total": 0.25,
+          "passed": false,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 0.0,
+            "evidence_generation": 0.0,
+            "stage_chain": 0.0,
+            "provenance": 0.0,
+            "explanation": 1.0
+          },
+          "protocol": "empty",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": false,
+          "ran_stage2": false,
+          "edited": [],
+          "n_actions": 0,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 829,
+            "tokens_out": 194,
+            "tool_calls": 0,
+            "retries": 0,
+            "wall_time_sec": 2.896
+          },
+          "tags": [
+            "protocol:empty",
+            "final_state_only_no_evidence"
+          ]
+        },
+        "trial3": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 36,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 392803,
+            "tokens_out": 24214,
+            "tool_calls": 33,
+            "retries": 0,
+            "wall_time_sec": 576.631
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        }
+      },
+      "workflow_handoff_0002": {
+        "trial1": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 37,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 254450,
+            "tokens_out": 31492,
+            "tool_calls": 36,
+            "retries": 0,
+            "wall_time_sec": 571.595
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 40,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 383933,
+            "tokens_out": 28750,
+            "tool_calls": 34,
+            "retries": 0,
+            "wall_time_sec": 584.852
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        },
+        "trial3": {
+          "task": "workflow_handoff_0002",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 50,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 486510,
+            "tokens_out": 24109,
+            "tool_calls": 48,
+            "retries": 0,
+            "wall_time_sec": 576.876
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+ordered_chain"
+          ]
+        }
+      }
+    },
+    "MiniMax-M3": {
+      "workflow_handoff_0001": {
+        "trial1": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 60,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 1054561,
+            "tokens_out": 12636,
+            "tool_calls": 45,
+            "retries": 0,
+            "wall_time_sec": 571.684
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0001",
+          "total": 0.25,
+          "passed": false,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 0.0,
+            "evidence_generation": 0.0,
+            "stage_chain": 0.0,
+            "provenance": 0.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json",
+            "timing_report.rpt"
+          ],
+          "n_actions": 60,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 160458,
+            "tokens_out": 1521,
+            "tool_calls": 33,
+            "retries": 0,
+            "wall_time_sec": 272.489
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "evidence_rerun_but_chain_or_pkg_mismatch"
+          ]
+        },
+        "trial3": {
+          "task": "workflow_handoff_0001",
+          "total": 1.0,
+          "passed": true,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 1.0,
+            "evidence_generation": 1.0,
+            "stage_chain": 1.0,
+            "provenance": 1.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 60,
+          "scored_1_but_budget_exhausted": true,
+          "cost": {
+            "tokens_in": 680544,
+            "tokens_out": 3520,
+            "tool_calls": 28,
+            "retries": 0,
+            "wall_time_sec": 329.108
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "full_repair+stage1_evidence"
+          ]
+        }
+      },
+      "workflow_handoff_0002": {
+        "trial1": {
+          "task": "workflow_handoff_0002",
+          "total": 0.25,
+          "passed": false,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 0.0,
+            "evidence_generation": 0.0,
+            "stage_chain": 0.0,
+            "provenance": 0.0,
+            "explanation": 1.0
+          },
+          "protocol": "nocommit",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": false,
+          "ran_stage2": false,
+          "edited": [],
+          "n_actions": 60,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 184806,
+            "tokens_out": 2852,
+            "tool_calls": 34,
+            "retries": 0,
+            "wall_time_sec": 312.122
+          },
+          "tags": [
+            "protocol:nocommit",
+            "final_state_only_no_evidence"
+          ]
+        },
+        "trial2": {
+          "task": "workflow_handoff_0002",
+          "total": 0.1,
+          "passed": false,
+          "components": {
+            "signoff": 0.0,
+            "final_state": 0.0,
+            "evidence_generation": 0.0,
+            "stage_chain": 0.0,
+            "provenance": 0.0,
+            "explanation": 1.0
+          },
+          "protocol": "ok",
+          "confidence": "",
+          "confidence_format_ok": false,
+          "overconfident_wrong": false,
+          "abstained": false,
+          "ran_stage1": true,
+          "ran_stage2": true,
+          "edited": [
+            "constraints.sdc",
+            "flow_config.json"
+          ],
+          "n_actions": 23,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 112482,
+            "tokens_out": 2010,
+            "tool_calls": 22,
+            "retries": 0,
+            "wall_time_sec": 176.394
+          },
+          "tags": []
+        },
+        "trial3": {
+          "task": "workflow_handoff_0002",
+          "total": 0.25,
+          "passed": false,
+          "components": {
+            "signoff": 1.0,
+            "final_state": 0.0,
+            "evidence_generation": 0.0,
+            "stage_chain": 0.0,
+            "provenance": 0.0,
+            "explanation": 1.0
+          },
+          "protocol": "budget_exhausted",
+          "confidence": "",
+          "confidence_format_ok": null,
+          "overconfident_wrong": false,
+          "abstained": true,
+          "ran_stage1": true,
+          "ran_stage2": false,
+          "edited": [],
+          "n_actions": 13,
+          "scored_1_but_budget_exhausted": false,
+          "cost": {
+            "tokens_in": 84824,
+            "tokens_out": 64183,
+            "tool_calls": 8,
+            "retries": 0,
+            "wall_time_sec": 600.101
+          },
+          "tags": [
+            "protocol:budget_exhausted",
+            "stage1_only_partial_chain"
+          ]
+        }
+      }
+    }
+  },
+  "cost": {
+    "per_trial_cny": [
+      16.0,
+      12.19,
+      21.52
+    ],
+    "total_cny": 49.71,
+    "tokens_in": 4857524,
+    "tokens_out": 342481
+  },
+  "forgery_invariant": "0 episodes (of 18) passed without the full fresh evidence chain (evidence_generation==1.0); oracle sound; no stage2-without-fresh-stage1 pass",
+  "interpretation": {
+    "classification": "saturated (capability) for top protocol-compliant agents; substrate validated; pervasive budget_exhausted/empty-confidence protocol artifact",
+    "qwen": "pass^k=1.00 on BOTH tasks; full ordered stage1->stage2 chain all 3 trials; every pass tagged budget_exhausted (scored 1.0, no clean FINISH+confidence)",
+    "deepseek": "pass^k=1.00 on the CHAIN task 0002 (full ordered chain all 3 trials); 0001 pass^k=0 only due to one 'empty' response (0 actions) -- protocol, not capability",
+    "minimax": "0/3 on 0002: nocommit (no edits), stage1-only partial chain (budget_exhausted), and one genuine signoff-fail execution miss (ran both stages+edited but final state didn't constrain) -- reliability/protocol + one capability miss, all oracle-caught",
+    "chain_difficulty": "cross-stage upstream_evidence_digest coupling did NOT create a capability wall for Qwen/DeepSeek -- both perform the ordered chain reliably",
+    "budget_artifact": "budget_exhausted tags appear on SCORED-1.0 passes (work done, no clean FINISH/confidence) -- capability success must be read from total_score, not protocol_status",
+    "rule_applied": "Qwen AND DeepSeek both pass^k=1.00 on 0002 with the ordered chain => p14 generator-contract tasks still saturated for top agents, substrate validated"
+  }
+}
