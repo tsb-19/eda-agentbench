@@ -69,6 +69,15 @@ class WorkflowHandoffEvaluator(BaseEvaluator):
         if component_name == "provenance":
             return self._eval_marker(weight, run_log, "provenance",
                                      "PROVENANCE", require_signoff=True, require_evidence=True)
+        if component_name == "authority_consistency":
+            # p14 v2 hazard-recovery gate: the repaired package equals the manifest authority and the
+            # fresh evidence describes it. Gated behind EVIDENCE_OK (same trajectory precondition).
+            return self._eval_marker(weight, run_log, "authority_consistency",
+                                     "AUTHORITY_CONSISTENCY", require_signoff=True, require_evidence=True)
+        if component_name == "hazard_recovery":
+            # p14 v2 hazard-recovery gate: the full fresh ordered chain was produced (the hazard is gone).
+            return self._eval_marker(weight, run_log, "hazard_recovery",
+                                     "HAZARD_RECOVERY", require_signoff=True, require_evidence=True)
         if component_name == "explanation":
             if mode == "submission":
                 return ScoreComponent(name=component_name, weight=weight, raw_score=1.0,

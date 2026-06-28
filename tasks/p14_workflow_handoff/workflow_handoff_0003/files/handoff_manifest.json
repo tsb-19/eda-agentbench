@@ -1,0 +1,21 @@
+{
+  "_comment": "Handoff package manifest -- the AUTHORITY/contract for what the evidence flow must consume and what the fresh evidence chain must describe. Read-only and FROZEN: current handoff is netlist v2 on clk_main, scenario func, corner typ. The defect is in the lagging consumers + stale generated evidence, not here.",
+  "design": "acc_stage",
+  "top_module": "acc_stage",
+  "clock": "clk_main",
+  "scenario": "func",
+  "corner": "typ",
+  "library": "tiny.db",
+  "constraints": "constraints.sdc",
+  "flow_config": "flow_config.json",
+  "stage1_generator": "run_evidence_stage1.sh",
+  "report": "timing_report.rpt",
+  "evidence_manifest": "evidence_manifest.json",
+  "netlist": "netlist_v2.v",
+  "netlist_revision": "v2",
+  "netlist_provenance_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+  "history": {
+    "v1": "legacy pre-ECO revision on clk_old (provenance only -- must NOT be consumed)",
+    "v2": "current post-ECO revision on clk_main, enable-qualified (the handoff design)"
+  }
+}

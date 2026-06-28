@@ -807,6 +807,26 @@ def main():
         print("PROVENANCE_OK")
     print("PROVENANCE_SCORE: %.3f" % p_frac)
     print("PROVENANCE_DETAIL: " + p_detail)
+    # Hazard-recovery markers (emitted only for hazard presets so the ordered-chain tasks'
+    # output is byte-identical). Both fold into the EVIDENCE master gate: AUTHORITY_CONSISTENCY_OK
+    # requires the final consumed package to equal the manifest authority AND the fresh evidence to
+    # describe it (so editing the manifest down, or trusting the v1 decoy, cannot satisfy it);
+    # HAZARD_RECOVERY_OK requires the full fresh ordered chain (so stale/partial/wrong-order fail).
+    if truth.get("hazard_type", "none") != "none":
+        authority_consistent = bool(e_full and f_full) and not masking
+        hazard_recovered = bool(e_full and f_full and sc_full) and not masking
+        if authority_consistent:
+            print("AUTHORITY_CONSISTENCY_OK")
+        print("AUTHORITY_CONSISTENCY_SCORE: %.3f" % (1.0 if authority_consistent else 0.0))
+        if hazard_recovered:
+            print("HAZARD_RECOVERY_OK")
+        print("HAZARD_RECOVERY_SCORE: %.3f" % (1.0 if hazard_recovered else 0.0))
+        if not authority_consistent and bool(sub) and not masking:
+            # diagnostic classification (reported, not scored)
+            if sub.get("selected_netlist") == truth.get("stale_netlist") or \
+               (applied and truth.get("stale_clock") and truth["stale_clock"] in str(applied)):
+                print("WRONG_AUTHORITY_DETECTED: consumed/evidence tracks the stale v1 source")
+            print("CROSS_SOURCE_CONFLICT_DETECTED: submitted evidence not authority-consistent")
     return 0
 
 
@@ -1013,9 +1033,10 @@ def _prompt_md(evidence_steps: int) -> str:
     )
 
 
-def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str) -> str:
+def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
+                   hazard_type: str | None = None) -> str:
     a_clk, s_clk = _CLOCK_PAIRS[0]
-    return json.dumps({
+    truth = {
         "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside "
                     "grade_workflow.py; never seen by the agent.",
         "evidence_steps": evidence_steps,
@@ -1029,10 +1050,27 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str) -> st
         "min_constrained_paths": 1, "clock_period_ns": PERIOD,
         "forbid_weakening": True,
         "manifest_netlist": "netlist_v2.v", "manifest_clock": a_clk,
-    }, indent=2) + "\n"
+    }
+    if hazard_type == "cross_source_conflict":
+        # Authority hierarchy (strict total order): the highest-authority source is the manifest; lower
+        # sources must be repaired UP to it. Only emitted for hazard presets so the ordered-chain tasks'
+        # truth file stays byte-identical to the committed p14 v1 tasks.
+        truth["authority_source"] = "handoff_manifest.json"
+        truth["authority_hierarchy"] = ["spec.md", "handoff_manifest.json", "flow_config.json",
+                                        "evidence_manifest.json", "timing_report.rpt", "prev_signoff.log"]
+        truth["hazard_type"] = hazard_type
+        truth["stale_source_id"] = ["flow_config.json", "constraints.sdc", "timing_report.rpt",
+                                    "evidence_manifest.json(claim)", "prev_signoff.log"]
+        truth["non_authoritative_sources"] = ["prev_signoff.log", "timing_report.rpt(stale)",
+                                              "evidence_manifest.json(claim)"]
+        truth["invalidated_by"] = "input_hashes_mismatch_and_lower_than_manifest"
+        truth["recovery_step_expected"] = ["fix_flow_config_to_v2", "fix_sdc_to_clk_main",
+                                           "rerun_stage1", "rerun_stage2"]
+    return json.dumps(truth, indent=2) + "\n"
 
 
-def _metadata(task_id: str, seed: int, evidence_steps: int) -> dict:
+def _metadata(task_id: str, seed: int, evidence_steps: int,
+              hazard_type: str | None = None, hint_level: int = 1) -> dict:
     visible = ["spec.md", "handoff_manifest.json", "flow_config.json", "constraints.sdc",
                "netlist_v1.v", "netlist_v2.v", "pt_signoff.tcl",
                "run_evidence_stage1.sh", "gen_evidence_stage1.py", "evidence_signoff.tcl",
@@ -1057,7 +1095,40 @@ def _metadata(task_id: str, seed: int, evidence_steps: int) -> dict:
             forbidden.append(f)
         for f in ("gen_evidence_stage2_trusted.py", "evidence_signoff_stage2_trusted.tcl"):
             hidden.append(f)
+    if hazard_type == "cross_source_conflict":
+        # the non-authoritative decoy log is a visible, read-only, forbidden-to-edit distractor
+        visible.append("prev_signoff.log")
+        forbidden.append("prev_signoff.log")
+        # add the two hazard axes; re-balance so weights still sum to 1.0. The two new gates fold into
+        # the EVIDENCE master gate in the oracle, so wrong-authority / partial-recovery stay <0.5.
+        weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
+                   "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
+                   "hazard_recovery": 0.10, "explanation": 0.10}
     forbidden += hidden
+    gen_params = {"mechanism": "workflow_multistage_evidence_chain_handoff",
+                  "evidence_steps": evidence_steps,
+                  "expected_netlist": "netlist_v2.v", "expected_clock": _CLOCK_PAIRS[0][0],
+                  "stale_netlist": "netlist_v1.v", "stale_clock": _CLOCK_PAIRS[0][1],
+                  "scenario_corner": "%s/%s" % (SCENARIO, CORNER),
+                  "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND "
+                               "STAGE_CHAIN_OK AND PROVENANCE_OK AND no forbidden edits"}
+    err_cat = "workflow_handoff_stale_evidence_chain_requires_ordered_rerun"
+    if hazard_type == "cross_source_conflict":
+        gen_params.update({
+            "hazard_type": "cross_source_conflict", "num_hazards": 1, "hint_level": hint_level,
+            "authority_source": "handoff_manifest.json",
+            "conflict": "evidence_manifest.json CLAIMS v2 but report body + input_hashes are v1; "
+                        "flow_config.json selects v1; prev_signoff.log decoy reinforces v1",
+            "valid_recovery": "repair flow_config->v2 AND constraints.sdc->clk_main UP to the manifest "
+                              "authority, then rerun stage1 then stage2 (fresh honest chain)",
+            "rejects": ["edit manifest/spec DOWN to match stale evidence (forbidden/anti-cheat)",
+                        "trust evidence_manifest claim or prev_signoff.log decoy",
+                        "stage2 from stale stage1", "stage1-only", "stale report reuse",
+                        "hand-edited evidence", "PT green on v1 island"],
+            "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND "
+                         "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND HAZARD_RECOVERY_OK AND "
+                         "no forbidden edits"})
+        err_cat = "workflow_handoff_cross_source_conflict_requires_authority_recovery"
     return {
         "task_id": task_id, "track": "p14_workflow_handoff", "tool": ["pt"],
         "difficulty": "hard", "data_type": "mutation_synthetic", "resource_preset": "standard",
@@ -1067,15 +1138,8 @@ def _metadata(task_id: str, seed: int, evidence_steps: int) -> dict:
         "scoring": {"weights": weights, "evaluator": "workflow_handoff.WorkflowHandoffEvaluator",
                     "explanation_weight": 0.10},
         "sanitizer": {"enabled": True},
-        "generator": {"script": "p14_workflow_handoff_gen.py", "seed": seed,
-                      "params": {"mechanism": "workflow_multistage_evidence_chain_handoff",
-                                 "evidence_steps": evidence_steps,
-                                 "expected_netlist": "netlist_v2.v", "expected_clock": _CLOCK_PAIRS[0][0],
-                                 "stale_netlist": "netlist_v1.v", "stale_clock": _CLOCK_PAIRS[0][1],
-                                 "scenario_corner": "%s/%s" % (SCENARIO, CORNER),
-                                 "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND "
-                                              "STAGE_CHAIN_OK AND PROVENANCE_OK AND no forbidden edits"}},
-        "expected_error_category": "workflow_handoff_stale_evidence_chain_requires_ordered_rerun",
+        "generator": {"script": "p14_workflow_handoff_gen.py", "seed": seed, "params": gen_params},
+        "expected_error_category": err_cat,
         "version": "0.1.0",
     }
 
@@ -1105,17 +1169,30 @@ def _write(path: Path, text: str, executable: bool = False) -> None:
         path.chmod(0o755)
 
 
-def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_steps: int = 1) -> Path:
+def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_steps: int = 1,
+                        hazard_type: str | None = None, hint_level: int = 1) -> Path:
     """PURE (no tool). Write the full task directory in the MUTANT starting state.
 
-    Deterministic: same (task_id, seed, evidence_steps) -> byte-identical tree. The initial evidence
-    files are the STALE (v1/clk_old) run -- but since we cannot run the tool here, we seed them by
-    copying the committed p13 stale evidence (for evidence_steps>=1) and, for stage 2, a STALE stage-2
-    placeholder that the public runner reports as STALE. bake_golden() later produces the real golden
-    evidence for solution/ via the tool.
+    Deterministic: same (task_id, seed, evidence_steps, hazard_type) -> byte-identical tree. The initial
+    evidence files are the STALE (v1/clk_old) run -- seeded by copying the committed p13 stale evidence
+    (for evidence_steps>=1) and, for stage 2, a STALE stage-2 placeholder. bake_golden() later produces
+    the real golden evidence for solution/ via the tool.
+
+    hazard_type:
+      None (default)            -- the ordered-evidence-chain mutant (workflow_handoff_0001/0002).
+                                   Byte-for-byte identical to the committed v1 tasks.
+      "cross_source_conflict"   -- p14 v2 preset: the shipped evidence_manifest.json LIES (claims the
+                                   v2/clk_main authority package while its report_digest/body are the
+                                   stale v1/clk_old run), and a non-authoritative prev_signoff.log
+                                   reinforces the v1 story. The agent must apply the authority hierarchy
+                                   (manifest > configs > evidence > report > logs), repair the lower
+                                   sources UP to the manifest, and regenerate the chain -- not edit the
+                                   manifest DOWN or trust the decoy.
     """
     if evidence_steps not in (1, 2):
         raise ValueError("evidence_steps must be 1 or 2")
+    if hazard_type not in (None, "cross_source_conflict"):
+        raise ValueError("unsupported hazard_type: %r" % hazard_type)
     task = out_dir / task_id
     files = task / "files"
     hidden = task / "hidden"
@@ -1146,8 +1223,37 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     # stage metadata fields injected so the public runner + grader read consistent shapes.
     stale_mani = json.loads((P13_SRC / "files/evidence_manifest.json").read_text())
     stale_mani = {"stage": "stage1", "upstream_evidence_digest": None, **stale_mani}
+    if hazard_type == "cross_source_conflict":
+        # CROSS-SOURCE CONFLICT: the shipped manifest LIES about the package -- it claims the v2/clk_main
+        # authority selection while its report_digest/input_hashes (and the report body below) are the
+        # stale v1/clk_old run. This makes manifest-claim disagree with (a) flow_config.json (v1), (b) the
+        # report body (v1), and (c) the authority manifest only by the *claim* matching -- so an agent
+        # that trusts the evidence_manifest's claim is misled. The grader's
+        # submitted_report_matches_its_manifest + input_hashes_match_ref + authority-pkg checks reject it
+        # until the agent repairs the lower sources and regenerates honest fresh evidence.
+        stale_mani["selected_netlist"] = "netlist_v2.v"
+        stale_mani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the v2/clk_main package but "
+                                  "its report_digest + input_hashes are the stale v1/clk_old run (see "
+                                  "timing_report.rpt body and flow_config.json). Do NOT trust this claim; "
+                                  "the authority is handoff_manifest.json. Regenerate fresh evidence.")
     _write(files / "evidence_manifest.json", json.dumps(stale_mani, indent=2, sort_keys=True) + "\n")
     _write(files / "timing_report.rpt", (P13_SRC / "files/timing_report.rpt").read_text())
+
+    if hazard_type == "cross_source_conflict":
+        # Non-authoritative decoy: a previous sign-off log that reinforces the stale v1/clk_old story.
+        # Visible + read-only + forbidden to cite as evidence (a distractor, not an authority source).
+        _write(files / "prev_signoff.log",
+               "# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n"
+               "# This log is from the pre-ECO v1 flow. It is kept for history only; it is NOT the\n"
+               "# authority and must NOT be used to justify consuming netlist_v1.v / clk_old.\n"
+               "consumed_netlist=netlist_v1.v\n"
+               "clock=clk_old\n"
+               "scenario=func\n"
+               "corner=typ\n"
+               "signoff=OK\n"
+               "worst_slack=0.65\n"
+               "note=v1 island self-signs-off clean; superseded by the v2 ECO (see handoff_manifest.json)\n")
 
     if evidence_steps == 2:
         _write(files / "gen_evidence_stage2.py", _GEN_STAGE2)
@@ -1182,7 +1288,8 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
 
     # hidden oracle
     _write(hidden / "grade_workflow.py", _GRADE_WORKFLOW)
-    _write(hidden / "handoff_truth.json", _handoff_truth(evidence_steps, expected_sha, stale_sha))
+    _write(hidden / "handoff_truth.json",
+           _handoff_truth(evidence_steps, expected_sha, stale_sha, hazard_type))
     _write(hidden / "run_hidden.sh", _run_hidden_sh(evidence_steps), executable=True)
     _write(hidden / "regen_reference.sh", _regen_reference_sh(evidence_steps), executable=True)
 
@@ -1193,7 +1300,8 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
            _constraints(_CLOCK_PAIRS[0][0], "Restored to current clock clk_main; en is part of v2."))
 
     # metadata
-    _write(task / "metadata.json", json.dumps(_metadata(task_id, seed, evidence_steps), indent=2) + "\n")
+    _write(task / "metadata.json",
+           json.dumps(_metadata(task_id, seed, evidence_steps, hazard_type, hint_level), indent=2) + "\n")
     return task
 
 

@@ -22,22 +22,28 @@ sys.path.insert(0, str(REPO))
 from generators.p14_workflow_handoff_gen import build_task_skeleton, bake_golden  # noqa: E402
 
 TASKS = [
-    ("workflow_handoff_0001", 0, 1),
-    ("workflow_handoff_0002", 0, 2),
+    # (task_id, seed, evidence_steps, hazard_type)
+    ("workflow_handoff_0001", 0, 1, None),
+    ("workflow_handoff_0002", 0, 2, None),
+    ("workflow_handoff_0003", 0, 2, "cross_source_conflict"),   # p14 v2 hazard preset
 ]
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="generate the two Phase-4B p14 tasks")
+    ap = argparse.ArgumentParser(description="generate the p14 workflow handoff tasks")
     ap.add_argument("--out", default=str(REPO / "tasks" / "p14_workflow_handoff"))
     ap.add_argument("--bake", action="store_true", help="run the chain to bake golden evidence (needs pt)")
     ap.add_argument("--pt-cmd", default=os.environ.get("EDA_PT_CMD", "pt_shell"))
+    ap.add_argument("--only", default="", help="comma-separated task_ids to build (default: all)")
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    for task_id, seed, steps in TASKS:
-        td = build_task_skeleton(out, task_id, seed, steps)
-        print(f"built {task_id} (evidence_steps={steps}) -> {td}")
+    only = set(x for x in a.only.split(",") if x)
+    for task_id, seed, steps, hazard in TASKS:
+        if only and task_id not in only:
+            continue
+        td = build_task_skeleton(out, task_id, seed, steps, hazard_type=hazard)
+        print(f"built {task_id} (evidence_steps={steps}, hazard={hazard}) -> {td}")
         if a.bake:
             bake_golden(td, a.pt_cmd, steps)
             print(f"  baked golden evidence for {task_id}")

@@ -408,3 +408,224 @@ def test_forbidden_includes_generators_and_oracle(task):
             "handoff_truth.json", "handoff_manifest.json"} <= forb
     if _meta(task)["generator"]["params"]["evidence_steps"] == 2:
         assert "run_evidence_stage2.sh" in forb and "gen_evidence_stage2.py" in forb
+
+
+# ===========================================================================
+# Phase-4D: workflow_handoff_0003 cross-source-conflict hazard preset
+# ===========================================================================
+T3 = TASKS_DIR / "workflow_handoff_0003"
+
+
+def _grade_run_hazard(setup) -> str:
+    """Run grade_workflow.py for the hazard task in a temp dir populated by setup(dir)."""
+    d = Path(tempfile.mkdtemp(prefix="p14h_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(T3 / "files" / f, d / f)
+        shutil.copy2(T3 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T3 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "applied_hidden.sdc").write_text(
+            "create_clock -name clk_main -period 3.0 [get_ports clk_main]\n")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_0003_exists_and_schema_valid():
+    meta = _meta(T3)
+    assert validate_metadata(meta) == []
+    assert structural_validate(T3) == []
+    assert meta["track"] == "p14_workflow_handoff"
+    assert meta["task_id"] == "workflow_handoff_0003"
+    assert meta["generator"]["params"]["hazard_type"] == "cross_source_conflict"
+    assert abs(sum(meta["scoring"]["weights"].values()) - 1.0) < 1e-9
+    assert {"authority_consistency", "hazard_recovery"} <= set(meta["scoring"]["weights"])
+
+
+def test_0003_authority_hierarchy_encoded():
+    truth = json.loads((T3 / "hidden" / "handoff_truth.json").read_text())
+    assert truth["authority_source"] == "handoff_manifest.json"
+    assert truth["hazard_type"] == "cross_source_conflict"
+    # manifest out-ranks flow_config / evidence / report / log in the hierarchy
+    h = truth["authority_hierarchy"]
+    assert h.index("handoff_manifest.json") < h.index("flow_config.json")
+    assert h.index("flow_config.json") < h.index("evidence_manifest.json")
+    assert h.index("evidence_manifest.json") < h.index("prev_signoff.log")
+    assert truth["expected_netlist"] == "netlist_v2.v"   # authority target is v2 regardless of decoys
+
+
+def test_0003_dispatch_parity():
+    meta = _meta(T3)
+    assert meta["scoring"]["evaluator"] == "workflow_handoff.WorkflowHandoffEvaluator"
+    assert isinstance(_select_evaluator(meta, T3), WorkflowHandoffEvaluator)
+
+
+def test_0003_shipped_manifest_lies_about_package():
+    # the cross-source conflict: shipped manifest CLAIMS v2 but its digest is the v1 run
+    m = json.loads((T3 / "files" / "evidence_manifest.json").read_text())
+    assert m["selected_netlist"] == "netlist_v2.v"        # the lie
+    assert m["selected_clock"] == "clk_main"
+    sol = json.loads((T3 / "solution" / "evidence_manifest.json").read_text())
+    assert m["report_digest"] != sol["report_digest"]     # but the body is NOT the real v2 run
+    # flow_config still selects v1 (the real consumed source)
+    fc = json.loads((T3 / "files" / "flow_config.json").read_text())
+    assert fc["netlist"] == "netlist_v1.v"
+
+
+def test_0003_decoy_log_present_and_forbidden():
+    assert (T3 / "files" / "prev_signoff.log").exists()
+    meta = _meta(T3)
+    assert "prev_signoff.log" in meta["files"]["visible"]
+    assert "prev_signoff.log" in meta["files"]["forbidden"]
+    assert "prev_signoff.log" not in meta["files"]["editable"]
+    log = (T3 / "files" / "prev_signoff.log").read_text()
+    assert "NON-AUTHORITATIVE" in log and "netlist_v1.v" in log
+
+
+# -- grader behavior (tool-free, crafted submitted-vs-reference) --
+_BEGIN2 = "=== REPORT_TIMING BEGIN ==="
+_END2 = "=== REPORT_TIMING END ==="
+
+
+def _hz_inputs(d: Path, netlist="netlist_v2.v", clk="clk_main"):
+    (d / "flow_config.json").write_text(json.dumps({
+        "netlist": netlist, "top_module": "acc_stage", "constraints": "constraints.sdc",
+        "library": "tiny.db", "scenario": "func", "corner": "typ"}, indent=2) + "\n")
+    (d / "constraints.sdc").write_text(
+        f"create_clock -name {clk} -period 3.0 [get_ports {clk}]\n")
+
+
+def _hz_stage1(d: Path, consumed="netlist_v2.v", clk="clk_main", body="din i0 cap_reg slack MET 0.13"):
+    dig = _digest(body)
+    ih = _ih(d)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + clk + "func" + "typ" + dig).encode()).hexdigest()[:16]
+    mani = {"stage": "stage1", "upstream_evidence_digest": None, "input_hashes": ih,
+            "selected_netlist": consumed, "selected_sdc": "constraints.sdc", "selected_clock": clk,
+            "scenario": "func", "corner": "typ", "tool": "pt_shell", "tool_exit": 0,
+            "signoff": "OK", "constrained_paths": 1, "report_digest": dig, "run_nonce": nonce}
+    (d / "timing_report.rpt").write_text(f"# h\n{_BEGIN2}\n{body}\n{_END2}\n")
+    (d / "evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    (d / "ref_timing_report.rpt").write_text(f"# h\n{_BEGIN2}\n{body}\n{_END2}\n")
+    (d / "ref_evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    return mani
+
+
+def _hz_stage2(d: Path, upstream, body="cap_reg r0 acc_reg slack MET 0.20"):
+    ih = _ih(d); s2dig = _digest(body)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + "clk_main" + "func" + "typ" + s2dig + (upstream or "")).encode()).hexdigest()[:16]
+    s2 = {"stage": "stage2", "upstream_evidence_digest": upstream, "upstream_stage_ok": True,
+          "input_hashes": ih, "selected_netlist": "netlist_v2.v", "selected_clock": "clk_main",
+          "scenario": "func", "corner": "typ", "tool": "pt_shell", "tool_exit": 0, "signoff": "OK",
+          "stage2_constrained_paths": 1, "stage2_slack": "0.20", "stage2_report_digest": s2dig,
+          "run_nonce": nonce}
+    (d / "stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    (d / "ref_stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    return s2
+
+
+def test_0003_grader_full_recovery_emits_hazard_markers():
+    def setup(d):
+        _hz_inputs(d, "netlist_v2.v", "clk_main")
+        m = _hz_stage1(d, "netlist_v2.v", "clk_main")
+        _hz_stage2(d, m["report_digest"])
+    out = _grade_run_hazard(setup)
+    assert "EVIDENCE_OK" in out
+    assert "AUTHORITY_CONSISTENCY_OK" in out
+    assert "HAZARD_RECOVERY_OK" in out
+
+
+def test_0003_grader_wrong_authority_v1_fails():
+    # agent "made files agree" with the stale v1 source (wrong authority) -> evidence describes v1.
+    # The oracle must deny the hazard gates because it pins the authority target to v2.
+    def setup(d):
+        _hz_inputs(d, "netlist_v1.v", "clk_old")
+        m = _hz_stage1(d, "netlist_v1.v", "clk_old")
+        _hz_stage2(d, m["report_digest"])
+        # the laundered SDC the oracle reads reflects the v1/clk_old choice
+        (d / "applied_hidden.sdc").write_text(
+            "create_clock -name clk_old -period 3.0 [get_ports clk_old]\n")
+    out = _grade_run_hazard(setup)
+    assert "EVIDENCE_OK" not in out                 # authority clause denies the master gate
+    assert "AUTHORITY_CONSISTENCY_OK" not in out     # the hard hazard gate fails
+    assert "HAZARD_RECOVERY_OK" not in out
+    assert "evidence_is_authority_pkg=WRONG" in out  # oracle pins the target to the v2 authority
+
+
+def test_0003_grader_decoy_claim_not_trusted():
+    # submit the lying manifest (claims v2) with a v1 body -> report!=manifest, not authority pkg
+    def setup(d):
+        _hz_inputs(d, "netlist_v2.v", "clk_main")
+        m = _hz_stage1(d, "netlist_v2.v", "clk_main", body="din i0 cap_reg slack MET 0.13")
+        # tamper: manifest claims v2 (kept) but report body is a different (v1-like) run
+        (d / "timing_report.rpt").write_text(f"# h\n{_BEGIN2}\ndin cap_reg slack MET 0.65\n{_END2}\n")
+    out = _grade_run_hazard(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "AUTHORITY_CONSISTENCY_OK" not in out
+
+
+def test_0003_grader_stage1_only_fails():
+    def setup(d):
+        _hz_inputs(d, "netlist_v2.v", "clk_main")
+        _hz_stage1(d, "netlist_v2.v", "clk_main")
+        # no stage2
+    out = _grade_run_hazard(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "HAZARD_RECOVERY_OK" not in out
+
+
+def test_0003_no_hidden_leak():
+    public_blob = ""
+    for p in (T3 / "files").iterdir():
+        public_blob += p.read_text(errors="ignore")
+    for needle in ("def grade(truth)", "AUTHORITY_CONSISTENCY_SCORE", "recovery_step_expected",
+                   "stale_source_id"):
+        assert needle not in public_blob, needle
+
+
+def test_0003_public_verdict_early():
+    sh = (T3 / "files" / "run_public.sh").read_text()
+    assert "WORKFLOW_PUBLIC:" in sh
+    assert sh.index("WORKFLOW_PUBLIC:") < 1000
+
+
+def test_0003_no_answer_literal_leak():
+    sol = json.loads((T3 / "solution" / "evidence_manifest.json").read_text())
+    nonce = sol["run_nonce"]
+    for p in (T3 / "files").iterdir():
+        assert nonce not in p.read_text(errors="ignore"), p.name
+
+
+def test_0003_deterministic_generation(tmp_path):
+    a = build_task_skeleton(tmp_path / "a", "workflow_handoff_0003", 0, 2,
+                            hazard_type="cross_source_conflict")
+    b = build_task_skeleton(tmp_path / "b", "workflow_handoff_0003", 0, 2,
+                            hazard_type="cross_source_conflict")
+    fa = sorted(p.relative_to(a) for p in a.rglob("*") if p.is_file())
+    fb = sorted(p.relative_to(b) for p in b.rglob("*") if p.is_file())
+    assert fa == fb
+    for rel in fa:
+        assert (a / rel).read_bytes() == (b / rel).read_bytes(), rel
+
+
+def test_0001_0002_skeleton_unchanged_by_hazard_support(tmp_path):
+    # regenerating 0001/0002 with hazard_type=None must match the committed skeleton (ex-solution),
+    # i.e. adding the cross-source preset did not perturb the v1 tasks.
+    for tid, steps, committed in (("workflow_handoff_0001", 1, T1), ("workflow_handoff_0002", 2, T2)):
+        gen = build_task_skeleton(tmp_path / tid, tid, 0, steps, hazard_type=None)
+        for rel in (p.relative_to(gen) for p in gen.rglob("*") if p.is_file()):
+            if rel.parts[0] == "solution":
+                continue  # solution evidence is tool-baked, not part of the pure skeleton
+            if rel.name == "grade_workflow.py":
+                # the shared oracle gained a hazard block gated on hazard_type!=none; assert the
+                # committed v1 logic is preserved verbatim as a prefix (behavior identical for none).
+                new = (gen / rel).read_text()
+                old = (committed / rel).read_text()
+                assert new[:new.index("    # Hazard-recovery markers")] == old[:old.rindex("    return 0")]
+                continue
+            assert (gen / rel).read_bytes() == (committed / rel).read_bytes(), rel
