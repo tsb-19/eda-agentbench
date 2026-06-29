@@ -1,0 +1,73 @@
+{
+  "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside grade_workflow.py; never seen by the agent.",
+  "evidence_steps": 2,
+  "top_module": "acc_stage",
+  "expected_netlist": "netlist_v2.v",
+  "expected_revision": "v2",
+  "expected_netlist_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+  "stale_netlist": "netlist_v1.v",
+  "stale_netlist_sha256": "64c06ccd792ed33c8c3296778bbb832642e98eaeaffce5e2268fc5211428da62",
+  "expected_clock": "clk_main",
+  "stale_clock": "clk_old",
+  "scenario": "slow",
+  "corner": "func",
+  "library": "tiny.db",
+  "required_ports": [
+    "clk_main",
+    "din",
+    "en",
+    "dout"
+  ],
+  "min_constrained_paths": 1,
+  "clock_period_ns": 3.0,
+  "forbid_weakening": true,
+  "manifest_netlist": "netlist_v2.v",
+  "manifest_clock": "clk_main",
+  "authority_source": "handoff_manifest.json",
+  "authority_hierarchy": [
+    "spec.md",
+    "handoff_manifest.json",
+    "flow_config.json",
+    "evidence_manifest.json",
+    "report_A_typ_test.rpt",
+    "report_B_stale_netlist.rpt",
+    "evidence_C_manifest.json",
+    "prev_signoff.log"
+  ],
+  "hazard_type": "multi_conflict_partially_truthful_decoy",
+  "expected_scenario": "slow",
+  "expected_corner": "func",
+  "stale_scenario": "test",
+  "stale_corner": "typ",
+  "global_authority_tuple": [
+    "netlist_v2.v",
+    "clk_main",
+    "slow",
+    "func"
+  ],
+  "decoy_sources": [
+    "report_A_typ_test.rpt(netlist_v2/clk_main right; scenario/corner wrong)",
+    "report_B_stale_netlist.rpt(scenario/corner right; netlist_v1 stale)",
+    "evidence_C_manifest.json(fresh digest/upstream chain; semantically wrong package)",
+    "prev_signoff.log(recent, plausible, non-authoritative)"
+  ],
+  "partial_truth_sources": [
+    "report_A_typ_test.rpt(partial: design right, corner wrong)",
+    "report_B_stale_netlist.rpt(partial: corner right, design stale)",
+    "evidence_C_manifest.json(partial: chain syntactically valid, package semantically wrong)"
+  ],
+  "non_authoritative_sources": [
+    "prev_signoff.log",
+    "report_A_typ_test.rpt",
+    "report_B_stale_netlist.rpt",
+    "evidence_C_manifest.json"
+  ],
+  "invalidated_by": "no_single_local_source_is_globally_authority_consistent",
+  "recovery_step_expected": [
+    "fix_flow_config_netlist_to_v2",
+    "fix_flow_config_scenario_to_slow",
+    "fix_flow_config_corner_to_func",
+    "rerun_stage1",
+    "rerun_stage2"
+  ]
+}

@@ -744,6 +744,26 @@ def grade(truth):
              "sub=%s ref=%s want=%s" % (sub.get("corner"), ref_co, exp_co)),
         ]
 
+    # multi-conflict global-authority echecks (v4 hazard only). FORGERY-RESISTANT: pinned to the
+    # consumed netlist (flow_config.json) and the consumed clock (the trusted-laundered applied_hidden.sdc),
+    # NOT to the agent-authored evidence_manifest -- so an agent that runs the chain on the stale netlist
+    # and then hand-edits the manifest to CLAIM netlist_v2 cannot satisfy these. Folded into EVIDENCE_OK
+    # (master gate) so any partially-truthful decoy recovery (Report-A right-netlist/wrong-corner,
+    # Report-B right-corner/stale-netlist, Evidence-C fresh-but-wrong-package) stays far below pass.
+    # Gated on global_authority_tuple being present (only set for the multi_conflict hazard), so
+    # 0001/0002/0003/0004 grader output is byte-identical.
+    if truth.get("global_authority_tuple") is not None:
+        consumed_clocks = _sdc_clocks(applied)
+        consumed_clk = consumed_clocks[0] if consumed_clocks else None
+        echecks += [
+            ("evidence_consumed_netlist_is_authority",
+             consumed == truth["expected_netlist"],
+             "flow_config.netlist=%s want=%s" % (consumed, truth["expected_netlist"])),
+            ("evidence_consumed_clock_is_authority",
+             consumed_clk == truth["expected_clock"],
+             "applied.clock=%s want=%s" % (consumed_clk, truth["expected_clock"])),
+        ]
+
     # stage-2 chain checks (only when required). These also feed EVIDENCE_OK (master gate) so a
     # missing/stale stage-2 cannot pass on stage-1 alone.
     s2sub = _load("stage2_summary.json") if steps >= 2 else {}
@@ -891,6 +911,23 @@ def main():
                       "(sub=%s/%s ref=%s/%s want=%s/%s)" % (
                           sub.get("scenario"), sub.get("corner"), ref_sc, ref_co,
                           truth.get("expected_scenario"), truth.get("expected_corner")))
+        # multi-conflict global-authority diagnostics (v4 hazard). These fold into EVIDENCE (master gate)
+        # via the evidence_consumed_netlist/clock_is_authority + scenario/corner echecks, so the markers are
+        # reported (not separately scored): a partial-truth decoy recovery already collapses EVIDENCE_OK.
+        # Gated on global_authority_tuple (only the multi_conflict hazard sets it) -> 0001-0004 unaffected.
+        if truth.get("global_authority_tuple") is not None:
+            ga_ok = bool(e_full and f_full) and not masking
+            mc_ok = bool(e_full and f_full and sc_full) and not masking
+            if ga_ok:
+                print("GLOBAL_AUTHORITY_OK")
+            print("GLOBAL_AUTHORITY_SCORE: %.3f" % (1.0 if ga_ok else 0.0))
+            if mc_ok:
+                print("MULTI_CONFLICT_OK")
+            print("MULTI_CONFLICT_SCORE: %.3f" % (1.0 if mc_ok else 0.0))
+            if bool(sub) and not ga_ok and not masking:
+                print("PARTIAL_DECOY_REJECTED: submitted evidence is locally plausible but not the "
+                      "global-authority package (netlist_v2/clk_main/%s/%s)"
+                      % (truth.get("expected_scenario"), truth.get("expected_corner")))
         if not authority_consistent and bool(sub) and not masking:
             # diagnostic classification (reported, not scored)
             if sub.get("selected_netlist") == truth.get("stale_netlist") or \
@@ -1116,7 +1153,108 @@ def _prompt_md_sc(evidence_steps: int) -> str:
     )
 
 
-def _spec_md(evidence_steps: int, sc_hazard: bool = False) -> str:
+def _spec_md_mc(evidence_steps: int) -> str:
+    """Authoritative spec for the p14 v4 multi-conflict partially-truthful-decoy preset."""
+    chain = (
+        "\n## Two-stage evidence chain (evidence_steps=2)\n\n"
+        "Sign-off evidence is a **two-stage ordered chain**:\n\n"
+        "1. **Stage 1** — `bash run_evidence_stage1.sh` regenerates `timing_report.rpt` + "
+        "`evidence_manifest.json` from the repaired inputs.\n"
+        "2. **Stage 2** — `bash run_evidence_stage2.sh` consumes the **fresh** stage-1 evidence and "
+        "regenerates `stage2_summary.json` (its `upstream_evidence_digest` must equal the fresh stage-1 "
+        "report digest).\n\n"
+        "Run stage 1 **then** stage 2, after the inputs are repaired.\n"
+    )
+    return (
+        "# acc_stage — Multi-Conflict Sign-off Handoff (authoritative spec)\n\n"
+        "This is a downstream **timing sign-off handoff** for `acc_stage` with **several coupled faults** "
+        "and **several partially-truthful decoy evidence sources**. `handoff_manifest.json` + this "
+        "document is the **single global authority**. No one shipped evidence source is fully correct; you "
+        "must infer the only globally consistent target and regenerate fresh evidence for it.\n\n"
+        "## Global authority (the only valid target)\n\n"
+        "Current contract: netlist **v2** (`{clk_main, din, en, dout}`), clock **`clk_main`**, scenario "
+        "**`%s`**, corner **`%s`** (`tiny.db`). The valid evidence chain is the one freshly generated from "
+        "**exactly this package**: `netlist_v2.v` + `clk_main` + `%s`/`%s`.\n\n"
+        "## The shipped state (multiple coupled faults)\n\n"
+        "`flow_config.json` is wrong on **more than one axis** (stale netlist AND wrong scenario/corner), "
+        "and the workspace ships **several decoy evidence sources, each locally plausible and partially "
+        "true but globally invalid**:\n\n"
+        "- `report_A_typ_test.rpt` — fresh-looking, internally consistent; **right** on netlist/clock "
+        "(`netlist_v2`/`clk_main`) but **wrong** on scenario/corner (`%s`/`%s`).\n"
+        "- `report_B_stale_netlist.rpt` — fresh-looking, internally consistent; **right** on "
+        "scenario/corner (`%s`/`%s`) but **stale** netlist (`netlist_v1.v`).\n"
+        "- `evidence_C_manifest.json` — a fresh digest/upstream chain that is **syntactically valid** but "
+        "semantically tied to a wrong package.\n"
+        "- `prev_signoff.log` — recent and plausible, but **non-authoritative**; reinforces one decoy.\n\n"
+        "Each decoy satisfies **part** of the global tuple; **none** satisfies all of it.\n"
+        % (SC_AUTH_SCENARIO, SC_AUTH_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER,
+           SC_STALE_SCENARIO, SC_STALE_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER)
+        + chain +
+        "\n## What correct looks like\n\n"
+        "1. Repair `flow_config.json` to the **global authority**: netlist **`netlist_v2.v`**, scenario "
+        "**`%s`**, corner **`%s`** (clock `clk_main` is already correct);\n"
+        "2. **reject every decoy** — do not follow report A (wrong corner), report B (stale netlist), "
+        "evidence C (wrong package), or `prev_signoff.log`;\n"
+        "3. **rerun the evidence flow** (stage 1 then stage 2) so the chain is freshly generated from the "
+        "global-authority package `%s`/`%s`/`netlist_v2`;\n"
+        "4. PrimeTime setup sign-off on the consumed design reports **no negative-slack paths**.\n\n"
+        % (SC_AUTH_SCENARIO, SC_AUTH_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER)
+        + "## What will NOT be accepted\n\n"
+        "- Following report A because netlist/clock are right (corner is wrong).\n"
+        "- Following report B because scenario/corner are right (netlist is stale).\n"
+        "- Following evidence C because its digest/upstream chain is syntactically valid (package is "
+        "semantically wrong).\n"
+        "- Making all files agree with **one** locally-plausible-but-globally-wrong source.\n"
+        "- **Editing the authority manifest/spec DOWN** to any decoy.\n"
+        "- **Hand-editing evidence** to claim the global package. The grader re-runs the generator chain "
+        "on your submitted `flow_config.json` and pins the authority to the **actual** consumed netlist / "
+        "clock / scenario / corner of that re-run (digest / input-hashes / `run_nonce` / "
+        "`upstream_evidence_digest`).\n"
+        "- A green PrimeTime report under any wrong package; rerunning only the last stage; final-state-"
+        "only repair; stage1-only; stage2 from a semantically wrong stage1.\n"
+        "- Editing a netlist, the library, the authority manifest, the generators, or the runners; "
+        "weakening `constraints.sdc`.\n\n"
+        "When done, briefly state that the root cause is a multi-axis conflict with partially-truthful "
+        "decoys, identify which decoys are partially true vs false, and confirm you repaired to the global "
+        "authority and reran both stages in order.\n"
+    )
+
+
+def _prompt_md_mc(evidence_steps: int) -> str:
+    return (
+        "# Task: resolve the multi-conflict handoff AND regenerate the fresh global-authority evidence chain\n\n"
+        "You are handed a downstream **timing sign-off handoff** with **several coupled faults** and "
+        "**several partially-truthful decoy evidence sources**. `handoff_manifest.json` / `spec.md` define "
+        "the **single global authority**: `netlist_v2.v` + `clk_main` + `%s`/`%s`. No shipped evidence "
+        "source is fully correct — each decoy is right on some axes and wrong on others. Diagnose the "
+        "global authority, **reject every decoy**, repair `flow_config.json` to the global package, then "
+        "**rerun the evidence flow (two ordered stages)**. Following any single decoy, hand-edited "
+        "evidence, or a green report under a wrong package will **not** pass.\n\n"
+        "## The correct trajectory\n\n"
+        "1. Repair `flow_config.json` to the global authority: `netlist_v2.v`, scenario `%s`, corner "
+        "`%s` (clock `clk_main` is already correct — do not change it).\n"
+        "2. Run `bash run_evidence_stage1.sh` to regenerate `timing_report.rpt` + `evidence_manifest.json` "
+        "from the global-authority package.\n"
+        "3. Run `bash run_evidence_stage2.sh` to regenerate `stage2_summary.json` (binds the fresh "
+        "stage-1 digest).\n"
+        "4. Confirm `bash run_public.sh` shows `evidence=FRESH stage2=FRESH`, `signoff=OK`, and the "
+        "consumed package == the global authority.\n\n"
+        "## What you can edit / run\n\n"
+        "- Edit `flow_config.json` (netlist/scenario/corner). Do **not** change the clock or the netlists.\n"
+        "- Run `bash run_public.sh` for verdict-first feedback (FRESH/STALE/MISSING).\n"
+        "- Run the evidence generators to regenerate evidence — do not hand-write evidence files.\n"
+        "- Do not edit netlists, the library, the authority manifest, the decoy reports, the generators, "
+        "or the runners.\n\n"
+        "When done, briefly state that the root cause is a multi-axis conflict with partially-truthful "
+        "decoys, identify which decoys are partially true vs false, and confirm you repaired to the global "
+        "authority and reran both stages in order.\n"
+        % (SC_AUTH_SCENARIO, SC_AUTH_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER)
+    )
+
+
+def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False) -> str:
+    if mc_hazard:
+        return _spec_md_mc(evidence_steps)
     if sc_hazard:
         return _spec_md_sc(evidence_steps)
     chain = ""
@@ -1172,7 +1310,9 @@ def _spec_md(evidence_steps: int, sc_hazard: bool = False) -> str:
     )
 
 
-def _prompt_md(evidence_steps: int, sc_hazard: bool = False) -> str:
+def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False) -> str:
+    if mc_hazard:
+        return _prompt_md_mc(evidence_steps)
     if sc_hazard:
         return _prompt_md_sc(evidence_steps)
     steps = (
@@ -1213,8 +1353,9 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
                    hazard_type: str | None = None) -> str:
     a_clk, s_clk = _CLOCK_PAIRS[0]
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
-    scenario = SC_AUTH_SCENARIO if _is_sc else SCENARIO
-    corner = SC_AUTH_CORNER if _is_sc else CORNER
+    _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
+    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc) else SCENARIO
+    corner = SC_AUTH_CORNER if (_is_sc or _is_mc) else CORNER
     truth = {
         "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside "
                     "grade_workflow.py; never seen by the agent.",
@@ -1270,6 +1411,41 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
         truth["recovery_step_expected"] = ["fix_flow_config_scenario_to_slow",
                                            "fix_flow_config_corner_to_func",
                                            "rerun_stage1", "rerun_stage2"]
+    if _is_mc:
+        # p14 v4: multi-conflict partially-truthful decoy. The global authority is the 4-tuple
+        # (netlist_v2, clk_main, slow, func). Multiple public evidence sources are each LOCALLY plausible
+        # and partially true but globally invalid; only the full global package + a fresh ordered chain
+        # generated from it passes. The oracle enforces the full tuple via (a) the v3 scenario/corner
+        # authority echecks (expected_scenario/corner, pinned to the hidden re-run) and (b) the new
+        # forgery-resistant consumed-netlist/clock echecks (global_authority_tuple, pinned to flow_config
+        # + applied_hidden.sdc), both folded into EVIDENCE_OK.
+        truth["authority_source"] = "handoff_manifest.json"
+        truth["authority_hierarchy"] = ["spec.md", "handoff_manifest.json", "flow_config.json",
+                                        "evidence_manifest.json", "report_A_typ_test.rpt",
+                                        "report_B_stale_netlist.rpt", "evidence_C_manifest.json",
+                                        "prev_signoff.log"]
+        truth["hazard_type"] = hazard_type
+        truth["expected_scenario"] = SC_AUTH_SCENARIO
+        truth["expected_corner"] = SC_AUTH_CORNER
+        truth["stale_scenario"] = SC_STALE_SCENARIO
+        truth["stale_corner"] = SC_STALE_CORNER
+        truth["global_authority_tuple"] = ["netlist_v2.v", a_clk, SC_AUTH_SCENARIO, SC_AUTH_CORNER]
+        truth["decoy_sources"] = [
+            "report_A_typ_test.rpt(netlist_v2/clk_main right; scenario/corner wrong)",
+            "report_B_stale_netlist.rpt(scenario/corner right; netlist_v1 stale)",
+            "evidence_C_manifest.json(fresh digest/upstream chain; semantically wrong package)",
+            "prev_signoff.log(recent, plausible, non-authoritative)"]
+        truth["partial_truth_sources"] = [
+            "report_A_typ_test.rpt(partial: design right, corner wrong)",
+            "report_B_stale_netlist.rpt(partial: corner right, design stale)",
+            "evidence_C_manifest.json(partial: chain syntactically valid, package semantically wrong)"]
+        truth["non_authoritative_sources"] = ["prev_signoff.log", "report_A_typ_test.rpt",
+                                              "report_B_stale_netlist.rpt", "evidence_C_manifest.json"]
+        truth["invalidated_by"] = "no_single_local_source_is_globally_authority_consistent"
+        truth["recovery_step_expected"] = ["fix_flow_config_netlist_to_v2",
+                                           "fix_flow_config_scenario_to_slow",
+                                           "fix_flow_config_corner_to_func",
+                                           "rerun_stage1", "rerun_stage2"]
     return json.dumps(truth, indent=2) + "\n"
 
 
@@ -1313,6 +1489,18 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
         # scenario/corner authority folds into EVIDENCE so wrong-corner states stay <0.5.
         visible.append("prev_corner_signoff.log")
         forbidden.append("prev_corner_signoff.log")
+        weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
+                   "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
+                   "hazard_recovery": 0.10, "explanation": 0.10}
+    if hazard_type == "multi_conflict_partially_truthful_decoy":
+        # v4: multi-conflict partially-truthful decoys. Four visible, read-only, forbidden distractors,
+        # each locally plausible but globally invalid. Same weight layout + hazard axes as v2/v3; the full
+        # global-authority tuple (netlist_v2/clk_main/slow/func) + multi-conflict recovery fold into
+        # EVIDENCE / HAZARD_RECOVERY so every partial-truth recovery stays <0.5.
+        for f in ("report_A_typ_test.rpt", "report_B_stale_netlist.rpt", "evidence_C_manifest.json",
+                  "prev_signoff.log"):
+            visible.append(f)
+            forbidden.append(f)
         weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
                    "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
                    "hazard_recovery": 0.10, "explanation": 0.10}
@@ -1365,6 +1553,32 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
                          "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND SCENARIO_CORNER_AUTHORITY_OK "
                          "AND HAZARD_RECOVERY_OK AND no forbidden edits"})
         err_cat = "workflow_handoff_scenario_corner_conflict_requires_provenance_recovery"
+    if hazard_type == "multi_conflict_partially_truthful_decoy":
+        gen_params.update({
+            "hazard_type": "multi_conflict_partially_truthful_decoy", "num_hazards": 2,
+            "hint_level": hint_level, "authority_source": "handoff_manifest.json",
+            "expected_scenario": SC_AUTH_SCENARIO, "expected_corner": SC_AUTH_CORNER,
+            "stale_scenario": SC_STALE_SCENARIO, "stale_corner": SC_STALE_CORNER,
+            "global_authority_tuple": ["netlist_v2.v", _CLOCK_PAIRS[0][0], SC_AUTH_SCENARIO, SC_AUTH_CORNER],
+            "conflict": "global authority is netlist_v2/clk_main/slow/func; report_A is right on "
+                        "netlist/clock but wrong on scenario/corner; report_B is right on scenario/corner "
+                        "but stale on netlist; evidence_C is a fresh chain on a semantically wrong package; "
+                        "prev_signoff.log is a recent non-authoritative decoy",
+            "valid_recovery": "repair flow_config to the GLOBAL authority (netlist_v2 + slow + func; clock "
+                              "already clk_main), reject every partial-truth decoy, then rerun stage1 then "
+                              "stage2 (fresh ordered chain bound to the global package)",
+            "rejects": ["follow report_A (netlist/clock right, scenario/corner wrong)",
+                        "follow report_B (scenario/corner right, netlist stale)",
+                        "follow evidence_C (syntactically valid chain, semantically wrong package)",
+                        "edit manifest/spec DOWN to any decoy (forbidden/anti-cheat)",
+                        "make all files agree with one locally-plausible-but-globally-wrong source",
+                        "rerun only the last stage", "final-state-only without evidence", "stage1-only",
+                        "stage2 from semantically wrong stage1", "hand-edited evidence",
+                        "PT green under any wrong package"],
+            "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND "
+                         "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND GLOBAL_AUTHORITY_OK AND "
+                         "MULTI_CONFLICT_OK AND HAZARD_RECOVERY_OK AND no forbidden edits"})
+        err_cat = "workflow_handoff_multi_conflict_requires_global_authority_recovery"
     return {
         "task_id": task_id, "track": "p14_workflow_handoff", "tool": ["pt"],
         "difficulty": "hard", "data_type": "mutation_synthetic", "resource_preset": "standard",
@@ -1427,9 +1641,11 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     """
     if evidence_steps not in (1, 2):
         raise ValueError("evidence_steps must be 1 or 2")
-    if hazard_type not in (None, "cross_source_conflict", "scenario_corner_cross_source_conflict"):
+    if hazard_type not in (None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
+                           "multi_conflict_partially_truthful_decoy"):
         raise ValueError("unsupported hazard_type: %r" % hazard_type)
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
+    _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
     task = out_dir / task_id
     files = task / "files"
     hidden = task / "hidden"
@@ -1452,6 +1668,20 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                _flow_config("netlist_v2.v",
                             "Downstream evidence flow selection. Editable. Netlist/clock correct, but "
                             "scenario/corner are STALE (%s/%s; restore to %s/%s)."
+                            % (SC_STALE_SCENARIO, SC_STALE_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER),
+                            scenario=SC_STALE_SCENARIO, corner=SC_STALE_CORNER))
+        _write(files / "constraints.sdc",
+               _constraints(_CLOCK_PAIRS[0][0],
+                            "Timing constraints (clk_main correct -- do not change)."))
+    elif _is_mc:
+        # v4 multi-conflict: flow_config is wrong on MULTIPLE axes (stale netlist_v1 AND wrong
+        # scenario/corner test/typ). clock clk_main is already correct. The agent must repair ALL axes
+        # up to the global authority (netlist_v2 + slow + func); clock stays clk_main.
+        _write(files / "flow_config.json",
+               _flow_config("netlist_v1.v",
+                            "Downstream evidence flow selection. Editable. MULTI-CONFLICT: stale netlist "
+                            "(v1) AND wrong scenario/corner (%s/%s). Restore netlist->netlist_v2.v AND "
+                            "scenario/corner->%s/%s (the global authority). Clock clk_main is correct."
                             % (SC_STALE_SCENARIO, SC_STALE_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER),
                             scenario=SC_STALE_SCENARIO, corner=SC_STALE_CORNER))
         _write(files / "constraints.sdc",
@@ -1503,6 +1733,22 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                                   "evidence after repairing flow_config scenario/corner up to the "
                                   "authority." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER,
                                                   SC_STALE_SCENARIO, SC_STALE_CORNER))
+    if _is_mc:
+        # MULTI-CONFLICT shipped manifest: CLAIMS the full global authority (netlist_v2/clk_main/slow/func)
+        # while its report body + input_hashes are the stale netlist_v1 run. A multi-axis lie: no shipped
+        # source is globally correct. The grader's forgery-resistant consumed-netlist/clock + scenario/
+        # corner authority echecks (pinned to flow_config / applied.sdc / hidden re-run) reject it until
+        # flow_config is repaired on ALL axes and the chain is regenerated.
+        stale_mani["selected_netlist"] = "netlist_v2.v"
+        stale_mani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        stale_mani["scenario"] = SC_AUTH_SCENARIO   # CLAIM (lie): authority scenario
+        stale_mani["corner"] = SC_AUTH_CORNER       # CLAIM (lie): authority corner
+        stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the global authority "
+                                  "(netlist_v2/clk_main/%s/%s) but its report body + input_hashes are the "
+                                  "stale netlist_v1 run (see timing_report.rpt + flow_config.json). Do NOT "
+                                  "trust this claim; this is a multi-axis conflict. Regenerate fresh "
+                                  "evidence after repairing flow_config to the global authority."
+                                  % (SC_AUTH_SCENARIO, SC_AUTH_CORNER))
     _write(files / "evidence_manifest.json", json.dumps(stale_mani, indent=2, sort_keys=True) + "\n")
     _write(files / "timing_report.rpt", (P13_SRC / "files/timing_report.rpt").read_text())
 
@@ -1540,6 +1786,40 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                   SC_STALE_SCENARIO, SC_STALE_CORNER, SC_STALE_SCENARIO, SC_STALE_CORNER,
                   SC_AUTH_SCENARIO, SC_AUTH_CORNER))
 
+    if _is_mc:
+        # v4 multi-conflict decoys: four PARTIALLY-TRUTHFUL evidence sources. Each is locally plausible
+        # and right on some axes, wrong on others; none is the global authority. report_A's body is a
+        # stand-in here (bake_golden overwrites it with the real netlist_v2 body); report_B reuses the
+        # real stale netlist_v1 body (p13), so it is internally consistent on a stale design.
+        _rpt_body = (P13_SRC / "files/timing_report.rpt").read_text()
+        _write(files / "report_A_typ_test.rpt",
+               "# report_A_typ_test.rpt -- shipped evidence candidate (PARTIALLY TRUE).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=%s  corner=%s\n"
+               "# Right design (netlist_v2) + clock (clk_main); WRONG scenario/corner vs global authority.\n"
+               % (SC_STALE_SCENARIO, SC_STALE_CORNER) + _rpt_body)
+        _write(files / "report_B_stale_netlist.rpt",
+               "# report_B_stale_netlist.rpt -- shipped evidence candidate (PARTIALLY TRUE).\n"
+               "# consumed_netlist=netlist_v1.v  clock=clk_main  scenario=%s  corner=%s\n"
+               "# Right scenario/corner; STALE netlist (netlist_v1) vs global authority.\n"
+               % (SC_AUTH_SCENARIO, SC_AUTH_CORNER) + _rpt_body)
+        _cmani = dict(stale_mani)
+        _cmani["stage"] = "stage1"
+        _cmani["selected_netlist"] = "netlist_v1.v"
+        _cmani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        _cmani["scenario"] = SC_AUTH_SCENARIO
+        _cmani["corner"] = SC_AUTH_CORNER
+        _cmani["_comment"] = ("evidence_C_manifest.json -- shipped evidence candidate (PARTIALLY TRUE). "
+                              "Fresh digest/upstream chain, but semantically tied to stale netlist_v1 "
+                              "(wrong package). Syntactically valid; globally invalid.")
+        _write(files / "evidence_C_manifest.json", json.dumps(_cmani, indent=2, sort_keys=True) + "\n")
+        _write(files / "prev_signoff.log",
+               "# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n"
+               "# Recent and plausible, but NOT the authority. Reinforces a partially-true decoy path;\n"
+               "# it must NOT be used to justify any non-global-authority package.\n"
+               "consumed_netlist=netlist_v2.v\nclock=clk_main\nscenario=%s\ncorner=%s\n"
+               "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the global "
+               "authority in handoff_manifest.json\n" % (SC_STALE_SCENARIO, SC_STALE_CORNER))
+
     if evidence_steps == 2:
         _write(files / "gen_evidence_stage2.py", _GEN_STAGE2)
         _write(hidden / "gen_evidence_stage2_trusted.py", _GEN_STAGE2)
@@ -1567,11 +1847,11 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(files / "run_public.sh", _run_public_sh(), executable=True)
 
     # authority + docs
-    _auth_scn = SC_AUTH_SCENARIO if _is_sc else SCENARIO
-    _auth_cor = SC_AUTH_CORNER if _is_sc else CORNER
+    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc) else SCENARIO
+    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc) else CORNER
     _write(files / "handoff_manifest.json", _handoff_manifest(expected_sha, _auth_scn, _auth_cor))
-    _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc))
-    _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc))
+    _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc))
+    _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc))
 
     # hidden oracle
     _write(hidden / "grade_workflow.py", _GRADE_WORKFLOW)
@@ -1581,11 +1861,11 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(hidden / "regen_reference.sh", _regen_reference_sh(evidence_steps), executable=True)
 
     # GOLDEN inputs into solution/ (evidence baked later by bake_golden)
-    if _is_sc:
+    if _is_sc or _is_mc:
         _write(sol / "flow_config.json",
                _flow_config("netlist_v2.v",
-                            "Restored: netlist/clock already correct; scenario/corner repaired to the "
-                            "authority %s/%s." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER),
+                            ("Restored to the global authority: netlist_v2 + clk_main + %s/%s."
+                             % (SC_AUTH_SCENARIO, SC_AUTH_CORNER)),
                             scenario=SC_AUTH_SCENARIO, corner=SC_AUTH_CORNER))
         _write(sol / "constraints.sdc",
                _constraints(_CLOCK_PAIRS[0][0], "clk_main (already correct; unchanged)."))
@@ -1629,6 +1909,23 @@ def bake_golden(task_dir: Path, pt_cmd: str, evidence_steps: int) -> None:
             shutil.copy2(scratch / name, task / "solution" / name)
     if evidence_steps == 2 and (scratch / "stage2_summary.json").exists():
         shutil.copy2(scratch / "stage2_summary.json", task / "solution" / "stage2_summary.json")
+    # v4 multi-conflict: bake decoy report_A with the REAL netlist_v2 body (corner-independent on the
+    # single tiny.db, so its body == the golden body) stamped with the WRONG scenario/corner. This makes
+    # report_A internally consistent (genuine netlist_v2 timing) but wrong on corner -- a faithful
+    # partially-truthful decoy. Detected from the task's truth (global_authority_tuple), not an argument.
+    try:
+        _truth = json.loads((task / "hidden" / "handoff_truth.json").read_text())
+    except (OSError, ValueError):
+        _truth = {}
+    if _truth.get("global_authority_tuple") is not None and (scratch / "timing_report.rpt").exists():
+        _body = (scratch / "timing_report.rpt").read_text()
+        _stale_sc = _truth.get("stale_scenario", "test")
+        _stale_co = _truth.get("stale_corner", "typ")
+        (task / "files" / "report_A_typ_test.rpt").write_text(
+            "# report_A_typ_test.rpt -- shipped evidence candidate (PARTIALLY TRUE).\n"
+            "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=%s  corner=%s\n"
+            "# Right design (netlist_v2) + clock (clk_main); WRONG scenario/corner vs global authority.\n"
+            % (_stale_sc, _stale_co) + _body)
     shutil.rmtree(scratch)
 
 
@@ -1640,7 +1937,8 @@ if __name__ == "__main__":
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--evidence-steps", type=int, default=1, choices=[1, 2])
     ap.add_argument("--hazard-type", default=None,
-                    choices=[None, "cross_source_conflict", "scenario_corner_cross_source_conflict"])
+                    choices=[None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
+                             "multi_conflict_partially_truthful_decoy"])
     ap.add_argument("--hint-level", type=int, default=1)
     ap.add_argument("--bake", action="store_true", help="also run the chain to bake golden evidence")
     ap.add_argument("--pt-cmd", default=os.environ.get("EDA_PT_CMD", "pt_shell"))

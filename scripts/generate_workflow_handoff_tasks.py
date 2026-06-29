@@ -27,6 +27,7 @@ TASKS = [
     ("workflow_handoff_0002", 0, 2, None),
     ("workflow_handoff_0003", 0, 2, "cross_source_conflict"),   # p14 v2 hazard preset
     ("workflow_handoff_0004", 0, 2, "scenario_corner_cross_source_conflict"),  # p14 v3 hazard preset
+    ("workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy"),  # p14 v4 hazard preset
 ]
 
 

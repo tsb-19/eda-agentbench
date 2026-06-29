@@ -885,3 +885,252 @@ def test_0001_0002_0003_grader_markers_unchanged_by_sc_support():
         truth = json.loads(src.read_text())
         assert "expected_scenario" not in truth   # non-sc tasks have no scenario/corner authority pin
 
+
+# =========================================================================== p14 v4 (0005)
+# multi-conflict partially-truthful-decoy: global authority = netlist_v2/clk_main/slow/func. Several
+# decoys are each partially true; only the full global package + fresh ordered chain passes. The
+# forgery-resistant consumed-netlist/clock echecks (pinned to flow_config / applied_hidden.sdc) reject a
+# manifest that CLAIMS netlist_v2 while the consumed netlist is v1.
+T5 = TASKS_DIR / "workflow_handoff_0005"
+
+
+def _grade_run_mc(setup) -> str:
+    """Run grade_workflow.py for the 0005 multi-conflict task."""
+    d = Path(tempfile.mkdtemp(prefix="p14mc_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(T5 / "files" / f, d / f)
+        shutil.copy2(T5 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T5 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def _mc_ih(d: Path, consumed: str):
+    fc = hashlib.sha256((d / "flow_config.json").read_bytes()).hexdigest()
+    sdc = hashlib.sha256((d / "constraints.sdc").read_bytes()).hexdigest()
+    net = hashlib.sha256((d / consumed).read_bytes()).hexdigest()
+    return {"flow_config.json": fc, "constraints.sdc": sdc, "consumed_netlist": net}
+
+
+def _mc_inputs(d: Path, netlist="netlist_v2.v", scenario="slow", corner="func", clk="clk_main"):
+    (d / "flow_config.json").write_text(json.dumps({
+        "netlist": netlist, "top_module": "acc_stage", "constraints": "constraints.sdc",
+        "library": "tiny.db", "scenario": scenario, "corner": corner}, indent=2) + "\n")
+    (d / "constraints.sdc").write_text("create_clock -name %s -period 3.0 [get_ports %s]\n" % (clk, clk))
+    # applied_hidden.sdc is the TRUSTED laundered SDC -> the forgery-resistant consumed-clock source
+    (d / "applied_hidden.sdc").write_text("create_clock -name %s -period 3.0 [get_ports %s]\n" % (clk, clk))
+
+
+def _mc_stage1(d: Path, consumed="netlist_v2.v", scenario="slow", corner="func", clk="clk_main",
+               body="din i0 cap_reg slack MET 0.13"):
+    ih = _mc_ih(d, consumed)
+    dig = _digest(body)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + clk + scenario + corner + dig).encode()).hexdigest()[:16]
+    mani = {"stage": "stage1", "upstream_evidence_digest": None, "input_hashes": ih,
+            "selected_netlist": consumed, "selected_sdc": "constraints.sdc", "selected_clock": clk,
+            "scenario": scenario, "corner": corner, "tool": "pt_shell", "tool_exit": 0,
+            "signoff": "OK", "constrained_paths": 1, "report_digest": dig, "run_nonce": nonce}
+    (d / "timing_report.rpt").write_text("# h\n%s\n%s\n%s\n" % (_BEGIN2, body, _END2))
+    (d / "evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    # ref re-run reflects the ACTUAL submitted flow_config package (consumed/scenario/corner)
+    (d / "ref_timing_report.rpt").write_text("# h\n%s\n%s\n%s\n" % (_BEGIN2, body, _END2))
+    (d / "ref_evidence_manifest.json").write_text(json.dumps(mani, indent=2, sort_keys=True))
+    return mani
+
+
+def _mc_stage2(d: Path, upstream, consumed="netlist_v2.v", scenario="slow", corner="func",
+               clk="clk_main", body="cap_reg r0 acc_reg slack MET 0.20"):
+    ih = _mc_ih(d, consumed)
+    s2dig = _digest(body)
+    nonce = hashlib.sha256((ih["flow_config.json"] + ih["constraints.sdc"] + ih["consumed_netlist"]
+                            + clk + scenario + corner + s2dig + (upstream or "")).encode()).hexdigest()[:16]
+    s2 = {"stage": "stage2", "upstream_evidence_digest": upstream, "upstream_stage_ok": True,
+          "input_hashes": ih, "selected_netlist": consumed, "selected_clock": clk,
+          "scenario": scenario, "corner": corner, "tool": "pt_shell", "tool_exit": 0,
+          "signoff": "OK", "stage2_constrained_paths": 1, "stage2_slack": "0.20",
+          "stage2_report_digest": s2dig, "run_nonce": nonce}
+    (d / "stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    (d / "ref_stage2_summary.json").write_text(json.dumps(s2, indent=2, sort_keys=True))
+    return s2
+
+
+def test_0005_grader_global_recovery_emits_markers():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" in out
+    assert "GLOBAL_AUTHORITY_OK" in out
+    assert "MULTI_CONFLICT_OK" in out
+    assert "SCENARIO_CORNER_AUTHORITY_OK" in out
+    assert "AUTHORITY_CONSISTENCY_OK" in out and "HAZARD_RECOVERY_OK" in out
+    assert "PARTIAL_DECOY_REJECTED" not in out
+
+
+def test_0005_report_A_only_recovery_fails():
+    # follow report A: right netlist/clock (v2/clk_main), WRONG scenario/corner (test/typ)
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "test", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "test", "typ", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "test", "typ", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "GLOBAL_AUTHORITY_OK" not in out
+    assert "PARTIAL_DECOY_REJECTED" in out
+
+
+def test_0005_report_B_only_recovery_fails():
+    # follow report B: right scenario/corner (slow/func), STALE netlist (v1)
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "GLOBAL_AUTHORITY_OK" not in out
+    assert "PARTIAL_DECOY_REJECTED" in out
+
+
+def test_0005_evidence_C_only_recovery_fails():
+    # follow evidence C: fresh chain on a semantically wrong package (netlist_v1/slow/func)
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "GLOBAL_AUTHORITY_OK" not in out
+
+
+def test_0005_forged_manifest_claims_v2_but_consumed_v1_fails():
+    # forgery attempt: run on netlist_v1 but hand-edit the manifest to CLAIM netlist_v2. The grader's
+    # consumed-netlist echeck is pinned to flow_config (forgery-resistant), so this is rejected.
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")  # flow_config consumes v1
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["selected_netlist"] = "netlist_v2.v"   # the LIE: claim the authority netlist
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "GLOBAL_AUTHORITY_OK" not in out
+
+
+def test_0005_stale_clock_consumed_fails():
+    # stale clock (clk_old) consumed via applied_hidden.sdc -> consumed-clock authority fails
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_old")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_old")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_old")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "GLOBAL_AUTHORITY_OK" not in out
+
+
+def test_0005_stage1_only_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+    assert "MULTI_CONFLICT_OK" not in out
+
+
+def test_0005_stage2_from_semantically_wrong_stage1_fails():
+    # stage2 binds a valid digest, but the chain is on the wrong package (netlist_v1) -> global authority
+    # denied at the package level even though the chain is syntactically ordered.
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_mc(setup)
+    assert "GLOBAL_AUTHORITY_OK" not in out
+    assert "MULTI_CONFLICT_OK" not in out
+
+
+def test_0005_hand_edited_report_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        (d / "timing_report.rpt").write_text("# h\n%s\ndin cap_reg slack MET 9.99\n%s\n" % (_BEGIN2, _END2))
+    out = _grade_run_mc(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+def test_0005_metadata_and_decoys():
+    meta = _meta(T5)
+    assert meta["generator"]["params"]["hazard_type"] == "multi_conflict_partially_truthful_decoy"
+    assert meta["generator"]["params"]["global_authority_tuple"] == ["netlist_v2.v", "clk_main", "slow", "func"]
+    assert abs(sum(meta["scoring"]["weights"].values()) - 1.0) < 1e-9
+    assert {"authority_consistency", "hazard_recovery"} <= set(meta["scoring"]["weights"])
+    for decoy in ("report_A_typ_test.rpt", "report_B_stale_netlist.rpt", "evidence_C_manifest.json",
+                  "prev_signoff.log"):
+        assert decoy in meta["files"]["visible"]
+        assert decoy in meta["files"]["forbidden"]
+    truth = json.loads((T5 / "hidden" / "handoff_truth.json").read_text())
+    assert truth["global_authority_tuple"] == ["netlist_v2.v", "clk_main", "slow", "func"]
+    assert len(truth["decoy_sources"]) >= 3
+    assert len(truth["partial_truth_sources"]) >= 3
+
+
+def test_0005_dispatch_parity():
+    meta = _meta(T5)
+    assert meta["scoring"]["evaluator"] == "workflow_handoff.WorkflowHandoffEvaluator"
+    assert isinstance(_select_evaluator(meta, T5), WorkflowHandoffEvaluator)
+
+
+def test_0005_no_hidden_leak():
+    public_blob = ""
+    for p in (T5 / "files").iterdir():
+        public_blob += p.read_text(errors="ignore")
+    for needle in ("global_authority_tuple", "MULTI_CONFLICT_OK", "def grade(truth)",
+                   "evidence_consumed_netlist_is_authority", "decoy_sources"):
+        assert needle not in public_blob, needle
+
+
+def test_0005_public_verdict_early():
+    sh = (T5 / "files" / "run_public.sh").read_text()
+    assert "WORKFLOW_PUBLIC:" in sh
+    assert sh.index("WORKFLOW_PUBLIC:") < 1000
+
+
+def test_0005_deterministic():
+    a = Path(tempfile.mkdtemp(prefix="p14d1_"))
+    b = Path(tempfile.mkdtemp(prefix="p14d2_"))
+    try:
+        build_task_skeleton(a, "workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy")
+        build_task_skeleton(b, "workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy")
+        fa = [p.relative_to(a / "workflow_handoff_0005") for p in (a / "workflow_handoff_0005").rglob("*") if p.is_file()]
+        fb = [p.relative_to(b / "workflow_handoff_0005") for p in (b / "workflow_handoff_0005").rglob("*") if p.is_file()]
+        assert {str(p) for p in fa} == {str(p) for p in fb}
+        for rel in fa:
+            assert (a / "workflow_handoff_0005" / rel).read_bytes() == (b / "workflow_handoff_0005" / rel).read_bytes(), rel
+    finally:
+        shutil.rmtree(a, ignore_errors=True); shutil.rmtree(b, ignore_errors=True)
+
+
+def test_0005_grader_byte_identical_across_all_tasks():
+    import hashlib
+    h = {}
+    for tid in ("workflow_handoff_0001", "workflow_handoff_0002", "workflow_handoff_0003",
+                "workflow_handoff_0004", "workflow_handoff_0005"):
+        h[tid] = hashlib.sha256((TASKS_DIR / tid / "hidden" / "grade_workflow.py").read_bytes()).hexdigest()
+    assert len(set(h.values())) == 1, h
+
+
+def test_0001_0002_0003_grader_markers_unchanged_by_mc_support():
+    # behavior-invariance: non-mc truth (no global_authority_tuple) must not emit multi-conflict markers.
+    for src in (T1 / "hidden" / "handoff_truth.json", T2 / "hidden" / "handoff_truth.json",
+                T3 / "hidden" / "handoff_truth.json", T4 / "hidden" / "handoff_truth.json"):
+        truth = json.loads(src.read_text())
+        assert "global_authority_tuple" not in truth
+
