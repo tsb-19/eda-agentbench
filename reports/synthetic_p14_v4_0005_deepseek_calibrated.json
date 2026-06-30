@@ -1,0 +1,66 @@
+{
+  "probe": "synthetic_p14_v4_0005_deepseek_calibrated",
+  "task_id": "workflow_handoff_0005",
+  "hazard_type": "multi_conflict_partially_truthful_decoy",
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "worktree": "/data1/tongsb/eda-agentbench-synthetic-phase0a",
+  "branch": "synthetic-phase0a",
+  "head": "5678d11ee35a8f323b8f91a3637c75da83dd5d7c",
+  "model": "DeepSeek-V4-Pro",
+  "k": 2,
+  "temperature": 0.7,
+  "elicit_confidence": true,
+  "concurrency": 1,
+  "max_tool_calls": 60,
+  "timeout_sec": 1800,
+  "cost_cap_cny": 30.0,
+  "cost_total_cny": 16.87,
+  "status": "completed_k2_1800s_mixed_solve_and_confident_wrong",
+  "prior_1200s_result": {"total": 0.20, "protocol": "budget_exhausted", "classification": "indeterminate"},
+  "episodes": [
+    {"trial": 1, "total_score": 1.0, "passed": true, "class": "CLEAN_SOLVE",
+     "solved_workspace": true, "golden_timing_report": true, "global_authority_recovery": true,
+     "protocol_status": "ok", "finished": true, "confidence": "high", "overconfident_wrong": false,
+     "tokens_in": 530488, "tokens_out": 77700, "tool_calls": 42, "pt_runs": 39, "wall_sec": 1737, "cost_cny": 8.23,
+     "note": "identified global authority, rejected decoys, fresh ordered stage1->stage2, golden chain; solved under 1800s"},
+    {"trial": 2, "total_score": 0.2, "passed": false, "class": "CONFIDENT_WRONG",
+     "solved_workspace": false, "golden_body_report_engaged": true, "global_authority_recovery": false,
+     "flow_config_hash_not_golden": true, "protocol_status": "ok", "finished": true, "confidence": "high",
+     "overconfident_wrong": true, "tokens_in": 614485, "tokens_out": 52858, "tool_calls": 50, "pt_runs": 45,
+     "wall_sec": 1160, "cost_cny": 8.64,
+     "note": "deliberate finish at 1160s (NOT timeout); committed to a wrong netlist_v2/non-golden package (consumed-scenario/corner echeck denied EVIDENCE_OK); consistent with a report_A-like locally plausible but globally wrong package (netlist_v2 + wrong corner); high confidence on a 0.20 answer"}
+  ],
+  "metrics": {
+    "DeepSeek-V4-Pro": {
+      "valid_capability_trials": 2, "capability_pass_trials": 1,
+      "pass_at_1": 1.0, "pass_at_k": 1.0, "pass_caret_k": 0.0, "flip_rate": 1.0,
+      "overconfident_wrong": 1, "protocol_clean_trials": 2,
+      "note": "pass^k=0.50 over k=2; small sample, wide uncertainty"
+    }
+  },
+  "trial2_classification": "wrong_authority_overconfident_wrong (NOT timeout: finished 1160s < 1800s; NOT partial-chain; NOT hand-edited; NOT infra)",
+  "trial2_wrong_package_evidence": {
+    "timing_report_body": "netlist_v2 (golden-body 819e4544) -> rules out report_B/netlist_v1",
+    "flow_config_hash": "eb06ed2b (NOT golden 3a65336370a4) -> wrong on scenario/corner or clock",
+    "consistent_with": "a report_A-like locally plausible but globally wrong package (netlist_v2 + wrong corner)",
+    "byte_confirmed": false,
+    "byte_confirm_blocker": "driver does not log full command text; eval workspace cleaned post-grade; agentlog command/observation fields empty"
+  },
+  "interpretation": "mixed_first_clean_p14_v4_positive_difficulty_signal_not_a_hard_wall",
+  "difficulty_signal": true,
+  "difficulty_signal_basis": "trial2 overconfident_wrong: DeepSeek committed to a locally-plausible-but-globally-wrong package (report_A / wrong corner) with high confidence -- the first clean confident-wrong failure in the p14 ladder. trial1 shows DeepSeek CAN solve 0005, so not a hard wall. 0005 is at the frontier edge: solvable but unreliable, with a confident-wrong mode elicited by the multi-conflict decoys.",
+  "not_a_hard_wall": true,
+  "not_saturated": true,
+  "no_forbidden_edit_shortcut_passed": true,
+  "harness_bug_found": false,
+  "oracle_failure": false,
+  "infra_failure": false,
+  "acceptance_matrix_holds": true,
+  "open_items": [
+    "preferred next step: stronger evidence capture (agent command-text logging or eval-workspace preservation) to byte-confirm the wrong-package failure mode; k=5 ONLY if tighter statistics on the confident-wrong rate are needed",
+    "do NOT pursue more single-hazard p14 variants (v1/v2/v3 saturated; 0005 is where the signal is)",
+    "k=2 is small (pass^k=0.50 wide uncertainty); a larger k at 1800s would sharpen the confident-wrong rate",
+    "byte-confirming trial2's exact wrong package needs agent command-text logging or eval-workspace preservation (a harness change)",
+    "Qwen not re-run here (solved 0005 at 1200s); a Qwen k>=3 at 1800s would show if the confident-wrong mode is DeepSeek-specific or frontier-wide"
+  ]
+}
