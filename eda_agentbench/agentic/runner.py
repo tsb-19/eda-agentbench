@@ -10,6 +10,7 @@ Security model:
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import shutil
@@ -34,6 +35,76 @@ from eda_agentbench.agentic.workspace import (
     detect_hidden_shadows,
 )
 from eda_agentbench.task.validator import check_tcl_injection
+
+
+# Phase-4I: opt-in probe-artifact preservation (default OFF; env-gated). Lets a confident-wrong
+# episode's final submitted package be byte-confirmed after the run. Toggled by
+# EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1. Never affects scoring, task semantics, or default behavior.
+_PRESERVE_ENV = "EDA_BENCH_PRESERVE_FINAL_WORKSPACE"
+_PRESERVE_MARKERS = (
+    "SIGNOFF_OK", "SIGNOFF_FAIL", "EVIDENCE_OK", "FINAL_STATE_OK", "STAGE_CHAIN_OK",
+    "PROVENANCE_OK", "AUTHORITY_CONSISTENCY_OK", "HAZARD_RECOVERY_OK",
+    "SCENARIO_CORNER_AUTHORITY_OK", "GLOBAL_AUTHORITY_OK", "MULTI_CONFLICT_OK",
+    "PARTIAL_DECOY_REJECTED", "WRONG_CORNER_PROVENANCE_DETECTED", "CROSS_SOURCE_CONFLICT_DETECTED",
+    "WRONG_AUTHORITY_DETECTED", "HANDOFF_MASKING_DETECTED",
+)
+
+
+def _preserve_final_workspace(runs_dir, eval_workspace, meta, score_result, combined_log):
+    """Opt-in (EDA_BENCH_PRESERVE_FINAL_WORKSPACE in {1,true,yes,on}): copy the agent's final SUBMITTED
+    EDITABLE files + a manifest into <runs_dir>/preserved/ BEFORE the eval workspace is cleaned up.
+    Default OFF -> no-op. Only declared editable files are copied -- hidden truth, netlists, the
+    library, decoy reports, .env, and model configs are NEVER copied (no secret / hidden leak). Does
+    not affect scoring. Safe when score_result / eval_workspace are None (failed / timeout run): the
+    manifest records the available state. Pure + unit-tested.
+    """
+    if os.environ.get(_PRESERVE_ENV, "").lower() not in ("1", "true", "yes", "on"):
+        return None
+    if eval_workspace is None or not Path(eval_workspace).exists():
+        return None
+    runs_dir = Path(runs_dir)
+    eval_workspace = Path(eval_workspace)
+    pres = runs_dir / "preserved"
+    pres.mkdir(parents=True, exist_ok=True)
+    editable = meta.get("files", {}).get("editable", []) if meta else []
+    hashes = {}
+    for ef in editable:
+        src = eval_workspace / ef
+        if src.is_file():
+            shutil.copy2(src, pres / Path(ef).name)
+            with open(src, "rb") as fh:
+                hashes[ef] = hashlib.sha256(fh.read()).hexdigest()
+    # key oracle markers from the grading log (presence only; _SCORE fractions already live in
+    # score.json's component raw scores, and the marker->score line naming is inconsistent, so we do
+    # not parse _SCORE here -- just record which OK/FAIL markers fired).
+    markers = {}
+    if combined_log:
+        present = {ln.strip() for ln in combined_log.splitlines()}
+        for m in _PRESERVE_MARKERS:
+            if m in present:
+                markers[m] = True
+    ac = score_result.anti_cheat if score_result is not None else {}
+    manifest = {
+        "_comment": "Phase-4I opt-in probe-artifact preservation. SUBMITTED EDITABLE files only; "
+                    "hidden truth, netlists, library, decoy reports, .env, and model configs are "
+                    "EXCLUDED; no secrets are recorded.",
+        "task_id": meta.get("task_id") if meta else None,
+        "track": meta.get("track") if meta else None,
+        "run_id": runs_dir.name,
+        "total_score": score_result.total_score if score_result is not None else None,
+        "passed": score_result.passed if score_result is not None else None,
+        "anti_cheat": ac,
+        "grader_markers": markers,
+        "preserved_editable_files": list(hashes.keys()),
+        "submitted_file_hashes": hashes,
+        "preserved_dir": "preserved",
+        "score_json": "score.json",
+        "transcript": "transcript.jsonl",
+        "action_trace_note": "agent action trace is in the driver's <results>/<model>/<track>/<task>.agentlog.json",
+        "secrets_excluded": True,
+    }
+    (runs_dir / "preserved_artifacts.json").write_text(json.dumps(manifest, indent=2))
+    return pres
 
 
 def run_single_agentic(
@@ -64,6 +135,8 @@ def run_single_agentic(
 
     agent_workspace = None
     eval_workspace = None
+    score_result = None      # may stay None if an exception precedes grading
+    combined_log = ""        # set in the grading branch; "" if grading never ran
     try:
         # === PHASE 1: Agent workspace (visible+editable only) ===
         agent_workspace = create_agent_workspace(task_path, meta)
@@ -251,6 +324,16 @@ def run_single_agentic(
         return runs_dir, score_result, agentic_result
 
     finally:
+        # Phase-4I: opt-in probe-artifact preservation. Copies the agent's final SUBMITTED EDITABLE
+        # files (+ a manifest) to runs_dir/preserved/ BEFORE the eval workspace is cleaned up, so a
+        # confident-wrong episode's final package can be byte-confirmed later. Default OFF (env-gated);
+        # does not affect scoring, semantics, or any task. Safe on timeout/exception (finally always
+        # runs; score_result may be None). Only declared editable files are copied -- hidden truth,
+        # netlists, the library, decoys, .env, and model configs are NEVER copied (no secret/hidden leak).
+        try:
+            _preserve_final_workspace(runs_dir, eval_workspace, meta, score_result, combined_log)
+        except Exception:  # noqa: BLE001  preservation must never break a run
+            pass
         if agent_workspace is not None:
             shutil.rmtree(agent_workspace, ignore_errors=True)
         if eval_workspace is not None:
