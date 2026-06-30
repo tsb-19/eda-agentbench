@@ -1,0 +1,122 @@
+{
+  "report": "synthetic_p14_v4_0005_deepseek_preserved_followup",
+  "date": "2026-06-30",
+  "status": "COMPLETE — not committed (awaiting review)",
+  "purpose": "Evidence-quality follow-up: exercise the Phase-4I opt-in final-workspace preservation on live DeepSeek runs so any wrong outcome can be byte-confirmed. NOT a statistical k=5 probe.",
+  "head": "f4ef14037157788f5aee6a37ef10559a85c398e4",
+  "config": {
+    "task": "workflow_handoff_0005 (multi_conflict_partially_truthful_decoy)",
+    "model": "DeepSeek-V4-Pro only (filtered config, no Qwen/MiniMax/Kimi/GLM)",
+    "trials": 2,
+    "k": 2,
+    "timeout_sec_per_episode": 1800,
+    "max_tool_calls": 60,
+    "temperature": 0.7,
+    "elicit_confidence": true,
+    "concurrency": 1,
+    "preservation_flag": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "cost_cap_cny": 30
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "cost": {
+    "trial1_cny": 7.51,
+    "trial2_cny": 8.62,
+    "total_cny": 16.13,
+    "cap_cny": 30,
+    "under_cap": true
+  },
+  "trials": [
+    {
+      "trial": 1,
+      "outcome": "SOLVED",
+      "total_score": 1.0,
+      "passed": true,
+      "timed_out": false,
+      "protocol_status": "ok",
+      "wall_time_sec": 1422.4,
+      "tool_calls": 41,
+      "pt_like_runs": 31,
+      "final_flow_config": {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"},
+      "chain_integrity": "INTACT — stage1 and stage2 both consumed flow_config hash be471dcb",
+      "submitted_hashes": {
+        "flow_config.json": "be471dcb5a81c2d1",
+        "constraints.sdc": "de4dd15f3e933714",
+        "timing_report.rpt": "819e45440e37b895",
+        "evidence_manifest.json": "8db7084a4529b950",
+        "stage2_summary.json": "9259c5a64c66fc6c"
+      },
+      "components": {"signoff": 1.0, "final_state": 1.0, "evidence_generation": 1.0, "stage_chain": 1.0, "provenance": 1.0, "authority_consistency": 1.0, "hazard_recovery": 1.0, "explanation": 1.0},
+      "final_package_vs_golden": "Semantically equals global authority. flow_config BYTES differ from prior-recorded golden 3a65336370a4 (comment/formatting), but grader is semantic (consumed netlist/clock/scenario/corner pinned), so 1.0 is correct. timing_report.rpt hash 819e4544 matches golden netlist_v2 body."
+    },
+    {
+      "trial": 2,
+      "outcome": "NOT SOLVED — protocol-incomplete (abstain), wrong final state, byte-confirmed",
+      "total_score": 0.2,
+      "passed": false,
+      "timed_out": false,
+      "protocol_status": "budget_exhausted",
+      "confidence_decision": "",
+      "overconfident_wrong": false,
+      "abstained": true,
+      "wall_time_sec": 1154.1,
+      "tool_calls": 54,
+      "pt_like_runs": 44,
+      "actions_hit_cap": "60-action cap reached; no FINISH; no confidence declared",
+      "final_flow_config": {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"},
+      "final_flow_config_is_correct_authority": true,
+      "chain_integrity": "BROKEN — stage1 consumed flow_config hash eb06ed2b (= the final submitted file); stage2 consumed flow_config hash 3a653363 (a different, golden-byte version). The two evidence stages were generated against different byte-versions of a semantically-correct flow_config.",
+      "submitted_hashes": {
+        "flow_config.json": "eb06ed2bb41d0fd6",
+        "constraints.sdc": "de4dd15f3e933714",
+        "timing_report.rpt": "819e45440e37b895",
+        "evidence_manifest.json": "9de251b1ce29de4a",
+        "stage2_summary.json": "619250afba91588a"
+      },
+      "components": {"signoff": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0, "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0, "explanation": 1.0},
+      "decoy_classification": "DID NOT follow report_A / report_B / evidence_C / prev_signoff. The final flow_config is the correct global authority (correct corner func). Failure is a broken/stale two-stage evidence-provenance chain, NOT decoy-following and NOT a wrong package selection."
+    }
+  ],
+  "preservation_status": {
+    "trial1": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "hidden_or_secrets_excluded": true, "secrets_excluded_flag": true},
+    "trial2": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "hidden_or_secrets_excluded": true, "secrets_excluded_flag": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "excluded_verified": ["handoff_truth.json", "grade_workflow.py", "netlist_v1.v/netlist_v2.v", "tiny.lib/tiny.db", "report_A/report_B/evidence_C/prev_signoff", ".env", "configs/baseline_models.json", "API_KEY/BASE_URL values"],
+    "scan_result": "No blacklisted filename and no HIDDEN_TRUTH/API_KEY/Bearer/BASE_URL string found in either preserved tree."
+  },
+  "byte_confirmation_of_failure": {
+    "trial2": "Byte-confirmed via preserved files + hashes: final flow_config (hash eb06ed2b) decodes to {netlist_v2, clk_main, slow, func} = the correct global authority. The 0.20 is driven by a broken evidence chain: stage1 manifest input_hashes.flow_config = eb06ed2b but stage2_summary input_hashes.flow_config = 3a653363. Components evidence_generation/stage_chain/provenance/authority_consistency/final_state/hazard_recovery all 0.0.",
+    "correction_of_prior_inference": "The prior (un-preserved) calibrated trial2 recorded the SAME flow_config hash eb06ed2b and was inferred to be 'report_A-like, netlist_v2 + WRONG corner / overconfident_wrong'. Preservation now lets us decode that exact hash: the corner is actually CORRECT (func), so the 'wrong corner' inference was imprecise. The likely true failure of the prior episode is the same broken-provenance-chain, not decoy-following. (Claim rests on the recorded hash being deterministic; the prior episode's other internals were not preserved.)"
+  },
+  "comparison_with_prior_1800s_calibrated_followup": {
+    "prior": "DeepSeek k=2 @1800s: one solve (1.0) + one wrong (0.20) inferred as overconfident_wrong / report_A-like wrong corner.",
+    "now_preserved": "DeepSeek k=2 @1800s: one solve (1.0, chain intact) + one wrong (0.20, protocol-incomplete/abstain). The CONFIDENT-WRONG mode did NOT recur in these 2 trials — this episode never FINISHed (hit the 60-action cap, no confidence). What recurred is the wrong final-state, now byte-confirmed as a broken evidence chain rather than a wrong package.",
+    "evidence_quality": "Preservation succeeded at its goal: the wrong outcome is byte-confirmed and a prior plausible-but-incorrect inference ('wrong corner') is corrected."
+  },
+  "final_interpretation": [
+    "Solve is reproducible with 1800s (trial1 1.0, chain byte-consistent).",
+    "The non-solve is NOT decoy-following and NOT a wrong package: DeepSeek diagnosed the global authority correctly (correct netlist + corner + clock + scenario in the final flow_config).",
+    "The discriminating difficulty of 0005 in this episode is the EVIDENCE-PROVENANCE DISCIPLINE: regenerating BOTH ordered stages against one byte-consistent flow_config. The model edited flow_config and did not re-run the two stages atomically against the final bytes (stage1=eb06ed2b, stage2=3a653363).",
+    "This episode is protocol-incomplete (budget_exhausted at the 60-action cap, no FINISH/confidence) -> classified abstain, NOT overconfident_wrong.",
+    "Not infra/harness-invalid: anti-cheat clean, no timeout, tools ran, grading completed."
+  ],
+  "limitations": [
+    "k=2 only; not a statistical confident-wrong reproduction. The clean FINISH+confidence wrong mode from the prior run did not recur here.",
+    "Phase-4I grader_markers field is presence-only substring matching against combined_log and is NOT a reliable verdict: trial2 manifest listed FINAL_STATE_OK/PROVENANCE_OK/SCENARIO_CORNER_AUTHORITY_OK as 'present' while score.json shows those components = 0.0. score.json is authoritative. Recommend a future Phase-4J fix (match only affirmative marker lines, or drop markers in favor of the score.json component map). Cosmetic only; no scoring impact.",
+    "action-trace richness unchanged (sparse command fields), as accepted for this phase."
+  ],
+  "methodology_going_forward": {
+    "preservation_required_for_classification": "Preservation is now REQUIRED for any confident-wrong / wrong-package classification. This episode proves it: the un-preserved inference ('report_A-like wrong corner') was wrong; only preserved final files + hashes established the true failure (broken evidence-provenance chain, correct corner). Future p14 reports must NOT label a wrong outcome as decoy-following / wrong-package / confident-wrong without preserved-artifact byte-confirmation; inference-only labels must be marked as such.",
+    "score_json_authoritative": "score.json component map is authoritative over the coarse, presence-only grader_markers field.",
+    "next_hazard_design_insight": "The discriminating axis is ATOMIC MULTI-STAGE EVIDENCE REGENERATION (both ordered stages produced from one byte-consistent set of semantically-correct files), not only decoy rejection. Future hazards should stress provenance/regeneration discipline."
+  },
+  "process_compliance": {
+    "models_run": ["DeepSeek-V4-Pro"],
+    "no_qwen_minimax_kimi_glm": true,
+    "env_symlink_removed_after": true,
+    "secrets_printed": false,
+    "shell_tracing_used": false,
+    "committed": false,
+    "pushed": false,
+    "other_worktrees_touched": false
+  }
+}
