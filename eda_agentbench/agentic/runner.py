@@ -48,6 +48,69 @@ _PRESERVE_MARKERS = (
     "PARTIAL_DECOY_REJECTED", "WRONG_CORNER_PROVENANCE_DETECTED", "CROSS_SOURCE_CONFLICT_DETECTED",
     "WRONG_AUTHORITY_DETECTED", "HANDOFF_MASKING_DETECTED",
 )
+# Phase-4J: affirmative-only marker parsing. A marker counts as affirmative ONLY on an explicit
+# affirmative status, never on mere substring presence: a bare `MARKER` line, `MARKER=1` / `MARKER: 1`
+# / `MARKER=true` / `MARKER_OK=true`, or a paired `<STEM>_SCORE: <float>` >= 1.0. An explicit negative
+# (`MARKER=0` / `MARKER: false` / `<STEM>_SCORE: <1.0`) forces NOT-affirmative even if an affirmative
+# line also appears. NOTE: these are raw GRADER SUB-CHECK signals and can legitimately exceed the
+# GATED component verdicts (e.g. a bare FINAL_STATE_OK sub-check while the gated `final_state`
+# component is 0 because the EVIDENCE_OK gate did not fire) -- the authoritative scores are the gated
+# `component_scores` (mirroring score.json).
+_AFFIRM_TOKENS = ("1", "true", "yes", "on", "ok", "pass", "passed")
+_NEG_TOKENS = ("0", "false", "no", "off", "fail", "failed")
+
+
+def _affirmative_markers(combined_log):
+    """Parse `_PRESERVE_MARKERS` from grader stdout, marking each affirmative ONLY on an explicit
+    affirmative status (never on substring presence). Returns {marker: True} for affirmative markers.
+
+    Affirmative forms (per line, after strip):
+      * bare `MARKER`
+      * `MARKER` then `=`/`:` then one of _AFFIRM_TOKENS
+      * for `*_OK` markers, a paired `<STEM>_SCORE: <float>` with float >= 1.0 (STEM = marker minus `_OK`)
+    An explicit negative form (`MARKER=0`, `MARKER: false`, or `<STEM>_SCORE: <1.0`) forces the marker
+    NOT-affirmative, overriding any affirmative line. Pure; no side effects.
+    """
+    markers: dict = {}
+    if not combined_log:
+        return markers
+    lines = [ln.strip() for ln in combined_log.splitlines()]
+    # Pre-index `<STEM>_SCORE: <float>` values (last wins) for _OK markers.
+    score_vals: dict = {}
+    for ln in lines:
+        if "_SCORE:" in ln:
+            stem, _, rest = ln.partition("_SCORE:")
+            tok = rest.strip().split()[0].rstrip(".,;") if rest.strip() else ""
+            try:
+                score_vals[stem.strip()] = float(tok)
+            except ValueError:
+                pass
+    for m in _PRESERVE_MARKERS:
+        affirmative = False
+        negated = False
+        for ln in lines:
+            if ln == m:
+                affirmative = True
+                continue
+            if ln.startswith(m):
+                rest = ln[len(m):].lstrip()
+                if rest[:1] in ("=", ":"):
+                    val = rest[1:].strip().split()[0].rstrip(".,;").lower() if rest[1:].strip() else ""
+                    if val in _AFFIRM_TOKENS:
+                        affirmative = True
+                    elif val in _NEG_TOKENS:
+                        negated = True
+        # paired _SCORE only applies to affirmative *_OK markers (STEM = marker minus trailing _OK)
+        if m.endswith("_OK"):
+            sv = score_vals.get(m[:-3])
+            if sv is not None:
+                if sv >= 1.0:
+                    affirmative = True
+                else:
+                    negated = True
+        if affirmative and not negated:
+            markers[m] = True
+    return markers
 
 
 def _preserve_final_workspace(runs_dir, eval_workspace, meta, score_result, combined_log):
@@ -74,15 +137,14 @@ def _preserve_final_workspace(runs_dir, eval_workspace, meta, score_result, comb
             shutil.copy2(src, pres / Path(ef).name)
             with open(src, "rb") as fh:
                 hashes[ef] = hashlib.sha256(fh.read()).hexdigest()
-    # key oracle markers from the grading log (presence only; _SCORE fractions already live in
-    # score.json's component raw scores, and the marker->score line naming is inconsistent, so we do
-    # not parse _SCORE here -- just record which OK/FAIL markers fired).
-    markers = {}
-    if combined_log:
-        present = {ln.strip() for ln in combined_log.splitlines()}
-        for m in _PRESERVE_MARKERS:
-            if m in present:
-                markers[m] = True
+    # Affirmative-only grader markers (Phase-4J): explicit affirmative status required, never mere
+    # substring presence. These are raw sub-checks; the GATED authoritative scores are component_scores.
+    markers = _affirmative_markers(combined_log)
+    # Authoritative gated component scores, copied verbatim from score_result (same values as
+    # score.json). No hidden truth / oracle internals: these are the public grading result.
+    component_scores = None
+    if score_result is not None and getattr(score_result, "components", None):
+        component_scores = {c.name: c.raw_score for c in score_result.components}
     ac = score_result.anti_cheat if score_result is not None else {}
     manifest = {
         "_comment": "Phase-4I opt-in probe-artifact preservation. SUBMITTED EDITABLE files only; "
@@ -94,7 +156,14 @@ def _preserve_final_workspace(runs_dir, eval_workspace, meta, score_result, comb
         "total_score": score_result.total_score if score_result is not None else None,
         "passed": score_result.passed if score_result is not None else None,
         "anti_cheat": ac,
-        "grader_markers": markers,
+        "component_scores": component_scores,
+        "component_scores_note": "AUTHORITATIVE gated component raw scores (mirrors score.json). Use "
+                                 "these, not affirmative_grader_markers, for pass/fail of a component.",
+        "affirmative_grader_markers": markers,
+        "affirmative_grader_markers_note": "Raw grader sub-check signals parsed affirmative-only "
+                                           "(bare MARKER / MARKER=1 / STEM_SCORE>=1.0; MARKER=0 is NOT "
+                                           "affirmative). These are sub-checks and may exceed the gated "
+                                           "component_scores; score.json / component_scores are authoritative.",
         "preserved_editable_files": list(hashes.keys()),
         "submitted_file_hashes": hashes,
         "preserved_dir": "preserved",

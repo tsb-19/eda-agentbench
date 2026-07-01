@@ -16,7 +16,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from eda_agentbench.agentic.runner import _preserve_final_workspace, _PRESERVE_ENV
+from eda_agentbench.agentic.runner import (
+    _preserve_final_workspace, _PRESERVE_ENV, _affirmative_markers,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -176,13 +178,80 @@ def test_8_manifest_valid_json_and_hashes():
         _preserve_final_workspace(rd, ew, _meta(), _score(), "SIGNOFF_OK\nEVIDENCE_OK\nGLOBAL_AUTHORITY_OK\nGLOBAL_AUTHORITY_SCORE: 1.000\n")
         man = json.loads((rd / "preserved_artifacts.json").read_text())  # valid JSON (no raise)
         assert man["task_id"] == "workflow_handoff_0005"
-        # presence-only markers (note: _SCORE fractions live in score.json, not parsed here)
-        assert man["grader_markers"].get("EVIDENCE_OK") is True
-        assert man["grader_markers"].get("SIGNOFF_OK") is True
-        assert man["grader_markers"].get("GLOBAL_AUTHORITY_OK") is True
+        # affirmative-only markers (Phase-4J): all three fired affirmatively
+        assert man["affirmative_grader_markers"].get("EVIDENCE_OK") is True
+        assert man["affirmative_grader_markers"].get("SIGNOFF_OK") is True
+        assert man["affirmative_grader_markers"].get("GLOBAL_AUTHORITY_OK") is True
         # submitted_file_hashes match the preserved file contents
         fc_hash = hashlib.sha256((ew / "flow_config.json").read_bytes()).hexdigest()
         assert man["submitted_file_hashes"]["flow_config.json"] == fc_hash
         assert set(man["submitted_file_hashes"]) == set(_meta()["files"]["editable"])
+    finally:
+        shutil.rmtree(rd, ignore_errors=True); shutil.rmtree(ew, ignore_errors=True)
+
+
+# ---------------------------------------------------------------------------
+# Phase-4J: affirmative-only grader-marker parsing (fixes the presence-only false positives)
+# ---------------------------------------------------------------------------
+
+def test_9_marker_equals_zero_is_not_affirmative():
+    # `EVIDENCE_OK=0` must NOT be affirmative (the old presence-only matcher wrongly flagged it).
+    m = _affirmative_markers("EVIDENCE_OK=0\n")
+    assert m.get("EVIDENCE_OK") is not True
+    # `: false` / `_SCORE: 0.000` forms are also NOT affirmative
+    assert _affirmative_markers("EVIDENCE_OK: false\n").get("EVIDENCE_OK") is not True
+    assert _affirmative_markers("EVIDENCE_SCORE: 0.000\n").get("EVIDENCE_OK") is not True
+
+
+def test_10_marker_equals_one_is_affirmative():
+    assert _affirmative_markers("EVIDENCE_OK=1\n").get("EVIDENCE_OK") is True
+    assert _affirmative_markers("EVIDENCE_OK: 1\n").get("EVIDENCE_OK") is True
+    assert _affirmative_markers("EVIDENCE_OK=true\n").get("EVIDENCE_OK") is True
+    assert _affirmative_markers("EVIDENCE_OK\n").get("EVIDENCE_OK") is True  # bare affirmative line
+    assert _affirmative_markers("EVIDENCE_SCORE: 1.000\n").get("EVIDENCE_OK") is True  # paired score >=1
+
+
+def test_11_global_authority_zero_not_affirmative():
+    assert _affirmative_markers("GLOBAL_AUTHORITY_OK=0\n").get("GLOBAL_AUTHORITY_OK") is not True
+    # explicit negative overrides a stray affirmative line (score is authoritative negative)
+    m = _affirmative_markers("GLOBAL_AUTHORITY_OK\nGLOBAL_AUTHORITY_SCORE: 0.000\n")
+    assert m.get("GLOBAL_AUTHORITY_OK") is not True
+
+
+def test_12_trial2_like_log_matches_gated_scores():
+    # Reproduces the p14 v4 trial-2 hazard: grader prints bare FINAL_STATE_OK / PROVENANCE_OK
+    # sub-checks but their gated SCORE is 0 -> must NOT be affirmative (fixes the misleading manifest).
+    log = ("SIGNOFF_OK\n"
+           "EVIDENCE_SCORE: 0.000\n"
+           "FINAL_STATE_OK\nFINAL_STATE_SCORE: 0.000\n"
+           "PROVENANCE_OK\nPROVENANCE_SCORE: 0.000\n"
+           "SCENARIO_CORNER_AUTHORITY_OK\nSCENARIO_CORNER_AUTHORITY_SCORE: 1.000\n")
+    m = _affirmative_markers(log)
+    assert m.get("SIGNOFF_OK") is True                       # bare, no negating score
+    assert m.get("EVIDENCE_OK") is not True                  # score 0
+    assert m.get("FINAL_STATE_OK") is not True               # bare line but score 0 -> negated
+    assert m.get("PROVENANCE_OK") is not True                # bare line but score 0 -> negated
+    assert m.get("SCENARIO_CORNER_AUTHORITY_OK") is True     # bare + score 1.0
+
+
+def test_13_component_scores_are_authoritative_and_marker_does_not_change_score():
+    os.environ[_PRESERVE_ENV] = "1"
+    rd = Path(tempfile.mkdtemp(prefix="p4i_rd_"))
+    ew = _fake_eval_workspace()
+    try:
+        # score_result with a real component map + a misleading bare-OK log
+        comp = SimpleNamespace(name="final_state", raw_score=0.0, weight=0.15, weighted_score=0.0)
+        sc = SimpleNamespace(total_score=0.2, passed=False,
+                             anti_cheat={"forbidden_files_modified": False, "hash_mismatches": []},
+                             components=[comp])
+        before = (sc.total_score, sc.passed, comp.raw_score)
+        _preserve_final_workspace(rd, ew, _meta(), sc, "FINAL_STATE_OK\nFINAL_STATE_SCORE: 0.000\n")
+        # score_result untouched
+        assert (sc.total_score, sc.passed, comp.raw_score) == before
+        man = json.loads((rd / "preserved_artifacts.json").read_text())
+        # authoritative component_scores present and mirrors score_result (final_state=0.0)
+        assert man["component_scores"] == {"final_state": 0.0}
+        # affirmative markers did NOT flag final_state (score 0 negates the bare OK)
+        assert man["affirmative_grader_markers"].get("FINAL_STATE_OK") is not True
     finally:
         shutil.rmtree(rd, ignore_errors=True); shutil.rmtree(ew, ignore_errors=True)
