@@ -1,0 +1,92 @@
+{
+  "report": "synthetic_p14_v4_0005_deepseek_k5_preserved",
+  "date": "2026-07-02",
+  "status": "COMPLETE (k=5, all valid) — not committed (awaiting review)",
+  "purpose": "Preserved reliability quantification of DeepSeek on workflow_handoff_0005 (the first p14 positive-signal task), now that Phase-4I preservation + Phase-4J affirmative markers are in place. Statistical strengthening, not new task generation.",
+  "head": "326961ba046de763ba68c36a685ff6c047fa53a5",
+  "config": {
+    "task": "workflow_handoff_0005 (multi_conflict_partially_truthful_decoy)",
+    "model": "DeepSeek-V4-Pro only (no Qwen/MiniMax/Kimi/GLM)",
+    "k_planned": 5, "k_completed": 5,
+    "timeout_sec_per_episode": 1800, "max_tool_calls": 60, "temperature": 0.7,
+    "elicit_confidence": true, "concurrency": 1,
+    "preservation_flag": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "cost_cap_cny": 60
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "cost": {
+    "per_trial_cny": [8.91, 10.83, 12.16, 8.52, 9.32],
+    "total_cny": 49.74, "cap_cny": 60, "under_cap": true
+  },
+  "valid_trial_count": 5,
+  "capability_metrics": {
+    "pass_at_1": 1.0,
+    "pass_at_k": 1.0,
+    "pass_caret_k": 1.0,
+    "note": "All 5 trials scored total_score=1.0 (gated component_scores all 1.0). DeepSeek reliably SOLVES 0005 on final-state grading."
+  },
+  "outcome_counts": {
+    "solved": 5,
+    "non_solved": 0,
+    "timeout_1800s": 2,
+    "budget_exhausted_protocol": 4,
+    "confident_wrong": 0,
+    "abstain_or_protocol_incomplete": 4,
+    "clean_finish_with_confidence": 1
+  },
+  "overconfident_wrong_count": 0,
+  "protocol_clean_rate": "1/5 (only trial1 FINISHed with a usable confidence; trials 2-5 solved but did not emit FINISH/confidence within the 60-action / 1800s budget)",
+  "per_trial": [
+    {"trial": 1, "total_score": 1.0, "passed": true, "protocol": "ok", "confidence": "high", "overconfident_wrong": false, "timed_out": false, "finished": true, "tool_calls": 49, "pt_like_runs": 32, "wall_sec": 982.2, "cost_cny": 8.91, "class": "CLEAN_SOLVE", "preserved": true},
+    {"trial": 2, "total_score": 1.0, "passed": true, "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": true, "finished": false, "tool_calls": 57, "pt_like_runs": 37, "wall_sec": 1800.0, "cost_cny": 10.83, "class": "SOLVED_PROTOCOL_INCOMPLETE (hit 1800s wall)", "preserved": true},
+    {"trial": 3, "total_score": 1.0, "passed": true, "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 50, "pt_like_runs": 30, "wall_sec": 1390.8, "cost_cny": 12.16, "class": "SOLVED_PROTOCOL_INCOMPLETE (hit 60-action cap)", "preserved": true},
+    {"trial": 4, "total_score": 1.0, "passed": true, "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 47, "pt_like_runs": 36, "wall_sec": 1770.6, "cost_cny": 8.52, "class": "SOLVED_PROTOCOL_INCOMPLETE", "preserved": true},
+    {"trial": 5, "total_score": 1.0, "passed": true, "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": true, "finished": false, "tool_calls": 48, "pt_like_runs": 34, "wall_sec": 1800.1, "cost_cny": 9.32, "class": "SOLVED_PROTOCOL_INCOMPLETE (hit 1800s wall)", "preserved": true}
+  ],
+  "preservation_status": {
+    "all_trials": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "component_scores_present": true, "affirmative_grader_markers_present": true, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "phase4j_verification": "component_scores all-1.0 and affirmative_grader_markers all fired affirmatively on every trial -- no presence-only false positives; markers now agree with gated scores.",
+    "security_scan": "No forbidden filename and no HIDDEN_TRUTH/API_KEY/BASE_URL/Bearer string in any preserved tree."
+  },
+  "byte_confirmed_failure_classification": "N/A -- there were NO non-passes to classify (all 5 solved). No decoy-following, no broken-provenance, no final-state-only, no stage1-only, no hand-edited, no forbidden edit, no infra failure occurred.",
+  "comparison_to_previous_calibrated_followup": {
+    "previous_k2": "one solve (1.0) + one non-solve (0.20, byte-confirmed broken atomic stage1->stage2 provenance chain).",
+    "now_k5": "5/5 solve (pass^5 = 1.0). The broken-chain non-solve did NOT recur across 5 preserved trials -- consistent with the earlier single non-solve being run-to-run variance / a protocol slip rather than a stable failure mode.",
+    "confident_wrong": "0 in both this run and (on re-examination) the prior: the prior 0.20 was protocol-incomplete/abstain, not overconfident_wrong."
+  },
+  "final_interpretation": {
+    "verdict": "EFFICIENCY / PROTOCOL STRESS, NOT A DIFFICULTY WALL",
+    "rationale": "Per the interpretation rule 'if DeepSeek solves all valid trials, classify 0005 as efficiency stress but not difficulty': DeepSeek solved 5/5 (pass^5=1.0). 0005 is NOT a hard wall and NOT an unreliable-capability task for DeepSeek at k=5. The remaining signal is PROTOCOL/EFFICIENCY: 4/5 trials solved the workspace but ran out of action-budget/time before emitting a clean FINISH+confidence (2 hit the 1800s wall). Capability is saturated for DeepSeek; the discriminator that survives is protocol-cleanliness / efficiency, not correctness.",
+    "not_a_hard_wall": true,
+    "not_capability_unreliable_at_k5": true,
+    "provenance_discipline_failure_recurred": false,
+    "decoy_following": false,
+    "infra_invalid": false,
+    "oracle_failure": false
+  },
+  "caveats": [
+    "Single model (DeepSeek). Capability saturation here does not imply other models saturate; a weaker model could still fail 0005 on correctness.",
+    "Protocol-incompleteness (no FINISH/confidence) is a harness/budget interaction (60 actions / 1800s), not a capability failure -- final-state grading still scored 1.0. The confidence/overconfidence axis is therefore under-measured on this task at these budgets.",
+    "pass^5=1.0 is a strong reliability signal for DeepSeek but is still n=5; it bounds but does not eliminate a rare failure tail (e.g. the k=2 broken-chain slip).",
+    "This confirms Phase-4I/4J are working (byte-confirmable, non-misleading markers), so future confident-wrong / wrong-package claims on other models can be trusted."
+  ],
+  "next_direction": {
+    "do_not_run_more_deepseek_0005_trials": true,
+    "rationale": "Capability saturated for DeepSeek (pass^5=1.0); more trials add cost without new capability signal.",
+    "options": [
+      "Design a harder workflow_handoff_0006 with a stronger dependency/constraint-graph structure (deeper multi-stage coupling, more interacting constraints) to re-open a genuine capability gap.",
+      "Adopt workflow_handoff_0005 as an efficiency / protocol-stress benchmark: track wall time, tool calls, PT runs, protocol_clean rate, and no-FINISH/budget_exhausted rate rather than correctness (saturated for DeepSeek)."
+    ]
+  },
+  "process_compliance": {
+    "models_run": ["DeepSeek-V4-Pro"],
+    "no_qwen_minimax_kimi_glm": true,
+    "env_symlink_removed_after": true,
+    "secrets_printed": false,
+    "shell_tracing_used": false,
+    "committed": false,
+    "pushed": false,
+    "other_worktrees_touched": false
+  }
+}
