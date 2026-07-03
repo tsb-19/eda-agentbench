@@ -1,0 +1,169 @@
+{
+  "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside grade_workflow.py; never seen by the agent.",
+  "evidence_steps": 2,
+  "top_module": "acc_stage",
+  "expected_netlist": "netlist_v2.v",
+  "expected_revision": "v2",
+  "expected_netlist_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+  "stale_netlist": "netlist_v1.v",
+  "stale_netlist_sha256": "64c06ccd792ed33c8c3296778bbb832642e98eaeaffce5e2268fc5211428da62",
+  "expected_clock": "clk_main",
+  "stale_clock": "clk_old",
+  "scenario": "slow",
+  "corner": "func",
+  "library": "tiny.db",
+  "required_ports": [
+    "clk_main",
+    "din",
+    "en",
+    "dout"
+  ],
+  "min_constrained_paths": 1,
+  "clock_period_ns": 3.0,
+  "forbid_weakening": true,
+  "manifest_netlist": "netlist_v2.v",
+  "manifest_clock": "clk_main",
+  "authority_source": "handoff_manifest.json + spec.md joint-validity table (constraint graph)",
+  "authority_hierarchy": [
+    "spec.md",
+    "handoff_manifest.json",
+    "flow_config.json",
+    "evidence_manifest.json",
+    "report_A_scenario_corner.rpt",
+    "report_B_stale_netlist.rpt",
+    "report_C_wrong_clock.rpt",
+    "evidence_D_manifest.json",
+    "prev_signoff.log"
+  ],
+  "hazard_type": "constraint_graph_multi_source_recovery",
+  "expected_scenario": "slow",
+  "expected_corner": "func",
+  "stale_scenario": "test",
+  "stale_corner": "typ",
+  "global_authority_tuple": [
+    "netlist_v2.v",
+    "clk_main",
+    "slow",
+    "func"
+  ],
+  "constraint_graph": {
+    "axes": {
+      "netlist": [
+        "netlist_v1.v",
+        "netlist_v2.v"
+      ],
+      "clock": [
+        "clk_main",
+        "clk_old"
+      ],
+      "scenario": [
+        "slow",
+        "typ",
+        "fast"
+      ],
+      "corner": [
+        "func",
+        "test",
+        "lowpower"
+      ]
+    },
+    "constraints": [
+      {
+        "id": "C1",
+        "name": "netlist_family",
+        "over": [
+          "netlist"
+        ],
+        "allowed": [
+          [
+            "netlist_v2.v"
+          ]
+        ],
+        "source": "handoff_manifest.json allows only the v2.x family + acc_stage interface"
+      },
+      {
+        "id": "C2",
+        "name": "clock_coverage",
+        "over": [
+          "clock"
+        ],
+        "allowed": [
+          [
+            "clk_main"
+          ]
+        ],
+        "source": "only clk_main yields intended-clock coverage on netlist_v2 (clk_old=0 paths)"
+      },
+      {
+        "id": "C3",
+        "name": "scenario_corner_signoff_pair",
+        "over": [
+          "scenario",
+          "corner"
+        ],
+        "allowed": [
+          [
+            "slow",
+            "func"
+          ]
+        ],
+        "source": "spec.md joint-validity table + signoff-mode rule pin exactly (slow, func)"
+      }
+    ],
+    "expected_unique_assignment": {
+      "netlist": "netlist_v2.v",
+      "clock": "clk_main",
+      "scenario": "slow",
+      "corner": "func"
+    },
+    "decoy_violates": {
+      "report_A_scenario_corner.rpt": "C3 (v2/clk_main right; scenario/corner = typ/test)",
+      "report_B_stale_netlist.rpt": "C1 (slow/func right; netlist stale v1)",
+      "report_C_wrong_clock.rpt": "C2 (v2/slow right; clock = clk_old, no coverage)",
+      "evidence_D_manifest.json": "C1/C6 (valid-looking digest; depends on invalidated v1 stage)"
+    },
+    "uniqueness": {
+      "total_assignments": 36,
+      "satisfying_count": 1,
+      "satisfying_assignments": [
+        {
+          "netlist": "netlist_v2.v",
+          "clock": "clk_main",
+          "scenario": "slow",
+          "corner": "func"
+        }
+      ],
+      "exactly_one": true,
+      "unique_matches_expected": true
+    }
+  },
+  "decoy_sources": [
+    "report_A_scenario_corner.rpt(netlist_v2/clk_main right; scenario/corner wrong -> C3)",
+    "report_B_stale_netlist.rpt(scenario/corner right; netlist_v1 stale -> C1)",
+    "report_C_wrong_clock.rpt(netlist_v2/scenario right; clock clk_old wrong -> C2)",
+    "evidence_D_manifest.json(fresh-looking digest; invalidated prerequisite stage -> C1/C6)",
+    "prev_signoff.log(recent, plausible, non-authoritative)"
+  ],
+  "pairwise_valid_but_global_invalid_sources": [
+    "report_A_scenario_corner.rpt",
+    "report_B_stale_netlist.rpt",
+    "report_C_wrong_clock.rpt",
+    "evidence_D_manifest.json"
+  ],
+  "non_authoritative_sources": [
+    "prev_signoff.log",
+    "report_A_scenario_corner.rpt",
+    "report_B_stale_netlist.rpt",
+    "report_C_wrong_clock.rpt",
+    "evidence_D_manifest.json"
+  ],
+  "invalidated_by": "no_single_source_satisfies_all_constraints_only_their_intersection",
+  "recovery_step_expected": [
+    "infer_unique_assignment_from_C1_C2_C3",
+    "fix_flow_config_netlist_to_v2",
+    "fix_flow_config_scenario_to_slow",
+    "fix_flow_config_corner_to_func",
+    "rerun_stage1",
+    "rerun_stage2"
+  ]
+}

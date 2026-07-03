@@ -27,6 +27,7 @@ The generator has two entry points:
 from __future__ import annotations
 
 import hashlib
+import itertools
 import json
 import os
 import shutil
@@ -928,6 +929,29 @@ def main():
                 print("PARTIAL_DECOY_REJECTED: submitted evidence is locally plausible but not the "
                       "global-authority package (netlist_v2/clk_main/%s/%s)"
                       % (truth.get("expected_scenario"), truth.get("expected_corner")))
+        # constraint-graph global-consistency diagnostics (v5 hazard). The runtime enforcement is the SAME
+        # proven tuple machinery as v4 (global_authority_tuple + scenario/corner echecks folded into
+        # EVIDENCE_OK); these markers only RE-REPORT that gated verdict under constraint-graph names, so a
+        # recovery that satisfies a subset of axes (a single decoy / single-axis fix) stays far below pass.
+        # Gated on constraint_graph (only the v5 hazard sets it) -> 0001-0005 grader output byte-identical.
+        if truth.get("constraint_graph") is not None:
+            gc_ok = bool(e_full and f_full) and not masking             # all axes jointly consistent
+            uniq_ok = gc_ok                                             # the unique global assignment reached
+            chain_ok = bool(e_full and f_full and sc_full) and not masking  # fresh ordered chain, semantically valid
+            if gc_ok:
+                print("GLOBAL_CONSTRAINT_OK")
+            print("GLOBAL_CONSTRAINT_SCORE: %.3f" % (1.0 if gc_ok else 0.0))
+            if uniq_ok:
+                print("UNIQUE_ASSIGNMENT_OK")
+            print("UNIQUE_ASSIGNMENT_SCORE: %.3f" % (1.0 if uniq_ok else 0.0))
+            if chain_ok:
+                print("EVIDENCE_CHAIN_SEMANTIC_OK")
+            print("EVIDENCE_CHAIN_SEMANTIC_SCORE: %.3f" % (1.0 if chain_ok else 0.0))
+            if bool(sub) and not gc_ok and not masking:
+                print("PAIRWISE_DECOY_REJECTED: submitted package satisfies only a subset of the "
+                      "constraint graph (a locally/pairwise-plausible decoy), not the unique global "
+                      "assignment (netlist_v2/clk_main/%s/%s)"
+                      % (truth.get("expected_scenario"), truth.get("expected_corner")))
         if not authority_consistent and bool(sub) and not masking:
             # diagnostic classification (reported, not scored)
             if sub.get("selected_netlist") == truth.get("stale_netlist") or \
@@ -1031,7 +1055,38 @@ def _regen_reference_sh(evidence_steps: int) -> str:
 # ---------------------------------------------------------------------------
 # spec / manifest / prompt / truth / metadata builders
 # ---------------------------------------------------------------------------
-def _handoff_manifest(expected_netlist_sha: str, scenario: str = SCENARIO, corner: str = CORNER) -> str:
+def _handoff_manifest(expected_netlist_sha: str, scenario: str = SCENARIO, corner: str = CORNER,
+                      cg: bool = False) -> str:
+    if cg:
+        # v5 constraint-graph manifest: PARTIAL AUTHORITY only. Declares the netlist FAMILY + interface +
+        # design intent, but deliberately OMITS the concrete clock/scenario/corner recovery values -- the
+        # agent must infer those by intersecting the constraints in spec.md (C1 netlist-family x C2 clock
+        # coverage x C3 scenario/corner signoff pair). This is the central v5 design choice (no single
+        # artifact reveals the full tuple). manifest_netlist stays the v2 FAMILY representative so the
+        # grader's final-state consumed==manifest check stays meaningful (v2 family, not a specific tuple).
+        return json.dumps({
+            "_comment": "Handoff package manifest -- PARTIAL AUTHORITY for the constraint-graph handoff. "
+                        "Declares the netlist FAMILY + interface (C1) and the design intent; it deliberately "
+                        "OMITS the concrete clock/scenario/corner recovery values. The unique globally-"
+                        "consistent package is the INTERSECTION of the spec.md constraints (C1 family x C2 "
+                        "clock coverage x C3 scenario/corner signoff pair) -- NOT a line in this file. "
+                        "Read-only and FROZEN.",
+            "design": TOP, "top_module": TOP,
+            "interface": {"ports": ["clk_main", "din", "en", "dout"], "note": "v2.x family interface"},
+            "netlist_family": "v2.x", "netlist_revision": "v2",
+            "library": "tiny.db",
+            "constraints": "constraints.sdc", "flow_config": "flow_config.json",
+            "stage1_generator": "run_evidence_stage1.sh", "report": "timing_report.rpt",
+            "evidence_manifest": "evidence_manifest.json",
+            "recovery_note": "infer clock/scenario/corner from spec.md C1/C2/C3; do NOT trust any single "
+                             "shipped evidence source (each decoy satisfies only a subset of the graph).",
+            "netlist": "netlist_v2.v",  # family representative (C1-allowed); NOT a full tuple statement
+            "netlist_provenance_sha256": expected_netlist_sha,
+            "history": {
+                "v1": "legacy pre-ECO revision on clk_old (provenance only -- out of family, must NOT be consumed)",
+                "v2": "current post-ECO family on clk_main, enable-qualified (the handoff design family)",
+            },
+        }, indent=2) + "\n"
     return json.dumps({
         "_comment": "Handoff package manifest -- the AUTHORITY/contract for what the evidence flow "
                     "must consume and what the fresh evidence chain must describe. Read-only and "
@@ -1252,7 +1307,131 @@ def _prompt_md_mc(evidence_steps: int) -> str:
     )
 
 
-def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False) -> str:
+def _spec_md_cg(evidence_steps: int) -> str:
+    """v5 constraint-graph spec. CRITICAL: states the constraint STRUCTURE, never the full target tuple.
+    The agent must intersect (netlist-family C1) AND (clock-coverage C2) AND (scenario/corner signoff
+    pair C3); no single line reveals the answer."""
+    lines = [
+        "# acc_stage — Workflow / Multi-Stage Evidence-Chain Sign-off Handoff (constraint-graph spec)",
+        "",
+        "This is a downstream **timing sign-off handoff** for `acc_stage` whose evidence is **out of date** "
+        "AND whose **correct recovery target is NOT stated in any single file**. You must infer the only "
+        "globally-consistent package by **intersecting independent constraints**, then regenerate fresh "
+        "sign-off evidence by rerunning the flow in order.",
+        "",
+        "## Design intent (post-ECO v2 family)",
+        "",
+        "The shipped design family is **netlist v2.x** with interface ports `{clk_main, din, en, dout}`. "
+        "Legacy **v1** (`{clk_old, din, dout}`) is provenance-only. The exact recovery package is the "
+        "**unique assignment** satisfying all of the constraints below — it is **not** written out as a "
+        "single tuple anywhere in this handoff.",
+        "",
+        "## Constraint graph (intersect these; none alone is the answer)",
+        "",
+        "- **C1 — netlist family (interface):** the consumed netlist must be in the **v2.x family** with the "
+        "`{clk_main, din, en, dout}` interface. The `handoff_manifest.json` declares the allowed family + "
+        "interface; it does **not** state the full recovery tuple. `netlist_v1.v` (interface "
+        "`{clk_old, din, dout}`) is **out of family** and cannot be the consumed netlist.",
+        "- **C2 — clock coverage:** the consumed clock must be the **intended clock** that yields non-zero "
+        "path coverage on the v2 netlist. A clock binding that produces **zero constrained paths** (e.g. "
+        "`clk_old` against the v2 design) is rejected. (Coverage is a tool-derived fact, reported by the "
+        "public runner.)",
+        "- **C3 — scenario/corner signoff pair:** the signoff-mode joint-validity table for `acc_stage` "
+        "admits **exactly one** (scenario, corner) pair for a setup signoff; the other (scenario, corner) "
+        "combinations are characterization-only or non-signoff and are rejected by the hidden oracle.",
+        "- **C4 — report provenance / C5 upstream digest / C6 stage dependency:** the evidence chain must be "
+        "freshly regenerated from the inferred package (stages ordered); a valid-looking digest bound to "
+        "an **invalidated prerequisite stage** (e.g. a stale netlist) is rejected. (Runtime check.)",
+        "",
+        "## Shipped evidence sources (each is LOCALLY / PAIRWISE plausible, NONE globally consistent)",
+        "",
+        "- `report_A_scenario_corner.rpt` — satisfies C1+C2; violates C3 (wrong scenario/corner).",
+        "- `report_B_stale_netlist.rpt` — satisfies C3; violates C1 (stale netlist, out of family).",
+        "- `report_C_wrong_clock.rpt` — satisfies C1+C3; violates C2 (wrong clock, zero coverage).",
+        "- `evidence_D_manifest.json` — valid-looking digest/upstream chain; violates C1+C6 (depends on an "
+        "invalidated prerequisite stage).",
+        "- `prev_signoff.log` — recent, plausible, NON-authoritative.",
+        "",
+        "**No two decoys agree on the same wrong axis** — you cannot majority-vote; you must intersect the "
+        "constraints.",
+        "",
+    ]
+    if evidence_steps == 2:
+        lines += [
+            "## Two-stage evidence chain (evidence_steps=2)",
+            "",
+            "Sign-off evidence is a **two-stage chain** and the stages are **ordered**:",
+            "",
+            "1. **Stage 1** — `bash run_evidence_stage1.sh` regenerates `timing_report.rpt` + "
+            "`evidence_manifest.json` from the repaired inputs.",
+            "2. **Stage 2** — `bash run_evidence_stage2.sh` consumes the **fresh** stage-1 evidence and "
+            "regenerates `stage2_summary.json`; its `upstream_evidence_digest` must equal the fresh "
+            "stage-1 report digest.",
+            "",
+            "Run stage 1 **then** stage 2, after the inputs are repaired and consistent.",
+            "",
+        ]
+    lines += [
+        "## What correct looks like",
+        "",
+        "1. Infer the **unique** globally-consistent package by intersecting C1 ∧ C2 ∧ C3.",
+        "2. Repair `flow_config.json` to consume that netlist at that (scenario, corner) pair (the clock is "
+        "already the intended clock — do **not** change it).",
+        "3. Run `bash run_evidence_stage1.sh`"
+        + (" then `bash run_evidence_stage2.sh`" if evidence_steps == 2 else "")
+        + " to regenerate fresh evidence from the repaired inputs.",
+        "4. PrimeTime setup sign-off on the consumed design reports **no negative-slack paths**, with "
+        "**non-zero intended-clock coverage**.",
+        "",
+        "## What will NOT be accepted",
+        "",
+        "- Following any single shipped source (report_A / report_B / report_C / evidence_D / prev_signoff). "
+        "Each satisfies only a subset of the constraint graph.",
+        "- A **single-axis** repair (fixing only the netlist, or only the clock, or only the scenario/corner).",
+        "- A **pairwise-plausible / majority-vote** package (no decoy majority is the global answer).",
+        "- A green PrimeTime report alone, or hand-edited evidence, or a stage-2 summary built from a "
+        "stale/wrong stage 1.",
+        "- Editing the netlists, the library, the authority manifest, the generators, or the runners; or "
+        "weakening `constraints.sdc`.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _prompt_md_cg(evidence_steps: int) -> str:
+    return (
+        "# Task: infer the unique globally-consistent package AND regenerate the fresh sign-off chain\n\n"
+        "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose "
+        "**correct recovery target is NOT stated in any single file**. Infer it by intersecting the "
+        "constraints in `spec.md` (netlist family C1 + clock coverage C2 + scenario/corner signoff pair "
+        "C3), then **rerun the evidence flow" + (" (two ordered stages)" if evidence_steps == 2 else "") +
+        "** so the evidence is freshly generated from the inferred package.\n\n"
+        "Steps:\n"
+        "1. Infer the unique globally-consistent package (intersect C1 ∧ C2 ∧ C3) — do NOT trust any single "
+        "shipped source; each decoy (report_A / report_B / report_C / evidence_D) satisfies only a subset.\n"
+        "2. Repair `flow_config.json` to that netlist + (scenario, corner) pair (the clock is already the "
+        "intended clock — do not change it).\n"
+        "3. Run `bash run_evidence_stage1.sh` to regenerate `timing_report.rpt` + `evidence_manifest.json` "
+        "from the repaired inputs.\n"
+        + ("4. Run `bash run_evidence_stage2.sh` to regenerate `stage2_summary.json` (binds the fresh "
+           "stage-1 digest).\n"
+           "5. Confirm `bash run_public.sh` shows `evidence=FRESH stage2=FRESH`, `signoff=OK`, non-zero "
+           "intended-clock coverage, and the consumed package == the inferred unique assignment.\n"
+           if evidence_steps == 2 else
+           "4. Confirm `bash run_public.sh` shows `evidence=FRESH`, `signoff=OK`, non-zero intended-clock "
+           "coverage, and the consumed package == the inferred unique assignment.\n") +
+        "\nYou may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest, the decoy "
+        "reports, the generators, or the runners; do not hand-write evidence.\n\n"
+        "When done, briefly state the constraint-graph root cause, which decoys are pairwise-plausible, "
+        "and confirm you inferred the unique assignment and reran " +
+        ("both stages in order" if evidence_steps == 2 else "the stage") + ".\n"
+    )
+
+
+def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
+             cg_hazard: bool = False) -> str:
+    if cg_hazard:
+        return _spec_md_cg(evidence_steps)
     if mc_hazard:
         return _spec_md_mc(evidence_steps)
     if sc_hazard:
@@ -1310,7 +1489,10 @@ def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = Fal
     )
 
 
-def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False) -> str:
+def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
+               cg_hazard: bool = False) -> str:
+    if cg_hazard:
+        return _prompt_md_cg(evidence_steps)
     if mc_hazard:
         return _prompt_md_mc(evidence_steps)
     if sc_hazard:
@@ -1349,13 +1531,52 @@ def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = F
     )
 
 
+def enumerate_constraint_graph(cg: dict) -> dict:
+    """PURE, offline. Enumerate the full axis product of a constraint graph and apply each constraint's
+    allowed-set; return the uniqueness result. This is the make-or-break proof for the v5 task: exactly
+    one assignment must satisfy all constraints AND equal the expected unique assignment, and every named
+    decoy assignment must violate at least one constraint. Uses only the HIDDEN constraint_graph metadata
+    (never a visible file), so it proves a property of the design, not of any agent's behavior.
+    """
+    axes = cg["axes"]
+    axis_names = list(axes.keys())
+    domains = [axes[n] for n in axis_names]
+    constraints = cg["constraints"]
+
+    def satisfies(assign: dict) -> bool:
+        for c in constraints:
+            over = c["over"]
+            allowed = {tuple(a) for a in c["allowed"]}
+            if tuple(assign[o] for o in over) not in allowed:
+                return False
+        return True
+
+    satisfying = []
+    total = 0
+    for combo in itertools.product(*domains):
+        total += 1
+        assign = dict(zip(axis_names, combo))
+        if satisfies(assign):
+            satisfying.append(assign)
+    exp = cg["expected_unique_assignment"]
+    exactly_one = len(satisfying) == 1
+    return {
+        "total_assignments": total,
+        "satisfying_count": len(satisfying),
+        "satisfying_assignments": satisfying,
+        "exactly_one": exactly_one,
+        "unique_matches_expected": bool(exactly_one and satisfying[0] == exp),
+    }
+
+
 def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
                    hazard_type: str | None = None) -> str:
     a_clk, s_clk = _CLOCK_PAIRS[0]
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
-    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc) else SCENARIO
-    corner = SC_AUTH_CORNER if (_is_sc or _is_mc) else CORNER
+    _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
+    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg) else SCENARIO
+    corner = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg) else CORNER
     truth = {
         "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside "
                     "grade_workflow.py; never seen by the agent.",
@@ -1446,6 +1667,81 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
                                            "fix_flow_config_scenario_to_slow",
                                            "fix_flow_config_corner_to_func",
                                            "rerun_stage1", "rerun_stage2"]
+    if _is_cg:
+        # p14 v5: constraint-graph multi-source recovery. Runtime ENFORCEMENT reuses the proven v4 tuple
+        # machinery -- the unique global assignment is the SAME (netlist_v2, clk_main, slow, func), pinned
+        # by global_authority_tuple + expected_scenario/corner echecks folded into EVIDENCE_OK, so every
+        # partial/single-axis/decoy recovery already fails. What is NEW is the DISCOVERABILITY: no single
+        # visible file states the tuple. It is recoverable only by intersecting independent constraints:
+        #   C1 netlist family   -- handoff_manifest allows only the v2.x family + acc_stage interface
+        #   C2 clock coverage   -- only clk_main yields intended-clock coverage on netlist_v2 (clk_old = 0)
+        #   C3 scenario/corner  -- spec's joint-validity table + signoff-mode rule pin exactly (slow, func)
+        #   C4 report provenance/ C5 upstream digest / C6 stage dependency -- fresh ordered chain (runtime)
+        # The constraint_graph block below is machine-checkable data used by the offline uniqueness
+        # enumeration and by the constraint-graph diagnostic markers; it does NOT change enforcement.
+        truth["authority_source"] = "handoff_manifest.json + spec.md joint-validity table (constraint graph)"
+        truth["authority_hierarchy"] = ["spec.md", "handoff_manifest.json", "flow_config.json",
+                                        "evidence_manifest.json", "report_A_scenario_corner.rpt",
+                                        "report_B_stale_netlist.rpt", "report_C_wrong_clock.rpt",
+                                        "evidence_D_manifest.json", "prev_signoff.log"]
+        truth["hazard_type"] = hazard_type
+        truth["expected_scenario"] = SC_AUTH_SCENARIO
+        truth["expected_corner"] = SC_AUTH_CORNER
+        truth["stale_scenario"] = SC_STALE_SCENARIO
+        truth["stale_corner"] = SC_STALE_CORNER
+        # reuse the v4 forgery-resistant consumed-netlist/clock enforcement (proven to reject every decoy)
+        truth["global_authority_tuple"] = ["netlist_v2.v", a_clk, SC_AUTH_SCENARIO, SC_AUTH_CORNER]
+        # machine-checkable constraint graph (HIDDEN; never in a visible file). Axis domains + per-constraint
+        # allowed-sets; the offline uniqueness enumeration re-derives the unique assignment from THESE.
+        truth["constraint_graph"] = {
+            "axes": {
+                "netlist": ["netlist_v1.v", "netlist_v2.v"],
+                "clock": [a_clk, s_clk],
+                "scenario": ["slow", "typ", "fast"],
+                "corner": ["func", "test", "lowpower"],
+            },
+            "constraints": [
+                {"id": "C1", "name": "netlist_family", "over": ["netlist"],
+                 "allowed": [["netlist_v2.v"]],
+                 "source": "handoff_manifest.json allows only the v2.x family + acc_stage interface"},
+                {"id": "C2", "name": "clock_coverage", "over": ["clock"],
+                 "allowed": [[a_clk]],
+                 "source": "only clk_main yields intended-clock coverage on netlist_v2 (clk_old=0 paths)"},
+                {"id": "C3", "name": "scenario_corner_signoff_pair", "over": ["scenario", "corner"],
+                 "allowed": [["slow", "func"]],
+                 "source": "spec.md joint-validity table + signoff-mode rule pin exactly (slow, func)"},
+            ],
+            "expected_unique_assignment": {
+                "netlist": "netlist_v2.v", "clock": a_clk,
+                "scenario": SC_AUTH_SCENARIO, "corner": SC_AUTH_CORNER},
+            "decoy_violates": {
+                "report_A_scenario_corner.rpt": "C3 (v2/clk_main right; scenario/corner = typ/test)",
+                "report_B_stale_netlist.rpt": "C1 (slow/func right; netlist stale v1)",
+                "report_C_wrong_clock.rpt": "C2 (v2/slow right; clock = clk_old, no coverage)",
+                "evidence_D_manifest.json": "C1/C6 (valid-looking digest; depends on invalidated v1 stage)",
+            },
+            # filled in by the offline uniqueness enumeration at generation time (validate_uniqueness)
+            "uniqueness": None,
+        }
+        truth["constraint_graph"]["uniqueness"] = enumerate_constraint_graph(truth["constraint_graph"])
+        truth["decoy_sources"] = [
+            "report_A_scenario_corner.rpt(netlist_v2/clk_main right; scenario/corner wrong -> C3)",
+            "report_B_stale_netlist.rpt(scenario/corner right; netlist_v1 stale -> C1)",
+            "report_C_wrong_clock.rpt(netlist_v2/scenario right; clock clk_old wrong -> C2)",
+            "evidence_D_manifest.json(fresh-looking digest; invalidated prerequisite stage -> C1/C6)",
+            "prev_signoff.log(recent, plausible, non-authoritative)"]
+        truth["pairwise_valid_but_global_invalid_sources"] = [
+            "report_A_scenario_corner.rpt", "report_B_stale_netlist.rpt",
+            "report_C_wrong_clock.rpt", "evidence_D_manifest.json"]
+        truth["non_authoritative_sources"] = ["prev_signoff.log", "report_A_scenario_corner.rpt",
+                                              "report_B_stale_netlist.rpt", "report_C_wrong_clock.rpt",
+                                              "evidence_D_manifest.json"]
+        truth["invalidated_by"] = "no_single_source_satisfies_all_constraints_only_their_intersection"
+        truth["recovery_step_expected"] = ["infer_unique_assignment_from_C1_C2_C3",
+                                           "fix_flow_config_netlist_to_v2",
+                                           "fix_flow_config_scenario_to_slow",
+                                           "fix_flow_config_corner_to_func",
+                                           "rerun_stage1", "rerun_stage2"]
     return json.dumps(truth, indent=2) + "\n"
 
 
@@ -1499,6 +1795,20 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
         # EVIDENCE / HAZARD_RECOVERY so every partial-truth recovery stays <0.5.
         for f in ("report_A_typ_test.rpt", "report_B_stale_netlist.rpt", "evidence_C_manifest.json",
                   "prev_signoff.log"):
+            visible.append(f)
+            forbidden.append(f)
+        weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
+                   "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
+                   "hazard_recovery": 0.10, "explanation": 0.10}
+    if hazard_type == "constraint_graph_multi_source_recovery":
+        # v5: constraint-graph multi-source recovery. Five visible, read-only, forbidden distractors,
+        # each locally/pairwise plausible but jointly invalid; no single source reveals the full target
+        # tuple (manifest gives netlist FAMILY only; spec gives a joint-validity table; clock is pinned
+        # by coverage). Same weight layout + hazard axes as v2/v3/v4; the constraint-graph markers fold
+        # into EVIDENCE / HAZARD_RECOVERY (reusing the proven global_authority_tuple enforcement) so every
+        # partial / single-axis / pairwise decoy stays <0.5.
+        for f in ("report_A_scenario_corner.rpt", "report_B_stale_netlist.rpt", "report_C_wrong_clock.rpt",
+                  "evidence_D_manifest.json", "prev_signoff.log"):
             visible.append(f)
             forbidden.append(f)
         weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
@@ -1579,6 +1889,39 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
                          "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND GLOBAL_AUTHORITY_OK AND "
                          "MULTI_CONFLICT_OK AND HAZARD_RECOVERY_OK AND no forbidden edits"})
         err_cat = "workflow_handoff_multi_conflict_requires_global_authority_recovery"
+    if hazard_type == "constraint_graph_multi_source_recovery":
+        gen_params.update({
+            "hazard_type": "constraint_graph_multi_source_recovery", "num_hazards": 3,
+            "hint_level": hint_level,
+            "authority_source": "handoff_manifest.json (family) + spec.md joint-validity table (no full tuple)",
+            "expected_scenario": SC_AUTH_SCENARIO, "expected_corner": SC_AUTH_CORNER,
+            "stale_scenario": SC_STALE_SCENARIO, "stale_corner": SC_STALE_CORNER,
+            "global_authority_tuple": ["netlist_v2.v", _CLOCK_PAIRS[0][0], SC_AUTH_SCENARIO, SC_AUTH_CORNER],
+            "constraints": ["C1 netlist_family", "C2 clock_coverage", "C3 scenario_corner_signoff_pair"],
+            "conflict": "no single artifact reveals the full target; report_A is right on netlist/clock "
+                        "but wrong on scenario/corner (C3); report_B is right on scenario/corner but stale "
+                        "on netlist (C1); report_C is right on netlist/scenario but wrong on clock (C2); "
+                        "evidence_D has a valid-looking digest but depends on an invalidated prerequisite "
+                        "(C1/C6). Only the INTERSECTION of C1+C2+C3 identifies the unique assignment "
+                        "(netlist_v2/clk_main/slow/func).",
+            "valid_recovery": "infer the unique assignment by intersecting the constraints, repair flow_config "
+                              "to netlist_v2 + slow + func (clock already clk_main), invalidate wrong stages, "
+                              "rerun the minimal correct stage subset, produce a fresh globally-consistent chain",
+            "rejects": ["follow report_A (netlist/clock right, scenario/corner wrong -> C3)",
+                        "follow report_B (scenario/corner right, netlist stale -> C1)",
+                        "follow report_C (netlist/scenario right, clock wrong -> C2)",
+                        "follow evidence_D (valid digest, invalidated prerequisite -> C1/C6)",
+                        "single-axis repair (satisfies only one constraint)",
+                        "pairwise-plausible / majority-vote repair (no single decoy majority is global)",
+                        "edit manifest/spec DOWN to a decoy (forbidden/anti-cheat)",
+                        "rerun only stage2", "final-state-only without evidence", "stage1-only",
+                        "stage2 from semantically wrong stage1", "hand-edited evidence",
+                        "PT green under any wrong package"],
+            "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND "
+                         "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND GLOBAL_AUTHORITY_OK AND "
+                         "GLOBAL_CONSTRAINT_OK AND UNIQUE_ASSIGNMENT_OK AND EVIDENCE_CHAIN_SEMANTIC_OK "
+                         "AND HAZARD_RECOVERY_OK AND no forbidden edits"})
+        err_cat = "workflow_handoff_constraint_graph_requires_joint_consistency_recovery"
     return {
         "task_id": task_id, "track": "p14_workflow_handoff", "tool": ["pt"],
         "difficulty": "hard", "data_type": "mutation_synthetic", "resource_preset": "standard",
@@ -1642,10 +1985,12 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     if evidence_steps not in (1, 2):
         raise ValueError("evidence_steps must be 1 or 2")
     if hazard_type not in (None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
-                           "multi_conflict_partially_truthful_decoy"):
+                           "multi_conflict_partially_truthful_decoy",
+                           "constraint_graph_multi_source_recovery"):
         raise ValueError("unsupported hazard_type: %r" % hazard_type)
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
+    _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
     task = out_dir / task_id
     files = task / "files"
     hidden = task / "hidden"
@@ -1673,16 +2018,22 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
         _write(files / "constraints.sdc",
                _constraints(_CLOCK_PAIRS[0][0],
                             "Timing constraints (clk_main correct -- do not change)."))
-    elif _is_mc:
-        # v4 multi-conflict: flow_config is wrong on MULTIPLE axes (stale netlist_v1 AND wrong
-        # scenario/corner test/typ). clock clk_main is already correct. The agent must repair ALL axes
-        # up to the global authority (netlist_v2 + slow + func); clock stays clk_main.
+    elif _is_mc or _is_cg:
+        # v4 multi-conflict / v5 constraint-graph: flow_config is wrong on MULTIPLE axes (stale netlist_v1
+        # AND wrong scenario/corner test/typ). clock clk_main is already correct. The agent must repair ALL
+        # axes up to the global authority (netlist_v2 + slow + func); clock stays clk_main.
+        if _is_cg:
+            _hint = ("Downstream evidence flow selection. Editable. CONSTRAINT-GRAPH CONFLICT: the shipped "
+                     "selection is wrong on multiple axes, but NO single shipped source reveals the full "
+                     "correct target. Infer it by intersecting the constraints in spec.md + "
+                     "handoff_manifest.json (netlist FAMILY + clock coverage + scenario/corner signoff pair).")
+        else:
+            _hint = ("Downstream evidence flow selection. Editable. MULTI-CONFLICT: stale netlist (v1) AND "
+                     "wrong scenario/corner (%s/%s). Restore netlist->netlist_v2.v AND scenario/corner->"
+                     "%s/%s (the global authority). Clock clk_main is correct."
+                     % (SC_STALE_SCENARIO, SC_STALE_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER))
         _write(files / "flow_config.json",
-               _flow_config("netlist_v1.v",
-                            "Downstream evidence flow selection. Editable. MULTI-CONFLICT: stale netlist "
-                            "(v1) AND wrong scenario/corner (%s/%s). Restore netlist->netlist_v2.v AND "
-                            "scenario/corner->%s/%s (the global authority). Clock clk_main is correct."
-                            % (SC_STALE_SCENARIO, SC_STALE_CORNER, SC_AUTH_SCENARIO, SC_AUTH_CORNER),
+               _flow_config("netlist_v1.v", _hint,
                             scenario=SC_STALE_SCENARIO, corner=SC_STALE_CORNER))
         _write(files / "constraints.sdc",
                _constraints(_CLOCK_PAIRS[0][0],
@@ -1733,22 +2084,32 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                                   "evidence after repairing flow_config scenario/corner up to the "
                                   "authority." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER,
                                                   SC_STALE_SCENARIO, SC_STALE_CORNER))
-    if _is_mc:
-        # MULTI-CONFLICT shipped manifest: CLAIMS the full global authority (netlist_v2/clk_main/slow/func)
-        # while its report body + input_hashes are the stale netlist_v1 run. A multi-axis lie: no shipped
-        # source is globally correct. The grader's forgery-resistant consumed-netlist/clock + scenario/
-        # corner authority echecks (pinned to flow_config / applied.sdc / hidden re-run) reject it until
-        # flow_config is repaired on ALL axes and the chain is regenerated.
+    if _is_mc or _is_cg:
+        # MULTI-CONFLICT / CONSTRAINT-GRAPH shipped manifest: CLAIMS the full global authority
+        # (netlist_v2/clk_main/slow/func) while its report body + input_hashes are the stale netlist_v1 run.
+        # A multi-axis lie: no shipped source is globally correct. The grader's forgery-resistant
+        # consumed-netlist/clock + scenario/corner authority echecks (pinned to flow_config / applied.sdc /
+        # hidden re-run) reject it until flow_config is repaired on ALL axes and the chain is regenerated.
         stale_mani["selected_netlist"] = "netlist_v2.v"
         stale_mani["selected_clock"] = _CLOCK_PAIRS[0][0]
         stale_mani["scenario"] = SC_AUTH_SCENARIO   # CLAIM (lie): authority scenario
         stale_mani["corner"] = SC_AUTH_CORNER       # CLAIM (lie): authority corner
-        stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the global authority "
-                                  "(netlist_v2/clk_main/%s/%s) but its report body + input_hashes are the "
-                                  "stale netlist_v1 run (see timing_report.rpt + flow_config.json). Do NOT "
-                                  "trust this claim; this is a multi-axis conflict. Regenerate fresh "
-                                  "evidence after repairing flow_config to the global authority."
-                                  % (SC_AUTH_SCENARIO, SC_AUTH_CORNER))
+        if _is_cg:
+            stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the global-consistent "
+                                      "assignment (netlist_v2/clk_main/%s/%s) but its report body + "
+                                      "input_hashes are the stale netlist_v1 run (see timing_report.rpt + "
+                                      "flow_config.json). Do NOT trust any single source's claim; the target "
+                                      "is the INTERSECTION of the spec.md + handoff_manifest constraints, "
+                                      "not a manifest line. Regenerate fresh evidence after inferring and "
+                                      "repairing flow_config to the unique assignment."
+                                      % (SC_AUTH_SCENARIO, SC_AUTH_CORNER))
+        else:
+            stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the global authority "
+                                      "(netlist_v2/clk_main/%s/%s) but its report body + input_hashes are the "
+                                      "stale netlist_v1 run (see timing_report.rpt + flow_config.json). Do NOT "
+                                      "trust this claim; this is a multi-axis conflict. Regenerate fresh "
+                                      "evidence after repairing flow_config to the global authority."
+                                      % (SC_AUTH_SCENARIO, SC_AUTH_CORNER))
     _write(files / "evidence_manifest.json", json.dumps(stale_mani, indent=2, sort_keys=True) + "\n")
     _write(files / "timing_report.rpt", (P13_SRC / "files/timing_report.rpt").read_text())
 
@@ -1820,6 +2181,55 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the global "
                "authority in handoff_manifest.json\n" % (SC_STALE_SCENARIO, SC_STALE_CORNER))
 
+    if _is_cg:
+        # v5 constraint-graph decoys: each PARTIALLY-TRUTHFUL source satisfies exactly one constraint and
+        # violates another, so no source is globally consistent and no two agree on the same wrong axis
+        # (the agent cannot majority-vote; it must intersect). report_A's body is a stand-in here
+        # (bake_golden overwrites it with the real netlist_v2 body); report_B reuses the real stale v1 body;
+        # report_C reuses a v2 body but is pinned to the wrong clock (clk_old, zero coverage).
+        _rpt_body = (P13_SRC / "files/timing_report.rpt").read_text()
+        # report_A: right netlist/clock (C1+C2 ok), WRONG scenario/corner -> violates C3
+        _write(files / "report_A_scenario_corner.rpt",
+               "# report_A_scenario_corner.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=%s  corner=%s\n"
+               "# Right design (netlist_v2) + clock (clk_main) -> satisfies C1+C2; WRONG scenario/corner "
+               "vs the spec.md signoff pair -> violates C3.\n"
+               % (SC_STALE_SCENARIO, SC_STALE_CORNER) + _rpt_body)
+        # report_B: right scenario/corner (C3 ok), STALE netlist -> violates C1
+        _write(files / "report_B_stale_netlist.rpt",
+               "# report_B_stale_netlist.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE).\n"
+               "# consumed_netlist=netlist_v1.v  clock=clk_main  scenario=%s  corner=%s\n"
+               "# Right scenario/corner -> satisfies C3; STALE netlist (netlist_v1) outside the manifest "
+               "family -> violates C1.\n"
+               % (SC_AUTH_SCENARIO, SC_AUTH_CORNER) + _rpt_body)
+        # report_C: right netlist/scenario (C1+C3 ok), WRONG clock (clk_old, no coverage) -> violates C2
+        _write(files / "report_C_wrong_clock.rpt",
+               "# report_C_wrong_clock.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_old  scenario=%s  corner=%s\n"
+               "# Right design + scenario/corner -> satisfies C1+C3; clock clk_old yields NO intended-clock "
+               "coverage on netlist_v2 -> violates C2.\n"
+               % (SC_AUTH_SCENARIO, SC_AUTH_CORNER) + _rpt_body)
+        # evidence_D: syntactically valid digest/upstream chain, but semantically tied to an INVALIDATED
+        # prerequisite stage (stale v1) -> violates C1 (and the stage-dependency constraint at runtime)
+        _dmani = dict(stale_mani)
+        _dmani["stage"] = "stage1"
+        _dmani["selected_netlist"] = "netlist_v1.v"
+        _dmani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        _dmani["scenario"] = SC_AUTH_SCENARIO
+        _dmani["corner"] = SC_AUTH_CORNER
+        _dmani["_comment"] = ("evidence_D_manifest.json -- shipped evidence candidate (PAIRWISE PLAUSIBLE). "
+                              "Fresh-looking digest / upstream chain, but semantically depends on an "
+                              "INVALIDATED prerequisite stage (stale netlist_v1). Syntactically valid; "
+                              "globally invalid (violates C1 + the stage-dependency constraint).")
+        _write(files / "evidence_D_manifest.json", json.dumps(_dmani, indent=2, sort_keys=True) + "\n")
+        _write(files / "prev_signoff.log",
+               "# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n"
+               "# Recent and plausible, but NOT the authority. Reinforces one pairwise-plausible decoy;\n"
+               "# it must NOT be used to justify any non-global-consistent package.\n"
+               "consumed_netlist=netlist_v2.v\nclock=clk_main\nscenario=%s\ncorner=%s\n"
+               "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique global "
+               "assignment (the constraint-graph intersection)\n" % (SC_STALE_SCENARIO, SC_STALE_CORNER))
+
     if evidence_steps == 2:
         _write(files / "gen_evidence_stage2.py", _GEN_STAGE2)
         _write(hidden / "gen_evidence_stage2_trusted.py", _GEN_STAGE2)
@@ -1847,11 +2257,11 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(files / "run_public.sh", _run_public_sh(), executable=True)
 
     # authority + docs
-    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc) else SCENARIO
-    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc) else CORNER
-    _write(files / "handoff_manifest.json", _handoff_manifest(expected_sha, _auth_scn, _auth_cor))
-    _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc))
-    _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc))
+    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg) else SCENARIO
+    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg) else CORNER
+    _write(files / "handoff_manifest.json", _handoff_manifest(expected_sha, _auth_scn, _auth_cor, cg=_is_cg))
+    _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc, cg_hazard=_is_cg))
+    _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc, cg_hazard=_is_cg))
 
     # hidden oracle
     _write(hidden / "grade_workflow.py", _GRADE_WORKFLOW)
@@ -1861,7 +2271,7 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(hidden / "regen_reference.sh", _regen_reference_sh(evidence_steps), executable=True)
 
     # GOLDEN inputs into solution/ (evidence baked later by bake_golden)
-    if _is_sc or _is_mc:
+    if _is_sc or _is_mc or _is_cg:
         _write(sol / "flow_config.json",
                _flow_config("netlist_v2.v",
                             ("Restored to the global authority: netlist_v2 + clk_main + %s/%s."
@@ -1921,11 +2331,15 @@ def bake_golden(task_dir: Path, pt_cmd: str, evidence_steps: int) -> None:
         _body = (scratch / "timing_report.rpt").read_text()
         _stale_sc = _truth.get("stale_scenario", "test")
         _stale_co = _truth.get("stale_corner", "typ")
-        (task / "files" / "report_A_typ_test.rpt").write_text(
-            "# report_A_typ_test.rpt -- shipped evidence candidate (PARTIALLY TRUE).\n"
+        _is_cg = _truth.get("constraint_graph") is not None
+        # v4 decoy filename is report_A_typ_test.rpt; v5 constraint-graph is report_A_scenario_corner.rpt.
+        _ra = "report_A_scenario_corner.rpt" if _is_cg else "report_A_typ_test.rpt"
+        _hdr = (
+            "# %s -- shipped evidence candidate (PAIRWISE PLAUSIBLE / PARTIALLY TRUE).\n"
             "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=%s  corner=%s\n"
-            "# Right design (netlist_v2) + clock (clk_main); WRONG scenario/corner vs global authority.\n"
-            % (_stale_sc, _stale_co) + _body)
+            "# Right design (netlist_v2) + clock (clk_main); WRONG scenario/corner vs the global "
+            "authority / unique assignment.\n" % (_ra, _stale_sc, _stale_co))
+        (task / "files" / _ra).write_text(_hdr + _body)
     shutil.rmtree(scratch)
 
 
@@ -1938,7 +2352,8 @@ if __name__ == "__main__":
     ap.add_argument("--evidence-steps", type=int, default=1, choices=[1, 2])
     ap.add_argument("--hazard-type", default=None,
                     choices=[None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
-                             "multi_conflict_partially_truthful_decoy"])
+                             "multi_conflict_partially_truthful_decoy",
+                             "constraint_graph_multi_source_recovery"])
     ap.add_argument("--hint-level", type=int, default=1)
     ap.add_argument("--bake", action="store_true", help="also run the chain to bake golden evidence")
     ap.add_argument("--pt-cmd", default=os.environ.get("EDA_PT_CMD", "pt_shell"))

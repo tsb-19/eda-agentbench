@@ -351,6 +351,29 @@ def main():
                 print("PARTIAL_DECOY_REJECTED: submitted evidence is locally plausible but not the "
                       "global-authority package (netlist_v2/clk_main/%s/%s)"
                       % (truth.get("expected_scenario"), truth.get("expected_corner")))
+        # constraint-graph global-consistency diagnostics (v5 hazard). The runtime enforcement is the SAME
+        # proven tuple machinery as v4 (global_authority_tuple + scenario/corner echecks folded into
+        # EVIDENCE_OK); these markers only RE-REPORT that gated verdict under constraint-graph names, so a
+        # recovery that satisfies a subset of axes (a single decoy / single-axis fix) stays far below pass.
+        # Gated on constraint_graph (only the v5 hazard sets it) -> 0001-0005 grader output byte-identical.
+        if truth.get("constraint_graph") is not None:
+            gc_ok = bool(e_full and f_full) and not masking             # all axes jointly consistent
+            uniq_ok = gc_ok                                             # the unique global assignment reached
+            chain_ok = bool(e_full and f_full and sc_full) and not masking  # fresh ordered chain, semantically valid
+            if gc_ok:
+                print("GLOBAL_CONSTRAINT_OK")
+            print("GLOBAL_CONSTRAINT_SCORE: %.3f" % (1.0 if gc_ok else 0.0))
+            if uniq_ok:
+                print("UNIQUE_ASSIGNMENT_OK")
+            print("UNIQUE_ASSIGNMENT_SCORE: %.3f" % (1.0 if uniq_ok else 0.0))
+            if chain_ok:
+                print("EVIDENCE_CHAIN_SEMANTIC_OK")
+            print("EVIDENCE_CHAIN_SEMANTIC_SCORE: %.3f" % (1.0 if chain_ok else 0.0))
+            if bool(sub) and not gc_ok and not masking:
+                print("PAIRWISE_DECOY_REJECTED: submitted package satisfies only a subset of the "
+                      "constraint graph (a locally/pairwise-plausible decoy), not the unique global "
+                      "assignment (netlist_v2/clk_main/%s/%s)"
+                      % (truth.get("expected_scenario"), truth.get("expected_corner")))
         if not authority_consistent and bool(sub) and not masking:
             # diagnostic classification (reported, not scored)
             if sub.get("selected_netlist") == truth.get("stale_netlist") or \

@@ -1122,7 +1122,7 @@ def test_0005_grader_byte_identical_across_all_tasks():
     import hashlib
     h = {}
     for tid in ("workflow_handoff_0001", "workflow_handoff_0002", "workflow_handoff_0003",
-                "workflow_handoff_0004", "workflow_handoff_0005"):
+                "workflow_handoff_0004", "workflow_handoff_0005", "workflow_handoff_0006"):
         h[tid] = hashlib.sha256((TASKS_DIR / tid / "hidden" / "grade_workflow.py").read_bytes()).hexdigest()
     assert len(set(h.values())) == 1, h
 
@@ -1134,3 +1134,211 @@ def test_0001_0002_0003_grader_markers_unchanged_by_mc_support():
         truth = json.loads(src.read_text())
         assert "global_authority_tuple" not in truth
 
+
+
+# ===========================================================================
+# p14 v5 -- workflow_handoff_0006 (constraint-graph multi-source recovery)
+# ===========================================================================
+T6 = TASKS_DIR / "workflow_handoff_0006"
+
+
+def _grade_run_cg(setup) -> str:
+    """Run grade_workflow.py for the 0006 constraint-graph task."""
+    d = Path(tempfile.mkdtemp(prefix="p14cg_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(T6 / "files" / f, d / f)
+        shutil.copy2(T6 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T6 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_0006_exists_and_schema_valid():
+    assert T6.is_dir()
+    m = _meta(T6)
+    validate_metadata(m)
+    assert m["track"] == "p14_workflow_handoff"
+    assert m["generator"]["params"]["hazard_type"] == "constraint_graph_multi_source_recovery"
+    structural_validate(T6)
+
+
+def test_0006_constraint_graph_metadata_present():
+    truth = json.loads((T6 / "hidden" / "handoff_truth.json").read_text())
+    assert truth["hazard_type"] == "constraint_graph_multi_source_recovery"
+    cg = truth["constraint_graph"]
+    assert set(cg["axes"]) == {"netlist", "clock", "scenario", "corner"}
+    assert len(cg["constraints"]) == 3   # C1 netlist-family, C2 clock-coverage, C3 scenario/corner pair
+    assert cg["expected_unique_assignment"] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                                "scenario": "slow", "corner": "func"}
+    assert set(cg["decoy_violates"]) == {"report_A_scenario_corner.rpt",
+                                         "report_B_stale_netlist.rpt", "report_C_wrong_clock.rpt",
+                                         "evidence_D_manifest.json"}
+
+
+def test_0006_uniqueness_exactly_one_assignment():
+    """The make-or-break gate: exactly one assignment satisfies all constraints AND equals expected."""
+    truth = json.loads((T6 / "hidden" / "handoff_truth.json").read_text())
+    u = truth["constraint_graph"]["uniqueness"]
+    assert u["exactly_one"] is True
+    assert u["unique_matches_expected"] is True
+    assert u["satisfying_count"] == 1
+    assert u["satisfying_assignments"][0] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                              "scenario": "slow", "corner": "func"}
+    # re-derive independently from the constraint graph (no cached value trusted)
+    from generators.p14_workflow_handoff_gen import enumerate_constraint_graph
+    fresh = enumerate_constraint_graph(truth["constraint_graph"])
+    assert fresh["exactly_one"] and fresh["satisfying_count"] == 1
+
+
+def test_0006_no_visible_file_states_full_tuple():
+    """NO single visible file reveals the full target tuple (the v5 design principle)."""
+    bad_patterns = [r"netlist_v2\.v.*clk_main.*slow.*func", r"slow.*func.*netlist_v2\.v.*clk_main",
+                    r"scenario.*slow.*corner.*func.*netlist_v2"]
+    for rel in ("spec.md", "handoff_manifest.json", "prompt.md"):
+        f = T6 / rel
+        if not f.exists():
+            f = T6.parent / rel if rel == "prompt.md" else T6 / "files" / rel
+        txt = f.read_text()
+        for pat in bad_patterns:
+            assert not re.search(pat, txt, re.DOTALL), f"{rel} leaks the full tuple: {pat}"
+    # manifest must be PARTIAL authority (no concrete scenario/corner/clock)
+    man = json.loads((T6 / "files" / "handoff_manifest.json").read_text())
+    for k in ("scenario", "corner", "clock"):
+        assert k not in man, f"manifest must not state concrete {k} (partial authority)"
+    assert "netlist_family" in man
+
+
+def test_0006_decoy_files_present_and_forbidden():
+    m = _meta(T6)
+    for f in ("report_A_scenario_corner.rpt", "report_B_stale_netlist.rpt",
+              "report_C_wrong_clock.rpt", "evidence_D_manifest.json", "prev_signoff.log"):
+        assert f in m["files"]["visible"], f
+        assert f in m["files"]["forbidden"], f
+
+
+def test_0006_full_global_recovery_emits_markers():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" in out
+    assert "GLOBAL_CONSTRAINT_OK" in out
+    assert "UNIQUE_ASSIGNMENT_OK" in out
+    assert "EVIDENCE_CHAIN_SEMANTIC_OK" in out
+    assert "GLOBAL_AUTHORITY_OK" in out and "MULTI_CONFLICT_OK" in out
+    assert "PAIRWISE_DECOY_REJECTED" not in out
+
+
+def test_0006_report_A_only_fails():
+    # report_A: right netlist/clock (v2/clk_main), WRONG scenario/corner -> violates C3
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "test", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "test", "typ", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "test", "typ", "clk_main")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+    assert "PAIRWISE_DECOY_REJECTED" in out
+
+
+def test_0006_report_B_only_fails():
+    # report_B: right scenario/corner (slow/func), STALE netlist (v1) -> violates C1
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0006_report_C_only_fails():
+    # report_C: right netlist/scenario (v2/slow), WRONG clock (clk_old) -> violates C2
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_old")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_old")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_old")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0006_evidence_D_only_fails():
+    # evidence_D: valid-looking chain on invalidated prerequisite (stale v1) -> violates C1/C6
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0006_single_axis_repairs_fail():
+    # repair only scenario (netlist still stale v1) -> still violates C1
+    def setup(d):
+        _mc_inputs(d, "netlist_v1.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v1.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v1.v", "slow", "func", "clk_main")
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+def test_0006_stage2_only_rerun_fails():
+    # final-state correct but stage2 bound to a stale stage1 (broken chain) -> violates C5/C6
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, "deadbeefdeadbeef", "netlist_v2.v", "slow", "func", "clk_main")  # stale upstream
+    out = _grade_run_cg(setup)
+    assert "STAGE_CHAIN_OK" not in out and "EVIDENCE_OK" not in out
+
+
+def test_0006_final_state_only_fails():
+    # correct flow_config but NO regenerated evidence -> EVIDENCE fails (no re-derivation)
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        # no timing_report / evidence_manifest / stage2 produced
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0006_hand_edited_evidence_fails():
+    # correct package but hand-forged report_digest (does not match report body) -> provenance fails
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["report_digest"] = "f" * 64   # the LIE: digest does not match the report body
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_cg(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+def test_0006_deterministic_generation(tmp_path):
+    a = tmp_path / "a"; b = tmp_path / "b"
+    try:
+        build_task_skeleton(a, "workflow_handoff_0006", 0, 2, "constraint_graph_multi_source_recovery")
+        build_task_skeleton(b, "workflow_handoff_0006", 0, 2, "constraint_graph_multi_source_recovery")
+        fa = [p.relative_to(a / "workflow_handoff_0006") for p in (a / "workflow_handoff_0006").rglob("*") if p.is_file()]
+        fb = [p.relative_to(b / "workflow_handoff_0006") for p in (b / "workflow_handoff_0006").rglob("*") if p.is_file()]
+        assert {str(p) for p in fa} == {str(p) for p in fb}
+        for rel in fa:
+            assert (a / "workflow_handoff_0006" / rel).read_bytes() == (b / "workflow_handoff_0006" / rel).read_bytes(), rel
+    finally:
+        shutil.rmtree(a, ignore_errors=True); shutil.rmtree(b, ignore_errors=True)
+
+
+def test_0006_no_hidden_leak():
+    files = {p.name for p in (T6 / "files").iterdir()}
+    assert "handoff_truth.json" not in files and "grade_workflow.py" not in files
+    assert "netlist_v1.v" in files and "netlist_v2.v" in files  # netlists visible (forbidden to edit)
+
+
+def test_0006_public_verdict_first():
+    # the public runner must exist and not embed the hidden verdict / truth
+    rp = (T6 / "files" / "run_public.sh").read_text()
+    assert "handoff_truth.json" not in rp and "grade_workflow.py" not in rp
