@@ -1,0 +1,93 @@
+{
+  "report": "synthetic_p14_v5_0006_qwen_k5_preserved",
+  "date": "2026-07-05",
+  "status": "COMPLETE (k=5, all valid) — not committed (awaiting review)",
+  "purpose": "Robustness check: verify Qwen3.7-Max robustly saturates workflow_handoff_0006, strengthening the Qwen-vs-DeepSeek frontier split (Qwen robustly solves; DeepSeek reproducibly fails).",
+  "head": "42438079c6f2d3100f36ff214a712c93f38e09fd",
+  "config": {
+    "task": "workflow_handoff_0006 (constraint_graph_multi_source_recovery)",
+    "model": "Qwen3.7-Max only",
+    "k": 5, "episodes": 5,
+    "timeout_sec_per_episode": 1800, "max_tool_calls": 60, "temperature": 0.7,
+    "elicit_confidence": true, "concurrency": 1,
+    "preservation_flag": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "cost_cap_cny": 60
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "uniqueness": {"candidate_assignments": 36, "satisfying": 1, "exactly_one": true, "matches_expected": true},
+  "cost": {
+    "per_trial_cny": [10.18, 12.17, 4.00, 10.31, 13.05],
+    "total_cny": 49.71, "cap_cny": 60, "under_cap": true,
+    "all_5_trials_completed": true
+  },
+  "headline": "QWEN ROBUSTLY SATURATES workflow_handoff_0006. Qwen solved 5/5 (pass^5 = 1.0); combined with the original k=3 (3/3), Qwen is 8/8 on 0006 with ZERO wrong assignments. This strengthens the frontier-model split: Qwen robustly solves the constraint-graph task; DeepSeek reproducibly fails (6/8, 2 wrong assignments).",
+  "valid_trial_count": 5,
+  "capability_metrics": {
+    "model": "Qwen3.7-Max",
+    "pass_at_1": 1.0, "pass_at_k": 1.0, "pass_caret_k": 1.0,
+    "valid_trials": 5, "capability_pass_trials": 5,
+    "wrong_assignment_failures": 0, "overconfident_wrong": 0,
+    "note": "k=5: 5/5 pass. Combined with k=3 (3/3): 8/8 = 100% pass, 0 wrong assignments."
+  },
+  "outcome_counts": {
+    "solved": 5, "non_solved": 0, "timeout": 0, "budget_exhausted_protocol": 2,
+    "confident_wrong": 0, "abstain_or_protocol_incomplete": 2, "clean_finish_with_confidence": 3
+  },
+  "overconfident_wrong_count": 0,
+  "protocol_clean_rate": "3/5 (t1/t3/t4 FINISH+high; t2/t5 hit the 60-action cap -> budget_exhausted, no FINISH). Both budget_exhausted trials still scored 1.0 on final-state grading (correct package).",
+  "per_trial": [
+    {"trial": 1, "score": 1.0, "passed": true, "class": "CLEAN_SOLVE", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "ok", "confidence": "high", "overconfident_wrong": false, "timed_out": false, "finished": true, "tool_calls": 55, "pt_runs": 37, "wall_sec": 1209, "cost_cny": 10.18, "preserved": true},
+    {"trial": 2, "score": 1.0, "passed": true, "class": "SOLVED (budget_exhausted, no FINISH)", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 60, "pt_runs": 39, "wall_sec": 1474, "cost_cny": 12.17, "preserved": true},
+    {"trial": 3, "score": 1.0, "passed": true, "class": "CLEAN_SOLVE", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "ok", "confidence": "high", "overconfident_wrong": false, "timed_out": false, "finished": true, "tool_calls": 29, "pt_runs": 22, "wall_sec": 711, "cost_cny": 4.00, "preserved": true},
+    {"trial": 4, "score": 1.0, "passed": true, "class": "CLEAN_SOLVE", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "ok", "confidence": "high", "overconfident_wrong": false, "timed_out": false, "finished": true, "tool_calls": 49, "pt_runs": 40, "wall_sec": 1015, "cost_cny": 10.31, "preserved": true},
+    {"trial": 5, "score": 1.0, "passed": true, "class": "SOLVED (budget_exhausted, no FINISH)", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 59, "pt_runs": 37, "wall_sec": 1786, "cost_cny": 13.05, "preserved": true}
+  ],
+  "preservation_status": {
+    "all_5_trials": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "component_scores_present": true, "affirmative_grader_markers_present": true, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "security_scan": "No forbidden filename and no HIDDEN_TRUTH/API_KEY/BASE_URL/Bearer string in any of the 5 preserved trees."
+  },
+  "byte_confirmed_failure_classification": "N/A -- there were NO non-passes to classify. All 5 trials solved with the correct [netlist_v2, clk_main, slow, func] assignment. No wrong-assignment, no decoy-following, no broken-chain, no final-state-only, no stage-only, no hand-edited, no forbidden-edit, no timeout, no infra failure occurred.",
+  "inferred_unique_assignment": "5/5 trials inferred the correct [netlist_v2, clk_main, slow, func]. Combined with k=3: 8/8 correct.",
+  "constraints_satisfied": "5/5 satisfied all of C1-C8. Combined with k=3: 8/8 all-satisfied.",
+  "comparison": {
+    "qwen_k3_original": "3/3 pass, 0 wrong assignments.",
+    "qwen_k5_this": "5/5 pass, 0 wrong assignments.",
+    "qwen_combined_0006": "8/8 pass = 100%, 0 wrong assignments. ROBUST saturation.",
+    "deepseek_combined_0006": "6/8 pass = 75%, 2 byte-confirmed wrong global assignments (axis-binding errors).",
+    "frontier_split_strengthened": "Qwen robustly solves 0006 (8/8); DeepSeek reproducibly fails (6/8, 2 wrong assignments). The constraint-graph task discriminates between frontier models."
+  },
+  "final_interpretation": {
+    "verdict": "QWEN ROBUSTLY SATURATES workflow_handoff_0006; FRONTIER-MODEL SPLIT STRENGTHENED",
+    "rationale": "Per the interpretation rule: if Qwen solves all 5 valid trials, classify Qwen as robustly saturated and strengthen the Qwen-vs-DeepSeek frontier split. Qwen solved 5/5 (pass^5 = 1.0), all inferring the correct unique assignment; combined with k=3, Qwen is 8/8 with 0 wrong assignments. This contrasts sharply with DeepSeek's 6/8 (2 wrong assignments).",
+    "qwen_saturation_robust": true,
+    "qwen_wrong_assignments": 0,
+    "frontier_split_holds": true,
+    "deepseek_remains_the_discriminated_model": true,
+    "secondary_signal": "0006 carries mild efficiency/protocol stress for Qwen too: 2/5 passes hit the 60-action cap without a clean FINISH (budget_exhausted), but both still scored 1.0. This is separate from capability (which is saturated).",
+    "not_infra": true,
+    "oracle_failure": false,
+    "no_local_decoy_shortcut_passed": true
+  },
+  "caveats": [
+    "Qwen n=8 combined (k=3 + k=5, two separate runs). 8/8 is strong but still finite; a wrong-assignment tail cannot be fully excluded, though none was observed.",
+    "Qwen's 2/5 budget_exhausted episodes (t2, t5) show 0006 is also a mild efficiency/protocol stress task for Qwen (like 0005), but unlike DeepSeek, Qwen never produced a wrong assignment -- its residual signal is protocol-only, never capability.",
+    "Only one constraint-graph task (0006) exists; the Qwen-saturates / DeepSeek-fails split is for this single task. A small 0006-style family would test whether the split generalizes.",
+    "Cost ¥49.71 / ¥60, all 5 completed under cap."
+  ],
+  "scope_limitation": "The result shows Qwen > DeepSeek ON THIS TASK/FAMILY ONLY. It does NOT mean Qwen is universally stronger than DeepSeek -- DeepSeek outperforms Qwen on other tracks in this benchmark's history. The claim is specifically: on workflow_handoff_0006 (constraint-graph multi-source recovery), Qwen robustly saturates and DeepSeek reproducibly fails.",
+  "next_direction": {
+    "updated_synthesis": "Write an updated positive-results synthesis folding in Qwen k=5 (8/8 robust saturation) alongside DeepSeek k=5 (6/8, 2 wrong assignments), restating the strengthened frontier-model split.",
+    "decide_0007": "Then decide whether to design workflow_handoff_0007 -- the natural successor is an axis-binding/value-invention stress task (the discriminating axis both DeepSeek failures hit), or a small 0006-style family to test whether the split generalizes. Do NOT start 0007 until the synthesis is updated and reviewed."
+  },
+  "process_compliance": {
+    "models_run": ["Qwen3.7-Max"],
+    "no_deepseek_minimax_kimi_glm": true,
+    "env_symlink_removed_after": true,
+    "secrets_printed": false,
+    "shell_tracing_used": false,
+    "committed": false,
+    "pushed": false,
+    "other_worktrees_touched": false
+  }
+}
