@@ -1,0 +1,47 @@
+{
+  "_comment": "Typed-axis vocabulary for the acc_stage axis-binding handoff. PUBLISHED (visible) because the challenge is correct BINDING, not vocabulary hiding. This file states the allowed typed values and the PVT-label mapping; it does NOT state which member is correct. Read-only and FROZEN.",
+  "netlist_axis": [
+    "netlist_v1.v",
+    "netlist_v2.v"
+  ],
+  "clock_axis": [
+    "clk_old",
+    "clk_main"
+  ],
+  "scenario_axis": [
+    "slow",
+    "typ",
+    "fast"
+  ],
+  "corner_axis": [
+    "func",
+    "test",
+    "lowpower"
+  ],
+  "pvt_label_axis": [
+    "slow_1.0V_125C",
+    "typ_1.0V_25C",
+    "fast_0.8V_0C"
+  ],
+  "pvt_label_mapping": {
+    "slow_1.0V_125C": [
+      "slow",
+      "func"
+    ],
+    "typ_1.0V_25C": [
+      "typ",
+      "test"
+    ],
+    "fast_0.8V_0C": [
+      "fast",
+      "lowpower"
+    ]
+  },
+  "type_rules": [
+    "scenario_axis values may occupy ONLY the scenario field",
+    "corner_axis values may occupy ONLY the corner field",
+    "a pvt_label_axis token is descriptive metadata mapping to a (scenario, corner) pair; it is never a valid scenario or corner value",
+    "clock_axis requires exact identity (clk_main); a generic/aliased name is rejected"
+  ],
+  "binding_rule": "the correct package requires type-correct axis binding AND global constraint satisfaction -- a value valid on one axis is invalid on another, and a PVT label is never an axis value."
+}

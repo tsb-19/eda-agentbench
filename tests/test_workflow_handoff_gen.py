@@ -1122,7 +1122,8 @@ def test_0005_grader_byte_identical_across_all_tasks():
     import hashlib
     h = {}
     for tid in ("workflow_handoff_0001", "workflow_handoff_0002", "workflow_handoff_0003",
-                "workflow_handoff_0004", "workflow_handoff_0005", "workflow_handoff_0006"):
+                "workflow_handoff_0004", "workflow_handoff_0005", "workflow_handoff_0006",
+                "workflow_handoff_0007"):
         h[tid] = hashlib.sha256((TASKS_DIR / tid / "hidden" / "grade_workflow.py").read_bytes()).hexdigest()
     assert len(set(h.values())) == 1, h
 
@@ -1341,4 +1342,282 @@ def test_0006_no_hidden_leak():
 def test_0006_public_verdict_first():
     # the public runner must exist and not embed the hidden verdict / truth
     rp = (T6 / "files" / "run_public.sh").read_text()
+    assert "handoff_truth.json" not in rp and "grade_workflow.py" not in rp
+
+
+# ===========================================================================
+# p14 v6 -- workflow_handoff_0007 (axis-binding / value-invention stress)
+# ===========================================================================
+T7 = TASKS_DIR / "workflow_handoff_0007"
+
+
+def _grade_run_ab(setup) -> str:
+    """Run grade_workflow.py for the 0007 axis-binding task."""
+    d = Path(tempfile.mkdtemp(prefix="p14ab_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json", "axis_schema.json"):
+            shutil.copy2(T7 / "files" / f, d / f)
+        shutil.copy2(T7 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T7 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_0007_exists_and_schema_valid():
+    assert T7.is_dir()
+    m = _meta(T7)
+    validate_metadata(m)
+    assert m["track"] == "p14_workflow_handoff"
+    assert m["generator"]["params"]["hazard_type"] == "axis_binding_value_invention"
+    assert abs(sum(m["scoring"]["weights"].values()) - 1.0) < 1e-9
+    structural_validate(T7)
+
+
+def test_0007_axis_schema_metadata_present():
+    truth = json.loads((T7 / "hidden" / "handoff_truth.json").read_text())
+    assert truth["hazard_type"] == "axis_binding_value_invention"
+    assert truth["expected_scenario"] == "slow" and truth["expected_corner"] == "func"
+    assert truth["stale_scenario"] == "func" and truth["stale_corner"] == "typ"   # the value-swap
+    assert truth["global_authority_tuple"] == ["netlist_v2.v", "clk_main", "slow", "func"]
+    ax = truth["axis_schema"]
+    assert set(ax["typed_axes"]) == {"netlist_axis", "clock_axis", "scenario_axis",
+                                     "corner_axis", "pvt_label_axis"}
+    assert ax["typed_axes"]["scenario_axis"] == ["slow", "typ", "fast"]
+    assert ax["typed_axes"]["corner_axis"] == ["func", "test", "lowpower"]
+    assert ax["pvt_label_mapping"]["slow_1.0V_125C"] == ["slow", "func"]
+    assert len(ax["constraints"]) == 5   # C1 family, C2 clock identity, C3 scenario-typed, C4 corner-typed, C5 pair
+    assert ax["expected_unique_assignment"] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                                "scenario": "slow", "corner": "func"}
+    assert set(ax["decoy_violates"]) == {"report_A_value_swap.rpt", "report_B_pvt_corner.rpt",
+                                         "report_C_wrong_clock.rpt", "evidence_D_typed_mismatch.json"}
+
+
+def test_0007_uniqueness_exactly_one_typed_assignment():
+    """THE make-or-break gate #1: exactly one typed assignment satisfies all constraints AND equals expected."""
+    truth = json.loads((T7 / "hidden" / "handoff_truth.json").read_text())
+    u = truth["axis_schema"]["uniqueness"]
+    assert u["exactly_one"] is True
+    assert u["unique_matches_expected"] is True
+    assert u["satisfying_count"] == 1
+    assert u["satisfying_assignments"][0] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                              "scenario": "slow", "corner": "func"}
+    from generators.p14_workflow_handoff_gen import enumerate_constraint_graph
+    fresh = enumerate_constraint_graph(truth["axis_schema"])
+    assert fresh["exactly_one"] and fresh["satisfying_count"] == 1
+
+
+def test_0007_typed_binding_failures_machine_provable():
+    """swapped-axis / PVT-substitution / wrong-clock-alias assignments all violate >=1 typed constraint."""
+    truth = json.loads((T7 / "hidden" / "handoff_truth.json").read_text())
+    ax = truth["axis_schema"]
+
+    def satisfies(assign):
+        for c in ax["constraints"]:
+            if tuple(assign[o] for o in c["over"]) not in {tuple(x) for x in c["allowed"]}:
+                return False
+        return True
+    # the value-swap (DeepSeek k=3 failure): corner value 'func' in scenario slot, scenario value 'typ' in corner
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                          "scenario": "func", "corner": "typ"})
+    # PVT-label-as-corner (DeepSeek k=5 failure family)
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                          "scenario": "slow", "corner": "slow_1.0V_125C"})
+    # wrong clock alias
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk",
+                          "scenario": "slow", "corner": "func"})
+    # the unique typed assignment DOES satisfy
+    assert satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                      "scenario": "slow", "corner": "func"})
+
+
+def test_0007_axis_schema_json_visible_and_publishes_vocab_only():
+    """axis_schema.json is VISIBLE (binding challenge, not vocabulary hiding) but states no expected answer."""
+    m = _meta(T7)
+    assert "axis_schema.json" in m["files"]["visible"]
+    assert "axis_schema.json" in m["files"]["forbidden"]
+    ax = json.loads((T7 / "files" / "axis_schema.json").read_text())
+    for k in ("scenario_axis", "corner_axis", "clock_axis", "pvt_label_axis", "pvt_label_mapping"):
+        assert k in ax
+    # publishes the VOCABULARY (members appear as axis values), but must NOT flag which member is correct
+    for key in ax:
+        assert not key.startswith("expected"), key
+        assert key not in ("answer", "correct_assignment", "unique_assignment"), key
+
+
+def test_0007_no_visible_file_states_full_tuple():
+    """NO single visible file reveals the answer tuple. Vocabulary members are PUBLISHED by design in
+    axis_schema.json (each in its own axis list); what is forbidden is flagging the four answer values as a
+    contiguous assignment, or stating concrete scenario/corner/clock in the partial-authority manifest."""
+    # the partial-authority manifest must not state concrete scenario/corner/clock
+    man = json.loads((T7 / "files" / "handoff_manifest.json").read_text())
+    for k in ("scenario", "corner", "clock"):
+        assert k not in man, f"manifest must not state concrete {k} (partial authority)"
+    # the answer as a CONTIGUOUS assignment phrase must not appear anywhere visible (no re.DOTALL: this
+    # requires the values on one line as a tuple, not scattered as vocabulary members across axes)
+    contiguous = [r"netlist_v2\.v\b.{0,40}\bclk_main\b.{0,40}\bslow\b.{0,40}\bfunc\b",
+                  r"\bslow\s*/\s*func\b", r"signoff.{0,30}\bslow\b"]
+    for rel in ("spec.md", "handoff_manifest.json", "axis_schema.json", "prompt.md"):
+        f = T7 / rel
+        if not f.exists():
+            f = T7.parent / rel if rel == "prompt.md" else T7 / "files" / rel
+        txt = f.read_text()
+        for pat in contiguous:
+            assert not re.search(pat, txt), f"{rel} leaks the answer tuple: {pat}"
+
+
+def test_0007_decoy_files_present_and_forbidden():
+    m = _meta(T7)
+    for f in ("axis_schema.json", "report_A_value_swap.rpt", "report_B_pvt_corner.rpt",
+              "report_C_wrong_clock.rpt", "evidence_D_typed_mismatch.json", "prev_signoff.log"):
+        assert f in m["files"]["visible"], f
+        assert f in m["files"]["forbidden"], f
+
+
+def test_0007_mutant_ships_value_swap():
+    fc = json.loads((T7 / "files" / "flow_config.json").read_text())
+    # the mutant is the value-swap: a corner value in the scenario slot, a scenario value in the corner slot
+    assert fc["scenario"] == "func" and fc["corner"] == "typ"   # both mis-slotted
+    assert fc["netlist"] == "netlist_v1.v"                       # stale netlist too
+
+
+def test_0007_full_typed_recovery_emits_markers():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" in out
+    assert "AXIS_SCHEMA_OK" in out and "TYPED_BINDING_OK" in out and "PVT_LABEL_OK" in out
+    assert "GLOBAL_CONSTRAINT_OK" in out and "UNIQUE_ASSIGNMENT_OK" in out
+    assert "EVIDENCE_CHAIN_TYPED_OK" in out
+    assert "HAZARD_RECOVERY_OK" in out
+    assert "MISTYPED_BINDING_REJECTED" not in out
+
+
+def test_0007_value_swap_signoff_green_fails():
+    """THE make-or-break gate #2: a signoff-green-but-mis-typed package is floored below pass.
+
+    Correct netlist+clock+fresh chain (PrimeTime signs off green) but scenario/corner are SWAPPED
+    (the exact DeepSeek k=3 failure). Typed binding, not signoff, must reject it."""
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "func", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "func", "typ", "clk_main")    # signoff OK in the manifest
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "func", "typ", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "TYPED_BINDING_OK" not in out and "AXIS_SCHEMA_OK" not in out
+    assert "GLOBAL_CONSTRAINT_OK" not in out
+    assert "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0007_pvt_label_as_corner_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "TYPED_BINDING_OK" not in out
+    assert "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0007_wrong_clock_alias_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "TYPED_BINDING_OK" not in out
+    assert "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0007_report_A_only_fails():    # right netlist/clock, scenario/corner swapped -> C3+C4
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "func", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "func", "typ", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "func", "typ", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0007_report_B_only_fails():    # PVT label as corner -> C4
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0007_report_C_only_fails():    # generic clock alias 'clk' -> C2
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0007_evidence_D_only_fails():  # typed-field mismatch -> C3+C4
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "func", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "func", "typ", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "func", "typ", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0007_stage2_only_rerun_fails():   # broken chain (stale upstream) -> C6/C7
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, "deadbeefdeadbeef", "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "STAGE_CHAIN_OK" not in out and "EVIDENCE_OK" not in out
+
+
+def test_0007_final_state_only_fails():    # correct flow_config, NO regenerated evidence
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0007_hand_edited_evidence_fails():   # forged report_digest -> provenance fails
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["report_digest"] = "f" * 64
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_ab(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+def test_0007_deterministic_generation(tmp_path):
+    a = tmp_path / "a"; b = tmp_path / "b"
+    try:
+        build_task_skeleton(a, "workflow_handoff_0007", 0, 2, "axis_binding_value_invention")
+        build_task_skeleton(b, "workflow_handoff_0007", 0, 2, "axis_binding_value_invention")
+        fa = [p.relative_to(a / "workflow_handoff_0007") for p in (a / "workflow_handoff_0007").rglob("*") if p.is_file()]
+        fb = [p.relative_to(b / "workflow_handoff_0007") for p in (b / "workflow_handoff_0007").rglob("*") if p.is_file()]
+        assert {str(p) for p in fa} == {str(p) for p in fb}
+        for rel in fa:
+            assert (a / "workflow_handoff_0007" / rel).read_bytes() == (b / "workflow_handoff_0007" / rel).read_bytes(), rel
+    finally:
+        shutil.rmtree(a, ignore_errors=True); shutil.rmtree(b, ignore_errors=True)
+
+
+def test_0007_no_hidden_leak():
+    files = {p.name for p in (T7 / "files").iterdir()}
+    assert "handoff_truth.json" not in files and "grade_workflow.py" not in files
+    assert "netlist_v1.v" in files and "netlist_v2.v" in files
+    assert "axis_schema.json" in files   # vocabulary PUBLISHED
+
+
+def test_0007_public_verdict_first():
+    rp = (T7 / "files" / "run_public.sh").read_text()
     assert "handoff_truth.json" not in rp and "grade_workflow.py" not in rp

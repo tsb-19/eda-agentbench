@@ -187,6 +187,37 @@ def grade(truth):
              "applied.clock=%s want=%s" % (consumed_clk, truth["expected_clock"])),
         ]
 
+    # axis-binding typed-membership echecks (v6 hazard only). The report body is corner-independent on the
+    # single tiny.db, so a package with the CORRECT netlist+clock still PrimeTime-signs-off GREEN even when
+    # scenario/corner are SWAPPED or a PVT label is substituted for a corner. These echecks reject exactly
+    # that: every consumed axis value must be an in-domain member of its OWN typed axis (a scenario value
+    # cannot occupy the corner slot and vice versa; a PVT label is never an axis value; the clock must be
+    # the exact identity, not a generic alias). FORGERY-RESISTANT: pinned to the consumed flow_config
+    # (scenario/corner) and the trusted laundered applied_hidden.sdc (clock), not to agent-authored
+    # evidence. Folded into EVIDENCE_OK (master gate) so a signoff-green-but-mis-typed package stays far
+    # below pass. Gated on axis_schema (only the v6 hazard sets it) -> 0001-0005 grader output byte-identical.
+    if truth.get("axis_schema") is not None:
+        _schema = truth["axis_schema"]
+        _scen_dom = set(_schema["typed_axes"]["scenario_axis"])
+        _corn_dom = set(_schema["typed_axes"]["corner_axis"])
+        _clk_dom = set(_schema["typed_axes"]["clock_axis"])
+        _pvt_dom = set(_schema["typed_axes"].get("pvt_label_axis", []))
+        _cc = _sdc_clocks(applied)
+        _fc_clk = _cc[0] if _cc else None
+        _fc_scen = _jstr(flow_text, "scenario")
+        echecks += [
+            ("typed_scenario_in_scenario_axis", _fc_scen in _scen_dom,
+             "scenario=%s in %s" % (_fc_scen, sorted(_scen_dom))),
+            ("typed_corner_in_corner_axis", consumed_corner in _corn_dom,
+             "corner=%s in %s" % (consumed_corner, sorted(_corn_dom))),
+            ("typed_scenario_not_pvt_label", _fc_scen not in _pvt_dom,
+             "scenario=%s not a pvt label" % _fc_scen),
+            ("typed_corner_not_pvt_label", consumed_corner not in _pvt_dom,
+             "corner=%s not a pvt label" % consumed_corner),
+            ("typed_clock_identity_in_clock_axis", _fc_clk in _clk_dom,
+             "clock=%s in %s" % (_fc_clk, sorted(_clk_dom))),
+        ]
+
     # stage-2 chain checks (only when required). These also feed EVIDENCE_OK (master gate) so a
     # missing/stale stage-2 cannot pass on stage-1 alone.
     s2sub = _load("stage2_summary.json") if steps >= 2 else {}
@@ -374,6 +405,55 @@ def main():
                       "constraint graph (a locally/pairwise-plausible decoy), not the unique global "
                       "assignment (netlist_v2/clk_main/%s/%s)"
                       % (truth.get("expected_scenario"), truth.get("expected_corner")))
+        # axis-binding typed-binding diagnostics (v6 hazard). Runtime enforcement is the typed-membership
+        # echecks above (folded into EVIDENCE_OK); these markers RE-REPORT that gated verdict under
+        # typed-binding names so a signoff-green-but-mis-typed package is named as such. AXIS_SCHEMA_OK =
+        # every consumed axis value is an in-domain member of its own axis (incl. exact clock identity);
+        # TYPED_BINDING_OK = additionally no PVT label occupies an axis slot; PVT_LABEL_OK = a present PVT
+        # label would be metadata-only (a PVT label in any axis slot already fails AXIS_SCHEMA_OK).
+        # GLOBAL_CONSTRAINT_OK / UNIQUE_ASSIGNMENT_OK / EVIDENCE_CHAIN_TYPED_OK mirror the v5 verdicts under
+        # the typed-axis framing. Gated on axis_schema (only the v6 hazard sets it) -> 0001-0005 byte-identical.
+        if truth.get("axis_schema") is not None:
+            _schema = truth["axis_schema"]
+            _scen_dom = set(_schema["typed_axes"]["scenario_axis"])
+            _corn_dom = set(_schema["typed_axes"]["corner_axis"])
+            _clk_dom = set(_schema["typed_axes"]["clock_axis"])
+            _pvt_dom = set(_schema["typed_axes"].get("pvt_label_axis", []))
+            _cc = _sdc_clocks(applied)
+            _fc_clk = _cc[0] if _cc else None
+            _fc_scen = _jstr(_read("flow_config.json"), "scenario")
+            _fc_corn = _jstr(_read("flow_config.json"), "corner")
+            axis_schema_ok = bool(_fc_scen in _scen_dom and _fc_corn in _corn_dom
+                                  and _fc_clk in _clk_dom) and not masking
+            typed_binding_ok = bool(axis_schema_ok and _fc_scen not in _pvt_dom and _fc_corn not in _pvt_dom)
+            pvt_ok = bool(axis_schema_ok)   # a pvt label in an axis slot already fails axis_schema_ok
+            gc_ok = bool(e_full and f_full) and not masking
+            uniq_ok = gc_ok
+            chain_ok = bool(e_full and f_full and sc_full) and not masking
+            if axis_schema_ok:
+                print("AXIS_SCHEMA_OK")
+            print("AXIS_SCHEMA_SCORE: %.3f" % (1.0 if axis_schema_ok else 0.0))
+            if typed_binding_ok:
+                print("TYPED_BINDING_OK")
+            print("TYPED_BINDING_SCORE: %.3f" % (1.0 if typed_binding_ok else 0.0))
+            if pvt_ok:
+                print("PVT_LABEL_OK")
+            print("PVT_LABEL_SCORE: %.3f" % (1.0 if pvt_ok else 0.0))
+            if gc_ok:
+                print("GLOBAL_CONSTRAINT_OK")
+            print("GLOBAL_CONSTRAINT_SCORE: %.3f" % (1.0 if gc_ok else 0.0))
+            if uniq_ok:
+                print("UNIQUE_ASSIGNMENT_OK")
+            print("UNIQUE_ASSIGNMENT_SCORE: %.3f" % (1.0 if uniq_ok else 0.0))
+            if chain_ok:
+                print("EVIDENCE_CHAIN_TYPED_OK")
+            print("EVIDENCE_CHAIN_TYPED_SCORE: %.3f" % (1.0 if chain_ok else 0.0))
+            if bool(sub) and not axis_schema_ok and not masking:
+                print("MISTYPED_BINDING_REJECTED: consumed scenario/corner/clock are not type-correct axis "
+                      "bindings (scenario=%s corner=%s clock=%s) -- a signoff-green but mis-typed package is "
+                      "rejected. The unique typed assignment is netlist_v2/clk_main/%s/%s."
+                      % (_fc_scen, _fc_corn, _fc_clk,
+                         truth.get("expected_scenario"), truth.get("expected_corner")))
         if not authority_consistent and bool(sub) and not masking:
             # diagnostic classification (reported, not scored)
             if sub.get("selected_netlist") == truth.get("stale_netlist") or \
