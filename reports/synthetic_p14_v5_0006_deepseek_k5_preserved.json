@@ -1,0 +1,118 @@
+{
+  "report": "synthetic_p14_v5_0006_deepseek_k5_preserved",
+  "date": "2026-07-05",
+  "status": "COMPLETE (k=5, all valid) — not committed (awaiting review)",
+  "purpose": "Statistical strengthening of the first clean p14 constraint-graph signal: DeepSeek-only k=5 on workflow_handoff_0006 to tighten the wrong-assignment failure-rate estimate.",
+  "head": "47d108ee4f3671ec62c980d0dd56ab25ec4096f2",
+  "config": {
+    "task": "workflow_handoff_0006 (constraint_graph_multi_source_recovery)",
+    "model": "DeepSeek-V4-Pro only",
+    "k": 5, "episodes": 5,
+    "timeout_sec_per_episode": 1800, "max_tool_calls": 60, "temperature": 0.7,
+    "elicit_confidence": true, "concurrency": 1,
+    "preservation_flag": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "cost_cap_cny": 60
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "uniqueness": {"candidate_assignments": 36, "satisfying": 1, "exactly_one": true, "matches_expected": true},
+  "cost": {
+    "per_trial_cny": [15.82, 4.66, 5.87, 14.16, 15.12],
+    "total_cny": 55.63, "cap_cny": 60, "under_cap": true,
+    "all_5_trials_completed": true
+  },
+  "headline": "REPRODUCIBLE CONSTRAINT-GRAPH CAPABILITY DIFFICULTY SIGNAL. DeepSeek solved 4/5 (pass^5 = 0.80) with 1 byte-confirmed wrong-global-assignment (trial3). Combined with the k=3 probe (2/3, 1 wrong-assignment), DeepSeek is now 6/8 on 0006 with TWO byte-confirmed wrong-assignment failures (~25% observed failure rate) -- both axis-binding errors. This is a stable, reproducible constraint-graph difficulty signal for DeepSeek (Qwen saturated at 3/3).",
+  "valid_trial_count": 5,
+  "capability_metrics": {
+    "model": "DeepSeek-V4-Pro",
+    "pass_at_1": 0.80,
+    "pass_at_k": 1.0,
+    "pass_caret_k": 0.80,
+    "valid_trials": 5,
+    "capability_pass_trials": 4,
+    "wrong_assignment_failures": 1,
+    "overconfident_wrong": 1,
+    "note": "k=5: 4/5 pass. Combined with k=3 (2/3): 6/8 pass = 75%, 2 wrong-assignment failures."
+  },
+  "outcome_counts": {
+    "solved": 4, "non_solved": 1, "timeout": 0, "budget_exhausted_protocol": 3,
+    "confident_wrong": 1, "abstain_or_protocol_incomplete": 3, "clean_finish_with_confidence": 2
+  },
+  "overconfident_wrong_count": 1,
+  "protocol_clean_rate": "2/5 (only t2 FINISH+high and t3 FINISH+medium; t1/t4/t5 hit the 60-action cap -> budget_exhausted, no FINISH). All 3 budget_exhausted trials still scored 1.0 on final-state grading (correct package, just no clean FINISH).",
+  "per_trial": [
+    {"trial": 1, "score": 1.0, "passed": true, "class": "SOLVED (budget_exhausted, no FINISH)", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 54, "pt_runs": 37, "wall_sec": 1755, "cost_cny": 15.82, "preserved": true},
+    {"trial": 2, "score": 1.0, "passed": true, "class": "CLEAN_SOLVE", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "ok", "confidence": "high", "overconfident_wrong": false, "timed_out": false, "finished": true, "tool_calls": 29, "pt_runs": 22, "wall_sec": 1058, "cost_cny": 4.66, "preserved": true},
+    {"trial": 3, "score": 0.1, "passed": false, "class": "CONFIDENT_WRONG (wrong global assignment -- axis-binding + value-invention)", "inferred_assignment": "netlist_v2/clk/func/slow_1.0V_125C (WRONG: invented corner, axis-swap, wrong clock name)", "protocol": "ok", "confidence": "medium", "overconfident_wrong": true, "timed_out": false, "finished": true, "tool_calls": 21, "pt_runs": 16, "wall_sec": 979, "cost_cny": 5.87, "preserved": true},
+    {"trial": 4, "score": 1.0, "passed": true, "class": "SOLVED (budget_exhausted, no FINISH)", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 46, "pt_runs": 35, "wall_sec": 1669, "cost_cny": 14.16, "preserved": true},
+    {"trial": 5, "score": 1.0, "passed": true, "class": "SOLVED (budget_exhausted, no FINISH)", "inferred_assignment": "netlist_v2/clk_main/slow/func (CORRECT)", "protocol": "budget_exhausted", "confidence": "", "overconfident_wrong": false, "timed_out": false, "finished": false, "tool_calls": 46, "pt_runs": 38, "wall_sec": 1771, "cost_cny": 15.12, "preserved": true}
+  ],
+  "preservation_status": {
+    "all_5_trials": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "component_scores_present": true, "affirmative_grader_markers_present": true, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "security_scan": "No forbidden filename and no HIDDEN_TRUTH/API_KEY/BASE_URL/Bearer string in any of the 5 preserved trees."
+  },
+  "byte_confirmed_failure_classification": {
+    "trial3": {
+      "score": 0.1, "class": "CONFIDENT_WRONG: wrong global assignment (constraint-graph inference failure -- axis-binding + value-invention)",
+      "submitted_flow_config": {"netlist": "netlist_v2.v", "clock": "clk", "scenario": "func", "corner": "slow_1.0V_125C"},
+      "expected": {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"},
+      "failure_mode": "DeepSeek (a) put the correct CORNER value 'func' in the SCENARIO slot (axis-swap, same pattern as the k=3 failure); (b) INVENTED a corner string 'slow_1.0V_125C' (a PVT-style notation not in the constraint domain); (c) used a generic/wrong clock name 'clk' instead of clk_main. PT did not sign off (signoff component = 0.0), likely because the invented corner/wrong clock broke the run.",
+      "violated_constraints": ["C1 (clock name 'clk' is not clk_main -> C2 clock-coverage)", "C2 clock_coverage (wrong clock name)", "C3 scenario_corner_signoff_pair (func/slow_1.0V_125C != slow/func)", "C4 report_provenance (re-run mismatch)", "signoff_failed"],
+      "satisfied_constraints": ["C1 netlist_family (netlist_v2.v correct)"],
+      "NOT_decoy_following": "Did NOT adopt report_A/B/C or evidence_D. 'slow_1.0V_125C' is an INVENTED value -- a hallucinated corner string, not any shipped decoy.",
+      "NOT_broken_chain": "stage1 and stage2 both consumed flow_config hash 990dbc60 -- internally consistent chain on the wrong package.",
+      "NOT_timeout_NOT_protocol": "Finished at 979s < 1800s; FINISH + medium confidence; protocol_status=ok.",
+      "component_scores": {"signoff": 0.0, "explanation": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0, "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0},
+      "is_wrong_global_assignment": true,
+      "is_axis_binding_error": true,
+      "confidence": "medium (lower than the k=3 failure's 'high')"
+    },
+    "other_episodes": "N/A -- 4/5 solved (all with the correct [slow/func] assignment); no other non-passes."
+  },
+  "inferred_unique_assignment": "4/5 trials inferred the correct [netlist_v2, clk_main, slow, func]; 1/5 (trial3) inferred the wrong [netlist_v2, clk, func, slow_1.0V_125C].",
+  "constraints_satisfied": "4/5 satisfied all of C1-C8; 1/5 (trial3) satisfied only C1 (netlist family) and violated C2/C3/C4 + signoff.",
+  "comparison_to_k3_probe": {
+    "k3_probe": "DeepSeek 2/3 pass, 1/3 byte-confirmed confident-wrong (clean func/typ value-swap; C1+C2 ok, C3 violated; signoff ok -> 0.20; HIGH confidence). Qwen 3/3 pass.",
+    "k5_probe": "DeepSeek 4/5 pass, 1/5 byte-confirmed confident-wrong (invented corner slow_1.0V_125C + axis-swap + wrong clock 'clk'; all constraints violated incl signoff -> 0.10; MEDIUM confidence).",
+    "combined_deepseek_0006": "6/8 pass = 75%; 2 wrong-assignment failures (both axis-binding errors). Observed wrong-assignment rate ~25% (2/8).",
+    "both_failures_are_wrong_assignments": true,
+    "both_failures_are_axis_binding_errors": true,
+    "qwen_vs_deepseek_split_holds": "Qwen saturated (3/3 in k=3); DeepSeek does not (~75% across 8 trials). 0006 discriminates between frontier models."
+  },
+  "final_interpretation": {
+    "verdict": "REPRODUCIBLE CONSTRAINT-GRAPH CAPABILITY DIFFICULTY SIGNAL (for DeepSeek)",
+    "rationale": "Per the interpretation rule: one or more byte-confirmed wrong global assignments => classify 0006 as a reproducible constraint-graph difficulty signal and report the observed failure rate. DeepSeek now has TWO byte-confirmed wrong-assignment failures on 0006 (k=3 + k=5), both axis-binding errors. This is not timeout, not budget, not infra, not protocol, not broken-chain, not forbidden-edit, not oracle failure -- it is a genuine, reproducible joint-inference failure.",
+    "observed_wrong_assignment_rate": "k=5: 1/5 (20%); k=3+k=5 combined: 2/8 (25%).",
+    "deepseek_pass_caret_k_at_k5": 0.80,
+    "is_stable_constraint_graph_difficulty": true,
+    "not_saturated_for_deepseek": true,
+    "qwen_saturated": true,
+    "secondary_signal": "0006 is ALSO an efficiency/protocol stress task for DeepSeek: 3/4 passes hit the 60-action cap without a clean FINISH (budget_exhausted, no confidence), like 0005. But unlike 0005, the residual signal here is NOT only protocol -- it includes a real capability failure (wrong assignment).",
+    "not_infra": true,
+    "oracle_failure": false,
+    "no_local_decoy_shortcut_passed": true
+  },
+  "caveats": [
+    "The two wrong-assignment failures differ in severity: the k=3 failure was a clean func/typ value-swap (C1+C2 ok, only C3 violated, signoff passed -> 0.20, HIGH confidence); the k=5 trial3 failure was a more confused state (invented corner string, wrong clock name, axis-swap, signoff failed -> 0.10, MEDIUM confidence). Both are axis-binding / constraint-inference failures, but the k=5 one suggests DeepSeek can also HALLUCINATE corner values outside the domain.",
+    "Combined n=8 (k=3 + k=5) gives a 25% wrong-assignment rate, but the two runs were separate; treating them as one sample is reasonable for a rate estimate but not a single controlled k=8.",
+    "Qwen k=5 was NOT run in this phase (DeepSeek-only). The Qwen 3/3 saturation is from the k=3 probe; a Qwen k=5 robustness check remains optional future work.",
+    "Protocol/efficiency stress is a secondary signal: 3/4 DeepSeek passes hit the 60-action cap without FINISH (budget_exhausted). This is separate from the capability failure -- those 3 episodes still scored 1.0 on final-state grading.",
+    "Confidence calibration: the k=3 wrong assignment was HIGH confidence; the k=5 wrong assignment was MEDIUM. So DeepSeek is sometimes (not always) miscalibrated on its wrong assignments."
+  ],
+  "next_direction": {
+    "no_more_deepseek_0006_immediately": "The reproducible signal (2/8 wrong-assignments) is established; further DeepSeek trials would only tighten the rate estimate, not change the qualitative conclusion.",
+    "optional_qwen_k5": "Optionally run Qwen k=5 later as a robustness check on its saturation (3/3 -> confirm at k=5).",
+    "design_0007_around_axis_binding": "Both DeepSeek failures were axis-binding errors (one a clean value-swap, one an invented out-of-domain corner string). The discriminating axis is joint constraint inference / axis-value binding. A workflow_handoff_0007 that stresses this specifically (more axes, tighter joint-validity table, decoys valid under axis-confusion) is the natural successor."
+  },
+  "statistical_precision_caveat": "The 25% figure is an OBSERVED failure rate (2/8), not a population-level confidence estimate. With n=8 (across two separate runs) the uncertainty is wide; treat it as 'DeepSeek fails on 0006 with non-trivial, reproducible frequency,' not as a precise population parameter. A single controlled k=8 (or larger) would be needed for a tighter interval.",
+  "process_compliance": {
+    "models_run": ["DeepSeek-V4-Pro"],
+    "no_qwen_minimax_kimi_glm": true,
+    "env_symlink_removed_after": true,
+    "secrets_printed": false,
+    "shell_tracing_used": false,
+    "committed": false,
+    "pushed": false,
+    "other_worktrees_touched": false
+  }
+}
