@@ -1162,7 +1162,38 @@ def _regen_reference_sh(evidence_steps: int) -> str:
 # spec / manifest / prompt / truth / metadata builders
 # ---------------------------------------------------------------------------
 def _handoff_manifest(expected_netlist_sha: str, scenario: str = SCENARIO, corner: str = CORNER,
-                      cg: bool = False, ab: bool = False) -> str:
+                      cg: bool = False, ab: bool = False, imp: bool = False) -> str:
+    if imp:
+        # v7 implicit-axis manifest: PARTIAL AUTHORITY only. Declares the netlist FAMILY + interface (C1)
+        # and points at the INCOMPLETE glossary; it deliberately OMITS the concrete clock/op_point/mode
+        # values AND omits any typed-axis membership. The typed-binding oracle stays in the hidden grader;
+        # axis membership must be INFERRED from evidence. manifest_netlist stays the v2 FAMILY representative.
+        return json.dumps({
+            "_comment": "Handoff package manifest -- PARTIAL AUTHORITY for the implicit-axis-binding handoff. "
+                        "Declares the netlist FAMILY + interface (C1) and points at glossary.md (INCOMPLETE "
+                        "examples only). It deliberately OMITS the concrete clock/op_point/mode values and "
+                        "OMITS any typed-axis membership -- the typed axes are NOT published; they must be "
+                        "INFERRED from report context, spec terminology, PVT notation, and coverage facts. "
+                        "Read-only and FROZEN.",
+            "design": TOP, "top_module": TOP,
+            "interface": {"ports": ["clk_main", "din", "en", "dout"], "note": "v2.x family interface"},
+            "netlist_family": "v2.x", "netlist_revision": "v2",
+            "library": "tiny.db",
+            "terminology": "glossary.md (INCOMPLETE examples only; NOT a schema)",
+            "constraints": "constraints.sdc", "flow_config": "flow_config.json",
+            "stage1_generator": "run_evidence_stage1.sh", "report": "timing_report.rpt",
+            "evidence_manifest": "evidence_manifest.json",
+            "recovery_note": "axis membership is NOT published: infer op_point->scenario, mode->corner from "
+                             "the report context + PVT notation + coverage facts; do NOT trust any single "
+                             "shipped source (each decoy is pairwise plausible but mis-typed). A "
+                             "signoff-green-but-mis-typed package is still rejected.",
+            "netlist": "netlist_v2.v",  # family representative (C1-allowed); NOT a full tuple statement
+            "netlist_provenance_sha256": expected_netlist_sha,
+            "history": {
+                "v1": "legacy pre-ECO revision on clk_old (provenance only -- out of family, must NOT be consumed)",
+                "v2": "current post-ECO family on clk_main, enable-qualified (the handoff design family)",
+            },
+        }, indent=2) + "\n"
     if ab:
         # v6 axis-binding manifest: PARTIAL AUTHORITY only. Declares the netlist FAMILY + interface (C1) and
         # points at the PUBLISHED typed-axis vocabulary (axis_schema.json); it deliberately OMITS the
@@ -1707,8 +1738,145 @@ def _prompt_md_ab(evidence_steps: int) -> str:
     )
 
 
+def _spec_md_implicit(evidence_steps: int) -> str:
+    """v7 implicit-axis spec. CRITICAL: NO complete typed vocabulary is published. The spec gives PARTIAL
+    terminology (operating point / signoff mode), a PVT-descriptor example, and the disjoint-axes rule --
+    enough for a domain-aware reader to INFER membership from report context + coverage, not enough to look
+    it up from a schema. The answer tuple is never stated."""
+    lines = [
+        "# acc_stage — Workflow / Multi-Stage Evidence-Chain Sign-off Handoff (implicit typed-axis spec)",
+        "",
+        "This is a downstream **timing sign-off handoff** for `acc_stage` whose evidence is **out of date** "
+        "AND whose shipped `flow_config.json` carries a **value-swap** on the typed axes. The typed axes are "
+        "**NOT** published as a schema -- you must **infer** axis membership from the report context, the "
+        "terminology here, PVT notation, and the coverage facts, then recover the only globally-consistent "
+        "**typed** package and regenerate fresh sign-off evidence.",
+        "",
+        "## Design intent (post-ECO v2 family)",
+        "",
+        "The shipped design family is **netlist v2.x** with interface ports `{clk_main, din, en, dout}`. "
+        "Legacy **v1** (`{clk_old, din, dout}`) is provenance-only. The setup signoff is taken at the "
+        "**slow operating point** in the **functional signoff mode**. The exact recovery package is the "
+        "**unique typed assignment** satisfying all constraints below -- it is **not** written out anywhere.",
+        "",
+        "## Terminology (partial; see glossary.md for examples -- NOT a complete schema)",
+        "",
+        "- The reports carry an **operating-point** field (`op_point=`) and a **signoff-mode** field "
+        "(`mode=`). These are DISJOINT typed axes: a value valid on one is invalid on the other.",
+        "- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that "
+        "**characterizes** an (operating point, signoff mode) pair but is **never** a valid `op_point` or "
+        "`mode` value.",
+        "- The consumed clock is the one yielding **non-zero intended-clock path coverage** on the design.",
+        "",
+        "**No complete value-to-axis table is provided.** Infer membership from how values are used.",
+        "",
+        "## Constraints (intersect these; none alone is the answer)",
+        "",
+        "- **C1 netlist family:** the consumed netlist is in the v2.x family with the `{clk_main,din,en,dout}` "
+        "interface (`netlist_v1.v` is out of family).",
+        "- **C2 clock coverage:** the consumed clock is the only one with non-zero intended-clock coverage "
+        "on the v2 netlist (a coverage fact).",
+        "- **C3 op_point typed:** the `op_point` value is an operating-point member (infer which values are "
+        "operating points from PVT notation + context).",
+        "- **C4 mode typed:** the `mode` value is a signoff-mode member (the OTHER typed axis).",
+        "- **C5 signoff pair:** the setup signoff uses the slow operating point in the functional mode.",
+        "- **C6/C7 provenance / digest:** the evidence chain must be freshly regenerated from the inferred "
+        "typed package; a valid-looking digest bound to a typed-mismatched or invalidated stage is rejected.",
+        "",
+        "## Shipped evidence sources (each is LOCALLY plausible, NONE globally correct as-shipped)",
+        "",
+        "- `report_A_context_swap.rpt` — right netlist/clock; `op_point`/`mode` swapped.",
+        "- `report_B_context_stale.rpt` — right `op_point`/`mode`; stale netlist.",
+        "- `report_C_context_pvt.rpt` — a PVT descriptor used in `mode`.",
+        "- `evidence_D_context_mismatch.json` — valid-looking chain; `op_point`/`mode` swapped inside.",
+        "- `public_check_summary.json` — pairwise typed/provenance inconsistency symptoms + the coverage "
+        "fact (verdict-first; never the answer/schema).",
+        "- `glossary.md` — INCOMPLETE terminology examples (NOT a schema).",
+        "- `prev_signoff.log` — recent, plausible, NON-authoritative.",
+        "",
+        "**A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the typed axes are "
+        "swapped or a PVT label is substituted** (the report body is corner-independent). Typed binding, not "
+        "signoff, is what rejects a signoff-green-but-mis-typed package.",
+        "",
+    ]
+    if evidence_steps == 2:
+        lines += [
+            "## Two-stage evidence chain (evidence_steps=2)",
+            "",
+            "1. **Stage 1** — `bash run_evidence_stage1.sh` regenerates `timing_report.rpt` + "
+            "`evidence_manifest.json` from the repaired inputs.",
+            "2. **Stage 2** — `bash run_evidence_stage2.sh` consumes the **fresh** stage-1 evidence and "
+            "regenerates `stage2_summary.json`; its `upstream_evidence_digest` must equal the fresh stage-1 "
+            "report digest.",
+            "",
+            "Run stage 1 **then** stage 2, after the inputs are repaired and typed-consistent.",
+            "",
+        ]
+    lines += [
+        "## What correct looks like",
+        "",
+        "1. **Infer** axis membership from the evidence (op_point→scenario, mode→corner via PVT notation + "
+        "context + coverage).",
+        "2. **Infer** the unique typed package by intersecting C1–C5.",
+        "3. **Repair** `flow_config.json` to that netlist + typed (scenario, corner) pair + clock.",
+        "4. Run `bash run_evidence_stage1.sh`"
+        + (" then `bash run_evidence_stage2.sh`" if evidence_steps == 2 else "")
+        + " to regenerate fresh evidence.",
+        "",
+        "## What will NOT be accepted",
+        "",
+        "- A **value-swap** on the typed axes (signoff-green but mis-typed).",
+        "- A **PVT descriptor** substituted for an `op_point`/`mode` value.",
+        "- A **wrong clock** (zero coverage).",
+        "- Following any single shipped source; a single-axis repair; a green report alone; hand-edited "
+        "evidence; a stage-2 from a stale/typed-wrong stage 1.",
+        "- Editing the netlists, library, manifest, glossary, generators, or runners; weakening "
+        "`constraints.sdc`.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _prompt_md_implicit(evidence_steps: int) -> str:
+    return (
+        "# Task: infer the typed-axis membership AND the unique typed package, then regenerate the fresh "
+        "sign-off chain\n\n"
+        "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose "
+        "`flow_config.json` carries a value-swap on the typed axes. The typed axes are **NOT** published as a "
+        "schema -- infer membership from the report context (`op_point=` / `mode=`), the spec terminology, "
+        "PVT notation, and the coverage facts. Then infer the unique typed assignment (intersect C1–C5), "
+        "repair `flow_config.json`, and **rerun the evidence flow"
+        + (" (two ordered stages)" if evidence_steps == 2 else "")
+        + "** so the evidence is freshly generated from the inferred package.\n\n"
+        "Steps:\n"
+        "1. Infer axis membership from the evidence (PVT notation reveals the operating-point values; the "
+        "coverage fact reveals the clock; the manifest+interface reveal the netlist; the remaining axis is "
+        "the signoff mode).\n"
+        "2. Infer the unique typed assignment by intersecting C1–C5; reject every pairwise-plausible decoy.\n"
+        "3. Repair `flow_config.json` to the inferred netlist + (scenario, corner) pair + clock identity.\n"
+        "4. Run `bash run_evidence_stage1.sh` to regenerate `timing_report.rpt` + `evidence_manifest.json`.\n"
+        + ("5. Run `bash run_evidence_stage2.sh` to regenerate `stage2_summary.json` (binds the fresh "
+           "stage-1 digest).\n"
+           "6. Confirm `bash run_public.sh` shows `evidence=FRESH stage2=FRESH`, `signoff=OK`, non-zero "
+           "intended-clock coverage, and the consumed package == the inferred typed assignment.\n"
+           if evidence_steps == 2 else
+           "5. Confirm `bash run_public.sh` shows `evidence=FRESH`, `signoff=OK`, non-zero intended-clock "
+           "coverage, and the consumed package == the inferred typed assignment.\n") +
+        "\nA package with the correct netlist+clock still PrimeTime-signs-off GREEN when the typed axes are "
+        "swapped -- typed binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do "
+        "**not** edit netlists, the library, the manifest, `glossary.md`, the decoy reports, the generators, "
+        "or the runners; do not hand-write evidence.\n\n"
+        "When done, briefly state the axis-binding root cause (which values are operating-point vs "
+        "signoff-mode and how you inferred it), which decoys are mis-typed, and confirm you inferred the "
+        "unique typed assignment and reran " +
+        ("both stages in order" if evidence_steps == 2 else "the stage") + ".\n"
+    )
+
+
 def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
-             cg_hazard: bool = False, ab_hazard: bool = False) -> str:
+             cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False) -> str:
+    if imp_hazard:
+        return _spec_md_implicit(evidence_steps)
     if ab_hazard:
         return _spec_md_ab(evidence_steps)
     if cg_hazard:
@@ -1771,7 +1939,9 @@ def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = Fal
 
 
 def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
-               cg_hazard: bool = False, ab_hazard: bool = False) -> str:
+               cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False) -> str:
+    if imp_hazard:
+        return _prompt_md_implicit(evidence_steps)
     if ab_hazard:
         return _prompt_md_ab(evidence_steps)
     if cg_hazard:
@@ -1859,8 +2029,9 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
     _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
     _is_ab = hazard_type == "axis_binding_value_invention"
-    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab) else SCENARIO
-    corner = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab) else CORNER
+    _is_imp = hazard_type == "implicit_axis_binding"
+    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else SCENARIO
+    corner = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else CORNER
     truth = {
         "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside "
                     "grade_workflow.py; never seen by the agent.",
@@ -2124,6 +2295,99 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
                                            "fix_flow_config_scenario_to_slow",
                                            "fix_flow_config_corner_to_func",
                                            "rerun_stage1", "rerun_stage2"]
+    if _is_imp:
+        # p14 v7: implicit typed-axis binding. Same unique typed assignment as v6 (netlist_v2/clk_main/slow/
+        # func), reusing the v6 typed-binding oracle (the axis_schema hidden block + the grader's axis_schema
+        # gated echecks). The DIFFERENCE from v6 is the DISCOVERABILITY: NO axis_schema.json is shipped. The
+        # visible reports/spec use NON-CANONICAL labels (op_point / mode / "operating point" / "signoff
+        # mode"), so the agent must INFER axis membership from PVT notation + spec terminology + cross-source
+        # consistency + coverage facts -- a typed-INFERENCE task, not a vocabulary-LOOKUP task (the v6
+        # collapse). flow_config keeps canonical scenario/corner fields (so the existing grader echecks work
+        # unchanged); the load-bearing inference is mapping the non-canonical report terms to those fields.
+        truth["authority_source"] = ("inferred from evidence/provenance: handoff_manifest.json (family) + "
+                                     "spec.md partial terminology + coverage facts + PVT-notation parsing")
+        truth["authority_hierarchy"] = ["spec.md", "handoff_manifest.json", "glossary.md", "flow_config.json",
+                                        "evidence_manifest.json", "report_A_context_swap.rpt",
+                                        "report_B_context_stale.rpt", "report_C_context_pvt.rpt",
+                                        "evidence_D_context_mismatch.json", "public_check_summary.json",
+                                        "prev_signoff.log"]
+        truth["hazard_type"] = hazard_type
+        truth["expected_scenario"] = SC_AUTH_SCENARIO
+        truth["expected_corner"] = SC_AUTH_CORNER
+        truth["stale_scenario"] = AB_STALE_SCENARIO   # the value-swap mutant (corner value in scenario slot)
+        truth["stale_corner"] = AB_STALE_CORNER
+        truth["global_authority_tuple"] = ["netlist_v2.v", a_clk, SC_AUTH_SCENARIO, SC_AUTH_CORNER]
+        # Reuse the v6 typed constraint graph (HIDDEN; never shipped). Same axes/constraints/uniqueness; the
+        # v7 difference is purely that typed_axes is NOT published (no axis_schema.json) -- membership must be
+        # INFERRED. The grader's axis_schema gated block enforces typed binding identically to v6.
+        truth["axis_schema"] = {
+            "typed_axes": AB_TYPED_AXES,
+            "pvt_label_mapping": AB_PVT_MAPPING,
+            "type_rules": [
+                "scenario_axis values may occupy ONLY the scenario field",
+                "corner_axis values may occupy ONLY the corner field",
+                "a pvt_label_axis token is descriptive metadata mapping to a (scenario, corner) pair; "
+                "it is never a valid scenario or corner value",
+                "clock_axis requires exact identity (clk_main); a generic/aliased name is rejected",
+            ],
+            "membership_visibility": "IMPLICIT -- not published in any visible file; inferred from PVT "
+                                     "notation, spec terminology, coverage facts, and cross-source consistency",
+            "axes": {
+                "netlist": ["netlist_v1.v", "netlist_v2.v"],
+                "clock": [a_clk, s_clk, "clk"],
+                "scenario": ["slow", "typ", "fast", "func", "test", "lowpower", "slow_1.0V_125C"],
+                "corner": ["func", "test", "lowpower", "slow", "typ", "fast", "slow_1.0V_125C"],
+            },
+            "constraints": [
+                {"id": "C1", "name": "netlist_family", "over": ["netlist"],
+                 "allowed": [["netlist_v2.v"]],
+                 "source": "handoff_manifest.json family + acc_stage interface"},
+                {"id": "C2", "name": "clock_identity", "over": ["clock"],
+                 "allowed": [[a_clk]],
+                 "source": "the only clock with non-zero intended-clock coverage on netlist_v2"},
+                {"id": "C3", "name": "scenario_typed", "over": ["scenario"],
+                 "allowed": [["slow"], ["typ"], ["fast"]],
+                 "source": "scenario field must be a scenario_axis member (inferred from op_point context + "
+                           "PVT process token); a corner value or PVT label is a type error"},
+                {"id": "C4", "name": "corner_typed", "over": ["corner"],
+                 "allowed": [["func"], ["test"], ["lowpower"]],
+                 "source": "corner field must be a corner_axis member (inferred from mode context); a "
+                           "scenario value or PVT label is a type error"},
+                {"id": "C5", "name": "scenario_corner_signoff_pair", "over": ["scenario", "corner"],
+                 "allowed": [["slow", "func"]],
+                 "source": "spec.md 'slow operating point in functional signoff mode'"},
+            ],
+            "expected_unique_assignment": {
+                "netlist": "netlist_v2.v", "clock": a_clk,
+                "scenario": SC_AUTH_SCENARIO, "corner": SC_AUTH_CORNER},
+            "decoy_violates": {
+                "report_A_context_swap.rpt": "C3+C4 (right netlist/clock; op_point/mode swapped)",
+                "report_B_context_stale.rpt": "C1 (op_point/mode correct; netlist stale v1)",
+                "report_C_context_pvt.rpt": "C4 (PVT label slow_1.0V_125C in mode field)",
+                "evidence_D_context_mismatch.json": "C3+C4 (valid digest; op_point/mode swapped inside)",
+            },
+            "uniqueness": None,
+        }
+        truth["axis_schema"]["uniqueness"] = enumerate_constraint_graph(truth["axis_schema"])
+        truth["decoy_sources"] = [
+            "report_A_context_swap.rpt(netlist_v2/clk_main right; op_point/mode swapped -> C3+C4)",
+            "report_B_context_stale.rpt(op_point/mode correct; netlist_v1 stale -> C1)",
+            "report_C_context_pvt.rpt(op_point correct; mode=slow_1.0V_125C PVT label -> C4)",
+            "evidence_D_context_mismatch.json(valid-looking chain; op_point/mode swapped -> C3+C4)",
+            "prev_signoff.log(recent, plausible, non-authoritative)"]
+        truth["pairwise_valid_but_global_invalid_sources"] = [
+            "report_A_context_swap.rpt", "report_B_context_stale.rpt",
+            "report_C_context_pvt.rpt", "evidence_D_context_mismatch.json"]
+        truth["non_authoritative_sources"] = ["prev_signoff.log", "report_A_context_swap.rpt",
+                                              "report_B_context_stale.rpt", "report_C_context_pvt.rpt",
+                                              "evidence_D_context_mismatch.json"]
+        truth["invalidated_by"] = "no_single_source_satisfies_all_typed_constraints_only_their_intersection"
+        truth["recovery_step_expected"] = ["infer_axis_membership_from_evidence",
+                                           "infer_unique_typed_assignment_from_C1_C2_C3_C4_C5",
+                                           "fix_flow_config_netlist_to_v2",
+                                           "fix_flow_config_scenario_to_slow",
+                                           "fix_flow_config_corner_to_func",
+                                           "rerun_stage1", "rerun_stage2"]
     return json.dumps(truth, indent=2) + "\n"
 
 
@@ -2206,6 +2470,22 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
         # mis-typed / partial / single-axis / pairwise decoy stays <0.5.
         for f in ("axis_schema.json", "report_A_value_swap.rpt", "report_B_pvt_corner.rpt",
                   "report_C_wrong_clock.rpt", "evidence_D_typed_mismatch.json", "prev_signoff.log"):
+            visible.append(f)
+            forbidden.append(f)
+        weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
+                   "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
+                   "hazard_recovery": 0.10, "explanation": 0.10}
+    if hazard_type == "implicit_axis_binding":
+        # v7: implicit typed-axis binding. NO axis_schema.json is shipped -- the typed-binding oracle is
+        # reused (the hidden axis_schema truth + the grader's axis_schema gated block) but axis membership is
+        # INFERRED from non-canonical report labels (op_point/mode), spec terminology, PVT notation, and
+        # coverage facts. Visible read-only forbidden distractors use non-canonical context labels; a glossary
+        # (examples only) + a public pairwise consistency summary are added. Same weight layout as v2-v6; the
+        # typed-membership echecks fold into EVIDENCE / HAZARD_RECOVERY so every mis-typed / partial / pairwise
+        # decoy stays <0.5 even when PT signoff is green.
+        for f in ("report_A_context_swap.rpt", "report_B_context_stale.rpt",
+                  "report_C_context_pvt.rpt", "evidence_D_context_mismatch.json",
+                  "public_check_summary.json", "glossary.md", "prev_signoff.log"):
             visible.append(f)
             forbidden.append(f)
         weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
@@ -2360,6 +2640,45 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
                          "AND AXIS_SCHEMA_OK AND TYPED_BINDING_OK AND PVT_LABEL_OK AND HAZARD_RECOVERY_OK "
                          "AND no forbidden edits"})
         err_cat = "workflow_handoff_axis_binding_requires_typed_global_recovery"
+    if hazard_type == "implicit_axis_binding":
+        gen_params.update({
+            "hazard_type": "implicit_axis_binding", "num_hazards": 3,
+            "hint_level": hint_level,
+            "authority_source": "inferred from evidence/provenance (NO published schema): manifest family "
+                                "+ spec partial terminology + coverage facts + PVT notation",
+            "expected_scenario": SC_AUTH_SCENARIO, "expected_corner": SC_AUTH_CORNER,
+            "stale_scenario": AB_STALE_SCENARIO, "stale_corner": AB_STALE_CORNER,
+            "global_authority_tuple": ["netlist_v2.v", _CLOCK_PAIRS[0][0], SC_AUTH_SCENARIO, SC_AUTH_CORNER],
+            "constraints": ["C1 netlist_family", "C2 clock_identity", "C3 scenario_typed(inferred)",
+                            "C4 corner_typed(inferred)", "C5 scenario_corner_signoff_pair"],
+            "conflict": "the typed-axis vocabulary is NOT published (no axis_schema.json); axis membership "
+                        "must be INFERRED from non-canonical report labels (op_point/mode), spec terminology, "
+                        "PVT notation, and coverage facts. The shipped flow_config is a value-SWAP on the "
+                        "canonical scenario/corner fields (scenario=func/corner=typ). report_A is the same "
+                        "swap with op_point/mode labels on the right netlist/clock; report_B has the correct "
+                        "op_point/mode but a stale netlist; report_C puts a PVT label (slow_1.0V_125C) in the "
+                        "mode field; evidence_D is a valid chain with swapped op_point/mode fields. A correct "
+                        "netlist+clock package PrimeTime-signs-off GREEN even when mis-typed; the typed-binding "
+                        "oracle (reused from v6, hidden) rejects it. The unique TYPED assignment is the "
+                        "intersection (netlist_v2/clk_main/slow/func).",
+            "valid_recovery": "infer axis membership from evidence (op_point->scenario, mode->corner via PVT "
+                              "notation + spec + coverage), infer the unique typed assignment by intersecting "
+                              "C1-C5, repair flow_config to netlist_v2 + slow + func (clock already clk_main), "
+                              "rerun stage1 then stage2 (fresh typed-consistent chain)",
+            "rejects": ["value-swap (scenario=func/corner=typ) -- signoff-green but mis-typed -> C3+C4",
+                        "PVT-label-as-corner (corner=slow_1.0V_125C) -> C4",
+                        "wrong clock alias (clock=clk) -> C2",
+                        "follow report_A/report_B/report_C/evidence_D (each violates a typed constraint)",
+                        "single-axis repair (satisfies only one constraint)",
+                        "edit manifest/spec/glossary DOWN (forbidden/anti-cheat)",
+                        "rerun only stage2", "final-state-only without evidence", "stage1-only",
+                        "stage2 from typed-wrong stage1", "hand-edited evidence",
+                        "PT green under any mis-typed package"],
+            "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND "
+                         "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND GLOBAL_AUTHORITY_OK AND "
+                         "GLOBAL_CONSTRAINT_OK AND UNIQUE_ASSIGNMENT_OK AND EVIDENCE_CHAIN_TYPED_OK "
+                         "AND TYPED_BINDING_OK AND HAZARD_RECOVERY_OK AND no forbidden edits"})
+        err_cat = "workflow_handoff_implicit_axis_binding_requires_typed_inference_recovery"
     return {
         "task_id": task_id, "track": "p14_workflow_handoff", "tool": ["pt"],
         "difficulty": "hard", "data_type": "mutation_synthetic", "resource_preset": "standard",
@@ -2425,12 +2744,14 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     if hazard_type not in (None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
                            "multi_conflict_partially_truthful_decoy",
                            "constraint_graph_multi_source_recovery",
-                           "axis_binding_value_invention"):
+                           "axis_binding_value_invention",
+                           "implicit_axis_binding"):
         raise ValueError("unsupported hazard_type: %r" % hazard_type)
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
     _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
     _is_ab = hazard_type == "axis_binding_value_invention"
+    _is_imp = hazard_type == "implicit_axis_binding"
     task = out_dir / task_id
     files = task / "files"
     hidden = task / "hidden"
@@ -2458,11 +2779,20 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
         _write(files / "constraints.sdc",
                _constraints(_CLOCK_PAIRS[0][0],
                             "Timing constraints (clk_main correct -- do not change)."))
-    elif _is_mc or _is_cg or _is_ab:
-        # v4 multi-conflict / v5 constraint-graph / v6 axis-binding: flow_config is wrong on MULTIPLE axes
-        # (stale netlist_v1 AND a wrong scenario/corner). clock clk_main is already correct. The agent must
-        # repair ALL axes up to the global authority (netlist_v2 + slow + func); clock stays clk_main.
-        if _is_ab:
+    elif _is_mc or _is_cg or _is_ab or _is_imp:
+        # v4 multi-conflict / v5 constraint-graph / v6 axis-binding / v7 implicit-axis-binding: flow_config is
+        # wrong on MULTIPLE axes (stale netlist_v1 AND a wrong scenario/corner). clock clk_main is already
+        # correct. The agent must repair ALL axes up to the global authority (netlist_v2 + slow + func).
+        if _is_imp:
+            # v7: same value-SWAP mutant as v6 (canonical scenario/corner fields, swapped values) but NO
+            # axis_schema.json is shipped -- axis membership must be INFERRED from the report/glossary context.
+            _hint = ("Downstream evidence flow selection. Editable. IMPLICIT-AXIS CONFLICT: stale netlist "
+                     "(v1) AND a value-SWAP on the typed axes. The report context uses field labels like "
+                     "op_point / mode (NOT a published schema) -- infer which value belongs to which axis "
+                     "from the report context, the spec terminology, the PVT notation, and the coverage facts. "
+                     "No single shipped source reveals the full correct target.")
+            _stale_sc, _stale_co = AB_STALE_SCENARIO, AB_STALE_CORNER
+        elif _is_ab:
             # v6: the shipped scenario/corner is a value-SWAP (corner value 'func' in the scenario slot,
             # scenario value 'typ' in the corner slot) -- the exact DeepSeek k=3 failure on 0006.
             _hint = ("Downstream evidence flow selection. Editable. AXIS-BINDING CONFLICT: stale netlist "
@@ -2535,18 +2865,27 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                                   "evidence after repairing flow_config scenario/corner up to the "
                                   "authority." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER,
                                                   SC_STALE_SCENARIO, SC_STALE_CORNER))
-    if _is_mc or _is_cg or _is_ab:
-        # MULTI-CONFLICT / CONSTRAINT-GRAPH / AXIS-BINDING shipped manifest: CLAIMS the full global authority
-        # (netlist_v2/clk_main/slow/func) while its report body + input_hashes are the stale netlist_v1 run.
-        # A multi-axis lie: no shipped source is globally correct. The grader's forgery-resistant
-        # consumed-netlist/clock + scenario/corner authority + typed-membership echecks (pinned to
+    if _is_mc or _is_cg or _is_ab or _is_imp:
+        # MULTI-CONFLICT / CONSTRAINT-GRAPH / AXIS-BINDING / IMPLICIT-AXIS shipped manifest: CLAIMS the full
+        # global authority (netlist_v2/clk_main/slow/func) while its report body + input_hashes are the stale
+        # netlist_v1 run. A multi-axis lie: no shipped source is globally correct. The grader's forgery-
+        # resistant consumed-netlist/clock + scenario/corner authority + typed-membership echecks (pinned to
         # flow_config / applied.sdc / hidden re-run) reject it until flow_config is repaired on ALL axes and
         # the chain is regenerated.
         stale_mani["selected_netlist"] = "netlist_v2.v"
         stale_mani["selected_clock"] = _CLOCK_PAIRS[0][0]
         stale_mani["scenario"] = SC_AUTH_SCENARIO   # CLAIM (lie): authority scenario
         stale_mani["corner"] = SC_AUTH_CORNER       # CLAIM (lie): authority corner
-        if _is_ab:
+        if _is_imp:
+            stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the typed-authority "
+                                      "assignment (netlist_v2/clk_main/%s/%s) but its report body + "
+                                      "input_hashes are the stale netlist_v1 run AND flow_config.json ships a "
+                                      "value-SWAP on the typed axes. The typed-axis membership is NOT "
+                                      "published; infer it from the report context (op_point/mode labels), "
+                                      "the spec terminology, PVT notation, and coverage facts. Regenerate "
+                                      "fresh evidence after inferring and repairing flow_config to the unique "
+                                      "typed assignment." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER))
+        elif _is_ab:
             stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the typed-authority "
                                       "assignment (netlist_v2/clk_main/%s/%s) but its report body + "
                                       "input_hashes are the stale netlist_v1 run AND flow_config.json ships a "
@@ -2767,6 +3106,83 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique typed "
                "assignment (the axis-binding intersection)\n" % (AB_STALE_SCENARIO, AB_STALE_CORNER))
 
+    if _is_imp:
+        # v7 implicit-axis decoys: each candidate is plausible but mis-typed. CRITICAL: reports use
+        # NON-CANONICAL context labels (op_point / mode), NOT scenario/corner -- axis membership must be
+        # INFERRED. NO axis_schema.json is shipped. report bodies are stand-ins (bake_golden overwrites the
+        # right-netlist report_A with the real netlist_v2 body if a full task is later baked).
+        _rpt_body = (P13_SRC / "files/timing_report.rpt").read_text()
+        # glossary.md: INCOMPLETE examples only (NOT a complete vocabulary / value-to-axis table)
+        _write(files / "glossary.md",
+               "# acc_stage handoff glossary (examples only -- NOT a complete schema)\n\n"
+               "This glossary gives EXAMPLES of the terminology used in the reports. It is deliberately "
+               "INCOMPLETE: it does not list every valid value, and it does not give a value-to-axis table.\n\n"
+               "- **op_point**: an operating-point field. The design's operating points are named in the "
+               "spec; a report's `op_point=` value is one of them.\n"
+               "- **mode**: a signoff-mode field.\n"
+               "- **PVT descriptor**: a string of the form `<process>_<voltage>_<temperature>`, e.g. "
+               "`slow_1.0V_125C`. A PVT descriptor CHARACTERIZES an (operating point, signoff mode) pair but "
+               "is NEVER a valid op_point or mode value itself.\n"
+               "- The consumed clock is the one that yields full intended-clock path coverage on the design.\n"
+               "- op_point and mode are DISJOINT typed axes: a value valid on one is invalid on the other.\n")
+        # report_A: right netlist/clock, op_point/mode SWAPPED (a corner value in op_point, a scenario value
+        # in mode) -> violates the typed binding. Matches the mutant (scenario=func corner=typ). PrimeTime
+        # signs off green here; typed binding rejects it.
+        _write(files / "report_A_context_swap.rpt",
+               "# report_A_context_swap.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_main  op_point=%s  mode=%s\n"
+               "# Right design (netlist_v2) + clock (clk_main); op_point/mode are SWAPPED vs the authority "
+               "(a corner value is in op_point; a scenario value is in mode). PrimeTime still signs off green "
+               "here -- typed binding, not signoff, is what rejects it.\n"
+               % (AB_STALE_SCENARIO, AB_STALE_CORNER) + _rpt_body)
+        # report_B: correct op_point/mode, STALE netlist (netlist_v1)
+        _write(files / "report_B_context_stale.rpt",
+               "# report_B_context_stale.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE).\n"
+               "# consumed_netlist=netlist_v1.v  clock=clk_main  op_point=%s  mode=%s\n"
+               "# Right op_point/mode; STALE netlist (netlist_v1) outside the manifest family.\n"
+               % (SC_AUTH_SCENARIO, SC_AUTH_CORNER) + _rpt_body)
+        # report_C: op_point correct, mode = a PVT label (looks plausible, semantically wrong)
+        _write(files / "report_C_context_pvt.rpt",
+               "# report_C_context_pvt.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_main  op_point=%s  mode=%s\n"
+               "# Right design + clock + op_point; mode is a PVT DESCRIPTOR, not a signoff-mode value.\n"
+               % (SC_AUTH_SCENARIO, "slow_1.0V_125C") + _rpt_body)
+        # evidence_D: syntactically valid digest/upstream chain, but op_point/mode swapped inside
+        _dmani = dict(stale_mani)
+        _dmani["stage"] = "stage1"
+        _dmani["selected_netlist"] = "netlist_v2.v"
+        _dmani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        _dmani["op_point"] = AB_STALE_SCENARIO    # swapped: corner value in op_point field
+        _dmani["mode"] = AB_STALE_CORNER          # swapped: scenario value in mode field
+        _dmani.pop("scenario", None); _dmani.pop("corner", None)
+        _dmani["_comment"] = ("evidence_D_context_mismatch.json -- shipped evidence candidate (PAIRWISE "
+                              "PLAUSIBLE / MIS-TYPED). Fresh-looking digest / upstream chain, but the "
+                              "op_point/mode fields are swapped inside. Syntactically valid; fails typed "
+                              "binding.")
+        _write(files / "evidence_D_context_mismatch.json", json.dumps(_dmani, indent=2, sort_keys=True) + "\n")
+        # public_check_summary.json: VERDICT-FIRST pairwise typed/provenance inconsistencies + the
+        # tool-derived coverage fact (so the clock is inferable without running PT). Never the answer/schema.
+        _write(files / "public_check_summary.json", json.dumps({
+            "_comment": "Public pairwise consistency summary. Reports SYMPTOMS only; never the recovery "
+                        "target, the typed-axis membership, or the verdict.",
+            "intended_clock_coverage": {"clk_main": 1, "clk_old": 0, "clk": 0},
+            "pairwise_conflicts": [
+                "report_A_context_swap.rpt op_point/mode disagree with report_B_context_stale.rpt",
+                "report_C_context_pvt.rpt mode value looks like a PVT descriptor, not a signoff-mode value",
+                "flow_config.json scenario/corner disagree with report_B_context_stale.rpt op_point/mode",
+                "evidence_D_context_mismatch.json op_point/mode disagree internally",
+            ],
+            "note": "These are symptom-level pairwise conflicts; the globally-consistent typed assignment "
+                    "is NOT stated here.",
+        }, indent=2) + "\n")
+        _write(files / "prev_signoff.log",
+               "# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n"
+               "# Recent and plausible, but NOT the authority. Reinforces one pairwise-plausible decoy; it\n"
+               "# must NOT be used to justify any mis-typed package.\n"
+               "consumed_netlist=netlist_v2.v\nclock=clk_main\nop_point=%s\nmode=%s\n"
+               "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique typed "
+               "assignment (inferred from the evidence intersection)\n" % (AB_STALE_SCENARIO, AB_STALE_CORNER))
+
     if evidence_steps == 2:
         _write(files / "gen_evidence_stage2.py", _GEN_STAGE2)
         _write(hidden / "gen_evidence_stage2_trusted.py", _GEN_STAGE2)
@@ -2794,14 +3210,14 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(files / "run_public.sh", _run_public_sh(), executable=True)
 
     # authority + docs
-    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab) else SCENARIO
-    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab) else CORNER
+    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else SCENARIO
+    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else CORNER
     _write(files / "handoff_manifest.json",
-           _handoff_manifest(expected_sha, _auth_scn, _auth_cor, cg=_is_cg, ab=_is_ab))
+           _handoff_manifest(expected_sha, _auth_scn, _auth_cor, cg=_is_cg, ab=_is_ab, imp=_is_imp))
     _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc,
-                                       cg_hazard=_is_cg, ab_hazard=_is_ab))
+                                       cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp))
     _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc,
-                                          cg_hazard=_is_cg, ab_hazard=_is_ab))
+                                          cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp))
 
     # hidden oracle
     _write(hidden / "grade_workflow.py", _GRADE_WORKFLOW)
@@ -2811,7 +3227,7 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(hidden / "regen_reference.sh", _regen_reference_sh(evidence_steps), executable=True)
 
     # GOLDEN inputs into solution/ (evidence baked later by bake_golden)
-    if _is_sc or _is_mc or _is_cg or _is_ab:
+    if _is_sc or _is_mc or _is_cg or _is_ab or _is_imp:
         _write(sol / "flow_config.json",
                _flow_config("netlist_v2.v",
                             ("Restored to the global authority: netlist_v2 + clk_main + %s/%s."
@@ -2873,9 +3289,12 @@ def bake_golden(task_dir: Path, pt_cmd: str, evidence_steps: int) -> None:
         _stale_co = _truth.get("stale_corner", "typ")
         _is_cg = _truth.get("constraint_graph") is not None
         _is_ab = _truth.get("hazard_type") == "axis_binding_value_invention"
-        # v4 decoy filename is report_A_typ_test.rpt; v5 constraint-graph is report_A_scenario_corner.rpt;
-        # v6 axis-binding is report_A_value_swap.rpt (right netlist/clock body, swapped scenario/corner).
-        if _is_ab:
+        _is_imp = _truth.get("hazard_type") == "implicit_axis_binding"
+        # v4 report_A_typ_test.rpt; v5 report_A_scenario_corner.rpt; v6 report_A_value_swap.rpt;
+        # v7 implicit report_A_context_swap.rpt (right netlist/clock body, swapped op_point/mode labels).
+        if _is_imp:
+            _ra = "report_A_context_swap.rpt"
+        elif _is_ab:
             _ra = "report_A_value_swap.rpt"
         elif _is_cg:
             _ra = "report_A_scenario_corner.rpt"
@@ -2909,7 +3328,8 @@ if __name__ == "__main__":
                     choices=[None, "cross_source_conflict", "scenario_corner_cross_source_conflict",
                              "multi_conflict_partially_truthful_decoy",
                              "constraint_graph_multi_source_recovery",
-                             "axis_binding_value_invention"])
+                             "axis_binding_value_invention",
+                             "implicit_axis_binding"])
     ap.add_argument("--hint-level", type=int, default=1)
     ap.add_argument("--bake", action="store_true", help="also run the chain to bake golden evidence")
     ap.add_argument("--pt-cmd", default=os.environ.get("EDA_PT_CMD", "pt_shell"))

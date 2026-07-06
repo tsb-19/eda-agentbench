@@ -1123,7 +1123,7 @@ def test_0005_grader_byte_identical_across_all_tasks():
     h = {}
     for tid in ("workflow_handoff_0001", "workflow_handoff_0002", "workflow_handoff_0003",
                 "workflow_handoff_0004", "workflow_handoff_0005", "workflow_handoff_0006",
-                "workflow_handoff_0007"):
+                "workflow_handoff_0007", "workflow_handoff_0008"):
         h[tid] = hashlib.sha256((TASKS_DIR / tid / "hidden" / "grade_workflow.py").read_bytes()).hexdigest()
     assert len(set(h.values())) == 1, h
 
@@ -1621,3 +1621,137 @@ def test_0007_no_hidden_leak():
 def test_0007_public_verdict_first():
     rp = (T7 / "files" / "run_public.sh").read_text()
     assert "handoff_truth.json" not in rp and "grade_workflow.py" not in rp
+
+
+# ===========================================================================
+# p14 v7 -- workflow_handoff_0008 (implicit typed-axis binding) -- PHASE-4Q GATE
+# Goal: prove inferable (domain-aware solver recovers the tuple from visible
+# only) + not leaked (no single visible file gives the tuple/membership table) +
+# unambiguous (hidden enumeration exactly one).
+# ===========================================================================
+T8 = TASKS_DIR / "workflow_handoff_0008"
+
+
+def test_0008_exists_and_schema_valid():
+    assert T8.is_dir()
+    m = _meta(T8)
+    validate_metadata(m)
+    assert m["track"] == "p14_workflow_handoff"
+    assert m["generator"]["params"]["hazard_type"] == "implicit_axis_binding"
+    assert abs(sum(m["scoring"]["weights"].values()) - 1.0) < 1e-9
+    structural_validate(T8)
+
+
+def test_0008_no_axis_schema_shipped():
+    """THE 0007 collapse mode must NOT recur: no axis_schema.json is visible."""
+    files = {p.name for p in (T8 / "files").iterdir()}
+    assert "axis_schema.json" not in files, "0008 must NOT publish axis_schema.json (would saturate like 0007)"
+    m = _meta(T8)
+    assert "axis_schema.json" not in m["files"]["visible"]
+    # the implicit-context decoys + glossary + public summary ARE visible
+    for f in ("report_A_context_swap.rpt", "report_B_context_stale.rpt",
+              "report_C_context_pvt.rpt", "evidence_D_context_mismatch.json",
+              "public_check_summary.json", "glossary.md"):
+        assert f in m["files"]["visible"], f
+        assert f in m["files"]["forbidden"], f
+
+
+def test_0008_glossary_is_not_a_complete_schema():
+    """glossary.md + spec.md + public_check_summary may give EXAMPLES / partial terminology, but must NOT
+    form a complete value-to-axis membership table that resolves the binding by lookup."""
+    corpus = (T8 / "files" / "glossary.md").read_text() + "\n" + (T8 / "files" / "spec.md").read_text()
+    # no explicit axis vocabulary lists
+    assert "scenario_axis" not in corpus and "corner_axis" not in corpus
+    # no complete enumeration of the scenario or corner values as a typed set
+    for needle in ('"slow", "typ", "fast"', '"func", "test", "lowpower"',
+                   "slow, typ, fast", "func, test, lowpower"):
+        assert needle not in corpus, f"glossary/spec leaks vocabulary: {needle}"
+
+
+def test_0008_uniqueness_exactly_one_typed_assignment():
+    truth = json.loads((T8 / "hidden" / "handoff_truth.json").read_text())
+    u = truth["axis_schema"]["uniqueness"]
+    assert u["exactly_one"] is True and u["satisfying_count"] == 1
+    assert u["satisfying_assignments"][0] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                              "scenario": "slow", "corner": "func"}
+    from generators.p14_workflow_handoff_gen import enumerate_constraint_graph
+    fresh = enumerate_constraint_graph(truth["axis_schema"])
+    assert fresh["exactly_one"] and fresh["satisfying_count"] == 1
+
+
+def test_0008_typed_binding_failures_machine_provable():
+    """swapped-axis / PVT-substitution / wrong-clock assignments all violate >=1 typed constraint."""
+    truth = json.loads((T8 / "hidden" / "handoff_truth.json").read_text())
+    ax = truth["axis_schema"]
+
+    def satisfies(assign):
+        for c in ax["constraints"]:
+            if tuple(assign[o] for o in c["over"]) not in {tuple(x) for x in c["allowed"]}:
+                return False
+        return True
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "func", "corner": "typ"})
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow",
+                          "corner": "slow_1.0V_125C"})
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk", "scenario": "slow", "corner": "func"})
+    assert satisfies({"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"})
+
+
+def test_0008_domain_solver_recovers_tuple_visible_only():
+    """THE human-inferrability gate: a domain-aware scripted solver recovers the unique typed assignment
+    using ONLY the visible artifacts (never hidden truth)."""
+    import sys
+    sys.path.insert(0, str(REPO / "scripts"))
+    from implicit_axis_solver import solve
+    # sanity: the solver must not read hidden truth -- it only takes the files/ dir
+    res = solve(T8 / "files")
+    assert res == {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"}, res
+
+
+def test_0008_no_visible_file_states_full_tuple():
+    """NO single visible file reveals the canonical tuple (netlist_v2 + clk_main + slow + func) as a
+    contiguous/canonical answer. The tuple is split across artifacts + requires inference."""
+    import re as _re
+    # canonical contiguous answer strings must be absent from every visible file
+    contiguous = [r"netlist_v2\.v.{0,40}clk_main.{0,40}\bslow\b.{0,40}\bfunc\b",
+                  r"\bslow\b.{0,20}\bfunc\b.{0,20}clk_main", r"scenario.*slow.*corner.*func.*clk_main"]
+    for rel in ("spec.md", "handoff_manifest.json", "glossary.md", "public_check_summary.json",
+                "flow_config.json", "prompt.md"):
+        f = T8 / rel
+        if not f.exists():
+            f = T8.parent / rel if rel == "prompt.md" else T8 / "files" / rel
+        txt = f.read_text()
+        for pat in contiguous:
+            assert not _re.search(pat, txt, _re.DOTALL), f"{rel} leaks the full tuple: {pat}"
+    # the shipped flow_config is the MUTANT (wrong), not the golden tuple
+    fc = json.loads((T8 / "files" / "flow_config.json").read_text())
+    assert (fc["netlist"], fc["scenario"], fc["corner"]) != ("netlist_v2.v", "slow", "func"), "flow_config ships the GOLDEN tuple (mutant must be wrong)"
+
+
+def test_0008_mutant_is_value_swap():
+    fc = json.loads((T8 / "files" / "flow_config.json").read_text())
+    # mutant: stale netlist + a corner value in the scenario slot + a scenario value in the corner slot
+    assert fc["netlist"] == "netlist_v1.v"
+    assert fc["scenario"] == "func" and fc["corner"] == "typ"
+
+
+def test_0008_deterministic_generation(tmp_path):
+    a = tmp_path / "a"; b = tmp_path / "b"
+    try:
+        build_task_skeleton(a, "workflow_handoff_0008", 0, 2, "implicit_axis_binding")
+        build_task_skeleton(b, "workflow_handoff_0008", 0, 2, "implicit_axis_binding")
+        fa = [p.relative_to(a / "workflow_handoff_0008") for p in (a / "workflow_handoff_0008").rglob("*") if p.is_file()]
+        fb = [p.relative_to(b / "workflow_handoff_0008") for p in (b / "workflow_handoff_0008").rglob("*") if p.is_file()]
+        assert {str(p) for p in fa} == {str(p) for p in fb}
+        for rel in fa:
+            assert (a / "workflow_handoff_0008" / rel).read_bytes() == (b / "workflow_handoff_0008" / rel).read_bytes(), rel
+    finally:
+        shutil.rmtree(a, ignore_errors=True); shutil.rmtree(b, ignore_errors=True)
+
+
+def test_0008_no_hidden_leak_and_coverage_fact_present():
+    files = {p.name for p in (T8 / "files").iterdir()}
+    assert "handoff_truth.json" not in files and "grade_workflow.py" not in files
+    # the coverage fact (clock inferability without PT) is surfaced in the public pairwise summary
+    pcs = json.loads((T8 / "files" / "public_check_summary.json").read_text())
+    assert pcs.get("intended_clock_coverage", {}).get("clk_main", 0) > 0
+    assert pcs.get("intended_clock_coverage", {}).get("clk_old", 0) == 0

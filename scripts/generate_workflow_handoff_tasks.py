@@ -30,6 +30,7 @@ TASKS = [
     ("workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy"),  # p14 v4 hazard preset
     ("workflow_handoff_0006", 0, 2, "constraint_graph_multi_source_recovery"),  # p14 v5 hazard preset
     ("workflow_handoff_0007", 0, 2, "axis_binding_value_invention"),  # p14 v6 hazard preset
+    ("workflow_handoff_0008", 0, 2, "implicit_axis_binding"),  # p14 v7 hazard preset
 ]
 
 
