@@ -1755,3 +1755,104 @@ def test_0008_no_hidden_leak_and_coverage_fact_present():
     pcs = json.loads((T8 / "files" / "public_check_summary.json").read_text())
     assert pcs.get("intended_clock_coverage", {}).get("clk_main", 0) > 0
     assert pcs.get("intended_clock_coverage", {}).get("clk_old", 0) == 0
+
+
+# --- Phase-4R: full build + acceptance matrix (golden baked on real PT) ---
+def _grade_run_imp(setup) -> str:
+    """Run grade_workflow.py for the 0008 implicit-axis task (canonical flow_config scenario/corner)."""
+    d = Path(tempfile.mkdtemp(prefix="p14imp_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(T8 / "files" / f, d / f)
+        shutil.copy2(T8 / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(T8 / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+def test_0008_golden_baked_solution_evidence():
+    """Phase-4R bake: real-PT golden evidence is present in solution/ with signoff OK + fresh chain."""
+    sol = T8 / "solution"
+    assert (sol / "timing_report.rpt").is_file() and (sol / "evidence_manifest.json").is_file()
+    assert (sol / "stage2_summary.json").is_file() and (sol / "flow_config.json").is_file()
+    m = json.loads((sol / "evidence_manifest.json").read_text())
+    assert m.get("signoff") == "OK"
+    assert m.get("scenario") == "slow" and m.get("corner") == "func"   # the golden typed assignment
+    s2 = json.loads((sol / "stage2_summary.json").read_text())
+    assert s2.get("upstream_evidence_digest") == m.get("report_digest")   # fresh ordered chain
+    # report_A_context_swap baked with a real netlist_v2 body
+    assert (T8 / "files" / "report_A_context_swap.rpt").stat().st_size > 500
+
+
+def test_0008_grader_full_recovery_emits_markers():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" in out
+    assert "AXIS_SCHEMA_OK" in out and "TYPED_BINDING_OK" in out and "PVT_LABEL_OK" in out
+    assert "GLOBAL_CONSTRAINT_OK" in out and "UNIQUE_ASSIGNMENT_OK" in out
+    assert "HAZARD_RECOVERY_OK" in out
+    assert "MISTYPED_BINDING_REJECTED" not in out
+
+
+def test_0008_grader_signoff_green_value_swap_fails():
+    """signoff-green-but-mis-typed (value-swap scenario=func/corner=typ) -> below pass."""
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "func", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "func", "typ", "clk_main")   # signoff OK in the manifest
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "func", "typ", "clk_main")
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out and "TYPED_BINDING_OK" not in out
+    assert "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0008_grader_pvt_corner_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out and "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0008_grader_wrong_clock_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk")
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out and "MISTYPED_BINDING_REJECTED" in out
+
+
+def test_0008_grader_final_state_only_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+def test_0008_grader_stage2_typed_wrong_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, "deadbeefdeadbeef", "netlist_v2.v", "slow", "func", "clk_main")  # stale upstream
+    out = _grade_run_imp(setup)
+    assert "STAGE_CHAIN_OK" not in out and "EVIDENCE_OK" not in out
+
+
+def test_0008_grader_hand_edited_evidence_fails():
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["report_digest"] = "f" * 64
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out
