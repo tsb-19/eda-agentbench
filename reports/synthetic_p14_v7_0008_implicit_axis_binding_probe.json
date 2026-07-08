@@ -1,0 +1,120 @@
+{
+  "report": "synthetic_p14_v7_0008_implicit_axis_binding_probe",
+  "date": "2026-07-08",
+  "status": "COMPLETE (k=3, all 6 valid) -- not committed (awaiting review)",
+  "purpose": "Preserved capability probe on workflow_handoff_0008 (implicit_axis_binding): does hiding axis_schema.json (while keeping the typed-binding oracle) restore the axis-binding difficulty that workflow_handoff_0007 lost by publishing the schema?",
+  "head": "565f9c23658467e3ad165c95883f371491dd1c13",
+  "config": {
+    "task": "workflow_handoff_0008 (implicit_axis_binding)",
+    "models": ["Qwen3.7-Max", "DeepSeek-V4-Pro"],
+    "k": 3, "episodes": 6,
+    "timeout_sec_per_episode": 1800, "max_tool_calls": 60, "temperature": 0.7,
+    "elicit_confidence": true, "concurrency": 1,
+    "preservation_flag": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "cost_cap_cny": 60
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "typed_uniqueness": {"candidate_typed_assignments": 294, "satisfying": 1, "exactly_one": true, "matches_expected": true},
+  "cost": {
+    "per_episode_cny": {"t1_Qwen": 11.53, "t1_DeepSeek": 8.07, "t2_Qwen": 5.88, "t2_DeepSeek": 11.45, "t3_Qwen": 7.50, "t3_DeepSeek": 10.30},
+    "per_trial_cny": {"trial1": 19.60, "trial2": 17.33, "trial3": 17.81},
+    "total_cny": 54.73, "cap_cny": 60, "under_cap": true
+  },
+  "headline": "0008 DID NOT RESTORE AXIS-BINDING DIFFICULTY. Both models inferred the implicit typed assignment correctly in ALL 6 episodes (6/6 byte-confirmed netlist_v2/clk_main/slow/func); 0 axis-binding / wrong-assignment failures. Qwen 3/3 pass; DeepSeek 2/3 pass. The single DeepSeek non-pass (trial2, score 0.20) is a PROTOCOL/CHAIN failure -- stale input_hashes/run_nonce because DeepSeek edited flow_config.json AFTER generating evidence without re-running the generators -- NOT an axis-binding error (the submitted assignment was correct and ALL typed-binding echecks passed). Hiding axis_schema.json did NOT make the typed-axis inference harder for the frontier; the residual DeepSeek signal is reliability/protocol, consistent with the broader reliability-calibration thesis, not a restored capability-difficulty signal.",
+  "valid_trial_count": {"Qwen3.7-Max": 3, "DeepSeek-V4-Pro": 3, "total": 6},
+  "capability_metrics": {
+    "Qwen3.7-Max": {"pass_at_1": 1.0, "pass_at_k": 1.0, "pass_caret_k": 1.0, "valid_trials": 3, "capability_pass_trials": 3, "wrong_assignment_failures": 0, "correct_assignment_trials": 3, "overconfident_wrong": 0},
+    "DeepSeek-V4-Pro": {"pass_at_1": 0.67, "pass_at_k": 1.0, "pass_caret_k": 0.67, "valid_trials": 3, "capability_pass_trials": 2, "wrong_assignment_failures": 0, "correct_assignment_trials": 3, "overconfident_wrong": 1, "note": "the 1 non-pass is a protocol/chain failure (stale input_hashes), NOT an axis-binding error; the submitted assignment was correct."}
+  },
+  "axis_binding_inference": {
+    "both_models_inferred_correct_typed_assignment": true,
+    "correct_assignment_count": "6/6 (Qwen 3/3, DeepSeek 3/3)",
+    "axis_binding_wrong_assignment_failures": 0,
+    "interpretation": "the implicit typed-axis membership is INFERABLE by both frontier models even without a published axis_schema.json. Hiding the schema did not restore the axis-binding difficulty that produced DeepSeek's 0006 failures."
+  },
+  "outcome_counts": {
+    "solved": 5, "non_solved": 1, "timeout": 0, "budget_exhausted_protocol": 2,
+    "confident_wrong": 1, "abstain_or_protocol_incomplete": 0, "clean_finish_with_confidence": 4,
+    "note": "budget_exhausted (t1 Qwen, t3 DeepSeek) both scored 1.0. The 1 non-pass (t2 DeepSeek) FINISHed with high confidence (protocol_status=ok) but scored 0.20 on a broken evidence chain."
+  },
+  "overconfident_wrong_count": 1,
+  "protocol_clean_rate": "4/6 FINISH (t1 DeepSeek, t2 Qwen, t2 DeepSeek, t3 Qwen). 2/6 budget_exhausted (t1 Qwen, t3 DeepSeek -- both scored 1.0). NOTE: t2 DeepSeek FINISHed cleanly by protocol but scored 0.20 (chain failure), so protocol_clean != capability_pass here.",
+  "per_trial": [
+    {"trial": 1, "model": "Qwen3.7-Max",     "score": 1.0, "passed": true,  "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT)", "protocol": "budget_exhausted", "confidence": "",      "tool_calls": 60, "wall_sec": 1087, "cost_cny": 11.53, "preserved": true},
+    {"trial": 1, "model": "DeepSeek-V4-Pro", "score": 1.0, "passed": true,  "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT)", "protocol": "ok", "confidence": "high", "tool_calls": 36, "wall_sec": 1122, "cost_cny": 8.07,  "preserved": true},
+    {"trial": 2, "model": "Qwen3.7-Max",     "score": 1.0, "passed": true,  "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT)", "protocol": "ok", "confidence": "high", "tool_calls": 38, "wall_sec": 904,  "cost_cny": 5.88,  "preserved": true},
+    {"trial": 2, "model": "DeepSeek-V4-Pro", "score": 0.2, "passed": false, "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT assignment; CHAIN failure)", "protocol": "ok", "confidence": "high", "tool_calls": 51, "wall_sec": 1562, "cost_cny": 11.45, "preserved": true, "failure_class": "stale input_hashes/run_nonce (post-evidence-generation flow_config edit)"},
+    {"trial": 3, "model": "Qwen3.7-Max",     "score": 1.0, "passed": true,  "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT)", "protocol": "ok", "confidence": "high", "tool_calls": 38, "wall_sec": 1147, "cost_cny": 7.50,  "preserved": true},
+    {"trial": 3, "model": "DeepSeek-V4-Pro", "score": 1.0, "passed": true,  "submitted": "netlist_v2.v/slow/func/clk_main (CORRECT)", "protocol": "budget_exhausted", "confidence": "",      "tool_calls": 58, "wall_sec": 1113, "cost_cny": 10.30, "preserved": true}
+  ],
+  "preservation_status": {
+    "note": "Preservation writes to the runner's temp runs_root (/tmp/agentic_eval_*); artifacts were collected post-trial into runs/.../trialN/preserved_capture/<model>/. runs/ is gitignored.",
+    "all_6_episodes": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "component_scores_present": true, "affirmative_grader_markers_present": true, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "security_scan": "No forbidden filename and no handoff_truth.json/grade_workflow.py/axis_schema.json/netlist_*/tiny.*/.env/API_KEY/BASE_URL in any of the 6 preserved trees."
+  },
+  "byte_confirmed_failure_classification": {
+    "trial2_DeepSeek": {
+      "score": 0.2, "class": "PROTOCOL/CHAIN FAILURE (NOT axis-binding)",
+      "submitted_flow_config": {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"},
+      "expected": {"netlist": "netlist_v2.v", "clock": "clk_main", "scenario": "slow", "corner": "func"},
+      "assignment_correct": true,
+      "failure_mode": "stale input_hashes / run_nonce. EVIDENCE_DETAIL (re-run on the preserved submission): input_hashes_match_ref=WRONG, run_nonce_matches_ref=WRONG (stage1 + stage2). EVERY OTHER echeck passed, including all typed-binding echecks (typed_scenario_in_scenario_axis=ok, typed_corner_in_corner_axis=ok, typed_clock_identity_in_clock_axis=ok) and the authority/provenance/signoff echecks. DeepSeek edited flow_config.json (its _comment differs from the golden) AFTER generating the evidence, so the manifest's input_hashes/run_nonce no longer match the final submitted file. The evidence itself is a genuine fresh PT regeneration (report body digest 389cdd5f065c == golden), NOT hand-edited.",
+      "NOT_axis_binding": "Did NOT value-swap, PVT-substitute, wrong-clock, or mis-bind. The submitted assignment was the correct unique typed assignment. PT signoff was green (signoff=1.0); the rejection was the input-hash binding, not the typed-binding oracle.",
+      "is_overconfident_wrong": true,
+      "confidence": "high",
+      "classification": "broken typed evidence chain (stale input_hashes from a post-generation edit) -- a reliability/protocol failure, not a capability (axis-binding) failure"
+    },
+    "other_episodes": "5/6 solved with the correct [netlist_v2, clk_main, slow, func] assignment (Qwen 3/3; DeepSeek 2/3). No value-swap, PVT-substitution, wrong-clock, typed-field-mismatch, decoy-following, broken-chain, final-state-only, stage-only, hand-edited, forbidden-edit, timeout, or infra failure occurred in any of the 5 passes."
+  },
+  "inferred_unique_typed_assignment": "6/6 episodes submitted the correct [netlist_v2, clk_main, slow, func]. Both models 3/3. The implicit typed-axis membership was inferred correctly in every episode.",
+  "typed_constraints_satisfied": "6/6 submitted assignments satisfy all typed-binding constraints (the 1 non-pass failed on input_hashes/run_nonce, NOT on any typed-binding echeck).",
+  "comparison_to_0006_0007": {
+    "0006_constraint_graph_implicit_tuple": {"Qwen": "8/8 (k=3+k=5)", "DeepSeek": "6/8 with 2 byte-confirmed AXIS-BINDING failures (value-swap; PVT-invention+wrong-clock)", "result": "POSITIVE FRONTIER SPLIT"},
+    "0007_published_axis_schema": {"Qwen": "3/3", "DeepSeek": "3/3, 0 axis-binding failures", "result": "SATURATED -- publishing axis_schema.json converted binding into vocabulary lookup"},
+    "0008_implicit_axis_schema_hidden": {"Qwen": "3/3", "DeepSeek": "2/3 (1 PROTOCOL/chain failure, NOT axis-binding); 3/3 correct assignment", "result": "NOT a restored axis-binding difficulty signal. The implicit typed-axis inference is solvable by both frontier models; hiding the schema did not bring back the DeepSeek axis-binding failures seen on 0006."},
+    "verdict": "0008 is NOT stronger than 0007 on axis-binding capability. On capability (axis-binding inference) both 0007 and 0008 saturate (DeepSeek 3/3 correct assignment). 0008's 1 DeepSeek non-pass is a reliability/protocol failure, not a capability failure."
+  },
+  "final_interpretation": {
+    "verdict": "CAPABILITY SATURATED on the axis-binding inference; residual DeepSeek signal is RELIABILITY/PROTOCOL (not restored axis-binding difficulty)",
+    "rationale": "Per the interpretation rules: DeepSeek's single failure was NOT a value-swap, PVT-substitution, wrong-clock, value-invention, or wrong-assignment -- it was a stale-input-hash chain failure with a CORRECT assignment. So this is NOT a restored-axis-binding-difficulty signal. Both models inferred the implicit typed assignment in 6/6 episodes; the typed-binding oracle never rejected a package on binding grounds (only on the input-hash chain). Hiding axis_schema.json did not restore the difficulty that produced DeepSeek's 0006 failures.",
+    "why_0008_did_not_restore_difficulty": "Two plausible reasons, not distinguishable at k=3: (a) 0008's reports use op_point/mode labels + PVT notation + a coverage fact + a partial glossary, which together give DeepSeek enough structure to bind correctly even without a published schema; (b) small-sample variance -- DeepSeek's 0006 axis-binding rate was ~25%, and 0 axis-binding failures in 3 trials (P(0/3|25%) ~= 0.42) is statistically consistent with a residual rate this sample did not surface.",
+    "secondary_signal": "DeepSeek trial2 is a genuine reliability/protocol failure: it FINISHed with HIGH confidence on a package whose evidence chain was broken (stale input_hashes from a post-generation flow_config edit). This is the same 'capable but unreliable / overconfident' pattern from the reliability-calibration thesis (DeepSeek trust 0.88 best but still slips), NOT an axis-binding capability gap. Qwen showed no capability or reliability failures (3/3, 0 overconfident_wrong).",
+    "not_infra": true,
+    "oracle_failure": false,
+    "no_local_decoy_shortcut_passed": true,
+    "no_signoff_green_mis_typed_shortcut_passed": "N/A -- the 1 signoff-green non-pass was correctly REJECTED (score 0.20) by the input-hash chain check; the oracle behaved correctly.",
+    "classification": "not saturated-clean (DeepSeek 2/3 pass), but the non-capability failure means 0008 is NOT a restored-difficulty signal. Best framed as: capability (axis-binding inference) saturated; DeepSeek shows a residual reliability/protocol slip."
+  },
+  "caveats": [
+    "k=3 (6 episodes) is a small sample. 0 axis-binding failures is consistent with a residual DeepSeek axis-binding rate (~25% on 0006; P(0/3|25%) ~= 0.42). A larger k would sharpen whether 0008 truly saturates axis-binding or merely did not surface a residual rate.",
+    "The 1 DeepSeek failure (trial2) is byte-confirmed as a protocol/chain failure (stale input_hashes), NOT an axis-binding error. This is an honest negative result for the '0008 restores axis-binding difficulty' hypothesis.",
+    "Only one 0008 instance exists; the result is task/family-specific, not a universal model ranking. DeepSeek outperforms Qwen on other tracks in this benchmark's history.",
+    "PT runs per episode not parsed from the agentlog here (action-trace format); tool_calls (36-60) and wall_sec (904-1562s) are reported instead.",
+    "Preservation wrote to the runner's temp runs_root; artifacts collected post-trial into runs/ (gitignored). /tmp/agentic_eval_* persists outside the repo."
+  ],
+  "next_direction": {
+    "write_synthesis_comparing_0006_0007_0008": "The three form a clean ablation arc (0006 positive split -> 0007 saturated by publishing the schema -> 0008 saturated by hiding it). Write a synthesis; the open question is what specifically about 0006's implicit tuple/report-label interaction produced the split.",
+    "no_more_0008_probes_immediately": "0 axis-binding failures across k=3 establishes the qualitative result (implicit-axis inference is frontier-solvable).",
+    "do_not_claim_0008_as_positive_difficulty": true,
+    "reliability_signal": "DeepSeek trial2 (stale input_hashes, overconfident) is a real reliability/protocol data point feeding the reliability-calibration layer, not a capability result.",
+    "do_not_start_0009_without_review": true
+  },
+  "design_lesson": {
+    "schema_visibility_alone_does_not_explain_0006": "0007 (published schema) saturated; 0008 (hidden schema) ALSO saturated on axis-binding inference (both models 3/3 correct assignment, 0 axis-binding failures); yet 0006 (also an implicit tuple, with report labels) produced DeepSeek's 2 axis-binding failures. So the 0006 difficulty is NOT simply 'schema published vs hidden.'",
+    "likely_root": "0006's difficulty likely depends on the SPECIFIC implicit-tuple / report-label interaction in 0006 (how scenario/corner values were conveyed and cross-checked there), not on schema visibility in general.",
+    "future_designs": "Study the specific 0006 interaction (what exactly made DeepSeek mis-bind there) rather than only toggling schema publication/hiding -- which 0007 and 0008 have now shown is insufficient to reproduce the split."
+  },
+  "process_compliance": {
+    "models_run": ["Qwen3.7-Max", "DeepSeek-V4-Pro"],
+    "no_minimax_kimi_glm": true,
+    "env_symlink_removed_after": true,
+    "secrets_printed": false,
+    "shell_tracing_used": false,
+    "committed": false,
+    "pushed": false,
+    "other_worktrees_touched": false,
+    "code_modified": false,
+    "decisive_validation_pre_model": "0008 unit tests (real grade_workflow.py): golden=1.0, signoff-green-but-mis-typed=0.20<pass, value-swap/PVT/wrong-clock/final-state-only/stage2-typed-wrong/hand-edited all <pass; solver recovers tuple visible-only; 294->1 uniqueness. b04 real-PT (Phase-4R): golden=1.0, signoff-green-but-mis-typed=0.20."
+  }
+}
