@@ -1123,7 +1123,8 @@ def test_0005_grader_byte_identical_across_all_tasks():
     h = {}
     for tid in ("workflow_handoff_0001", "workflow_handoff_0002", "workflow_handoff_0003",
                 "workflow_handoff_0004", "workflow_handoff_0005", "workflow_handoff_0006",
-                "workflow_handoff_0007", "workflow_handoff_0008"):
+                "workflow_handoff_0007", "workflow_handoff_0008",
+                "workflow_handoff_0009", "workflow_handoff_0010"):
         h[tid] = hashlib.sha256((TASKS_DIR / tid / "hidden" / "grade_workflow.py").read_bytes()).hexdigest()
     assert len(set(h.values())) == 1, h
 
@@ -1855,4 +1856,305 @@ def test_0008_grader_hand_edited_evidence_fails():
         sub["report_digest"] = "f" * 64
         (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
     out = _grade_run_imp(setup)
+    assert "EVIDENCE_OK" not in out
+
+
+# =========================================================================== v8: 0009 / 0010
+# semantic-role-binding REPRODUCTION -- the controlled pair. workflow_handoff_0009 (ambiguous) reproduces
+# the 0006 difficulty; workflow_handoff_0010 (clear_control) is the negative control. Both share an
+# IDENTICAL hidden truth + the byte-identical typed-binding grader; they differ ONLY in the visible clarity
+# bundle (report-label semantics + inference anchors). The variant is passed explicitly (the schema requires
+# numeric task_ids), so 0009/0010 encode the pair, not the variant suffix. The grader-logic tests are
+# parametrized over both variants because the grader ignores `variant`.
+T9 = TASKS_DIR / "workflow_handoff_0009"    # variant=ambiguous (overloaded labels, no anchors)
+T10 = TASKS_DIR / "workflow_handoff_0010"   # variant=clear_control (canonical labels + anchors)
+_VARIANTS = [T9, T10]
+
+
+def _grade_run_srb(setup, task: Path) -> str:
+    """Run grade_workflow.py for a 0009 semantic-role-binding task (canonical flow_config scenario/corner)."""
+    d = Path(tempfile.mkdtemp(prefix="p14srb_"))
+    try:
+        for f in ("netlist_v1.v", "netlist_v2.v", "handoff_manifest.json"):
+            shutil.copy2(task / "files" / f, d / f)
+        shutil.copy2(task / "hidden" / "handoff_truth.json", d / "handoff_truth.json")
+        shutil.copy2(task / "hidden" / "grade_workflow.py", d / "grade_workflow.py")
+        (d / "coverage.txt").write_text("intended_clock_present 1\nconstrained_paths 1\n")
+        setup(d)
+        p = subprocess.run(["python3", "grade_workflow.py", "handoff_truth.json"],
+                           cwd=d, capture_output=True, text=True, timeout=60)
+        return p.stdout
+    finally:
+        shutil.rmtree(d, ignore_errors=True)
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009_ambiguous", "0010_clear"])
+def test_0009_exists_and_schema_valid(task):
+    assert task.is_dir()
+    m = _meta(task)
+    validate_metadata(m)
+    assert m["track"] == "p14_workflow_handoff"
+    assert m["generator"]["params"]["hazard_type"] == "semantic_role_binding_reproduction"
+    assert abs(sum(m["scoring"]["weights"].values()) - 1.0) < 1e-9
+    structural_validate(task)
+
+
+@pytest.mark.parametrize("task,variant,mapping", [
+    (T9, "ambiguous", {"op_point": "scenario", "mode": "corner"}),
+    (T10, "clear_control", {"scenario": "scenario", "corner": "corner"})])
+def test_0009_variant_metadata(task, variant, mapping):
+    truth = json.loads((task / "hidden" / "handoff_truth.json").read_text())
+    assert truth["hazard_type"] == "semantic_role_binding_reproduction"
+    assert truth["variant"] == variant
+    assert truth["expected_scenario"] == "slow" and truth["expected_corner"] == "func"
+    assert truth["stale_scenario"] == "func" and truth["stale_corner"] == "typ"   # the value-swap mutant
+    assert truth["global_authority_tuple"] == ["netlist_v2.v", "clk_main", "slow", "func"]
+    assert truth["semantic_role_mapping"] == mapping
+    # the swapped pair func/typ is recorded as embedded inside the genuine-looking report bodies
+    assert truth["decoy_embedded_values"]["report_A_role_swap.rpt"] == {"scenario_slot": "func",
+                                                                        "corner_slot": "typ"}
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_uniqueness_exactly_one_typed_assignment(task):
+    """make-or-break gate #1: exactly one typed assignment satisfies all constraints AND equals expected."""
+    truth = json.loads((task / "hidden" / "handoff_truth.json").read_text())
+    u = truth["axis_schema"]["uniqueness"]
+    assert u["total_assignments"] == 294
+    assert u["exactly_one"] is True and u["unique_matches_expected"] is True and u["satisfying_count"] == 1
+    assert u["satisfying_assignments"][0] == {"netlist": "netlist_v2.v", "clock": "clk_main",
+                                              "scenario": "slow", "corner": "func"}
+    from generators.p14_workflow_handoff_gen import enumerate_constraint_graph
+    fresh = enumerate_constraint_graph(truth["axis_schema"])
+    assert fresh["exactly_one"] and fresh["satisfying_count"] == 1
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_typed_binding_failures_machine_provable(task):
+    """the 0006 failure family is machine-provably rejected: value-swap / PVT-corner / wrong-clock-alias."""
+    truth = json.loads((task / "hidden" / "handoff_truth.json").read_text())
+    ax = truth["axis_schema"]
+
+    def satisfies(assign):
+        for c in ax["constraints"]:
+            if tuple(assign[o] for o in c["over"]) not in {tuple(x) for x in c["allowed"]}:
+                return False
+        return True
+    # Failure A (DeepSeek 0006 k=3): the value-swap scenario=func/corner=typ
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                          "scenario": "func", "corner": "typ"})
+    # Failure B (DeepSeek 0006 k=5): PVT-label-as-corner
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                          "scenario": "slow", "corner": "slow_1.0V_125C"})
+    # wrong clock alias
+    assert not satisfies({"netlist": "netlist_v2.v", "clock": "clk",
+                          "scenario": "slow", "corner": "func"})
+    # the unique typed assignment DOES satisfy
+    assert satisfies({"netlist": "netlist_v2.v", "clock": "clk_main",
+                      "scenario": "slow", "corner": "func"})
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_no_axis_schema_shipped(task):
+    """neither variant publishes axis_schema.json (the typed-binding oracle stays hidden)."""
+    m = _meta(task)
+    assert "axis_schema.json" not in m["files"]["visible"]
+    assert not (task / "files" / "axis_schema.json").exists()
+
+
+def test_0009_ambiguous_labels_and_no_anchors():
+    """0009: reports use OVERLOADED op_point/mode labels; NO glossary/summary anchors shipped."""
+    m = _meta(T9)
+    for f in ("report_A_role_swap.rpt", "report_B_role_stale.rpt", "report_C_role_pvt.rpt",
+              "evidence_D_role_mismatch.json", "prev_signoff.log"):
+        assert f in m["files"]["visible"] and f in m["files"]["forbidden"], f
+    # the ambiguous variant ships NO glossary / NO public_check_summary
+    assert "glossary.md" not in m["files"]["visible"]
+    assert "public_check_summary.json" not in m["files"]["visible"]
+    assert not (T9 / "files" / "glossary.md").exists()
+    assert not (T9 / "files" / "public_check_summary.json").exists()
+    # reports use the overloaded op_point/mode labels (the role must be INFERRED)
+    a = (T9 / "files" / "report_A_role_swap.rpt").read_text()
+    assert "op_point=func" in a and "mode=typ" in a   # the swapped values under overloaded labels
+    b = (T9 / "files" / "report_B_role_stale.rpt").read_text()
+    assert "op_point=slow" in b and "mode=func" in b  # correct role fields (on a stale netlist)
+
+
+def test_0010_clear_labels_and_anchors():
+    """0010: reports use CANONICAL scenario/corner labels; glossary + public_check_summary ARE shipped."""
+    m = _meta(T10)
+    for f in ("glossary.md", "public_check_summary.json"):
+        assert f in m["files"]["visible"] and f in m["files"]["forbidden"], f
+    a = (T10 / "files" / "report_A_role_swap.rpt").read_text()
+    assert "scenario=func" in a and "corner=typ" in a   # canonical labels, the swap is visible
+    b = (T10 / "files" / "report_B_role_stale.rpt").read_text()
+    assert "scenario=slow" in b and "corner=func" in b
+    # the public summary hands over the coverage fact (the inference anchor 0009 lacks)
+    s = json.loads((T10 / "files" / "public_check_summary.json").read_text())
+    assert s["intended_clock_coverage"] == {"clk_main": 1, "clk_old": 0, "clk": 0}
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_decoy_swap_embedded_in_report_bodies(task):
+    """the 0006 body-embedding mechanism: the swapped pair func/typ appears inside genuine-looking reports."""
+    blob = (task / "files" / "report_A_role_swap.rpt").read_text()
+    assert "func" in blob and "typ" in blob   # the swapped values embedded in report_A's header/body
+    # report_A carries the real timing body (a genuine-looking PT report) -- bake_golden refreshes it
+    assert "REPORT_TIMING" in blob or (task / "files" / "report_A_role_swap.rpt").stat().st_size > 200
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_mutant_is_value_swap(task):
+    fc = json.loads((task / "files" / "flow_config.json").read_text())
+    assert fc["scenario"] == "func" and fc["corner"] == "typ"   # the value-swap (both mis-slotted)
+    assert fc["netlist"] == "netlist_v1.v"                       # stale netlist too
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_no_visible_file_states_full_tuple(task):
+    """NO single visible file states the answer as a contiguous 4-tuple assignment."""
+    man = json.loads((task / "files" / "handoff_manifest.json").read_text())
+    for k in ("scenario", "corner", "clock"):
+        assert k not in man, f"manifest must not state concrete {k} (partial authority)"
+    contiguous = [r"netlist_v2\.v\b.{0,40}\bclk_main\b.{0,40}\bslow\b.{0,40}\bfunc\b"]
+    for rel in ("spec.md", "handoff_manifest.json", "prompt.md"):
+        f = task / "files" / rel if rel != "prompt.md" else task.parent / (task.name + "/prompt.md")
+        f = task.parent / task.name / rel if rel == "prompt.md" else task / "files" / rel
+        txt = f.read_text()
+        for pat in contiguous:
+            assert not re.search(pat, txt), f"{rel} leaks the answer tuple: {pat}"
+
+
+def test_0009_spec_has_no_partial_binding_hint():
+    """0009 (ambiguous) spec gives NO binding hint: it states neither the signoff pair (slow/func) nor the
+    disjoint-axis rule. (The shipped evidence_manifest.json's stale CLAIM of slow/func is the known
+    untrustworthy 'lie' present in 0005-0009 alike -- it is not a spec/glossary/summary anchor, and the
+    grader's forgery-resistant checks never trust it. The experiment's variable is the spec/anchor clarity,
+    not the manifest claim, which is identical across a/b.)"""
+    spec = (T9 / "files" / "spec.md").read_text()
+    assert "slow scenario" not in spec and "functional corner" not in spec
+    assert "DISJOINT typed axes" not in spec and "disjoint typed axes" not in spec
+    # contrast: 0010's spec DOES state the signoff pair + the disjoint-axis rule (the clear-control hint)
+    spec_b = (T10 / "files" / "spec.md").read_text()
+    assert "slow scenario" in spec_b and "functional corner" in spec_b
+    assert "DISJOINT typed axes" in spec_b
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_no_hidden_leak(task):
+    public_blob = ""
+    for p in (task / "files").iterdir():
+        public_blob += p.read_text(errors="ignore")
+    for needle in ("global_authority_tuple", "SEMANTIC_ROLE_BINDING_OK", "def grade(truth)",
+                   "evidence_consumed_netlist_is_authority", "decoy_sources", "axis_schema"):
+        assert needle not in public_blob, needle
+
+
+@pytest.mark.parametrize("task,variant", [(T9, "ambiguous"), (T10, "clear_control")], ids=["0009", "0010"])
+def test_0009_deterministic_generation(tmp_path, task, variant):
+    a = Path(tempfile.mkdtemp(prefix="p14s1_"))
+    b = Path(tempfile.mkdtemp(prefix="p14s2_"))
+    try:
+        build_task_skeleton(a, task.name, 0, 2, "semantic_role_binding_reproduction", variant=variant)
+        build_task_skeleton(b, task.name, 0, 2, "semantic_role_binding_reproduction", variant=variant)
+        fa = [p.relative_to(a / task.name) for p in (a / task.name).rglob("*") if p.is_file()]
+        fb = [p.relative_to(b / task.name) for p in (b / task.name).rglob("*") if p.is_file()]
+        assert {str(p) for p in fa} == {str(p) for p in fb}
+        for rel in fa:
+            assert (a / task.name / rel).read_bytes() == (b / task.name / rel).read_bytes(), rel
+    finally:
+        shutil.rmtree(a, ignore_errors=True); shutil.rmtree(b, ignore_errors=True)
+
+
+def test_0009_0010_share_axis_schema_and_grader():
+    """the controlled pair: a and b share the IDENTICAL axis_schema/uniqueness/grader (only variant
+    metadata differs) -- so the oracle measures the SAME capability; only presentation difficulty differs."""
+    ta = json.loads((T9 / "hidden" / "handoff_truth.json").read_text())
+    tb = json.loads((T10 / "hidden" / "handoff_truth.json").read_text())
+    assert ta["axis_schema"]["axes"] == tb["axis_schema"]["axes"]
+    assert ta["axis_schema"]["constraints"] == tb["axis_schema"]["constraints"]
+    assert ta["axis_schema"]["expected_unique_assignment"] == tb["axis_schema"]["expected_unique_assignment"]
+    assert ta["axis_schema"]["uniqueness"] == tb["axis_schema"]["uniqueness"]
+    assert ta["global_authority_tuple"] == tb["global_authority_tuple"]
+    assert (T9 / "hidden" / "grade_workflow.py").read_bytes() == \
+           (T10 / "hidden" / "grade_workflow.py").read_bytes()
+
+
+# ---- grader-logic (run grade_workflow.py on crafted submissions; parametrized over both variants) ----
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_full_recovery_emits_markers(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk_main")
+    out = _grade_run_srb(setup, task)
+    assert "EVIDENCE_OK" in out
+    assert "AXIS_SCHEMA_OK" in out and "TYPED_BINDING_OK" in out and "PVT_LABEL_OK" in out
+    assert "GLOBAL_CONSTRAINT_OK" in out and "UNIQUE_ASSIGNMENT_OK" in out
+    assert "HAZARD_RECOVERY_OK" in out
+    assert "MISTYPED_BINDING_REJECTED" not in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_signoff_green_value_swap_fails(task):
+    """make-or-break gate #2: a signoff-green-but-mis-typed package (the exact 0006 failure A) is floored
+    below pass. Correct netlist+clock+fresh chain (PT signs off green) but scenario=func/corner=typ swapped.
+    Semantic-role binding, not signoff, must reject it -- for BOTH variants (the oracle is identical)."""
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "func", "typ", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "func", "typ", "clk_main")   # signoff OK in the manifest
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "func", "typ", "clk_main")
+    out = _grade_run_srb(setup, task)
+    assert "EVIDENCE_OK" not in out and "TYPED_BINDING_OK" not in out and "AXIS_SCHEMA_OK" not in out
+    assert "GLOBAL_CONSTRAINT_OK" not in out
+    assert "MISTYPED_BINDING_REJECTED" in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_pvt_corner_fails(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "slow_1.0V_125C", "clk_main")
+    out = _grade_run_srb(setup, task)
+    assert "EVIDENCE_OK" not in out and "MISTYPED_BINDING_REJECTED" in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_wrong_clock_fails(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk")
+        _mc_stage2(d, m["report_digest"], "netlist_v2.v", "slow", "func", "clk")
+    out = _grade_run_srb(setup, task)
+    assert "EVIDENCE_OK" not in out and "MISTYPED_BINDING_REJECTED" in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_final_state_only_fails(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")   # correct flow_config, NO regenerated evidence
+    out = _grade_run_srb(setup, task)
+    assert "EVIDENCE_OK" not in out and "GLOBAL_CONSTRAINT_OK" not in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_stage2_typed_wrong_fails(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        m = _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage2(d, "deadbeefdeadbeef", "netlist_v2.v", "slow", "func", "clk_main")  # stale upstream
+    out = _grade_run_srb(setup, task)
+    assert "STAGE_CHAIN_OK" not in out and "EVIDENCE_OK" not in out
+
+
+@pytest.mark.parametrize("task", _VARIANTS, ids=["0009", "0010"])
+def test_0009_grader_hand_edited_evidence_fails(task):
+    def setup(d):
+        _mc_inputs(d, "netlist_v2.v", "slow", "func", "clk_main")
+        _mc_stage1(d, "netlist_v2.v", "slow", "func", "clk_main")
+        sub = json.loads((d / "evidence_manifest.json").read_text())
+        sub["report_digest"] = "f" * 64
+        (d / "evidence_manifest.json").write_text(json.dumps(sub, indent=2, sort_keys=True))
+    out = _grade_run_srb(setup, task)
     assert "EVIDENCE_OK" not in out

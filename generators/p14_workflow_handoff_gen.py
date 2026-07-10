@@ -85,6 +85,31 @@ AB_PVT_MAPPING = {
     "fast_0.8V_0C": ["fast", "lowpower"],
 }
 
+# p14 v8 (semantic-role-binding REPRODUCTION -- the 0006-mechanism controlled pair). Two VARIANTS of ONE
+# hazard_type share the IDENTICAL hidden truth + the byte-identical typed-binding grader (reused verbatim
+# from v6/v7); they differ ONLY in the VISIBLE clarity bundle (the experimental variable):
+#   variant "ambiguous"     (workflow_handoff_0009a): reports use OVERLOADED non-canonical labels
+#                           (op_point / mode) whose logical-axis role must be INFERRED, AND ship NO
+#                           inference anchors (no glossary, no public_check_summary, no coverage fact, no
+#                           spec binding hint). This reproduces the 0006 difficulty (no anchor + body-
+#                           embedded swapped values).
+#   variant "clear_control" (workflow_handoff_0009b): reports use CANONICAL labels (scenario / corner)
+#                           AND ship the inference anchors (sparse glossary + public_check_summary with the
+#                           coverage fact + a spec binding hint). This is the negative control (~v7, which
+#                           saturated). If the mechanism hypothesis holds, 0009a reproduces the axis-binding
+#                           failure family while 0009b saturates.
+# The variant is derived from the task_id suffix ('a' -> ambiguous, 'b' -> clear_control) so the TASKS table
+# uses a single hazard_type for both. Both share the SAME unique typed assignment (netlist_v2/clk_main/slow/
+# func), the SAME 294->1 uniqueness, the SAME decoy structure, and the SAME value-swap mutant
+# (scenario=func/corner=typ -- the exact DeepSeek 0006 failure mode).
+SRB_HAZARD = "semantic_role_binding_reproduction"
+SRB_AMBIGUOUS = "ambiguous"        # 0009a: overloaded labels + no anchors (reproduce 0006 difficulty)
+SRB_CLEAR_CONTROL = "clear_control"  # 0009b: canonical labels + anchors (negative control, ~v7)
+# the overloaded report labels for the ambiguous variant and the semantic-role mapping they imply
+SRB_AMBIGUOUS_LABELS = {"scenario": "op_point", "corner": "mode"}  # report label -> ... see mapping below
+SRB_ROLE_MAPPING = {"op_point": "scenario", "mode": "corner"}      # report label -> logical typed axis
+SRB_CLEAR_LABELS = {"scenario": "scenario", "corner": "corner"}    # canonical labels = their own axis
+
 
 
 # ---------------------------------------------------------------------------
@@ -1162,7 +1187,49 @@ def _regen_reference_sh(evidence_steps: int) -> str:
 # spec / manifest / prompt / truth / metadata builders
 # ---------------------------------------------------------------------------
 def _handoff_manifest(expected_netlist_sha: str, scenario: str = SCENARIO, corner: str = CORNER,
-                      cg: bool = False, ab: bool = False, imp: bool = False) -> str:
+                      cg: bool = False, ab: bool = False, imp: bool = False, srb: str | None = None) -> str:
+    if srb is not None:
+        # v8 semantic-role-binding manifest: PARTIAL AUTHORITY only. Declares the netlist FAMILY + interface
+        # (C1); it deliberately OMITS the concrete clock/scenario/corner values AND any typed-axis mapping.
+        # The clear-control variant (0009b) points at the INCOMPLETE glossary; the ambiguous variant (0009a)
+        # ships no glossary and no mapping at all. manifest_netlist stays the v2 FAMILY representative.
+        _amb = srb == SRB_AMBIGUOUS
+        _terminology = ("NONE shipped -- resolve the role of each report field label from the report "
+                        "intersection (no glossary, no summary)"
+                        if _amb else "glossary.md (INCOMPLETE examples only; NOT a schema)")
+        _recovery = ("resolve the semantic role of each report field label from the report intersection; "
+                     "infer the clock from non-zero intended-clock coverage; do NOT trust any single shipped "
+                     "source (each decoy is pairwise plausible but role-mismatched). A signoff-green-but-"
+                     "mis-typed package is still rejected."
+                     if _amb else
+                     "the reports use canonical scenario/corner labels; glossary.md + public_check_summary.json "
+                     "state the disjoint typed axes and the coverage fact -- infer clock/scenario/corner by "
+                     "intersecting the constraints; do NOT trust any single shipped source (each decoy is "
+                     "pairwise plausible but role-mismatched). A signoff-green-but-mis-typed package is still "
+                     "rejected.")
+        out = {
+            "_comment": ("Handoff package manifest -- PARTIAL AUTHORITY for the semantic-role-binding handoff "
+                         "(variant=%s). Declares the netlist FAMILY + interface (C1) and the design intent; "
+                         "it deliberately OMITS the concrete clock/scenario/corner values and any typed-axis "
+                         "mapping. The unique assignment is the INTERSECTION of the spec.md constraints -- "
+                         "NOT a line in this file. Read-only and FROZEN." % srb),
+            "design": TOP, "top_module": TOP,
+            "interface": {"ports": ["clk_main", "din", "en", "dout"], "note": "v2.x family interface"},
+            "netlist_family": "v2.x", "netlist_revision": "v2",
+            "library": "tiny.db",
+            "terminology": _terminology,
+            "constraints": "constraints.sdc", "flow_config": "flow_config.json",
+            "stage1_generator": "run_evidence_stage1.sh", "report": "timing_report.rpt",
+            "evidence_manifest": "evidence_manifest.json",
+            "recovery_note": _recovery,
+            "netlist": "netlist_v2.v",  # family representative (C1-allowed); NOT a full tuple statement
+            "netlist_provenance_sha256": expected_netlist_sha,
+            "history": {
+                "v1": "legacy pre-ECO revision on clk_old (provenance only -- out of family, must NOT be consumed)",
+                "v2": "current post-ECO family on clk_main, enable-qualified (the handoff design family)",
+            },
+        }
+        return json.dumps(out, indent=2) + "\n"
     if imp:
         # v7 implicit-axis manifest: PARTIAL AUTHORITY only. Declares the netlist FAMILY + interface (C1)
         # and points at the INCOMPLETE glossary; it deliberately OMITS the concrete clock/op_point/mode
@@ -1873,8 +1940,198 @@ def _prompt_md_implicit(evidence_steps: int) -> str:
     )
 
 
+def _spec_md_srb(evidence_steps: int, variant: str) -> str:
+    """v8 semantic-role-binding REPRODUCTION spec. The hidden typed-binding oracle is reused byte-identically
+    from v6/v7; the variant controls ONLY the visible clarity bundle. The answer tuple is never stated.
+      ambiguous (0009a): overloaded op_point/mode labels + NO anchors (no glossary/summary/coverage/spec
+        hint) -- the agent must resolve the semantic role of each label from the report intersection.
+      clear_control (0009b): canonical scenario/corner labels + the disjoint-axis statement + the signoff-
+        pair binding hint + glossary + public_check_summary (the negative control, ~v7)."""
+    amb = variant == SRB_AMBIGUOUS
+    role_fields = "`op_point=` / `mode=`" if amb else "`scenario=` / `corner=`"
+    title = "ambiguous-role spec" if amb else "clear-control spec"
+    lines = [
+        "# acc_stage — Workflow / Multi-Stage Evidence-Chain Sign-off Handoff (semantic-role-binding, %s)" % title,
+        "",
+        "This is a downstream **timing sign-off handoff** for `acc_stage` whose evidence is **out of date** "
+        "AND whose shipped `flow_config.json` carries a **value-swap** on the signoff axes. You must recover "
+        "the only globally-consistent package by **resolving the semantic role of each shipped value** (which "
+        "value belongs on which axis) and intersecting the partially-truthful sources, then regenerate fresh "
+        "sign-off evidence by rerunning the flow in order.",
+        "",
+        "## Design intent (post-ECO v2 family)",
+        "",
+        "The shipped design family is **netlist v2.x** with interface ports `{clk_main, din, en, dout}`. "
+        "Legacy **v1** (`{clk_old, din, dout}`) is provenance-only. The exact recovery package is the "
+        "**unique assignment** satisfying all constraints below -- it is **not** written out as a single tuple "
+        "anywhere in this handoff.",
+        "",
+    ]
+    if amb:
+        # 0009a: MINIMAL terminology. No disjoint-axis statement, no PVT rule, no signoff-pair hint, no
+        # coverage fact, no glossary reference. The role of op_point/mode must be inferred from the reports.
+        lines += [
+            "## Terminology",
+            "",
+            "- The shipped reports use two field labels: %s. Their meaning is NOT defined here -- infer it "
+            "from how the values are used across the (conflicting) report sources." % role_fields,
+            "- The consumed clock is the one that yields non-zero intended-clock path coverage on the design.",
+            "",
+            "**No value-to-axis mapping is provided.** Resolve the role of each label from the evidence.",
+            "",
+        ]
+    else:
+        # 0009b: canonical labels + the disjoint-axis statement + the signoff-pair binding hint + glossary
+        # reference (the negative-control clarity bundle). Still does NOT print the full tuple.
+        lines += [
+            "## Terminology (partial; see glossary.md for examples -- NOT a complete schema)",
+            "",
+            "- The reports carry a **scenario** field (`scenario=`) and a **corner** field (`corner=`). These "
+            "are DISJOINT typed axes: a value valid on one is invalid on the other.",
+            "- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` "
+            "that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.",
+            "- The setup signoff is taken at the **slow scenario** in the **functional corner**.",
+            "- The consumed clock is the one yielding **non-zero intended-clock path coverage** on the design.",
+            "",
+            "**No complete value-to-axis table is provided.** Infer the unique assignment from the constraints.",
+            "",
+        ]
+    lines += [
+        "## Constraints (intersect these; none alone is the answer)",
+        "",
+        "- **C1 netlist family:** the consumed netlist is in the v2.x family with the `{clk_main,din,en,dout}` "
+        "interface (`netlist_v1.v` is out of family).",
+        "- **C2 clock coverage:** the consumed clock is the only one with non-zero intended-clock coverage on "
+        "the v2 netlist.",
+        "- **C3 scenario typed:** the scenario value must be a scenario member (a corner value or PVT label in "
+        "the scenario role is a type error).",
+        "- **C4 corner typed:** the corner value must be a corner member (a scenario value or PVT label in the "
+        "corner role is a type error).",
+        "- **C5 scenario/corner signoff pair:** exactly one `(scenario, corner)` pair is the setup signoff pair.",
+        "- **C6/C7 provenance / digest:** the evidence chain must be freshly regenerated from the inferred "
+        "package (stages ordered); a valid-looking digest bound to a role-mismatched or invalidated stage is "
+        "rejected.",
+        "",
+        "## Shipped evidence sources (each is LOCALLY plausible, NONE globally correct as-shipped)",
+        "",
+        "- `report_A_role_swap.rpt` — right netlist/clock; the role fields are SWAPPED vs the authority.",
+        "- `report_B_role_stale.rpt` — correct role fields; stale netlist (netlist_v1).",
+        "- `report_C_role_pvt.rpt` — a PVT descriptor in the corner role (and a generic clock alias).",
+        "- `evidence_D_role_mismatch.json` — valid-looking chain; the role fields are swapped inside.",
+    ]
+    if not amb:
+        lines += [
+            "- `public_check_summary.json` — pairwise inconsistency symptoms + the coverage fact (verdict-"
+            "first; never the answer/schema).",
+            "- `glossary.md` — INCOMPLETE terminology examples (NOT a schema).",
+        ]
+    lines += [
+        "- `prev_signoff.log` — recent, plausible, NON-authoritative.",
+        "",
+        "**A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are "
+        "swapped or a PVT label is substituted** (the report body is corner-independent). Semantic-role "
+        "binding, not signoff, is what rejects a signoff-green-but-mis-typed package.",
+        "",
+    ]
+    if evidence_steps == 2:
+        lines += [
+            "## Two-stage evidence chain (evidence_steps=2)",
+            "",
+            "1. **Stage 1** — `bash run_evidence_stage1.sh` regenerates `timing_report.rpt` + "
+            "`evidence_manifest.json` from the repaired inputs.",
+            "2. **Stage 2** — `bash run_evidence_stage2.sh` consumes the **fresh** stage-1 evidence and "
+            "regenerates `stage2_summary.json`; its `upstream_evidence_digest` must equal the fresh stage-1 "
+            "report digest.",
+            "",
+            "Run stage 1 **then** stage 2, after the inputs are repaired and role-consistent.",
+            "",
+        ]
+    lines += [
+        "## What correct looks like",
+        "",
+    ]
+    if amb:
+        lines += [
+            "1. **Resolve** the semantic role of each report field label from the report intersection.",
+            "2. **Infer** the unique assignment by intersecting C1–C5 (reject each pairwise-plausible decoy).",
+        ]
+    else:
+        lines += [
+            "1. **Infer** the unique assignment by intersecting C1–C5 (the reports use canonical scenario/"
+            "corner labels; glossary.md + public_check_summary.json give the disjoint-axis rule and the "
+            "coverage fact).",
+        ]
+    lines += [
+        "3. **Repair** `flow_config.json` to that netlist + `(scenario, corner)` pair + clock.",
+        "4. Run `bash run_evidence_stage1.sh`"
+        + (" then `bash run_evidence_stage2.sh`" if evidence_steps == 2 else "")
+        + " to regenerate fresh evidence.",
+        "",
+        "## What will NOT be accepted",
+        "",
+        "- A **value-swap / role mismatch** on the signoff axes (signoff-green but mis-typed).",
+        "- A **PVT descriptor** substituted for a scenario or corner value.",
+        "- A **wrong clock** (zero coverage / a generic alias).",
+        "- Following any single shipped source; a single-axis repair; a green report alone; hand-edited "
+        "evidence; a stage-2 from a stale/role-wrong stage 1.",
+        "- Editing the netlists, library, manifest"
+        + (", glossary," if not amb else "")
+        + " generators, or runners; weakening `constraints.sdc`.",
+        "",
+    ]
+    return "\n".join(lines)
+
+
+def _prompt_md_srb(evidence_steps: int, variant: str) -> str:
+    amb = variant == SRB_AMBIGUOUS
+    role_hint = ("The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined "
+                 "upfront -- resolve it from the report intersection (no glossary or summary is provided)."
+                 if amb else
+                 "The reports use canonical `scenario` / `corner` labels; glossary.md + "
+                 "public_check_summary.json state the disjoint typed axes and the coverage fact.")
+    return (
+        "# Task: resolve the semantic-role binding, infer the unique package, AND regenerate the fresh "
+        "sign-off chain\n\n"
+        "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose "
+        "`flow_config.json` carries a value-swap on the signoff axes. %s Infer the unique assignment by "
+        "intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed "
+        "+ C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, "
+        "and **rerun the evidence flow"
+        % role_hint
+        + (" (two ordered stages)" if evidence_steps == 2 else "")
+        + "** so the evidence is freshly generated from the inferred package.\n\n"
+        "Steps:\n"
+        "1. "
+        + ("Resolve the semantic role of each report field label from the report intersection. Then "
+           if amb else "")
+        + "Infer the unique assignment by intersecting C1–C5; do NOT trust any single shipped source (each "
+        "decoy is pairwise plausible but role-mismatched).\n"
+        "2. Repair `flow_config.json` to the inferred netlist + `(scenario, corner)` pair + clock identity "
+        "(the clock is the only one with non-zero intended-clock coverage).\n"
+        "3. Run `bash run_evidence_stage1.sh` to regenerate `timing_report.rpt` + `evidence_manifest.json`.\n"
+        + ("4. Run `bash run_evidence_stage2.sh` to regenerate `stage2_summary.json` (binds the fresh "
+           "stage-1 digest).\n"
+           "5. Confirm `bash run_public.sh` shows `evidence=FRESH stage2=FRESH`, `signoff=OK`, non-zero "
+           "intended-clock coverage, and the consumed package == the inferred assignment.\n"
+           if evidence_steps == 2 else
+           "4. Confirm `bash run_public.sh` shows `evidence=FRESH`, `signoff=OK`, non-zero intended-clock "
+           "coverage, and the consumed package == the inferred assignment.\n")
+        + "\nA package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields "
+        "are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit "
+        "`flow_config.json`. Do **not** edit netlists, the library, the manifest"
+        + (", `glossary.md`," if not amb else "")
+        + " the decoy reports, the generators, or the runners; do not hand-write evidence.\n\n"
+        "When done, briefly state the semantic-role binding (which value is the scenario vs the corner and "
+        "how you resolved it), which decoys are role-mismatched, and confirm you inferred the unique "
+        "assignment and reran " + ("both stages in order" if evidence_steps == 2 else "the stage") + ".\n"
+    )
+
+
 def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
-             cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False) -> str:
+             cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False,
+             srb_hazard: bool = False, srb_variant: str | None = None) -> str:
+    if srb_hazard:
+        return _spec_md_srb(evidence_steps, srb_variant or SRB_AMBIGUOUS)
     if imp_hazard:
         return _spec_md_implicit(evidence_steps)
     if ab_hazard:
@@ -1939,7 +2196,10 @@ def _spec_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = Fal
 
 
 def _prompt_md(evidence_steps: int, sc_hazard: bool = False, mc_hazard: bool = False,
-               cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False) -> str:
+               cg_hazard: bool = False, ab_hazard: bool = False, imp_hazard: bool = False,
+               srb_hazard: bool = False, srb_variant: str | None = None) -> str:
+    if srb_hazard:
+        return _prompt_md_srb(evidence_steps, srb_variant or SRB_AMBIGUOUS)
     if imp_hazard:
         return _prompt_md_implicit(evidence_steps)
     if ab_hazard:
@@ -2023,15 +2283,17 @@ def enumerate_constraint_graph(cg: dict) -> dict:
 
 
 def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
-                   hazard_type: str | None = None) -> str:
+                   hazard_type: str | None = None, variant: str | None = None) -> str:
     a_clk, s_clk = _CLOCK_PAIRS[0]
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
     _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
     _is_ab = hazard_type == "axis_binding_value_invention"
     _is_imp = hazard_type == "implicit_axis_binding"
-    scenario = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else SCENARIO
-    corner = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else CORNER
+    _is_srb = hazard_type == SRB_HAZARD
+    _typed = _is_sc or _is_mc or _is_cg or _is_ab or _is_imp or _is_srb
+    scenario = SC_AUTH_SCENARIO if _typed else SCENARIO
+    corner = SC_AUTH_CORNER if _typed else CORNER
     truth = {
         "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside "
                     "grade_workflow.py; never seen by the agent.",
@@ -2388,11 +2650,120 @@ def _handoff_truth(evidence_steps: int, expected_sha: str, stale_sha: str,
                                            "fix_flow_config_scenario_to_slow",
                                            "fix_flow_config_corner_to_func",
                                            "rerun_stage1", "rerun_stage2"]
+    if _is_srb:
+        # p14 v8: semantic-role-binding REPRODUCTION (the controlled pair). The hidden truth + typed-binding
+        # grader are REUSED byte-identically from v6/v7 (same unique typed assignment
+        # netlist_v2/clk_main/slow/func, same 294->1 uniqueness, same value-swap mutant scenario=func/corner=
+        # typ -- the exact DeepSeek 0006 failure mode). The TWO VARIANTS differ ONLY in the visible clarity
+        # bundle (report-label semantics + inference anchors), which the grader never reads for these
+        # echecks. So grading is identical across a/b; only presentation difficulty differs.
+        #   variant "ambiguous" (0009a): overloaded op_point/mode labels + NO anchors -> reproduce 0006.
+        #   variant "clear_control" (0009b): canonical scenario/corner labels + anchors -> negative control.
+        truth["authority_source"] = ("inferred from evidence/provenance (variant=%s): handoff_manifest "
+                                     "(family) + report intersection + (ambiguous: no anchors; clear: "
+                                     "glossary + public_check_summary)" % variant)
+        truth["authority_hierarchy"] = ["spec.md", "handoff_manifest.json", "flow_config.json",
+                                        "evidence_manifest.json", "report_A_role_swap.rpt",
+                                        "report_B_role_stale.rpt", "report_C_role_pvt.rpt",
+                                        "evidence_D_role_mismatch.json", "prev_signoff.log"]
+        truth["hazard_type"] = hazard_type
+        truth["variant"] = variant
+        truth["expected_scenario"] = SC_AUTH_SCENARIO
+        truth["expected_corner"] = SC_AUTH_CORNER
+        truth["stale_scenario"] = AB_STALE_SCENARIO   # the value-swap mutant (corner value in scenario slot)
+        truth["stale_corner"] = AB_STALE_CORNER
+        truth["global_authority_tuple"] = ["netlist_v2.v", a_clk, SC_AUTH_SCENARIO, SC_AUTH_CORNER]
+        # the semantic-role mapping the AMBIGUOUS variant forces the agent to infer (the clear variant uses
+        # canonical labels so the mapping is identity). Recorded here as hidden documentation + for tests.
+        truth["semantic_role_mapping"] = (dict(SRB_ROLE_MAPPING) if variant == SRB_AMBIGUOUS
+                                          else dict(SRB_CLEAR_LABELS))
+        # report-role labels shipped per variant (what physical field name each report uses for each axis)
+        truth["report_role_labels"] = (dict(SRB_AMBIGUOUS_LABELS) if variant == SRB_AMBIGUOUS
+                                       else dict(SRB_CLEAR_LABELS))
+        # the locally-plausible WRONG values embedded inside the genuine-looking report bodies (the 0006
+        # body-embedding mechanism): the swapped pair func/typ appears inside report_A/report_C bodies.
+        truth["decoy_embedded_values"] = {
+            "report_A_role_swap.rpt": {"scenario_slot": AB_STALE_SCENARIO, "corner_slot": AB_STALE_CORNER},
+            "report_C_role_pvt.rpt": {"scenario_slot": SC_AUTH_SCENARIO, "corner_slot": "slow_1.0V_125C"},
+        }
+        # Reuse the v6/v7 typed constraint graph (HIDDEN; never shipped). Same axes/constraints/uniqueness;
+        # the variant difference is purely VISIBLE (overloaded vs canonical labels; anchors absent vs
+        # present). The grader's axis_schema gated block enforces typed binding identically to v6/v7.
+        truth["axis_schema"] = {
+            "typed_axes": AB_TYPED_AXES,
+            "pvt_label_mapping": AB_PVT_MAPPING,
+            "type_rules": [
+                "scenario_axis values may occupy ONLY the scenario field",
+                "corner_axis values may occupy ONLY the corner field",
+                "a pvt_label_axis token is descriptive metadata mapping to a (scenario, corner) pair; "
+                "it is never a valid scenario or corner value",
+                "clock_axis requires exact identity (clk_main); a generic/aliased name is rejected",
+            ],
+            "membership_visibility": ("IMPLICIT, variant=%s -- ambiguous: inferred from report intersection "
+                                      "with NO glossary/summary anchor; clear: canonical labels + anchors" % variant),
+            "axes": {
+                "netlist": ["netlist_v1.v", "netlist_v2.v"],
+                "clock": [a_clk, s_clk, "clk"],
+                "scenario": ["slow", "typ", "fast", "func", "test", "lowpower", "slow_1.0V_125C"],
+                "corner": ["func", "test", "lowpower", "slow", "typ", "fast", "slow_1.0V_125C"],
+            },
+            "constraints": [
+                {"id": "C1", "name": "netlist_family", "over": ["netlist"],
+                 "allowed": [["netlist_v2.v"]],
+                 "source": "handoff_manifest.json family + acc_stage interface"},
+                {"id": "C2", "name": "clock_identity", "over": ["clock"],
+                 "allowed": [[a_clk]],
+                 "source": "the only clock with non-zero intended-clock coverage on netlist_v2"},
+                {"id": "C3", "name": "scenario_typed", "over": ["scenario"],
+                 "allowed": [["slow"], ["typ"], ["fast"]],
+                 "source": "scenario field must be a scenario_axis member; a corner value or PVT label "
+                           "in the scenario slot is a type error"},
+                {"id": "C4", "name": "corner_typed", "over": ["corner"],
+                 "allowed": [["func"], ["test"], ["lowpower"]],
+                 "source": "corner field must be a corner_axis member; a scenario value or PVT label "
+                           "in the corner slot is a type error"},
+                {"id": "C5", "name": "scenario_corner_signoff_pair", "over": ["scenario", "corner"],
+                 "allowed": [["slow", "func"]],
+                 "source": "the unique signoff pair recovered by intersecting the (partially-truthful) "
+                           "report sources"},
+            ],
+            "expected_unique_assignment": {
+                "netlist": "netlist_v2.v", "clock": a_clk,
+                "scenario": SC_AUTH_SCENARIO, "corner": SC_AUTH_CORNER},
+            "decoy_violates": {
+                "report_A_role_swap.rpt": "C3+C4 (right netlist/clock; the role fields are SWAPPED -- a "
+                                          "corner value in the scenario role, a scenario value in the corner role)",
+                "report_B_role_stale.rpt": "C1 (correct role fields; netlist stale v1)",
+                "report_C_role_pvt.rpt": "C2+C4 (right netlist/scenario; corner is a PVT label; clock alias 'clk')",
+                "evidence_D_role_mismatch.json": "C3+C4 (valid digest; role fields swapped inside)",
+            },
+            "uniqueness": None,
+        }
+        truth["axis_schema"]["uniqueness"] = enumerate_constraint_graph(truth["axis_schema"])
+        truth["decoy_sources"] = [
+            "report_A_role_swap.rpt(netlist_v2/clk_main right; role fields swapped func/typ -> C3+C4)",
+            "report_B_role_stale.rpt(correct role fields slow/func; netlist_v1 stale -> C1)",
+            "report_C_role_pvt.rpt(netlist_v2/slow right; corner=PVT label slow_1.0V_125C + clock alias clk -> C2+C4)",
+            "evidence_D_role_mismatch.json(valid-looking chain; role fields swapped -> C3+C4)",
+            "prev_signoff.log(recent, plausible, non-authoritative)"]
+        truth["pairwise_valid_but_global_invalid_sources"] = [
+            "report_A_role_swap.rpt", "report_B_role_stale.rpt",
+            "report_C_role_pvt.rpt", "evidence_D_role_mismatch.json"]
+        truth["non_authoritative_sources"] = ["prev_signoff.log", "report_A_role_swap.rpt",
+                                              "report_B_role_stale.rpt", "report_C_role_pvt.rpt",
+                                              "evidence_D_role_mismatch.json"]
+        truth["invalidated_by"] = "no_single_source_satisfies_all_typed_constraints_only_their_intersection"
+        truth["recovery_step_expected"] = ["resolve_semantic_role_binding_from_report_intersection",
+                                           "infer_unique_typed_assignment_from_C1_C2_C3_C4_C5",
+                                           "fix_flow_config_netlist_to_v2",
+                                           "fix_flow_config_scenario_to_slow",
+                                           "fix_flow_config_corner_to_func",
+                                           "rerun_stage1", "rerun_stage2"]
     return json.dumps(truth, indent=2) + "\n"
 
 
 def _metadata(task_id: str, seed: int, evidence_steps: int,
-              hazard_type: str | None = None, hint_level: int = 1) -> dict:
+              hazard_type: str | None = None, hint_level: int = 1, variant: str | None = None) -> dict:
     visible = ["spec.md", "handoff_manifest.json", "flow_config.json", "constraints.sdc",
                "netlist_v1.v", "netlist_v2.v", "pt_signoff.tcl",
                "run_evidence_stage1.sh", "gen_evidence_stage1.py", "evidence_signoff.tcl",
@@ -2486,6 +2857,23 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
         for f in ("report_A_context_swap.rpt", "report_B_context_stale.rpt",
                   "report_C_context_pvt.rpt", "evidence_D_context_mismatch.json",
                   "public_check_summary.json", "glossary.md", "prev_signoff.log"):
+            visible.append(f)
+            forbidden.append(f)
+        weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
+                   "stage_chain": 0.10, "provenance": 0.10, "authority_consistency": 0.10,
+                   "hazard_recovery": 0.10, "explanation": 0.10}
+    if hazard_type == SRB_HAZARD:
+        # v8 semantic-role-binding REPRODUCTION. Same weight layout + hazard axes as v2-v7; the typed-binding
+        # echecks fold into EVIDENCE / HAZARD_RECOVERY (reused byte-identically from v6/v7) so every
+        # signoff-green-but-mis-typed / role-mismatched / partial / pairwise decoy stays <0.5. The variant
+        # controls the visible clarity bundle: the ambiguous variant ships NO glossary/summary anchors; the
+        # clear-control variant ships both (the negative control).
+        _amb = variant == SRB_AMBIGUOUS
+        _files = ["report_A_role_swap.rpt", "report_B_role_stale.rpt",
+                  "report_C_role_pvt.rpt", "evidence_D_role_mismatch.json", "prev_signoff.log"]
+        if not _amb:
+            _files += ["public_check_summary.json", "glossary.md"]
+        for f in _files:
             visible.append(f)
             forbidden.append(f)
         weights = {"signoff": 0.10, "final_state": 0.15, "evidence_generation": 0.25,
@@ -2679,6 +3067,51 @@ def _metadata(task_id: str, seed: int, evidence_steps: int,
                          "GLOBAL_CONSTRAINT_OK AND UNIQUE_ASSIGNMENT_OK AND EVIDENCE_CHAIN_TYPED_OK "
                          "AND TYPED_BINDING_OK AND HAZARD_RECOVERY_OK AND no forbidden edits"})
         err_cat = "workflow_handoff_implicit_axis_binding_requires_typed_inference_recovery"
+    if hazard_type == SRB_HAZARD:
+        _amb = variant == SRB_AMBIGUOUS
+        gen_params.update({
+            "hazard_type": SRB_HAZARD, "num_hazards": 3, "variant": variant,
+            "hint_level": hint_level,
+            "authority_source": ("inferred from evidence/provenance (variant=%s): manifest family + report "
+                                 "intersection%s" % (variant, " + glossary + coverage fact" if not _amb else "")),
+            "expected_scenario": SC_AUTH_SCENARIO, "expected_corner": SC_AUTH_CORNER,
+            "stale_scenario": AB_STALE_SCENARIO, "stale_corner": AB_STALE_CORNER,
+            "global_authority_tuple": ["netlist_v2.v", _CLOCK_PAIRS[0][0], SC_AUTH_SCENARIO, SC_AUTH_CORNER],
+            "semantic_role_mapping": dict(SRB_ROLE_MAPPING) if _amb else dict(SRB_CLEAR_LABELS),
+            "constraints": ["C1 netlist_family", "C2 clock_identity", "C3 scenario_typed",
+                            "C4 corner_typed", "C5 scenario_corner_signoff_pair"],
+            "conflict": ("MECHANISM REPRODUCTION (variant=%s): the hidden typed-binding oracle is reused "
+                         "byte-identically from v6/v7 (same unique assignment netlist_v2/clk_main/slow/func, "
+                         "same 294->1 uniqueness). The shipped flow_config is a value-SWAP on the canonical "
+                         "scenario/corner fields (scenario=func/corner=typ -- the exact DeepSeek 0006 failure "
+                         "mode). %s report_A is the same swap on the right netlist/clock; report_B carries the "
+                         "correct role fields on a stale netlist; report_C puts a PVT label in the corner role "
+                         "+ a generic clock alias; evidence_D is a valid chain with the role fields swapped "
+                         "inside. A correct netlist+clock package PrimeTime-signs-off GREEN even when mis-typed; "
+                         "the typed-binding oracle rejects it. The unique assignment is the intersection "
+                         "(netlist_v2/clk_main/slow/func)."
+                         % (variant, "AMBIGUOUS: reports use overloaded op_point/mode labels + ship NO anchors"
+                            " (no glossary/summary/coverage/spec hint) -- the role must be inferred. CLEAR:"
+                            " reports use canonical scenario/corner labels + glossary + public_check_summary.")),
+            "valid_recovery": ("resolve the semantic role of each report field label (if ambiguous), infer "
+                               "the unique assignment by intersecting C1-C5, repair flow_config to netlist_v2 "
+                               "+ slow + func (clock already clk_main), rerun stage1 then stage2"),
+            "rejects": ["value-swap / role-mismatch (scenario=func/corner=typ) -- signoff-green but mis-typed -> C3+C4",
+                        "PVT-label-as-corner (corner=slow_1.0V_125C) -> C4",
+                        "wrong clock alias (clock=clk) -> C2",
+                        "follow report_A/report_B/report_C/evidence_D (each violates a typed constraint)",
+                        "single-axis repair (satisfies only one constraint)",
+                        "edit manifest/spec/glossary DOWN (forbidden/anti-cheat)",
+                        "rerun only stage2", "final-state-only without evidence", "stage1-only",
+                        "stage2 from role-wrong stage1", "hand-edited evidence",
+                        "PT green under any mis-typed package"],
+            "pass_gate": "SIGNOFF_OK AND EVIDENCE_OK AND FINAL_STATE_OK AND STAGE_CHAIN_OK AND "
+                         "PROVENANCE_OK AND AUTHORITY_CONSISTENCY_OK AND GLOBAL_AUTHORITY_OK AND "
+                         "GLOBAL_CONSTRAINT_OK AND UNIQUE_ASSIGNMENT_OK AND EVIDENCE_CHAIN_TYPED_OK "
+                         "AND TYPED_BINDING_OK AND SEMANTIC_ROLE_BINDING_OK AND HAZARD_RECOVERY_OK "
+                         "AND no forbidden edits"})
+        err_cat = ("workflow_handoff_semantic_role_binding_%s_requires_role_resolution_recovery"
+                   % ("ambiguous" if _amb else "clear_control"))
     return {
         "task_id": task_id, "track": "p14_workflow_handoff", "tool": ["pt"],
         "difficulty": "hard", "data_type": "mutation_synthetic", "resource_preset": "standard",
@@ -2720,7 +3153,8 @@ def _write(path: Path, text: str, executable: bool = False) -> None:
 
 
 def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_steps: int = 1,
-                        hazard_type: str | None = None, hint_level: int = 1) -> Path:
+                        hazard_type: str | None = None, hint_level: int = 1,
+                        variant: str | None = None) -> Path:
     """PURE (no tool). Write the full task directory in the MUTANT starting state.
 
     Deterministic: same (task_id, seed, evidence_steps, hazard_type) -> byte-identical tree. The initial
@@ -2745,13 +3179,26 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                            "multi_conflict_partially_truthful_decoy",
                            "constraint_graph_multi_source_recovery",
                            "axis_binding_value_invention",
-                           "implicit_axis_binding"):
+                           "implicit_axis_binding",
+                           SRB_HAZARD):
         raise ValueError("unsupported hazard_type: %r" % hazard_type)
     _is_sc = hazard_type == "scenario_corner_cross_source_conflict"
     _is_mc = hazard_type == "multi_conflict_partially_truthful_decoy"
     _is_cg = hazard_type == "constraint_graph_multi_source_recovery"
     _is_ab = hazard_type == "axis_binding_value_invention"
     _is_imp = hazard_type == "implicit_axis_binding"
+    _is_srb = hazard_type == SRB_HAZARD
+    # v8: the semantic-role-binding hazard has two VARIANTS, passed EXPLICITLY (not derived from the task_id,
+    # which the schema requires to be numeric workflow_handoff_[0-9]{4}). workflow_handoff_0009 = ambiguous
+    # (reproduce 0006); workflow_handoff_0010 = clear_control (negative control). Both share one hazard_type.
+    if _is_srb:
+        if variant == SRB_AMBIGUOUS or variant == SRB_CLEAR_CONTROL:
+            _srb_variant = variant
+        else:
+            raise ValueError("semantic_role_binding_reproduction requires variant=%r or %r (got %r)"
+                             % (SRB_AMBIGUOUS, SRB_CLEAR_CONTROL, variant))
+    else:
+        _srb_variant = None
     task = out_dir / task_id
     files = task / "files"
     hidden = task / "hidden"
@@ -2779,11 +3226,29 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
         _write(files / "constraints.sdc",
                _constraints(_CLOCK_PAIRS[0][0],
                             "Timing constraints (clk_main correct -- do not change)."))
-    elif _is_mc or _is_cg or _is_ab or _is_imp:
-        # v4 multi-conflict / v5 constraint-graph / v6 axis-binding / v7 implicit-axis-binding: flow_config is
-        # wrong on MULTIPLE axes (stale netlist_v1 AND a wrong scenario/corner). clock clk_main is already
-        # correct. The agent must repair ALL axes up to the global authority (netlist_v2 + slow + func).
-        if _is_imp:
+    elif _is_mc or _is_cg or _is_ab or _is_imp or _is_srb:
+        # v4 multi-conflict / v5 constraint-graph / v6 axis-binding / v7 implicit-axis-binding / v8 srb:
+        # flow_config is wrong on MULTIPLE axes (stale netlist_v1 AND a wrong scenario/corner). clock clk_main
+        # is already correct. The agent must repair ALL axes up to the global authority (netlist_v2 + slow + func).
+        if _is_srb:
+            # v8: same value-SWAP mutant as v6/v7 (canonical scenario/corner fields, swapped values). The
+            # variant controls the visible clarity bundle: ambiguous ships NO anchors; clear_control ships a
+            # glossary + summary. The semantic role of the report labels must be resolved.
+            if _srb_variant == SRB_AMBIGUOUS:
+                _hint = ("Downstream evidence flow selection. Editable. SEMANTIC-ROLE-BINDING CONFLICT "
+                         "(ambiguous): stale netlist (v1) AND a value-SWAP on the signoff axes. The reports "
+                         "use field labels like op_point / mode whose logical-axis role is NOT defined upfront "
+                         "-- resolve it from the report intersection. No glossary or summary is shipped; no "
+                         "single source reveals the full correct target.")
+            else:
+                _hint = ("Downstream evidence flow selection. Editable. SEMANTIC-ROLE-BINDING CONFLICT "
+                         "(clear control): stale netlist (v1) AND a value-SWAP on scenario/corner (a corner "
+                         "value is in the scenario slot and a scenario value is in the corner slot). The "
+                         "reports use canonical scenario/corner labels; glossary.md + public_check_summary.json "
+                         "state the disjoint typed axes and the coverage fact. Infer the unique assignment by "
+                         "intersecting the constraints.")
+            _stale_sc, _stale_co = AB_STALE_SCENARIO, AB_STALE_CORNER
+        elif _is_imp:
             # v7: same value-SWAP mutant as v6 (canonical scenario/corner fields, swapped values) but NO
             # axis_schema.json is shipped -- axis membership must be INFERRED from the report/glossary context.
             _hint = ("Downstream evidence flow selection. Editable. IMPLICIT-AXIS CONFLICT: stale netlist "
@@ -2865,18 +3330,31 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                                   "evidence after repairing flow_config scenario/corner up to the "
                                   "authority." % (SC_AUTH_SCENARIO, SC_AUTH_CORNER,
                                                   SC_STALE_SCENARIO, SC_STALE_CORNER))
-    if _is_mc or _is_cg or _is_ab or _is_imp:
-        # MULTI-CONFLICT / CONSTRAINT-GRAPH / AXIS-BINDING / IMPLICIT-AXIS shipped manifest: CLAIMS the full
-        # global authority (netlist_v2/clk_main/slow/func) while its report body + input_hashes are the stale
-        # netlist_v1 run. A multi-axis lie: no shipped source is globally correct. The grader's forgery-
-        # resistant consumed-netlist/clock + scenario/corner authority + typed-membership echecks (pinned to
-        # flow_config / applied.sdc / hidden re-run) reject it until flow_config is repaired on ALL axes and
-        # the chain is regenerated.
+    if _is_mc or _is_cg or _is_ab or _is_imp or _is_srb:
+        # MULTI-CONFLICT / CONSTRAINT-GRAPH / AXIS-BINDING / IMPLICIT-AXIS / SEMANTIC-ROLE-BINDING shipped
+        # manifest: CLAIMS the full global authority (netlist_v2/clk_main/slow/func) while its report body +
+        # input_hashes are the stale netlist_v1 run. A multi-axis lie: no shipped source is globally correct.
+        # The grader's forgery-resistant consumed-netlist/clock + scenario/corner authority + typed-membership
+        # echecks (pinned to flow_config / applied.sdc / hidden re-run) reject it until flow_config is
+        # repaired on ALL axes and the chain is regenerated.
         stale_mani["selected_netlist"] = "netlist_v2.v"
         stale_mani["selected_clock"] = _CLOCK_PAIRS[0][0]
         stale_mani["scenario"] = SC_AUTH_SCENARIO   # CLAIM (lie): authority scenario
         stale_mani["corner"] = SC_AUTH_CORNER       # CLAIM (lie): authority corner
-        if _is_imp:
+        if _is_srb:
+            stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the typed-authority "
+                                      "assignment (netlist_v2/clk_main/%s/%s) but its report body + "
+                                      "input_hashes are the stale netlist_v1 run AND flow_config.json ships a "
+                                      "value-SWAP on the signoff axes. Resolve the semantic role of each "
+                                      "report field label%s; do NOT trust any single source's claim. "
+                                      "Regenerate fresh evidence after inferring and repairing flow_config to "
+                                      "the unique assignment."
+                                      % (SC_AUTH_SCENARIO, SC_AUTH_CORNER,
+                                         " from the report intersection (no glossary/summary is shipped)"
+                                         if _srb_variant == SRB_AMBIGUOUS else
+                                         " (canonical scenario/corner labels; see glossary.md + "
+                                         "public_check_summary.json)"))
+        elif _is_imp:
             stale_mani["_comment"] = ("CONFLICTING evidence manifest: it CLAIMS the typed-authority "
                                       "assignment (netlist_v2/clk_main/%s/%s) but its report body + "
                                       "input_hashes are the stale netlist_v1 run AND flow_config.json ships a "
@@ -3183,6 +3661,104 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
                "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique typed "
                "assignment (inferred from the evidence intersection)\n" % (AB_STALE_SCENARIO, AB_STALE_CORNER))
 
+    if _is_srb:
+        # v8 semantic-role-binding REPRODUCTION decoys. Each candidate is pairwise-plausible but role-
+        # mismatched. The VARIANT controls the report field labels + the inference anchors:
+        #   ambiguous (0009a): reports use OVERLOADED op_point/mode labels; NO glossary/summary shipped.
+        #   clear_control (0009b): reports use CANONICAL scenario/corner labels; glossary + summary shipped.
+        # In BOTH variants the swapped values (func/typ) are embedded inside the genuine-looking report
+        # comment lines (the 0006 body-embedding mechanism), and report_B carries the correct role fields on a
+        # stale netlist (the multi-source intersection). bake_golden overwrites report_A_role_swap.rpt's body
+        # with the real netlist_v2 timing body (keeping the header); report_B/report_C reuse the stale p13 body.
+        _amb = _srb_variant == SRB_AMBIGUOUS
+        # the two role-field labels and the (correct) authority values under them
+        _lbl_scn, _lbl_cor = ("op_point", "mode") if _amb else ("scenario", "corner")
+        _rpt_body = (P13_SRC / "files/timing_report.rpt").read_text()
+        # report_A: right netlist/clock (C1+C2 ok); the role fields are SWAPPED (corner value 'func' in the
+        # scenario-role slot, scenario value 'typ' in the corner-role slot) -> violates C3+C4. PT signs off
+        # green here (right netlist+clock) -- semantic-role binding, not signoff, is what rejects it.
+        _write(files / "report_A_role_swap.rpt",
+               "# report_A_role_swap.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk_main  %s=%s  %s=%s\n"
+               "# Right design (netlist_v2) + clock (clk_main); the role fields are SWAPPED vs the authority "
+               "(a corner value in the %s slot; a scenario value in the %s slot). PrimeTime still signs off "
+               "green here -- semantic-role binding, not signoff, is what rejects it.\n"
+               % (_lbl_scn, AB_STALE_SCENARIO, _lbl_cor, AB_STALE_CORNER, _lbl_scn, _lbl_cor) + _rpt_body)
+        # report_B: correct role fields (slow/func) on a STALE netlist (netlist_v1) -> violates C1.
+        _write(files / "report_B_role_stale.rpt",
+               "# report_B_role_stale.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE).\n"
+               "# consumed_netlist=netlist_v1.v  clock=clk_main  %s=%s  %s=%s\n"
+               "# Correct role fields -> satisfies C3+C4+C5; STALE netlist (netlist_v1) outside the manifest "
+               "family -> violates C1.\n"
+               % (_lbl_scn, SC_AUTH_SCENARIO, _lbl_cor, SC_AUTH_CORNER) + _rpt_body)
+        # report_C: right netlist/scenario; corner = a PVT LABEL (slow_1.0V_125C) + a generic clock alias
+        # 'clk' -> violates C2+C4.
+        _write(files / "report_C_role_pvt.rpt",
+               "# report_C_role_pvt.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
+               "# consumed_netlist=netlist_v2.v  clock=clk  %s=%s  %s=%s\n"
+               "# Right design + scenario -> satisfies C1+C3; but the corner role is a PVT DESCRIPTOR "
+               "(slow_1.0V_125C), not a corner value -> violates C4; and the clock is a GENERIC ALIAS ('clk'), "
+               "not clk_main -> violates C2.\n"
+               % (_lbl_scn, SC_AUTH_SCENARIO, _lbl_cor, "slow_1.0V_125C") + _rpt_body)
+        # evidence_D: syntactically valid digest/upstream chain, but the role fields are SWAPPED inside.
+        _dmani = dict(stale_mani)
+        _dmani["stage"] = "stage1"
+        _dmani["selected_netlist"] = "netlist_v2.v"
+        _dmani["selected_clock"] = _CLOCK_PAIRS[0][0]
+        if _amb:
+            _dmani["op_point"] = AB_STALE_SCENARIO    # swapped: corner value in the op_point role
+            _dmani["mode"] = AB_STALE_CORNER          # swapped: scenario value in the mode role
+            _dmani.pop("scenario", None); _dmani.pop("corner", None)
+            _fields = "op_point/mode"
+        else:
+            _dmani["scenario"] = AB_STALE_SCENARIO    # swapped: corner value in the scenario field
+            _dmani["corner"] = AB_STALE_CORNER        # swapped: scenario value in the corner field
+            _fields = "scenario/corner"
+        _dmani["_comment"] = ("evidence_D_role_mismatch.json -- shipped evidence candidate (PAIRWISE "
+                              "PLAUSIBLE / MIS-TYPED). Fresh-looking digest / upstream chain, but the %s "
+                              "fields are swapped inside (a corner value in the scenario role, a scenario "
+                              "value in the corner role). Syntactically valid; fails semantic-role binding "
+                              "(violates C3+C4)." % _fields)
+        _write(files / "evidence_D_role_mismatch.json", json.dumps(_dmani, indent=2, sort_keys=True) + "\n")
+        # clear-control variant only: ship the inference anchors (sparse glossary + public pairwise summary
+        # with the coverage fact). The ambiguous variant ships NEITHER -- the absence is the experiment.
+        if not _amb:
+            _write(files / "glossary.md",
+                   "# acc_stage handoff glossary (examples only -- NOT a complete schema)\n\n"
+                   "This glossary gives EXAMPLES of the terminology used in the reports. It is deliberately "
+                   "INCOMPLETE: it does not list every valid value, and it does not give a value-to-axis "
+                   "table.\n\n"
+                   "- **scenario**: a setup scenario field. The design's scenarios are named in the spec; a "
+                   "report's `scenario=` value is one of them.\n"
+                   "- **corner**: a signoff corner field.\n"
+                   "- **PVT descriptor**: a string of the form `<process>_<voltage>_<temperature>`, e.g. "
+                   "`slow_1.0V_125C`. A PVT descriptor CHARACTERIZES a (scenario, corner) pair but is NEVER a "
+                   "valid scenario or corner value itself.\n"
+                   "- The consumed clock is the one that yields full intended-clock path coverage on the "
+                   "design.\n"
+                   "- scenario and corner are DISJOINT typed axes: a value valid on one is invalid on the "
+                   "other.\n")
+            _write(files / "public_check_summary.json", json.dumps({
+                "_comment": "Public pairwise consistency summary. Reports SYMPTOMS only; never the recovery "
+                            "target, the typed-axis membership, or the verdict.",
+                "intended_clock_coverage": {"clk_main": 1, "clk_old": 0, "clk": 0},
+                "pairwise_conflicts": [
+                    "report_A_role_swap.rpt scenario/corner disagree with report_B_role_stale.rpt",
+                    "report_C_role_pvt.rpt corner value looks like a PVT descriptor, not a corner value",
+                    "flow_config.json scenario/corner disagree with report_B_role_stale.rpt",
+                    "evidence_D_role_mismatch.json scenario/corner disagree internally",
+                ],
+                "note": "These are symptom-level pairwise conflicts; the globally-consistent assignment is "
+                        "NOT stated here.",
+            }, indent=2) + "\n")
+        _write(files / "prev_signoff.log",
+               "# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n"
+               "# Recent and plausible, but NOT the authority. Reinforces one pairwise-plausible decoy; it\n"
+               "# must NOT be used to justify any role-mismatched package.\n"
+               "consumed_netlist=netlist_v2.v\nclock=clk_main\n%s=%s\n%s=%s\n"
+               "signoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique assignment "
+               "(the role-binding intersection)\n" % (_lbl_scn, AB_STALE_SCENARIO, _lbl_cor, AB_STALE_CORNER))
+
     if evidence_steps == 2:
         _write(files / "gen_evidence_stage2.py", _GEN_STAGE2)
         _write(hidden / "gen_evidence_stage2_trusted.py", _GEN_STAGE2)
@@ -3210,24 +3786,27 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
     _write(files / "run_public.sh", _run_public_sh(), executable=True)
 
     # authority + docs
-    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else SCENARIO
-    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp) else CORNER
+    _auth_scn = SC_AUTH_SCENARIO if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp or _is_srb) else SCENARIO
+    _auth_cor = SC_AUTH_CORNER if (_is_sc or _is_mc or _is_cg or _is_ab or _is_imp or _is_srb) else CORNER
     _write(files / "handoff_manifest.json",
-           _handoff_manifest(expected_sha, _auth_scn, _auth_cor, cg=_is_cg, ab=_is_ab, imp=_is_imp))
+           _handoff_manifest(expected_sha, _auth_scn, _auth_cor, cg=_is_cg, ab=_is_ab, imp=_is_imp,
+                             srb=_srb_variant))
     _write(files / "spec.md", _spec_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc,
-                                       cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp))
+                                       cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp,
+                                       srb_hazard=_is_srb, srb_variant=_srb_variant))
     _write(task / "prompt.md", _prompt_md(evidence_steps, sc_hazard=_is_sc, mc_hazard=_is_mc,
-                                          cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp))
+                                          cg_hazard=_is_cg, ab_hazard=_is_ab, imp_hazard=_is_imp,
+                                          srb_hazard=_is_srb, srb_variant=_srb_variant))
 
     # hidden oracle
     _write(hidden / "grade_workflow.py", _GRADE_WORKFLOW)
     _write(hidden / "handoff_truth.json",
-           _handoff_truth(evidence_steps, expected_sha, stale_sha, hazard_type))
+           _handoff_truth(evidence_steps, expected_sha, stale_sha, hazard_type, variant=_srb_variant))
     _write(hidden / "run_hidden.sh", _run_hidden_sh(evidence_steps), executable=True)
     _write(hidden / "regen_reference.sh", _regen_reference_sh(evidence_steps), executable=True)
 
     # GOLDEN inputs into solution/ (evidence baked later by bake_golden)
-    if _is_sc or _is_mc or _is_cg or _is_ab or _is_imp:
+    if _is_sc or _is_mc or _is_cg or _is_ab or _is_imp or _is_srb:
         _write(sol / "flow_config.json",
                _flow_config("netlist_v2.v",
                             ("Restored to the global authority: netlist_v2 + clk_main + %s/%s."
@@ -3243,7 +3822,8 @@ def build_task_skeleton(out_dir: Path, task_id: str, seed: int = 0, evidence_ste
 
     # metadata
     _write(task / "metadata.json",
-           json.dumps(_metadata(task_id, seed, evidence_steps, hazard_type, hint_level), indent=2) + "\n")
+           json.dumps(_metadata(task_id, seed, evidence_steps, hazard_type, hint_level,
+                                variant=_srb_variant), indent=2) + "\n")
     return task
 
 
@@ -3290,9 +3870,13 @@ def bake_golden(task_dir: Path, pt_cmd: str, evidence_steps: int) -> None:
         _is_cg = _truth.get("constraint_graph") is not None
         _is_ab = _truth.get("hazard_type") == "axis_binding_value_invention"
         _is_imp = _truth.get("hazard_type") == "implicit_axis_binding"
+        _is_srb = _truth.get("hazard_type") == SRB_HAZARD
         # v4 report_A_typ_test.rpt; v5 report_A_scenario_corner.rpt; v6 report_A_value_swap.rpt;
-        # v7 implicit report_A_context_swap.rpt (right netlist/clock body, swapped op_point/mode labels).
-        if _is_imp:
+        # v7 implicit report_A_context_swap.rpt; v8 srb report_A_role_swap.rpt (right netlist/clock body,
+        # swapped role fields).
+        if _is_srb:
+            _ra = "report_A_role_swap.rpt"
+        elif _is_imp:
             _ra = "report_A_context_swap.rpt"
         elif _is_ab:
             _ra = "report_A_value_swap.rpt"
@@ -3300,7 +3884,18 @@ def bake_golden(task_dir: Path, pt_cmd: str, evidence_steps: int) -> None:
             _ra = "report_A_scenario_corner.rpt"
         else:
             _ra = "report_A_typ_test.rpt"
-        if _is_ab:
+        if _is_srb:
+            # v8: header label set depends on the variant (ambiguous -> op_point/mode; clear -> scenario/corner)
+            _amb = _truth.get("variant") == SRB_AMBIGUOUS
+            _lscn, _lcor = ("op_point", "mode") if _amb else ("scenario", "corner")
+            _hdr = (
+                "# %s -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
+                "# consumed_netlist=netlist_v2.v  clock=clk_main  %s=%s  %s=%s\n"
+                "# Right design (netlist_v2) + clock (clk_main); the role fields are SWAPPED (a corner value "
+                "in the %s slot; a scenario value in the %s slot). PrimeTime signs off green here; semantic-"
+                "role binding (C3+C4) is what rejects it.\n"
+                % (_ra, _lscn, _stale_sc, _lcor, _stale_co, _lscn, _lcor))
+        elif _is_ab:
             _hdr = (
                 "# %s -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n"
                 "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=%s  corner=%s\n"
@@ -3329,13 +3924,16 @@ if __name__ == "__main__":
                              "multi_conflict_partially_truthful_decoy",
                              "constraint_graph_multi_source_recovery",
                              "axis_binding_value_invention",
-                             "implicit_axis_binding"])
+                             "implicit_axis_binding",
+                             SRB_HAZARD])
     ap.add_argument("--hint-level", type=int, default=1)
+    ap.add_argument("--variant", default=None, choices=[None, SRB_AMBIGUOUS, SRB_CLEAR_CONTROL],
+                    help="semantic_role_binding_reproduction variant (0009=ambiguous, 0010=clear_control)")
     ap.add_argument("--bake", action="store_true", help="also run the chain to bake golden evidence")
     ap.add_argument("--pt-cmd", default=os.environ.get("EDA_PT_CMD", "pt_shell"))
     a = ap.parse_args()
     td = build_task_skeleton(Path(a.out), a.task_id, a.seed, a.evidence_steps,
-                             a.hazard_type, a.hint_level)
+                             a.hazard_type, a.hint_level, variant=a.variant)
     print("skeleton:", td)
     if a.bake:
         bake_golden(td, a.pt_cmd, a.evidence_steps)

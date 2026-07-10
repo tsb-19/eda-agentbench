@@ -22,15 +22,23 @@ sys.path.insert(0, str(REPO))
 from generators.p14_workflow_handoff_gen import build_task_skeleton, bake_golden  # noqa: E402
 
 TASKS = [
-    # (task_id, seed, evidence_steps, hazard_type)
-    ("workflow_handoff_0001", 0, 1, None),
-    ("workflow_handoff_0002", 0, 2, None),
-    ("workflow_handoff_0003", 0, 2, "cross_source_conflict"),   # p14 v2 hazard preset
-    ("workflow_handoff_0004", 0, 2, "scenario_corner_cross_source_conflict"),  # p14 v3 hazard preset
-    ("workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy"),  # p14 v4 hazard preset
-    ("workflow_handoff_0006", 0, 2, "constraint_graph_multi_source_recovery"),  # p14 v5 hazard preset
-    ("workflow_handoff_0007", 0, 2, "axis_binding_value_invention"),  # p14 v6 hazard preset
-    ("workflow_handoff_0008", 0, 2, "implicit_axis_binding"),  # p14 v7 hazard preset
+    # (task_id, seed, evidence_steps, hazard_type, variant)
+    ("workflow_handoff_0001", 0, 1, None, None),
+    ("workflow_handoff_0002", 0, 2, None, None),
+    ("workflow_handoff_0003", 0, 2, "cross_source_conflict", None),            # p14 v2 hazard preset
+    ("workflow_handoff_0004", 0, 2, "scenario_corner_cross_source_conflict", None),  # p14 v3
+    ("workflow_handoff_0005", 0, 2, "multi_conflict_partially_truthful_decoy", None),  # p14 v4
+    ("workflow_handoff_0006", 0, 2, "constraint_graph_multi_source_recovery", None),  # p14 v5
+    ("workflow_handoff_0007", 0, 2, "axis_binding_value_invention", None),     # p14 v6
+    ("workflow_handoff_0008", 0, 2, "implicit_axis_binding", None),            # p14 v7
+    # p14 v8: semantic-role-binding REPRODUCTION (controlled pair). ONE hazard_type, TWO variants passed
+    # explicitly (the schema requires numeric task_ids workflow_handoff_[0-9]{4}, so the variant is NOT
+    # encoded in the id). workflow_handoff_0009 = ambiguous (reproduce 0006); workflow_handoff_0010 =
+    # clear_control (negative control). Both share the identical hidden truth + byte-identical grader; they
+    # differ only in the visible clarity bundle (report-label semantics + inference anchors). This is a
+    # task-construction + acceptance phase, NOT a model probe.
+    ("workflow_handoff_0009", 0, 2, "semantic_role_binding_reproduction", "ambiguous"),       # reproduce 0006
+    ("workflow_handoff_0010", 0, 2, "semantic_role_binding_reproduction", "clear_control"),   # negative control
 ]
 
 
@@ -44,11 +52,11 @@ def main() -> int:
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     only = set(x for x in a.only.split(",") if x)
-    for task_id, seed, steps, hazard in TASKS:
+    for task_id, seed, steps, hazard, variant in TASKS:
         if only and task_id not in only:
             continue
-        td = build_task_skeleton(out, task_id, seed, steps, hazard_type=hazard)
-        print(f"built {task_id} (evidence_steps={steps}, hazard={hazard}) -> {td}")
+        td = build_task_skeleton(out, task_id, seed, steps, hazard_type=hazard, variant=variant)
+        print(f"built {task_id} (evidence_steps={steps}, hazard={hazard}, variant={variant}) -> {td}")
         if a.bake:
             bake_golden(td, a.pt_cmd, steps)
             print(f"  baked golden evidence for {task_id}")
