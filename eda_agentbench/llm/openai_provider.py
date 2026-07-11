@@ -16,6 +16,37 @@ from urllib.request import Request, urlopen
 from eda_agentbench.llm.base import BaseLLMProvider, LLMResponse
 
 
+# ---------------------------------------------------------------------------
+# Structured provider errors (dependency-free; used for type-aware retry
+# classification by callers' retry loops). These MUST stay RuntimeError-derived
+# with an "HTTP <code>" message prefix so existing message-string retry
+# classifiers (e.g. scripts/generate_model_submissions._is_retryable) keep
+# working unchanged. Network-layer exceptions (urllib.error.URLError,
+# socket.timeout/TimeoutError, ConnectionError) are NOT wrapped -- callers
+# classify them by type.
+# ---------------------------------------------------------------------------
+class ProviderError(RuntimeError):
+    """Base class for provider HTTP failures."""
+
+
+class ProviderHTTPError(ProviderError):
+    """A non-2xx HTTP response from the API. Carries ``status_code`` so callers
+    can classify retryability by status rather than by parsing the message."""
+
+    def __init__(self, status_code: int, detail: str = "", api_base: str = ""):
+        self.status_code = int(status_code)
+        # keep the "HTTP <code> from <base>: <detail>" shape for back-compat
+        super().__init__("HTTP %d from %s: %s" % (self.status_code, api_base, detail))
+
+
+# Default per-request timeout (seconds) for a single blocking socket operation in
+# urlopen. Callers SHOULD pass an explicit ``timeout`` kwarg (the agentic driver
+# resolves it from --request-timeout-sec / EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC).
+# NOTE: this is a per-blocking-operation urllib/socket timeout, NOT a guaranteed
+# strict total-request wall-clock deadline.
+DEFAULT_REQUEST_TIMEOUT_SEC = 300.0
+
+
 def _load_dotenv() -> None:
     """Load .env file into environment if not already set."""
     for candidate in [Path(".env"), Path.home() / ".env"]:
@@ -119,12 +150,18 @@ class OpenAIProvider(BaseLLMProvider):
             method="POST",
         )
 
+        # per-blocking-operation timeout (connect/read/write each bounded). NOT a strict
+        # total-request deadline. Callers' retry loop (_chat_with_retry) is the sole retry
+        # authority; this provider performs exactly ONE urlopen attempt per chat() call.
+        timeout = kwargs.get("timeout", DEFAULT_REQUEST_TIMEOUT_SEC)
         try:
-            with urlopen(req, timeout=kwargs.get("timeout", 300)) as resp:
+            with urlopen(req, timeout=timeout) as resp:
                 data = json.loads(resp.read())
         except HTTPError as e:
             detail = e.read().decode("utf-8", errors="replace")[:500]
-            raise RuntimeError(f"HTTP {e.code} from {self._api_base}: {detail}") from e
+            # structured error carrying status_code for type-aware retry classification;
+            # network-layer exceptions (URLError/socket.timeout/ConnectionError) propagate raw.
+            raise ProviderHTTPError(e.code, detail, self._api_base) from e
 
         choice = data["choices"][0]
         msg = choice.get("message", {})

@@ -29,17 +29,21 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import os
 import re
+import socket
 import subprocess
 import sys
 import time
+import urllib.error
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from scripts.generate_model_submissions import load_model_specs  # noqa: E402
+from eda_agentbench.llm.openai_provider import DEFAULT_REQUEST_TIMEOUT_SEC, ProviderHTTPError  # noqa: E402
 from eda_agentbench.reliability import parse_confidence  # noqa: E402
 
 # Agentic confidence elicitation (reliability pivot): asked on the FINISH message, parsed there.
@@ -62,20 +66,101 @@ def _provider_for(model_name: str, models_cfg: Path):
     raise SystemExit(f"model {model_name!r} not found in {models_cfg}")
 
 
+def _resolve_request_timeout(cli_val, env_val):
+    """Resolve the per-request timeout (seconds). Precedence: CLI > env > default.
+    Rejects zero/negative/non-numeric/non-finite with a clear error (before launch)."""
+    if cli_val is not None:
+        raw = cli_val
+    elif env_val:
+        raw = env_val
+    else:
+        return DEFAULT_REQUEST_TIMEOUT_SEC
+    try:
+        val = float(raw)
+    except (TypeError, ValueError):
+        raise SystemExit("--request-timeout-sec / EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC must be numeric, "
+                         "got %r" % (raw,))
+    if not math.isfinite(val) or val <= 0:
+        raise SystemExit("--request-timeout-sec / EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC must be a positive "
+                         "finite number, got %r" % (raw,))
+    return val
+
+
+# HTTP statuses that are conventionally transient and safe to retry. 409 (Conflict) is
+# NOT included -- it is usually deterministic rather than transient.
+_RETRYABLE_HTTP = frozenset({408, 429, 500, 502, 503, 504})
+
+
+def _classify_retryable(exc):
+    """Return (category, retryable) for a provider/network exception. Type-and-status based;
+    message-string matching is only a defensive fallback. Does not retry every OSError blindly."""
+    # timeout (socket.timeout is an alias of TimeoutError on 3.10+)
+    if isinstance(exc, (socket.timeout, TimeoutError)):
+        return "timeout", True
+    # urllib wraps network errors in URLError(.reason)
+    if isinstance(exc, urllib.error.URLError):
+        reason = getattr(exc, "reason", None)
+        if isinstance(reason, (socket.timeout, TimeoutError)):
+            return "timeout", True
+        if isinstance(reason, ConnectionError):  # ConnectionReset/Refused/Aborted/BrokenPipe
+            return "connection", True
+        return "other", False
+    # bare connection-layer failures (not wrapped by urllib)
+    if isinstance(exc, ConnectionError):
+        return "connection", True
+    # structured HTTP status from the provider
+    if isinstance(exc, ProviderHTTPError):
+        if exc.status_code in _RETRYABLE_HTTP:
+            return "retryable_http", True
+        return "non_retryable_http", False
+    # defensive message-string fallback (e.g. providers raising plain RuntimeErrors)
+    m = str(exc).lower()
+    if any(s in m for s in ("429", "overloaded", "timeout", "timed out", "502", "503", "504",
+                            "temporarily")):
+        return "other", True
+    return "other", False
+
+
+def _log_retry_attempt(attempt, elapsed, category, exc_class, status, next_delay, out=None):
+    """Sanitized per-attempt diagnostic. Logs NO secrets: only attempt index, elapsed seconds,
+    category, exception CLASS NAME (not the message -- it may carry a credential-bearing URL),
+    HTTP status where applicable, and the planned next retry delay. ``out`` resolves to sys.stderr
+    at call time so tests (capsys) can capture it."""
+    if out is None:
+        out = sys.stderr
+    try:
+        out.write("[llm_retry] attempt=%d elapsed=%.2fs category=%s exc=%s status=%s next_delay=%s\n"
+                  % (attempt, elapsed, category, exc_class,
+                     status if status is not None else "none",
+                     "%.2fs" % next_delay if next_delay is not None else "none"))
+        out.flush()
+    except Exception:  # noqa: BLE001 -- logging must never break the episode
+        pass
+
+
 def _chat_with_retry(provider, messages, gen_kwargs, retries=4):
     """Returns (response, n_retries) — n_retries counts transient-error reattempts (0 on first try),
-    so the reliability layer can report retry count as a cost/robustness signal."""
+    so the reliability layer can report retry count as a cost/robustness signal.
+
+    SINGLE RETRY AUTHORITY: this is the only retry loop. The dependency-free provider performs
+    exactly ONE urlopen attempt per chat() call, so each retry issues a fresh HTTP request (new
+    connection; urllib has no reused pool). Classification is type/status-based."""
     delay = 3.0
     for attempt in range(retries + 1):
+        t0 = time.time()
         try:
             return provider.chat(messages, **gen_kwargs), attempt
         except Exception as e:  # noqa: BLE001
-            m = str(e).lower()
-            transient = any(s in m for s in ("429", "http 5", "overloaded", "timeout",
-                                             "timed out", "temporarily", "502", "503"))
-            if attempt >= retries or not transient:
+            elapsed = time.time() - t0
+            category, retryable = _classify_retryable(e)
+            status = getattr(e, "status_code", None)
+            last = attempt >= retries
+            next_delay = None if (last or not retryable) else min(delay * (2 ** attempt), 45.0)
+            _log_retry_attempt(attempt=attempt, elapsed=elapsed, category=category,
+                               exc_class=type(e).__name__, status=status, next_delay=next_delay)
+            if last or not retryable:
                 raise
-            time.sleep(min(delay * (2 ** attempt), 45.0))
+            time.sleep(next_delay)
     raise RuntimeError("unreachable")
 
 
@@ -116,7 +201,15 @@ def main(argv=None) -> int:
                     help="Override the model's configured sampling temperature. Use temperature>0 "
                          "for reliability k-trials so identical inputs yield run-to-run variance.")
     ap.add_argument("--log", default=None, help="sidecar transcript+usage JSON")
+    ap.add_argument("--request-timeout-sec", default=None,
+                    help="Per-request blocking-socket timeout (seconds) for one model HTTP call. "
+                         "Precedence: this flag > EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC > default 300. "
+                         "NOT the whole-episode wall (that is EDA_TIMEOUT). Must be positive+finite.")
     args = ap.parse_args(argv)
+
+    # Resolve the per-request timeout (CLI > env > default); fail fast on bad values.
+    request_timeout = _resolve_request_timeout(
+        args.request_timeout_sec, os.environ.get("EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC"))
 
     workspace = Path(os.environ["EDA_WORKSPACE"]).resolve()
     task_path = Path(os.environ["EDA_TASK_PATH"])          # used HERE only, never shown
@@ -135,6 +228,9 @@ def main(argv=None) -> int:
     gen_kwargs.setdefault("max_tokens", 4096)
     if args.temperature is not None:
         gen_kwargs["temperature"] = args.temperature
+    # per-request blocking-socket timeout, threaded into provider.chat -> urlopen(timeout=...).
+    # NOT a process-global socket.setdefaulttimeout; scoped to this provider call only.
+    gen_kwargs["timeout"] = request_timeout
 
     system = (
         "You are an expert IC design engineer fixing a bug in a sandboxed workspace, "
