@@ -28,23 +28,32 @@ Invoked (by scripts/run_agentic_baseline.py) as:
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import os
 import re
+import signal
 import socket
 import subprocess
 import sys
 import time
 import urllib.error
 from pathlib import Path
+from urllib.parse import urlsplit
 
 REPO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(REPO))
 
 from scripts.generate_model_submissions import load_model_specs  # noqa: E402
-from eda_agentbench.llm.openai_provider import DEFAULT_REQUEST_TIMEOUT_SEC, ProviderHTTPError  # noqa: E402
+from eda_agentbench.llm.base import LLMResponse  # noqa: E402
+from eda_agentbench.llm.openai_provider import (  # noqa: E402
+    DEFAULT_REQUEST_DEADLINE_SEC, DEFAULT_REQUEST_TIMEOUT_SEC, ProviderHTTPError,
+)
 from eda_agentbench.reliability import parse_confidence  # noqa: E402
+
+# process-isolated request worker (one provider.chat() call per child; killed at the hard deadline)
+_REQUEST_WORKER = REPO / "scripts" / "_llm_request_worker.py"
 
 # Agentic confidence elicitation (reliability pivot): asked on the FINISH message, parsed there.
 _CONF_FINISH = (
@@ -138,30 +147,283 @@ def _log_retry_attempt(attempt, elapsed, category, exc_class, status, next_delay
         pass
 
 
-def _chat_with_retry(provider, messages, gen_kwargs, retries=4):
-    """Returns (response, n_retries) — n_retries counts transient-error reattempts (0 on first try),
-    so the reliability layer can report retry count as a cost/robustness signal.
+def _resolve_request_deadline(cli_val, env_val):
+    """Resolve the HARD total-request wall-clock deadline (seconds). Precedence: CLI > env > default.
+    Rejects zero/negative/non-numeric/non-finite with a clear error (before launch)."""
+    if cli_val is not None:
+        raw = cli_val
+    elif env_val:
+        raw = env_val
+    else:
+        return DEFAULT_REQUEST_DEADLINE_SEC
+    try:
+        val = float(raw)
+    except (TypeError, ValueError):
+        raise SystemExit("--request-deadline-sec / EDA_BENCH_LLM_REQUEST_DEADLINE_SEC must be numeric, "
+                         "got %r" % (raw,))
+    if not math.isfinite(val) or val <= 0:
+        raise SystemExit("--request-deadline-sec / EDA_BENCH_LLM_REQUEST_DEADLINE_SEC must be a positive "
+                         "finite number, got %r" % (raw,))
+    return val
 
-    SINGLE RETRY AUTHORITY: this is the only retry loop. The dependency-free provider performs
-    exactly ONE urlopen attempt per chat() call, so each retry issues a fresh HTTP request (new
-    connection; urllib has no reused pool). Classification is type/status-based."""
-    delay = 3.0
+
+def _resolve_max_chat_retries(cli_val, env_val, default=4):
+    """Resolve the max retry count (>= 0 integer). Precedence: CLI > env > default (4)."""
+    if cli_val is not None:
+        raw = cli_val
+    elif env_val:
+        raw = env_val
+    else:
+        return default
+    try:
+        val = int(raw)
+    except (TypeError, ValueError):
+        raise SystemExit("--max-chat-retries / EDA_BENCH_MAX_CHAT_RETRIES must be an integer, got %r" % (raw,))
+    if val < 0:
+        raise SystemExit("--max-chat-retries / EDA_BENCH_MAX_CHAT_RETRIES must be >= 0, got %r" % (raw,))
+    return val
+
+
+class _AttemptResult:
+    """Uniform per-attempt outcome for the single retry authority. Carries EITHER a success response
+    OR a structured error (category/retryable/status/original-exception-for-reraise). No secrets."""
+
+    __slots__ = ("success", "resp", "category", "retryable", "status", "exc", "exc_class",
+                 "termination", "worker_pid", "diag", "elapsed")
+
+    def __init__(self, *, success=False, resp=None, category=None, retryable=False, status=None,
+                 exc=None, exc_class=None, termination="normal_exit", worker_pid=None, diag=None,
+                 elapsed=0.0):
+        self.success = success
+        self.resp = resp
+        self.category = category
+        self.retryable = retryable
+        self.status = status
+        self.exc = exc            # original exception (for in-process reraise); None for isolated
+        self.exc_class = exc_class
+        self.termination = termination
+        self.worker_pid = worker_pid
+        self.diag = diag or {}
+        self.elapsed = elapsed
+
+
+def _backoff_delay(attempt):
+    return min(3.0 * (2 ** attempt), 45.0)
+
+
+def _retry_loop(attempt_fn, retries, on_attempt):
+    """THE single retry authority. attempt_fn() -> _AttemptResult per attempt (each a fresh request).
+    on_attempt(attempt, result, elapsed, next_delay) logs. Returns (resp, n_retries) or raises."""
     for attempt in range(retries + 1):
-        t0 = time.time()
+        t0 = time.monotonic()
+        res = attempt_fn()
+        elapsed = time.monotonic() - t0
+        last = attempt >= retries
+        next_delay = None if (last or res.success or not res.retryable) else _backoff_delay(attempt)
         try:
-            return provider.chat(messages, **gen_kwargs), attempt
-        except Exception as e:  # noqa: BLE001
-            elapsed = time.time() - t0
-            category, retryable = _classify_retryable(e)
-            status = getattr(e, "status_code", None)
-            last = attempt >= retries
-            next_delay = None if (last or not retryable) else min(delay * (2 ** attempt), 45.0)
-            _log_retry_attempt(attempt=attempt, elapsed=elapsed, category=category,
-                               exc_class=type(e).__name__, status=status, next_delay=next_delay)
-            if last or not retryable:
-                raise
-            time.sleep(next_delay)
+            on_attempt(attempt, res, elapsed, next_delay)
+        except Exception:  # noqa: BLE001 -- logging must never break the episode
+            pass
+        if res.success:
+            return res.resp, attempt
+        if last or not res.retryable:
+            if res.exc is not None:
+                raise res.exc
+            raise RuntimeError("chat attempt failed: category=%s exc=%s status=%s"
+                               % (res.category, res.exc_class, res.status))
+        time.sleep(next_delay)
     raise RuntimeError("unreachable")
+
+
+# ---------------- in-process attempt path (Phase-4U0 behavior; used by the in-process _chat_with_retry
+# and its unit tests; the production driver uses the isolated path below)
+def _attempt_in_process(provider, messages, gen_kwargs):
+    try:
+        resp = provider.chat(messages, **gen_kwargs)
+        return _AttemptResult(success=True, resp=resp)
+    except Exception as e:  # noqa: BLE001
+        category, retryable = _classify_retryable(e)
+        return _AttemptResult(category=category, retryable=retryable, status=getattr(e, "status_code", None),
+                              exc=e, exc_class=type(e).__name__)
+
+
+def _log_in_process(attempt, res, elapsed, next_delay, out=None):
+    cat = "success" if res.success else (res.category or "other")
+    _log_retry_attempt(attempt=attempt, elapsed=elapsed, category=cat,
+                       exc_class=res.exc_class or "none", status=res.status, next_delay=next_delay, out=out)
+
+
+def _chat_with_retry(provider, messages, gen_kwargs, retries=4):
+    """In-process retry (Phase-4U0 path): each attempt calls provider.chat directly with the
+    per-operation urlopen timeout. Kept for compatibility and unit tests; the production driver uses
+    _chat_with_retry_deadline (process-isolated hard deadline). _retry_loop is the single authority."""
+    return _retry_loop(lambda: _attempt_in_process(provider, messages, gen_kwargs), retries, _log_in_process)
+
+
+# ---------------- process-isolated attempt path with a HARD wall-clock deadline
+def _classify_worker_error(error_class, status):
+    """Classify a structured error reported by the isolated worker (by class name + HTTP status)."""
+    if error_class == "ProviderHTTPError" and status is not None:
+        return ("retryable_http" if status in _RETRYABLE_HTTP else "non_retryable_http",
+                status in _RETRYABLE_HTTP)
+    if error_class in ("TimeoutError", "socket.timeout"):
+        return "socket_timeout", True
+    if error_class in ("ConnectionResetError", "ConnectionAbortedError", "ConnectionRefusedError",
+                       "BrokenPipeError", "ConnectionError"):
+        return "connection", True
+    if error_class == "URLError":
+        return "connection", True
+    if error_class == "MissingApiKey":
+        return "non_retryable_http", False  # configuration error -- fail promptly
+    return "other", False
+
+
+def _safe_request_diagnostics(spec):
+    """Non-secret request diagnostics (help compare a healthy ping vs a stalled full request without
+    exposing content). Includes endpoint HOSTNAME (no credentials), message counts/lengths, max_tokens,
+    and a SHA-256 of the canonical request spec."""
+    msgs = spec.get("messages", []) or []
+    sys_chars = len(msgs[0].get("content", "")) if msgs and msgs[0].get("role") == "system" else 0
+    user_chars = sum(len(m.get("content", "")) for m in msgs if m.get("role") == "user")
+    host = urlsplit(spec.get("api_base", "")).hostname or ""
+    body = json.dumps(spec, sort_keys=True).encode()
+    return {"msg_count": len(msgs), "system_chars": sys_chars, "user_chars": user_chars,
+            "max_tokens": spec.get("gen_kwargs", {}).get("max_tokens"),
+            "body_bytes": len(body), "body_sha256": hashlib.sha256(body).hexdigest()[:12], "host": host}
+
+
+def _terminate_and_reap(proc, grace=2.0):
+    """Terminate the worker, then reap. Returns 'normal_exit' | 'terminate' | 'kill'.
+
+    PLATFORM: on POSIX the worker is started with start_new_session=True (so proc.pid is its process-
+    group leader); we kill the WHOLE group via os.killpg so no descendant can survive. On a non-POSIX
+    platform os.killpg/os.getpgid do not exist -- we fall back to terminating the worker process
+    directly (the dependency-free worker spawns no subprocess descendants of its own). This path is
+    therefore guarded (hasattr check) rather than silently assuming killpg is present."""
+    if hasattr(os, "killpg") and hasattr(os, "getpgid"):
+        try:
+            pgid = os.getpgid(proc.pid)
+        except ProcessLookupError:
+            return "normal_exit"
+        sig_action = "terminate"
+        try:
+            os.killpg(pgid, signal.SIGTERM)
+        except (ProcessLookupError, PermissionError):
+            try:
+                proc.terminate()
+            except ProcessLookupError:
+                pass
+        try:
+            proc.wait(timeout=grace)
+            return sig_action
+        except subprocess.TimeoutExpired:
+            try:
+                os.killpg(pgid, signal.SIGKILL)
+            except (ProcessLookupError, PermissionError):
+                try:
+                    proc.kill()
+                except ProcessLookupError:
+                    pass
+            try:
+                proc.wait(timeout=grace)
+            except subprocess.TimeoutExpired:
+                pass  # best-effort; extremely unlikely after SIGKILL
+            return "kill"
+    # non-POSIX fallback: terminate the worker process directly (no process groups available)
+    try:
+        proc.terminate()
+    except ProcessLookupError:
+        return "normal_exit"
+    try:
+        proc.wait(timeout=grace)
+        return "terminate"
+    except subprocess.TimeoutExpired:
+        try:
+            proc.kill()
+        except ProcessLookupError:
+            pass
+        try:
+            proc.wait(timeout=grace)
+        except subprocess.TimeoutExpired:
+            pass
+        return "kill"
+
+
+def _log_isolated_attempt(attempt, res, elapsed, next_delay, op_timeout, deadline, out=None):
+    """Sanitized per-attempt log for the isolated path. NO key/Authorization/prompt/body content.
+    Includes the safe diagnostics + termination action + deadlines."""
+    out = sys.stderr if out is None else out
+    cat = "success" if res.success else (res.category or "other")
+    d = res.diag or {}
+    line = (
+        "[llm_deadline] attempt=%d pid=%s elapsed=%.2fs op_timeout=%s deadline=%s category=%s "
+        "termination=%s status=%s msg_count=%s body_bytes=%s max_tokens=%s host=%s sha=%s next_delay=%s\n"
+        % (attempt, res.worker_pid if res.worker_pid is not None else "none", elapsed,
+           op_timeout, deadline, cat, res.termination,
+           res.status if res.status is not None else "none",
+           d.get("msg_count", "none"), d.get("body_bytes", "none"), d.get("max_tokens", "none"),
+           d.get("host", "none"), d.get("body_sha256", "none"),
+           "%.2fs" % next_delay if next_delay is not None else "none"))
+    try:
+        out.write(line)
+        out.flush()
+    except Exception:  # noqa: BLE001
+        pass
+
+
+def _attempt_isolated(provider, messages, gen_kwargs, request_deadline, op_timeout):
+    """Run ONE provider.chat in a separate child process, enforcing a HARD wall-clock deadline.
+    The API key is NEVER in argv/stdin/logs (the child reads it from inherited env). Each call is a
+    fresh worker + fresh urllib request."""
+    spec = {"api_base": provider.api_base, "model": provider.model,
+            "messages": messages, "gen_kwargs": {**gen_kwargs, "timeout": op_timeout}}
+    stdin_payload = (json.dumps(spec) + "\n").encode()
+    diag = _safe_request_diagnostics(spec)
+    # start_new_session puts the worker in its own POSIX session/process group so _terminate_and_reap
+    # can kill the whole group. It is a POSIX-only option; on non-POSIX we omit it (the worker has no
+    # subprocess descendants, so direct terminate/kill suffices there).
+    proc = subprocess.Popen([sys.executable, str(_REQUEST_WORKER)], stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            start_new_session=(os.name == "posix"), close_fds=True)
+    pid = proc.pid
+    t0 = time.monotonic()
+    try:
+        out, _err = proc.communicate(stdin_payload, timeout=request_deadline)
+    except subprocess.TimeoutExpired:
+        term = _terminate_and_reap(proc)
+        return _AttemptResult(category="hard_request_deadline", retryable=True, status=None,
+                              termination=term, worker_pid=pid, diag=diag,
+                              elapsed=time.monotonic() - t0)
+    # worker exited within the deadline -> parse its structured stdout
+    elapsed = time.monotonic() - t0
+    term = "normal_exit"
+    try:
+        obj = json.loads(out.decode("utf-8", errors="replace"))
+    except Exception:  # noqa: BLE001 -- no/invalid JSON -> crash or malformed
+        cat = "worker_crash" if proc.returncode != 0 else "malformed_worker_result"
+        return _AttemptResult(category=cat, retryable=True, status=None, termination=term,
+                              worker_pid=pid, diag=diag, elapsed=elapsed)
+    if obj.get("ok"):
+        resp = LLMResponse(text=obj.get("text", ""), model=obj.get("model", provider.model),
+                           usage=obj.get("usage", {}), metadata=obj.get("metadata", {}))
+        return _AttemptResult(success=True, resp=resp, termination=term, worker_pid=pid, diag=diag,
+                              elapsed=elapsed)
+    error_class = obj.get("error_class") or "Unknown"
+    status = obj.get("status_code")
+    category, retryable = _classify_worker_error(error_class, status)
+    return _AttemptResult(category=category, retryable=retryable, status=status,
+                          exc_class=error_class, termination=term, worker_pid=pid, diag=diag,
+                          elapsed=elapsed)
+
+
+def _chat_with_retry_deadline(provider, messages, gen_kwargs, request_deadline, op_timeout, retries):
+    """Production retry path: each attempt runs in a fresh isolated worker killed at the HARD deadline.
+    _retry_loop is the single retry authority; on_attempt logs the isolated-format diagnostics."""
+    def on_attempt(attempt, res, elapsed, next_delay):
+        _log_isolated_attempt(attempt, res, elapsed, next_delay, op_timeout, request_deadline)
+    return _retry_loop(
+        lambda: _attempt_isolated(provider, messages, gen_kwargs, request_deadline, op_timeout),
+        retries, on_attempt)
 
 
 def parse_action(text: str):
@@ -204,12 +466,30 @@ def main(argv=None) -> int:
     ap.add_argument("--request-timeout-sec", default=None,
                     help="Per-request blocking-socket timeout (seconds) for one model HTTP call. "
                          "Precedence: this flag > EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC > default 300. "
-                         "NOT the whole-episode wall (that is EDA_TIMEOUT). Must be positive+finite.")
+                         "Per-operation inactivity; NOT the whole-episode wall (EDA_TIMEOUT) and NOT "
+                         "the hard total deadline (--request-deadline-sec). Must be positive+finite.")
+    ap.add_argument("--request-deadline-sec", default=None,
+                    help="HARD total wall-clock deadline (seconds) for one model HTTP call, enforced "
+                         "by killing an isolated request worker. INDEPENDENT of socket activity (covers "
+                         "slow-drip stalls the per-operation timeout cannot interrupt). Precedence: "
+                         "this flag > EDA_BENCH_LLM_REQUEST_DEADLINE_SEC > default 300. Must be >= the "
+                         "operation timeout, positive, and finite.")
+    ap.add_argument("--max-chat-retries", default=None,
+                    help="Max retried chat attempts after the first (>= 0). Precedence: this flag > "
+                         "EDA_BENCH_MAX_CHAT_RETRIES > default 4. Phase-4U uses 1 (one initial + one retry).")
     args = ap.parse_args(argv)
 
     # Resolve the per-request timeout (CLI > env > default); fail fast on bad values.
     request_timeout = _resolve_request_timeout(
         args.request_timeout_sec, os.environ.get("EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC"))
+    # Resolve the HARD total-request deadline (CLI > env > default); fail fast on bad values.
+    request_deadline = _resolve_request_deadline(
+        args.request_deadline_sec, os.environ.get("EDA_BENCH_LLM_REQUEST_DEADLINE_SEC"))
+    if request_deadline < request_timeout:
+        raise SystemExit("--request-deadline-sec (%.1f) must be >= --request-timeout-sec (%.1f)"
+                         % (request_deadline, request_timeout))
+    max_chat_retries = _resolve_max_chat_retries(
+        args.max_chat_retries, os.environ.get("EDA_BENCH_MAX_CHAT_RETRIES"))
 
     workspace = Path(os.environ["EDA_WORKSPACE"]).resolve()
     task_path = Path(os.environ["EDA_TASK_PATH"])          # used HERE only, never shown
@@ -282,7 +562,8 @@ def main(argv=None) -> int:
             if time.time() > deadline:
                 log["actions"].append({"type": "deadline"})
                 break
-            resp, n_retry = _chat_with_retry(provider, messages, gen_kwargs)
+            resp, n_retry = _chat_with_retry_deadline(provider, messages, gen_kwargs,
+                                                      request_deadline, request_timeout, max_chat_retries)
             log["retries"] += n_retry
             for k in log["usage"]:
                 log["usage"][k] += (resp.usage or {}).get(k, 0)

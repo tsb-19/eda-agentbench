@@ -46,6 +46,11 @@ class ProviderHTTPError(ProviderError):
 # strict total-request wall-clock deadline.
 DEFAULT_REQUEST_TIMEOUT_SEC = 300.0
 
+# Default HARD total-request wall-clock deadline (seconds) the agentic driver enforces by killing the
+# isolated request worker. This is INDEPENDENT of socket activity (covers slow-drip stalls that evade
+# the per-operation timeout above). Resolved from --request-deadline-sec / EDA_BENCH_LLM_REQUEST_DEADLINE_SEC.
+DEFAULT_REQUEST_DEADLINE_SEC = 300.0
+
 
 def _load_dotenv() -> None:
     """Load .env file into environment if not already set."""
@@ -104,6 +109,12 @@ class OpenAIProvider(BaseLLMProvider):
     @property
     def model(self) -> str:
         return self._model
+
+    @property
+    def api_base(self) -> str:
+        # read-only endpoint URL (no credentials) -- used to hand the non-secret endpoint to a
+        # process-isolated request worker without passing the API key.
+        return self._api_base
 
     def generate(self, prompt: str, system: str = "", **kwargs: Any) -> LLMResponse:
         """Generate text via OpenAI-compatible API.
