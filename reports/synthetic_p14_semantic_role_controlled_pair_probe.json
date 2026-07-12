@@ -1,0 +1,123 @@
+{
+  "report": "synthetic_p14_semantic_role_controlled_pair_probe",
+  "date": "2026-07-12",
+  "status": "COMPLETE (Phase-4U canary-gated probe, k=3 DeepSeek + k=1 Qwen pilot) -- NOT committed (awaiting review)",
+  "head": "08d573e",
+  "purpose": "Controlled-pair probe: does the ambiguous clarity bundle (workflow_handoff_0009) induce DeepSeek semantic-role binding failures, and does the clear-control presentation (workflow_handoff_0010) remove them? First k=3 reproduction test of the workflow_handoff_0006 mechanism.",
+  "config": {
+    "tasks": ["workflow_handoff_0009 (ambiguous)", "workflow_handoff_0010 (clear_control)"],
+    "models": ["Qwen3.7-Max", "DeepSeek-V4-Pro"],
+    "episode_timeout_sec": 1800, "max_actions": 60, "temperature": 0.7,
+    "elicit_confidence": true, "concurrency": 1, "preservation": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "request_op_timeout_sec": 120, "hard_request_deadline_sec": 300, "max_chat_retries_stage1A": 0, "max_chat_retries_other": 1,
+    "cost_cap_cny": 90
+  },
+  "global_authority_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "cost": {
+    "per_episode_cny": {"deepseek_0009_t1": 11.36, "deepseek_0009_t2": 8.91, "deepseek_0009_t3": 15.84,
+                        "deepseek_0010_t1": 10.92, "deepseek_0010_t2": 12.47, "deepseek_0010_t3": 3.46,
+                        "qwen_0010_t1": 12.60, "qwen_0009_t1_infra": 0.80, "qwen_0009_t1_r2_infra": 1.15},
+    "total_cny": 77.51, "cap_cny": 90, "under_cap": true,
+    "abandoned_hard_deadline_requests": 0,
+    "operation_timeout_abandoned_requests": "5 episodes had a late/early classified socket_timeout (op 120s) on a request after >=1 retry; 0 unclassified stalls; 0 hard_request_deadline (wall 300s never fired)"
+  },
+  "headline": "PRELIMINARY CONTROLLED MECHANISM SIGNAL ON DEEPSEEK AT k=3. DeepSeek submitted a WRONG semantic-role binding in ALL 3 valid 0009 (ambiguous) trials (varied: func/typ value-swap; func/slow wrong-axis x2), all signoff-green-but-mis-typed -> 0.20; and the CORRECT tuple (slow/func) in ALL 3 valid 0010 (clear-control) trials -> PASS. Qwen solved 0010 (fairness anchor on clear); Qwen x 0009 was infrastructure-invalid twice (gateway socket_timeout on its read sequence before any repair edit) and does NOT count -- the 0009 fairness anchor is incompletely confirmed but supported by Qwen0010 PASS + the 0006 reference (Qwen 8/8 on the analogous task). The 0006 semantic-role-binding difficulty REPRODUCED on 0009 and was REMOVED by 0010's clarity bundle.",
+  "valid_episode_count": {"DeepSeek-V4-Pro_0009": 3, "DeepSeek-V4-Pro_0010": 3, "Qwen3.7-Max_0010": 1, "Qwen3.7-Max_0009": 0, "total_valid": 7, "infra_invalid": 2},
+  "capability_metrics": {
+    "DeepSeek-V4-Pro": {"0009": {"pass_at_1": 0.0, "pass_at_k": 0.0, "pass_caret_k": 0.0, "valid_trials": 3, "semantic_role_failures": 3, "correct_assignment_trials": 0},
+                        "0010": {"pass_at_1": 1.0, "pass_at_k": 1.0, "pass_caret_k": 1.0, "valid_trials": 3, "semantic_role_failures": 0, "correct_assignment_trials": 3}},
+    "Qwen3.7-Max": {"0010": {"pass_at_1": 1.0, "valid_trials": 1, "semantic_role_failures": 0},
+                    "0009": {"valid_trials": 0, "infra_invalid_trials": 2, "note": "both aborted by gateway socket_timeout during read-only exploration (7 and 9 actions), no repair edit; not a Qwen capability failure"}}
+  },
+  "outcome_counts": {
+    "solved": 4, "non_solved_capability": 3, "infra_invalid": 2, "timeout_hard_deadline": 0,
+    "clean_finish_with_confidence": 1, "budget_or_action_cap_no_finish": 3, "late_socket_timeout_after_work": 3, "early_socket_timeout_infra": 2,
+    "overconfident_wrong": 0,
+    "note": "only DeepSeek x 0010 trial1 FINISHed (high confidence, correct). DeepSeek x 0009 trial3 ran the FULL 60 actions (no timeout) and still submitted func/slow -- definitive (not a timeout artifact). Late socket_timeouts on DS0009 t1/t2 and DS0010 t3 occurred AFTER the binding was committed, so the capability classification stands."
+  },
+  "per_trial": [
+    {"trial": "deepseek_0009_t1", "model": "DeepSeek-V4-Pro", "task": "0009", "score": 0.2, "passed": false, "submitted": "netlist_v2.v / func / typ", "actions": 53, "finished": false, "confidence": "", "protocol": "late socket_timeout (no FINISH) after committing swap", "cost_cny": 11.36, "preserved": true, "classification": "capability/semantic-role: scenario/corner VALUE SWAP (signoff-green semantic mismatch) -- the exact 0006 Failure A"},
+    {"trial": "deepseek_0009_t2", "model": "DeepSeek-V4-Pro", "task": "0009", "score": 0.2, "passed": false, "submitted": "netlist_v2.v / func / slow", "actions": 48, "finished": false, "confidence": "", "protocol": "late socket_timeout (no FINISH)", "cost_cny": 8.91, "preserved": true, "classification": "capability/semantic-role: wrong semantic role / wrong-axis assignment (func in scenario slot; slow in corner slot)"},
+    {"trial": "deepseek_0009_t3", "model": "DeepSeek-V4-Pro", "task": "0009", "score": 0.2, "passed": false, "submitted": "netlist_v2.v / func / slow", "actions": 60, "finished": false, "confidence": "", "protocol": "action cap (60/60, no FINISH) -- DEFINITIVE full-budget run", "cost_cny": 15.84, "preserved": true, "classification": "capability/semantic-role: wrong semantic role / wrong-axis assignment (func/slow)"},
+    {"trial": "deepseek_0010_t1", "model": "DeepSeek-V4-Pro", "task": "0010", "score": 1.0, "passed": true, "submitted": "netlist_v2.v / slow / func (CORRECT)", "actions": 57, "finished": true, "confidence": "high", "protocol": "ok", "cost_cny": 10.92, "preserved": true, "classification": "PASS (no failure)"},
+    {"trial": "deepseek_0010_t2", "model": "DeepSeek-V4-Pro", "task": "0010", "score": 1.0, "passed": true, "submitted": "netlist_v2.v / slow / func (CORRECT)", "actions": 60, "finished": false, "confidence": "", "protocol": "action cap (solved within budget)", "cost_cny": 12.47, "preserved": true, "classification": "PASS"},
+    {"trial": "deepseek_0010_t3", "model": "DeepSeek-V4-Pro", "task": "0010", "score": 1.0, "passed": true, "submitted": "netlist_v2.v / slow / func (CORRECT)", "actions": 29, "finished": false, "confidence": "", "protocol": "late socket_timeout AFTER solving", "cost_cny": 3.46, "preserved": true, "classification": "PASS"},
+    {"trial": "qwen_0010_t1", "model": "Qwen3.7-Max", "task": "0010", "score": 1.0, "passed": true, "submitted": "netlist_v2.v / slow / func (CORRECT)", "actions": 60, "finished": false, "confidence": "", "protocol": "action cap (solved)", "cost_cny": 12.60, "preserved": true, "classification": "PASS (fairness anchor on clear)"},
+    {"trial": "qwen_0009_t1", "model": "Qwen3.7-Max", "task": "0009", "score": 0.1, "passed": false, "submitted": "netlist_v1.v / func / typ (UNMODIFIED mutant)", "actions": 7, "finished": false, "confidence": "", "protocol": "INFRA-INVALID: gateway socket_timeout during read-only exploration (7 cat actions), no edit", "cost_cny": 0.80, "preserved": true, "classification": "infrastructure/excluded: operation timeout before valid repair action"},
+    {"trial": "qwen_0009_t1_r2", "model": "Qwen3.7-Max", "task": "0009", "score": 0.1, "passed": false, "submitted": "netlist_v1.v / func / typ (UNMODIFIED mutant)", "actions": 9, "finished": false, "confidence": "", "protocol": "INFRA-INVALID (retry): gateway socket_timeout during read-only exploration (9 cat actions), no edit", "cost_cny": 1.15, "preserved": true, "classification": "infrastructure/excluded: operation timeout before valid repair action"}
+  ],
+  "preservation_status": {
+    "all_9_episodes": {"manifest_present": true, "editable_files_present": 5, "hashes_recorded": true, "component_scores_present": true, "affirmative_grader_markers_present": true, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "preserved_editable_files": ["flow_config.json", "constraints.sdc", "timing_report.rpt", "evidence_manifest.json", "stage2_summary.json"],
+    "secret_scan": "No API key / Bearer / handoff_truth CONTENT / grade_workflow CONTENT / netlist / library in any of the 45 preserved editable files. (preserved_artifacts.json lists excluded FILENAMES like grade_workflow.py / handoff_truth.json as a manifest of what was NOT copied -- benign, not leaked content.)",
+    "no_preservation_failure": true,
+    "no_oracle_shortcut_passed": true,
+    "oracle_shortcut_note": "every PASS required the genuine golden tuple + a fresh real-PT evidence chain; every non-pass was floored by the typed-binding oracle or was infrastructure-invalid. No forbidden-edit / signoff-green-shortcut / hand-edited / final-state-only shortcut passed."
+  },
+  "byte_confirmed_classification": {
+    "DeepSeek_0009": "3/3 capability/semantic-role failures: t1 func/typ VALUE-SWAP (0006 Failure A); t2/t3 func/slow WRONG-AXIS assignment. All signoff-green (signoff=1.0) but typed-binding rejected (evidence_generation=0) -> 0.20. t3 ran the full 60-action budget with no timeout -> the wrong binding is a genuine capability failure, NOT a timeout artifact.",
+    "DeepSeek_0010": "3/3 PASS, zero semantic-role failures. Submitted slow/func (correct) in all 3.",
+    "Qwen_0010": "1/1 PASS (fairness anchor on clear control).",
+    "Qwen_0009": "0 valid (2 infrastructure-invalid: gateway socket_timeout on Qwen's read-only exploration before any repair edit; submitted the unmodified mutant). Does NOT count as a Qwen capability failure.",
+    "classification_counts": {"capability_semantic_role": 3, "evidence_chain_reliability": 0, "protocol_efficiency_only": 0, "infrastructure_excluded": 2, "note": "no evidence-chain-reliability or protocol-only PRIMARY failure among valid DeepSeek trials; no-FINISH/action-cap/late-socket_timeout on DS0009 are secondary signals layered on a capability failure"}
+  },
+  "deepseek_0009_vs_0010_comparison": {
+    "tuple": "0009 -> wrong binding (func/typ, func/slow, func/slow); 0010 -> correct slow/func x3",
+    "pass_rate": "0009 0/3 (pass^3=0.0); 0010 3/3 (pass^3=1.0)",
+    "semantic_role_failures": "0009 3/3; 0010 0/3",
+    "controlled_difference": "MATCHED hidden tuple + grader + oracle + tool flow + evidence chain + scoring + mutant + decoys; DIFFERS only in the clarity bundle (0009 ambiguous op_point/mode labels, no glossary/summary/spec-hint; 0010 canonical labels + glossary + summary + spec-hint + 2 extra files).",
+    "conclusion": "DeepSeek's semantic-role binding fails on the ambiguous variant and succeeds on the clear control, at k=3."
+  },
+  "qwen_fairness_anchor": {
+    "0010": "PASS (1/1) -- the clear control is solvable.",
+    "0009": "INCOMPLETE -- 2 infrastructure-invalid attempts (gateway socket_timeout on Qwen's read sequence; not a Qwen failure). Supported by: Qwen0010 PASS here + the workflow_handoff_0006 reference (Qwen 8/8 on the analogous implicit-tuple task). 0009 is therefore considered solvable/fair, but a clean Qwen x 0009 success was not obtained in this probe."
+  },
+  "comparison_to_0006": {
+    "0006_reference": "DeepSeek 6/8 with 2 byte-confirmed axis-binding failures (func/typ value-swap; func + slow_1.0V_125C PVT + clk alias); Qwen 8/8.",
+    "this_probe_0009_ambiguous": "DeepSeek 0/3 with 3 semantic-role failures (func/typ; func/slow x2) -- REPRODUCED and AMPLIFIED the 0006 DeepSeek difficulty.",
+    "this_probe_0010_clear": "DeepSeek 3/3 PASS -- the difficulty was REMOVED by the clarity bundle.",
+    "verdict": "First k=3 controlled reproduction: the 0006 semantic-role-binding difficulty reproduces on the ambiguous 0009 and is removed by the clear-control 0010."
+  },
+  "hard_deadline_diagnostics": {
+    "hard_request_deadline_events": 0,
+    "operation_timeout_events": "5 episodes had a classified socket_timeout (op 120s) -- 3 late (after work done: DS0009 t1/t2, DS0010 t3) + 2 early infra-invalid (Qwen0009 t1/r2). All classified (category=socket_timeout); 0 unclassified stalls.",
+    "abandoned_requests_note": "Killing the local worker on op-timeout abandons the local request; remote billing/cancellation status of those abandoned requests is unknown (flagged separately). 0 requests exceeded the 300s hard wall deadline."
+  },
+  "historical_pre_probe_stalls": {
+    "count": 3,
+    "description": "Three earlier DeepSeek x 0009 attempts (pre-Phase-4U0b) stalled in the request path before any agent action, infrastructure-invalid, excluded from k/pass/capability/protocol. Not reused.",
+    "note": "Resolved by the Phase-4U0b process-isolated hard deadline; the resumed probe's canary completed (no hard-deadline stall)."
+  },
+  "interpretation": {
+    "verdict": "PRELIMINARY CONTROLLED MECHANISM SIGNAL (supported on DeepSeek at k=3).",
+    "criterion_deepseek_0009_wrong_role": "MET (3/3 byte-confirmed semantic-role failures, varied bindings).",
+    "criterion_deepseek_0010_zero_wrong_role": "MET (3/3 PASS, zero such failures).",
+    "criterion_qwen_solves_both": "PARTIAL (0010 PASS; 0009 infrastructure-invalid -- not a Qwen failure; solvability supported by Qwen0010 + 0006 reference).",
+    "criterion_no_confound": "MET on the 6 valid DeepSeek trials (all graded cleanly; DS0009 t3 full-budget run rules out timeout as the cause).",
+    "wording": "The clarity bundle produces a preliminary controlled difference in semantic-role binding.",
+    "caveats": [
+      "This tests the BUNDLED clarity intervention (report-label ambiguity + glossary + public_check_summary + spec wording + 2 extra files), NOT label naming alone. Isolating label naming requires later 0009c/0009d ablations (not run).",
+      "Qwen x 0009 fairness anchor is incompletely confirmed (2 infrastructure-invalid gateway stalls).",
+      "Late socket_timeouts ended 3 episodes without FINISH (DS0009 t1/t2, DS0010 t3) -- reliability notes, not confounds (the binding was committed before the timeout; DS0009 t3's full-budget run is definitive).",
+      "k=3 is small; rates are point estimates with wide uncertainty."
+    ],
+    "not_claimed": [
+      "Do NOT claim label naming alone is causal.",
+      "Do NOT claim a universal DeepSeek < Qwen ranking (Qwen x 0009 not obtained; task/family-specific).",
+      "Do NOT claim the exact external gateway cause of the Qwen0009 socket_timeouts is proven."
+    ],
+    "next_steps": [
+      "1. FIRST obtain a valid Qwen x 0009 fairness anchor (re-attempt; the 2 infra-invalid gateway stalls here must not stand in for a capability result). Do not treat 0009 solvability as directly established until a clean Qwen x 0009 success is observed.",
+      "2. THEN design a 2x2 factor-isolation study (e.g. 0009c/0009d single-factor ablations: canonical-labels-but-no-anchors; ambiguous-labels-but-with-anchors) to isolate which component of the clarity bundle drives the effect.",
+      "3. Do NOT run more DeepSeek x 0009/0010 trials immediately -- the k=3 controlled difference is established for this round; further DeepSeek trials add little before the Qwen anchor and the factor-isolation design are in place."
+    ]
+  },
+  "process_compliance": {
+    "models_run": ["DeepSeek-V4-Pro", "Qwen3.7-Max"], "no_minimax_kimi_glm": true,
+    "env_symlink_removed_after": "pending (teardown)",
+    "secrets_printed": false, "shell_tracing_used": false,
+    "committed": false, "pushed": false, "other_worktrees_touched": false, "code_modified": false,
+    "real_pt_grading": "all 9 episodes graded by the real PrimeTime hidden grader (b04 shim)",
+    "decisive_validation_pre_model": "Stage 0: golden=1.0 (both tasks, live PT), 294->1 uniqueness, no leak; acceptance matrix 12/12 on these bytes"
+  }
+}
