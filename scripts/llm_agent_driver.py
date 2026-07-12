@@ -48,7 +48,8 @@ sys.path.insert(0, str(REPO))
 from scripts.generate_model_submissions import load_model_specs  # noqa: E402
 from eda_agentbench.llm.base import LLMResponse  # noqa: E402
 from eda_agentbench.llm.openai_provider import (  # noqa: E402
-    DEFAULT_REQUEST_DEADLINE_SEC, DEFAULT_REQUEST_TIMEOUT_SEC, ProviderHTTPError,
+    DEFAULT_REQUEST_DEADLINE_SEC, DEFAULT_REQUEST_TIMEOUT_SEC, ProviderHTTPError, StreamIncomplete,
+    StreamMalformed,
 )
 from eda_agentbench.reliability import parse_confidence  # noqa: E402
 
@@ -122,6 +123,14 @@ def _classify_retryable(exc):
         if exc.status_code in _RETRYABLE_HTTP:
             return "retryable_http", True
         return "non_retryable_http", False
+    # streaming logical failures (no inner streaming retry loop; the single _retry_loop retries by
+    # issuing a fresh process worker + fresh HTTP request). incomplete_stream = the stream ended
+    # without a valid final answer (reasoning-only EOF, premature EOF, no finish/[DONE]);
+    # malformed_stream = an SSE data line was not valid JSON. Both are bounded by max_chat_retries.
+    if isinstance(exc, StreamIncomplete):
+        return "incomplete_stream", True
+    if isinstance(exc, StreamMalformed):
+        return "malformed_stream", True
     # defensive message-string fallback (e.g. providers raising plain RuntimeErrors)
     m = str(exc).lower()
     if any(s in m for s in ("429", "overloaded", "timeout", "timed out", "502", "503", "504",
@@ -182,6 +191,31 @@ def _resolve_max_chat_retries(cli_val, env_val, default=4):
     if val < 0:
         raise SystemExit("--max-chat-retries / EDA_BENCH_MAX_CHAT_RETRIES must be >= 0, got %r" % (raw,))
     return val
+
+
+# Accepted opt-in values for the streaming flag (case-insensitive). Streaming is an EXPLICIT opt-in;
+# the driver NEVER enables it from the model name.
+_STREAM_TRUE = frozenset({"1", "true", "yes", "on"})
+_STREAM_FALSE = frozenset({"0", "false", "no", "off"})
+
+
+def _resolve_stream_flag(cli_val, env_val):
+    """Resolve the SSE streaming opt-in (default False). Precedence: CLI > env > default.
+    Accepts 1/true/yes/on (True) and 0/false/no/off (False), case-insensitive; any other value is
+    rejected before launch with a clear error. Streaming is never auto-enabled from the model name."""
+    if cli_val is not None:
+        raw = cli_val
+    elif env_val not in (None, ""):
+        raw = env_val
+    else:
+        return False
+    r = str(raw).strip().lower()
+    if r in _STREAM_TRUE:
+        return True
+    if r in _STREAM_FALSE:
+        return False
+    raise SystemExit("--stream-responses / EDA_BENCH_STREAM_RESPONSES must be one of "
+                     "1/true/yes/on or 0/false/no/off, got %r" % (raw,))
 
 
 class _AttemptResult:
@@ -266,6 +300,10 @@ def _classify_worker_error(error_class, status):
     if error_class == "ProviderHTTPError" and status is not None:
         return ("retryable_http" if status in _RETRYABLE_HTTP else "non_retryable_http",
                 status in _RETRYABLE_HTTP)
+    if error_class == "StreamIncomplete":
+        return "incomplete_stream", True
+    if error_class == "StreamMalformed":
+        return "malformed_stream", True
     if error_class in ("TimeoutError", "socket.timeout"):
         return "socket_timeout", True
     if error_class in ("ConnectionResetError", "ConnectionAbortedError", "ConnectionRefusedError",
@@ -477,6 +515,13 @@ def main(argv=None) -> int:
     ap.add_argument("--max-chat-retries", default=None,
                     help="Max retried chat attempts after the first (>= 0). Precedence: this flag > "
                          "EDA_BENCH_MAX_CHAT_RETRIES > default 4. Phase-4U uses 1 (one initial + one retry).")
+    ap.add_argument("--stream-responses", nargs="?", const="1", default=None,
+                    help="Enable dependency-free SSE streaming for model responses (opt-in). With no "
+                         "value or a true value (1/true/yes/on) streaming is enabled; a false value "
+                         "(0/false/no/off) disables it. Precedence: this flag > "
+                         "EDA_BENCH_STREAM_RESPONSES > default off. Streaming receives incremental "
+                         "tokens during long reasoning so a long-thinking response is not censored by "
+                         "the per-operation socket timeout. Never auto-enabled from the model name.")
     args = ap.parse_args(argv)
 
     # Resolve the per-request timeout (CLI > env > default); fail fast on bad values.
@@ -490,6 +535,10 @@ def main(argv=None) -> int:
                          % (request_deadline, request_timeout))
     max_chat_retries = _resolve_max_chat_retries(
         args.max_chat_retries, os.environ.get("EDA_BENCH_MAX_CHAT_RETRIES"))
+    # SSE streaming opt-in (CLI > env > default False). When enabled, gen_kwargs["stream"]=True is
+    # threaded through the isolated worker into provider.chat, which adds "stream":true +
+    # stream_options.include_usage to the request body and reads the SSE body incrementally.
+    stream = _resolve_stream_flag(args.stream_responses, os.environ.get("EDA_BENCH_STREAM_RESPONSES"))
 
     workspace = Path(os.environ["EDA_WORKSPACE"]).resolve()
     task_path = Path(os.environ["EDA_TASK_PATH"])          # used HERE only, never shown
@@ -511,6 +560,9 @@ def main(argv=None) -> int:
     # per-request blocking-socket timeout, threaded into provider.chat -> urlopen(timeout=...).
     # NOT a process-global socket.setdefaulttimeout; scoped to this provider call only.
     gen_kwargs["timeout"] = request_timeout
+    if stream:
+        # opt-in SSE streaming; threaded through the isolated worker into provider.chat.
+        gen_kwargs["stream"] = True
 
     system = (
         "You are an expert IC design engineer fixing a bug in a sandboxed workspace, "

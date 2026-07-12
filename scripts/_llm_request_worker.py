@@ -20,6 +20,7 @@ full error message text (only its length, so the parent can log diagnostics with
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import sys
@@ -56,6 +57,24 @@ def _emit(obj: dict) -> None:
     sys.stdout.flush()
 
 
+def _sanitize_metadata(meta):
+    """Strip RAW reasoning content from the IPC payload (Phase-4V0 sec.8: the worker output must
+    never carry raw reasoning). Keeps finish_reason + the safe streaming diagnostics (counts/hash
+    only); replaces reasoning_content with reasoning_chars + a 12-char sha256. Applied to BOTH the
+    streaming and non-streaming paths so the IPC boundary never relays chain-of-thought text. The
+    provider's own LLMResponse.metadata contract (which DOES carry reasoning_content) is unchanged --
+    only the worker's stdout copy is redacted."""
+    out = dict(meta or {})
+    rc = out.pop("reasoning_content", None)
+    if rc:
+        try:
+            out["reasoning_chars"] = len(rc)
+            out["reasoning_sha256"] = hashlib.sha256(rc.encode("utf-8", "ignore")).hexdigest()[:12]
+        except Exception:  # noqa: BLE001 -- never fail the IPC over a diagnostic
+            pass
+    return out
+
+
 def main() -> int:
     try:
         payload = json.load(sys.stdin)
@@ -86,13 +105,14 @@ def main() -> int:
         return 0
 
     # success -- mirror exactly the fields the driver consumes (resp.text / resp.usage). Never echo
-    # the key, the Authorization header, or the request payload.
+    # the key, the Authorization header, or the request payload, and never relay raw reasoning content
+    # (sanitized to counts/hash so the parent can log stream diagnostics without leaking CoT).
     _emit({
         "ok": True,
         "text": resp.text or "",
         "model": resp.model or model,
         "usage": dict(resp.usage or {}),
-        "metadata": dict(resp.metadata or {}),
+        "metadata": _sanitize_metadata(resp.metadata),
     })
     return 0
 
