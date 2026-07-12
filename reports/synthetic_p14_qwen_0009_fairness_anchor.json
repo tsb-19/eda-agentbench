@@ -1,0 +1,74 @@
+{
+  "report": "synthetic_p14_qwen_0009_fairness_anchor",
+  "date": "2026-07-12",
+  "status": "COMPLETE -- Qwen x 0009 fairness anchor UNRESOLVED (measurement-invalid). NOT committed (awaiting review).",
+  "head": "d821d34",
+  "purpose": "Obtain one valid, preserved, gradeable Qwen3.7-Max x workflow_handoff_0009 episode to confirm 0009 is directly solvable by the fairness-anchor model (the missing piece from the Phase-4U controlled-pair result).",
+  "config": {
+    "model": "Qwen3.7-Max", "task": "workflow_handoff_0009",
+    "episode_timeout_sec": 1800, "max_actions": 60, "temperature": 0.7, "elicit_confidence": true,
+    "concurrency": 1, "preservation": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "request_op_timeout_sec": 120, "hard_request_deadline_sec": 300, "max_chat_retries": 1,
+    "cost_cap_cny": 20,
+    "transport": "non-streaming Chat Completions (urllib) -- the client returns only after the FULL reasoning+answer is generated; no incremental tokens are received during generation"
+  },
+  "headline": "NO VALID Qwen x 0009 EPISODE OBTAINED. Both Phase-4V attempts are MEASUREMENT-INVALID due to non-streaming long-reasoning transport censoring: Qwen3.7-Max has thinking enabled by default; the attempts accumulated ~20K-29K reasoning tokens; the current non-streaming Chat Completions request returns only after the complete reasoning+answer; the 120-second urllib blocking-operation timeout fired during that long thinking before any repair action was returned. The observed socket_timeouts MAY therefore be legitimate long-thinking latency censored by the client transport policy, NOT a gateway defect (exact external cause UNPROVEN). Both attempts performed read-only exploration and issued NO WRITE; both ended on the unchanged mutant. This is a MEASUREMENT failure, NOT a Qwen capability failure. The Qwen x 0009 fairness anchor REMAINS UNRESOLVED. The Phase-4U preliminary controlled-mechanism signal stands unchanged.",
+  "classification": "measurement-invalid due to non-streaming long-reasoning transport censoring",
+  "valid_episode_count": 0,
+  "measurement_invalid_count_phase4v": 2,
+  "total_qwen_0009_invalid_across_phases": 4,
+  "attempts": [
+    {"trial": "trial1", "outcome": "measurement_invalid", "actions": 8, "edited": [], "error": "RuntimeError: chat attempt failed: category=socket_timeout exc=TimeoutError", "submitted": "netlist_v1.v / func / typ (UNCHANGED MUTANT -- not a Qwen semantic-role hypothesis)", "score": 0.10, "cost_cny": 1.18, "reasoning_tokens": 20512, "classification": "measurement-invalid due to non-streaming long-reasoning transport censoring", "preserved": true, "secrets_excluded": true},
+    {"trial": "trial1_retry1", "outcome": "measurement_invalid", "actions": 12, "edited": [], "error": "RuntimeError: chat attempt failed: category=socket_timeout exc=TimeoutError", "submitted": "netlist_v1.v / func / typ (UNCHANGED MUTANT -- not a Qwen semantic-role hypothesis)", "score": 0.18, "cost_cny": 1.79, "reasoning_tokens": 29153, "classification": "measurement-invalid due to non-streaming long-reasoning transport censoring", "preserved": true, "secrets_excluded": true}
+  ],
+  "cost": {"trial1_cny": 1.18, "trial1_retry1_cny": 1.79, "total_cny": 2.97, "cap_cny": 20, "under_cap": true},
+  "transport_and_timeout_analysis": {
+    "transport": "non-streaming Chat Completions via urllib (the dependency-free provider posts one request and reads one response)",
+    "non_streaming_implication": "the client receives NO tokens until the model finishes generating the complete reasoning chain + answer; a long reasoning generation produces no network activity on the client socket during generation",
+    "qwen_reasoning_tokens": "approximately 20K (trial1) and 29K (trial1_retry1) reasoning_tokens -- Qwen3.7-Max has thinking enabled by default and reasons extensively on 0009's ambiguous content",
+    "operation_timeout_sec": 120,
+    "censoring_mechanism": "the 120-second urllib blocking-operation timeout may fire during the long-thinking interval (no bytes received while the model reasons), censoring a response that may have been legitimately in progress. The exact gateway-side behavior (whether the gateway was actively generating, slow-dripping, or stalled) is NOT proven.",
+    "hard_request_deadline_events": 0,
+    "socket_timeout_events": 2,
+    "classification_of_events": "both socket_timeout (op 120s); 0 hard_request_deadline (wall 300s never fired); 0 unclassified stalls"
+  },
+  "submitted_tuple": "Neither attempt edited flow_config; both submitted the UNCHANGED MUTANT (netlist_v1.v / func / typ). This is NOT a Qwen-authored semantic-role hypothesis -- it is the task's starting mutant scored after a measurement abort.",
+  "score_not_a_capability_result": "0.10 (trial1) / 0.10 (retry1) = explanation-only on the unchanged mutant; signoff=0 (the mutant netlist_v1 does not PrimeTime-sign-off). This is NOT a gradeable Qwen solution and yields NO capability conclusion.",
+  "preservation_result": {
+    "both_episodes": {"manifest_present": true, "editable_files_present": 5, "secrets_excluded": true, "hidden_or_forbidden_excluded": true},
+    "no_preservation_failure": true,
+    "no_oracle_shortcut_passed": true,
+    "no_secret_or_hidden_truth_preserved": true,
+    "note": "Preserved files hold the UNCHANGED mutant (the agents never issued a WRITE) -- retained for the record, not a Qwen submission."
+  },
+  "byte_confirmed_classification": "Both attempts: measurement-invalid (non-streaming long-reasoning transport censoring). Qwen produced ONLY read-only cat actions (8, 12), never issued a WRITE, and the submitted flow_config is the unchanged starting mutant. NOT a capability failure; NOT a semantic-role binding outcome; the unchanged mutant is NOT a Qwen hypothesis.",
+  "comparison": {
+    "DeepSeek_0009": "0/3 pass, 3/3 byte-confirmed semantic-role binding failures (Phase-4U, UNCHANGED).",
+    "DeepSeek_0010": "3/3 pass, correct slow/func (Phase-4U, UNCHANGED).",
+    "Qwen_0010": "1/1 pass, correct slow/func (Phase-4U, UNCHANGED).",
+    "Qwen_0009": "0 valid episodes; 4 measurement-invalid attempts total (2 in Phase-4U + 2 in Phase-4V), all the read-only-explore-then-timeout pattern."
+  },
+  "direct_0009_solvability_established": false,
+  "solvability_note": "0009 solvability is NOT directly confirmed by Qwen. It remains supported ONLY indirectly: Qwen x 0010 PASS + the workflow_handoff_0006 reference (Qwen 8/8 on the analogous task). A clean Qwen x 0009 success has not been observed across 4 attempts.",
+  "interpretation": {
+    "verdict": "Qwen x 0009 fairness anchor UNRESOLVED -- measurement-invalid (non-streaming long-reasoning transport censoring), NOT a capability result.",
+    "is_capability_result": false,
+    "effect_on_phase4U_result": "NONE -- the Phase-4U supported wording stands unchanged: 'The clarity bundle produces a preliminary controlled difference in semantic-role binding on DeepSeek at k=3.' No claim is added or removed.",
+    "do_not_claim": ["Qwen failed workflow_handoff_0009", "workflow_handoff_0009 is unsolvable by Qwen", "the gateway is definitively defective", "a slow-drip or request-shape issue is proven", "the unchanged mutant is a Qwen semantic-role submission"]
+  },
+  "next_step": {
+    "do_not_retry_qwen_now": true,
+    "action": "Implement a STREAMING Chat Completions transport (receive incremental tokens during reasoning so a long-thinking response is not censored by the per-operation socket timeout). This is an independently-reviewed code change -- NOT another paid retry.",
+    "rationale": "A paid retry under the current non-streaming transport is likely to reproduce the same measurement censoring. The transport must be fixed first so a long-reasoning response is observable incrementally.",
+    "after_streaming": "re-attempt Qwen x 0009 to obtain the fairness anchor; only then design the 2x2 factor-isolation study.",
+    "do_not_proceed_to_factor_isolation_yet": true
+  },
+  "process_compliance": {
+    "model_run": "Qwen3.7-Max only (no DeepSeek/MiniMax/Kimi/GLM)",
+    "task_run": "workflow_handoff_0009 only",
+    "env_symlink_removed_after": true,
+    "secrets_printed": false, "shell_tracing_used": false, "code_modified": false,
+    "committed": false, "pushed": false, "other_worktrees_touched": false,
+    "stage0_gate": "git clean, HEAD d821d34, scripts/check PASSED, golden=1.0 (0009, live PT), 294->1 uniqueness, no leak, Qwen available"
+  }
+}
