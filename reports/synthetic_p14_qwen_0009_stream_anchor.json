@@ -1,0 +1,92 @@
+{
+  "report": "synthetic_p14_qwen_0009_stream_anchor",
+  "date": "2026-07-13",
+  "status": "COMPLETE_ANCHOR_RESOLVED",
+  "code_commit": "e1c36d2",
+  "phase": "4V0 (trial1 + preflight) + 4V1 (rep2, rep3)",
+  "purpose": "k=3 valid Qwen3.7-Max x workflow_handoff_0009 episodes over the SSE streaming transport (the ONLY change vs Phase-4V): resolve the fairness anchor and test whether the scenario/corner wrong-axis binding failure repeats.",
+  "config": {
+    "model": "Qwen3.7-Max", "task": "workflow_handoff_0009",
+    "episode_timeout_sec": 1800, "max_actions": 60, "temperature": 0.7, "elicit_confidence": true,
+    "concurrency": 1, "preservation": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
+    "request_inactivity_timeout_sec": 120, "hard_request_deadline_sec": 300, "max_chat_retries": 1,
+    "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1), dependency-free urllib provider at e1c36d2",
+    "seed_note": "provider/config exposes no controllable sampling seed; all parameters byte-identical across trial1/rep2/rep3; independence from temperature-0.7 sampling; gateway seed support not probed"
+  },
+  "golden_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "headline": "1/3 pass. The scenario/corner wrong-axis semantic-role failure REPRODUCES in Qwen (2/3 valid episodes) and spans BOTH wrong-binding variants previously observed in DeepSeek (func/slow swap and func/typ stale-decoy). Transport 100% clean across 3 episodes + preflight -- genuine capability observations.",
+  "valid_episode_count": 3,
+  "measurement_invalid_count_phase4v0_4v1": 0,
+  "episodes": [
+    {"trial": "trial1", "date": "2026-07-12", "valid": true,
+     "submitted": "netlist_v2.v / scenario=func / corner=slow (WRONG-AXIS SWAP)",
+     "score": 0.20, "passed": false,
+     "components": {"signoff": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0,
+                    "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0, "explanation": 1.0},
+     "classification": "capability/semantic-role: wrong-axis assignment (func/slow) -- the DeepSeek 0009 t2/t3 mode",
+     "confidence": "high", "overconfident_wrong": true, "finished": true,
+     "actions": 47, "edited": ["flow_config.json"], "chat_retries": 0,
+     "usage": {"prompt_tokens": 736360, "completion_tokens": 64489, "reasoning_tokens": 60411},
+     "cost_cny": 11.16, "wall_time_sec": 1550.3, "anti_cheat_clean": true,
+     "transport_events": {"socket_timeout": 0, "hard_request_deadline": 0, "incomplete_stream": 0, "malformed_stream": 0}},
+    {"trial": "rep2", "date": "2026-07-13", "valid": true,
+     "submitted": "netlist_v2.v / scenario=slow / corner=func (CORRECT)",
+     "score": 1.00, "passed": true,
+     "components": {"signoff": 1.0, "final_state": 1.0, "evidence_generation": 1.0, "stage_chain": 1.0,
+                    "provenance": 1.0, "authority_consistency": 1.0, "hazard_recovery": 1.0, "explanation": 1.0},
+     "classification": "PASS (correct slow/func binding; episode wall budget reached without FINISH after the correct config was committed -- protocol note only)",
+     "confidence": "", "overconfident_wrong": false, "finished": false,
+     "actions": 48, "edited": ["flow_config.json"], "chat_retries": 0,
+     "usage": {"prompt_tokens": 828765, "completion_tokens": 79891, "reasoning_tokens": 76686},
+     "cost_cny": 12.82, "wall_time_sec": 1780.0, "anti_cheat_clean": true,
+     "transport_events": {"socket_timeout": 0, "hard_request_deadline": 0, "incomplete_stream": 0, "malformed_stream": 0}},
+    {"trial": "rep3", "date": "2026-07-13", "valid": true,
+     "submitted": "netlist_v2.v / scenario=func / corner=typ (WRONG-AXIS, stale-decoy corner)",
+     "score": 0.20, "passed": false,
+     "components": {"signoff": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0,
+                    "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0, "explanation": 1.0},
+     "classification": "capability/semantic-role: wrong-axis assignment (func/typ) -- the DeepSeek 0009 t1 mode; wall budget without FINISH so no confidence elicited",
+     "confidence": "", "overconfident_wrong": false, "finished": false,
+     "actions": 52, "edited": ["flow_config.json"], "chat_retries": 0,
+     "usage": {"prompt_tokens": 891423, "completion_tokens": 80393, "reasoning_tokens": 76663},
+     "cost_cny": 13.59, "wall_time_sec": 1799.3, "anti_cheat_clean": true,
+     "transport_events": {"socket_timeout": 0, "hard_request_deadline": 0, "incomplete_stream": 0, "malformed_stream": 0}}
+  ],
+  "preflight": {"all_checks_pass": true, "elapsed_s": 7.05, "reasoning_chunks": 48, "reasoning_tokens": 174,
+                "finish_reason": "stop", "done_seen": true, "socket_timeout": 0, "hard_deadline": 0,
+                "note": "one minimal paid streaming preflight through the production isolated-worker path"},
+  "cost": {"trial1_cny": 11.16, "rep2_cny": 12.82, "rep3_cny": 13.59, "episodes_total_cny": 37.57,
+           "preflight_cny": "~0.02", "rates_cny_per_M": {"input": 12, "output": 36}},
+  "wrong_axis_repeats": {
+    "answer": true,
+    "detail": "2 of 3 valid episodes are wrong-axis semantic-role failures: trial1 func/slow (value swap, DeepSeek t2/t3 mode) and rep3 func/typ (scenario wrong + stale-v1 decoy corner, DeepSeek t1 mode). Qwen reproduced BOTH DeepSeek wrong-binding variants. Across all 5 cross-model failures scenario was misassigned to 'func' every time. rep2 (correct slow/func) shows the failure is not deterministic."
+  },
+  "comparison": {
+    "DeepSeek_0009": "0/3 pass, 3/3 semantic-role failures (func/typ; func/slow x2) -- Phase-4U, unchanged",
+    "DeepSeek_0010": "3/3 pass -- Phase-4U, unchanged",
+    "Qwen_0010": "1/1 pass -- Phase-4U, unchanged",
+    "Qwen_0009_streaming": "1/3 pass, 2/3 semantic-role failures (func/slow; func/typ) -- this phase",
+    "note": "the ambiguous cell (0009) degrades both models while the byte-identical-truth control (0010) is passed by both (4/4 pooled); the clarity bundle remains the only visible difference"
+  },
+  "conclusions": {
+    "transport_validity": "RESOLVED -- preflight + 3/3 episodes with zero transport failures (0 socket_timeout / 0 hard_request_deadline / 0 incomplete_stream / 0 malformed_stream / 0 chat retries) while delivering 60411/76686/76663 reasoning tokens -- the token band the non-streaming transport censored. Phase-4V episodes remain classified transport-invalid; SSE streaming at e1c36d2 is the resolution.",
+    "qualitative_mechanism": "The first valid Qwen episode on 0009 reproduced the same scenario/corner semantic-axis binding failure previously observed in DeepSeek. This falsifies the earlier unsupported inference that Qwen would necessarily solve 0009 and establishes that the failure mode exists across both models. With k=3 the mode RECURS (2/3) and covers both DeepSeek variants (func/slow swap; func/typ stale-decoy), while rep2's clean pass shows it is a sampling-level instability of ambiguity resolution, not a deterministic inability.",
+    "quantitative_reliability": "1/3 pass, 1 overconfident_wrong (the only FINISH-reaching episode stated HIGH confidence and was wrong). k=3 is a small replication sample: it establishes that the failure mode recurs, but it does not estimate a success rate or establish stable failure. No population claim is made."
+  },
+  "sample_size_statement": "k=3 is a small replication sample rather than a precise population-level success-rate estimate. Rates reported here are point observations with wide uncertainty; no population claim is made.",
+  "artifacts": {
+    "evidence_root": "reports/evidence/p14_qwen_0009_stream_anchor/",
+    "manifest": "reports/evidence/p14_qwen_0009_stream_anchor/MANIFEST.json",
+    "manifest_sha256": "0f0e5ca84f1ae1f9c7687de9b51796127f5c4b13a1f2b703563af9cbc256c7b4",
+    "trials": {"trial1": "8 files", "rep2": "8 files", "rep3": "8 files"},
+    "hashes": "reports/evidence/p14_qwen_0009_stream_anchor/SHA256SUMS",
+    "chain_of_custody": "per episode, evidence-chain copies (flow_config/timing_report/evidence_manifest/stage2_summary) byte-identical to the grader's submitted_file_hashes"
+  },
+  "process_compliance": {
+    "model_run": "Qwen3.7-Max only (no DeepSeek/MiniMax/Kimi/GLM)", "task_run": "workflow_handoff_0009 only",
+    "no_non_streaming_fallback": true, "task_and_action_budget_unaltered": true,
+    "stopped_at_3_valid": true, "measurement_invalid_episodes": 0,
+    "env_symlink_removed_after": true, "secrets_printed": false, "raw_reasoning_persisted": false,
+    "real_pt_grading": true, "committed": "one report-only commit (evidence + report) after rep3", "pushed": false
+  }
+}

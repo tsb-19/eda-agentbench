@@ -1,0 +1,16 @@
+{
+  "trial": "rep2",
+  "date": "2026-07-13",
+  "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1), code at e1c36d2",
+  "preflight_note": "single Phase-4V0 preflight covers the phase; see trial1/stream_diagnostics.json",
+  "episode": {
+    "actions": 48, "finished": false, "edited": ["flow_config.json"], "error": null,
+    "chat_retries": 0, "socket_timeout_events": 0, "hard_request_deadline_events": 0,
+    "incomplete_stream_events": 0, "malformed_stream_events": 0,
+    "wall_time_sec": 1779.973,
+    "protocol_note": "episode wall budget reached without FINISH after the correct config was committed (protocol/no-FINISH note only; capability outcome is a clean PASS)",
+    "usage": {"prompt_tokens": 828765, "completion_tokens": 79891, "reasoning_tokens": 76686},
+    "cost_cny": {"input": 9.95, "output": 2.88, "total": 12.82, "rates": "Qwen 12/36 CNY per M in/out"},
+    "note": "76686 reasoning tokens delivered with zero transport failures (vs Phase-4V censoring at 20-29K non-streaming). Per-call stream metadata is not persisted by the driver; aggregates only. No raw reasoning text exists in any preserved artifact."
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "trial": "trial1",
+  "date": "2026-07-12",
+  "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1), code at e1c36d2",
+  "preflight": {
+    "all_checks_pass": true,
+    "elapsed_s": 7.05,
+    "retries": 0,
+    "stream": {"chunk_count": 99, "reasoning_chunk_count": 48, "reasoning_chars": 370,
+               "answer_chars": 346, "done_seen": true, "time_to_first_chunk_s": 0.0001,
+               "time_to_first_answer_s": 3.1333, "total_duration_s": 6.3536},
+    "usage": {"prompt_tokens": 38, "completion_tokens": 352, "reasoning_tokens": 174},
+    "finish_reason": "stop",
+    "socket_timeout_events": 0,
+    "hard_request_deadline_events": 0
+  },
+  "episode": {
+    "actions": 47, "finished": true, "edited": ["flow_config.json"], "error": null,
+    "chat_retries": 0, "socket_timeout_events": 0, "hard_request_deadline_events": 0,
+    "incomplete_stream_events": 0, "malformed_stream_events": 0,
+    "wall_time_sec": 1550.307,
+    "usage": {"prompt_tokens": 736360, "completion_tokens": 64489, "reasoning_tokens": 60411},
+    "cost_cny": {"input": 8.84, "output": 2.32, "total": 11.16, "rates": "Qwen 12/36 CNY per M in/out"},
+    "note": "60411 reasoning tokens delivered with zero transport failures; the non-streaming path censored the same task at 20-29K reasoning tokens (Phase-4V). Per-call stream metadata is not persisted by the driver; aggregates only. No raw reasoning text exists in any preserved artifact (worker strips it at the IPC boundary)."
+  }
+}
