@@ -1,0 +1,57 @@
+{
+  "report": "synthetic_p14_balanced_controlled_pair",
+  "phase": "4V2",
+  "date": "2026-07-15",
+  "status": "COMPLETE",
+  "code_commit": "e1c36d2",
+  "purpose": "Balance the Qwen side of the workflow_handoff_0009 (ambiguous) / 0010 (clear control) controlled pair to k=3 under SSE streaming; test whether the clarity bundle suppresses the wrong-axis binding failure for both models.",
+  "headline": "The clear-role 0010 task SUPPRESSES the scenario/corner wrong-axis binding failure for BOTH models: DeepSeek 0009 0/3 -> 0010 3/3; Qwen 0009 1/3 (2 wrong-axis) -> 0010 3/3 (0 wrong-axis). The clarity bundle is the only visible difference between 0009 and 0010.",
+  "golden_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
+  "matrix_2x2_k3": {
+    "DeepSeek_0009": {"transport": "non-streaming (Phase-4U frozen)", "k": 3, "pass": 0, "wrong_axis_fails": 3, "tuples": ["func/typ", "func/slow", "func/slow"]},
+    "DeepSeek_0010": {"transport": "non-streaming (Phase-4U frozen)", "k": 3, "pass": 3, "wrong_axis_fails": 0, "tuples": ["slow/func x3"]},
+    "Qwen_0009": {"transport": "streaming (Phase-4V1)", "k": 3, "pass": 1, "wrong_axis_fails": 2, "tuples": ["func/slow", "slow/func", "func/typ"]},
+    "Qwen_0010": {"transport": "streaming (Phase-4V2)", "k": 3, "pass": 3, "wrong_axis_fails": 0, "tuples": ["slow/func x3"]}
+  },
+  "qwen_0010_streaming_episodes": [
+    {"trial": "stream_trial1", "date": "2026-07-14/15", "transport_valid": true, "workspace_gradeable": true, "protocol_completed": false, "termination_reason": "action_cap", "FINISH_observed": false, "score": 1.00, "passed": true, "submitted": "netlist_v2.v / scenario=slow / corner=func", "actions": 60, "reasoning_tokens": 42939, "cost_cny": 11.43, "wall_time_sec": 1464.8, "chat_retries": 0, "anti_cheat_clean": true, "transport_events_total": 0, "classification": "gradeable action-cap PASS"},
+    {"trial": "stream_rep2", "date": "2026-07-14/15", "transport_valid": true, "workspace_gradeable": true, "protocol_completed": false, "termination_reason": "action_cap", "FINISH_observed": false, "score": 1.00, "passed": true, "submitted": "netlist_v2.v / scenario=slow / corner=func", "actions": 60, "reasoning_tokens": 47518, "cost_cny": 11.48, "wall_time_sec": 1521.6, "chat_retries": 0, "anti_cheat_clean": true, "transport_events_total": 0, "classification": "gradeable action-cap PASS"},
+    {"trial": "stream_rep3", "date": "2026-07-14/15", "transport_valid": true, "workspace_gradeable": true, "protocol_completed": true, "termination_reason": "finish_action", "FINISH_observed": true, "score": 1.00, "passed": true, "submitted": "netlist_v2.v / scenario=slow / corner=func", "actions": 44, "reasoning_tokens": 33755, "cost_cny": 7.57, "wall_time_sec": 1064.9, "chat_retries": 0, "anti_cheat_clean": true, "transport_events_total": 0, "confidence": "high", "overconfident_wrong": false, "classification": "protocol-complete PASS (FINISH, HIGH confidence, CORRECT)"}
+  ],
+  "k3_outcome_qwen_0010": {"valid_episodes": 3, "passes": 3, "wrong_axis_failures": 0, "measurement_invalid": 0, "transport_events_total": 0, "overconfident_wrong": 0, "cost_cny_total": 30.48},
+  "termination_breakdown_12episodes": {
+    "protocol_complete_FINISH": 3,
+    "protocol_complete_list": ["DeepSeek_0010_t1 (1.00, high-conf correct)", "Qwen_0009_trial1 (0.20, HIGH-conf WRONG=overconfident_wrong)", "Qwen_0010_stream_rep3 (1.00, high-conf correct)"],
+    "action_cap": 4,
+    "task_wall_limit": 2,
+    "late_socket_timeout_gradeable": 3,
+    "note": "the two confident solves on the CLEAR task were correct; the one confident solve on the AMBIGUOUS task was wrong"
+  },
+  "deepseek_cells_note": "Phase-4U frozen (non-streaming). 3 of 6 DeepSeek episodes had a late socket_timeout AFTER the config was committed (gradeable, work-done; capability outcome unaffected). Distinct from the Phase-4V Qwen early-abort transport-invalid case. Retained under frozen condition per spec; not re-run under streaming.",
+  "conclusions": {
+    "transport_validity": "Qwen row fully streaming: 0 transport events across all 6 episodes (0 socket_timeout / 0 hard_deadline / 0 stream errors / 0 chat retries), 33K-77K reasoning tokens each. DeepSeek row Phase-4U frozen non-streaming: 3/6 late socket_timeout (gradeable, work-done). Streaming fix e1c36d2 made the Qwen row transport-clean.",
+    "capability_wrong_axis_suppression": "YES for both models. DeepSeek 0009 0/3 (3 wrong-axis) vs 0010 3/3 (0 wrong-axis); Qwen 0009 1/3 (2 wrong-axis) vs 0010 3/3 (0 wrong-axis). The clarity bundle -- the only visible difference -- removes the semantic-role binding failure in both. Cross-model k=3-per-cell replication.",
+    "reliability_calibration": "Confidence tracks correctness on the clear task and breaks on the ambiguous one: the only protocol-complete Qwen x 0010 episode (stream_rep3) was HIGH-confidence and CORRECT (calibrated); the only protocol-complete Qwen x 0009 episode (trial1) was HIGH-confidence and WRONG (overconfident_wrong). k=3 establishes the mechanism (0010 suppresses; 0009 does not) but not a success rate."
+  },
+  "sample_size_statement": "k=3 per cell is a small replication sample. Pass counts are point observations with wide uncertainty; no population success-rate claim is made. The controlled-pair signal is qualitative mechanism evidence replicated across two models, not a rate estimate.",
+  "historical_reference_excluded": {
+    "trial": "historical_phase4u_nonstream", "transport_mode": "non_streaming", "transport_valid": true,
+    "protocol_completed": false, "termination_reason": "action_cap", "workspace_gradeable": true, "score": 1.00,
+    "note": "Phase-4U single Qwen x 0010 episode (pre-e1c36d2, 2 chat-retries). EXCLUDED from the primary streaming k=3 cell to avoid transport confounding (C4). Outcome (1.00 slow/func) consistent with the 3 fresh streaming passes."
+  },
+  "artifacts": {
+    "qwen_0009_evidence": {"root": "reports/evidence/p14_qwen_0009_stream_anchor/", "manifest_sha256": "9552bc3bb044cea365f4bdc8904fe9d368d756ddf31155366b09e0623bdd0332", "note": "Phase-4V1, audit-amended"},
+    "qwen_0010_evidence": {"root": "reports/evidence/p14_qwen_0010_stream_anchor/", "manifest_sha256": "d9ea2574666c08d1b220c7540705e769d6f4edc0e6f804f27399ca0d92126ed7", "dirs": "stream_trial1/ stream_rep2/ stream_rep3/ historical_phase4u_nonstream/ (4x8 files) + MANIFEST + SHA256SUMS (33 files)", "chain_of_custody": "per-episode evidence-chain copies byte-identical to grader submitted_file_hashes (verified for all 4 dirs)"},
+    "deepseek_evidence": "Phase-4U, runs/p14_phase4u_srb_probe_v3/ (frozen; not re-run)",
+    "audit_amendment": "synthetic_p14_qwen_0009_stream_anchor.{md,json} (0af5d32 audit, 6-dim termination, seed wording, controlled-pair qualification)"
+  },
+  "process_compliance": {
+    "model_run": "Qwen3.7-Max streaming (0010) + DeepSeek-V4-Pro Phase-4U frozen (carried)", "task_run": "workflow_handoff_0009 + 0010 only",
+    "no_changes_to_0009_or_0010": true, "0010_task_unchanged_since": "commit 622d07c (Phase-4U)",
+    "no_non_streaming_fallback": true, "task_and_action_budget_unaltered": true,
+    "stopped_at_3_valid": true, "measurement_invalid_episodes_qwen_0010": 0,
+    "env_symlink_removed_after": "TBD (removed before commit)", "secrets_printed": false, "raw_reasoning_persisted": false,
+    "real_pt_grading": true, "committed": "one report-only commit (audit amendment + 0010 evidence + V2 report)", "pushed": false,
+    "qwen_0010_cost_cny": 30.48, "seed_note": "stochastic replications; no controllable seed; identical exposed config, naturally differing transcripts"
+  }
+}

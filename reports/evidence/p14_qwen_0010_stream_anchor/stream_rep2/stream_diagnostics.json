@@ -1,0 +1,46 @@
+{
+  "trial": "stream_rep2",
+  "date": "2026-07-14/15",
+  "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1), code at e1c36d2",
+  "classification_6dim": {
+    "transport_valid": true,
+    "workspace_gradeable": true,
+    "protocol_completed": false,
+    "termination_reason": "action_cap",
+    "FINISH_observed": false,
+    "score": 1.0
+  },
+  "episode": {
+    "actions": 60,
+    "finished": false,
+    "edited": [
+      "flow_config.json"
+    ],
+    "error": null,
+    "chat_retries": 0,
+    "transport_event_counts": {
+      "socket_timeout": 0,
+      "hard_request_deadline": 0,
+      "incomplete_stream": 0,
+      "malformed_stream": 0,
+      "worker_crash": 0,
+      "malformed_worker_result": 0,
+      "retryable_http": 0,
+      "connection_reset": 0
+    },
+    "transport_events_total": 0,
+    "wall_time_sec": 1521.563,
+    "protocol_note": "hit 60-action cap with the correct slow/func config committed (gradeable action-cap PASS, not protocol-complete)",
+    "usage": {
+      "prompt_tokens": 799519,
+      "completion_tokens": 52351,
+      "reasoning_tokens": 47518
+    },
+    "cost_cny": {
+      "total": 11.48,
+      "rates": "Qwen 12/36 CNY per M in/out"
+    },
+    "submitted": "netlist_v2.v / scenario=slow / corner=func",
+    "note": "0 transport events / 0 chat retries under streaming (cf. historical non-streaming Phase-4U episode: 2 chat retries). Reasoning tokens lower than 0009 (clarity bundle present -> less reasoning needed)."
+  }
+}

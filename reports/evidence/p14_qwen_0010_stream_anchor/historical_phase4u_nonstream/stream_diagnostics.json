@@ -1,0 +1,25 @@
+{
+  "trial": "historical_phase4u_nonstream",
+  "date": "2026-07-12",
+  "role": "HISTORICAL REFERENCE ONLY — excluded from the primary streaming k=3 cell (transport-heterogeneous; non-streaming). Kept for transport-sensitivity / historical consistency.",
+  "source": "Phase-4U controlled-pair probe (reports/synthetic_p14_semantic_role_controlled_pair_probe.*); results at runs/p14_phase4u_srb_probe_v3/qwen_0010_trial1/, preserved workspace /tmp/agentic_eval_0jphwlm2/.../20260712_001502",
+  "transport": {"mode": "non_streaming", "code_commit_at_run": "pre-e1c36d2 (Phase-4U predates the SSE streaming fix)"},
+  "classification_6dim": {
+    "transport_valid": true,
+    "workspace_gradeable": true,
+    "protocol_completed": false,
+    "termination_reason": "action_cap",
+    "FINISH_observed": false,
+    "score": 1.00
+  },
+  "episode": {
+    "submitted": "netlist_v2.v / scenario=slow / corner=func (CORRECT)",
+    "actions": 60, "finished": false, "edited": ["flow_config.json"], "error": null,
+    "chat_retries": 2,
+    "transport_note": "non-streaming; 2 chat requests hit the 120s inactivity timeout and were retried (recovered) — the C4 transport-stress signature. The episode still reached the 60-action cap gradeably (no infra-abort), so transport_valid=true. Streaming episodes (0009 anchor + the 3 fresh 0010) show 0 such retries.",
+    "wall_time_sec": 1361.848,
+    "usage": {"prompt_tokens": 933591, "completion_tokens": 38847, "reasoning_tokens": 34484},
+    "cost_cny": {"total": 12.60, "rates": "Qwen 12/36 CNY per M in/out"}
+  },
+  "exclusion_statement": "Not counted in the primary Qwen x 0010 streaming pass count. Discussed only in the Phase-4V2 secondary transport-sensitivity / historical-consistency section."
+}

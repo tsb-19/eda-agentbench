@@ -11,7 +11,7 @@
     "concurrency": 1, "preservation": "EDA_BENCH_PRESERVE_FINAL_WORKSPACE=1",
     "request_inactivity_timeout_sec": 120, "hard_request_deadline_sec": 300, "max_chat_retries": 1,
     "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1), dependency-free urllib provider at e1c36d2",
-    "seed_note": "provider/config exposes no controllable sampling seed; all parameters byte-identical across trial1/rep2/rep3; independence from temperature-0.7 sampling; gateway seed support not probed"
+    "seed_note": "Stochastic replications under an identical exposed benchmark configuration. The provider exposed no controllable sampling seed, so statistical independence cannot be guaranteed or directly audited. The initial task, harness, model configuration, exposed decoding parameters, budgets, and scoring were identical across trial1/rep2/rep3; subsequent request transcripts naturally differed because the trajectories differed (agent history + tool outputs feed back into each request). Gateway-side seed support was not probed."
   },
   "golden_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
   "headline": "1/3 pass. The scenario/corner wrong-axis semantic-role failure REPRODUCES in Qwen (2/3 valid episodes) and spans BOTH wrong-binding variants previously observed in DeepSeek (func/slow swap and func/typ stale-decoy). Transport 100% clean across 3 episodes + preflight -- genuine capability observations.",
@@ -34,7 +34,7 @@
      "score": 1.00, "passed": true,
      "components": {"signoff": 1.0, "final_state": 1.0, "evidence_generation": 1.0, "stage_chain": 1.0,
                     "provenance": 1.0, "authority_consistency": 1.0, "hazard_recovery": 1.0, "explanation": 1.0},
-     "classification": "PASS (correct slow/func binding; episode wall budget reached without FINISH after the correct config was committed -- protocol note only)",
+     "classification": "gradeable timeout-terminated PASS (correct slow/func binding; episode wall budget reached without FINISH after the correct config was committed -- protocol note only, not a protocol-complete solve)",
      "confidence": "", "overconfident_wrong": false, "finished": false,
      "actions": 48, "edited": ["flow_config.json"], "chat_retries": 0,
      "usage": {"prompt_tokens": 828765, "completion_tokens": 79891, "reasoning_tokens": 76686},
@@ -45,13 +45,27 @@
      "score": 0.20, "passed": false,
      "components": {"signoff": 1.0, "final_state": 0.0, "evidence_generation": 0.0, "stage_chain": 0.0,
                     "provenance": 0.0, "authority_consistency": 0.0, "hazard_recovery": 0.0, "explanation": 1.0},
-     "classification": "capability/semantic-role: wrong-axis assignment (func/typ) -- the DeepSeek 0009 t1 mode; wall budget without FINISH so no confidence elicited",
+     "classification": "gradeable timeout-terminated failure: capability/semantic-role wrong-axis assignment (func/typ) -- the DeepSeek 0009 t1 mode; wall budget without FINISH so no confidence elicited",
      "confidence": "", "overconfident_wrong": false, "finished": false,
      "actions": 52, "edited": ["flow_config.json"], "chat_retries": 0,
      "usage": {"prompt_tokens": 891423, "completion_tokens": 80393, "reasoning_tokens": 76663},
      "cost_cny": 13.59, "wall_time_sec": 1799.3, "anti_cheat_clean": true,
      "transport_events": {"socket_timeout": 0, "hard_request_deadline": 0, "incomplete_stream": 0, "malformed_stream": 0}}
   ],
+  "termination_classification_6dim": {
+    "_note": "Audit amendment (Phase-4V2): rep2/rep3 are gradeable timeout-terminated, NOT protocol-complete.",
+    "trial1": {"transport_valid": true, "workspace_gradeable": true, "protocol_completed": true,  "termination_reason": "finish_action", "FINISH_observed": true,  "score": 0.20},
+    "rep2":   {"transport_valid": true, "workspace_gradeable": true, "protocol_completed": false, "termination_reason": "task_wall_limit", "FINISH_observed": false, "score": 1.00, "label": "gradeable timeout-terminated PASS"},
+    "rep3":   {"transport_valid": true, "workspace_gradeable": true, "protocol_completed": false, "termination_reason": "task_wall_limit", "FINISH_observed": false, "score": 0.20, "label": "gradeable timeout-terminated failure"}
+  },
+  "audit_0af5d32": {
+    "subject": "docs: organize reports for paper-facing clarity; de-stale CLAUDE.md",
+    "files_changed": "24 files: CLAUDE.md (M), reports/README.md (A), 22 R100 report renames into reports/archive/. NO .py / task / prompt / grader / evaluator / config / timeout / retry / streaming files.",
+    "executable_diff_e1c36d2_to_HEAD": "EMPTY (git diff --stat over scripts eda_agentbench tasks generators evaluators datagen configs tests tools = no output)",
+    "head_per_episode": {"trial1": "e1c36d2 (results 07-13 00:12, before 0af5d32 07-14 00:06)", "rep2": "e1c36d2 (results 07-13 23:33, before 0af5d32)", "rep3": "e1c36d2 working tree (process started 23:43:41, pre-commit; 0af5d32 committed during run but touched no executable code)"},
+    "conclusion": "all three episodes executed against behaviorally-identical harness code; no discrepancy. Precondition for Phase-4V2 met."
+  },
+  "controlled_pair_qualification": "At the time of this report the Qwen side was unbalanced (Qwen x 0009 = k=3; Qwen x 0010 = k=1, the single non-streaming Phase-4U episode). This report supports RECURRENT Qwen x 0009 failure-mode evidence, not yet a balanced replicated Qwen controlled pair. The DeepSeek side is balanced (k=3/k=3). The balanced Qwen controlled pair (Qwen x 0010 raised to k=3 under streaming) is established in the Phase-4V2 balanced-pair report.",
   "preflight": {"all_checks_pass": true, "elapsed_s": 7.05, "reasoning_chunks": 48, "reasoning_tokens": 174,
                 "finish_reason": "stop", "done_seen": true, "socket_timeout": 0, "hard_deadline": 0,
                 "note": "one minimal paid streaming preflight through the production isolated-worker path"},
@@ -66,7 +80,7 @@
     "DeepSeek_0010": "3/3 pass -- Phase-4U, unchanged",
     "Qwen_0010": "1/1 pass -- Phase-4U, unchanged",
     "Qwen_0009_streaming": "1/3 pass, 2/3 semantic-role failures (func/slow; func/typ) -- this phase",
-    "note": "the ambiguous cell (0009) degrades both models while the byte-identical-truth control (0010) is passed by both (4/4 pooled); the clarity bundle remains the only visible difference"
+    "note": "the ambiguous cell (0009) degrades both models (DeepSeek 0/3, Qwen 1/3) while the byte-identical-truth control (0010) is passed by both (DeepSeek 3/3, Qwen 1/1). CAVEAT: the Qwen side is unbalanced here (0009 k=3 vs 0010 k=1) -- recurrent failure-mode evidence, not a balanced replicated Qwen pair; balanced in Phase-4V2."
   },
   "conclusions": {
     "transport_validity": "RESOLVED -- preflight + 3/3 episodes with zero transport failures (0 socket_timeout / 0 hard_request_deadline / 0 incomplete_stream / 0 malformed_stream / 0 chat retries) while delivering 60411/76686/76663 reasoning tokens -- the token band the non-streaming transport censored. Phase-4V episodes remain classified transport-invalid; SSE streaming at e1c36d2 is the resolution.",
@@ -77,7 +91,7 @@
   "artifacts": {
     "evidence_root": "reports/evidence/p14_qwen_0009_stream_anchor/",
     "manifest": "reports/evidence/p14_qwen_0009_stream_anchor/MANIFEST.json",
-    "manifest_sha256": "0f0e5ca84f1ae1f9c7687de9b51796127f5c4b13a1f2b703563af9cbc256c7b4",
+    "manifest_sha256": "9552bc3bb044cea365f4bdc8904fe9d368d756ddf31155366b09e0623bdd0332",
     "trials": {"trial1": "8 files", "rep2": "8 files", "rep3": "8 files"},
     "hashes": "reports/evidence/p14_qwen_0009_stream_anchor/SHA256SUMS",
     "chain_of_custody": "per episode, evidence-chain copies (flow_config/timing_report/evidence_manifest/stage2_summary) byte-identical to the grader's submitted_file_hashes"
