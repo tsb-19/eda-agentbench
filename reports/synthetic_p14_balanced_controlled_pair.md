@@ -5,10 +5,21 @@ control) controlled pair to k=3 under SSE streaming. HEAD `[SHA-TBD]`.
 This completes the matrix the Phase-4V1 report could only qualify as "recurrent failure-mode evidence"
 (Qwen × 0010 was k=1 there).
 
-**Headline: the clear-role `0010` task SUPPRESSES the scenario/corner wrong-axis binding failure for
-BOTH models.** DeepSeek 0009 0/3 → 0010 3/3; **Qwen 0009 1/3 (2 wrong-axis) → 0010 3/3 (0 wrong-axis)**.
-0009/0010 share identical hidden truth + grader + flow + mutant + decoys; the ONLY visible difference
-is the clarity bundle — and removing it (0009) is what induces the failure in both models.
+**Headline (accepted primary conclusion):** "Across this controlled task pair, the full clarity
+bundle suppresses the scenario/corner wrong-axis binding failure for both evaluated models. DeepSeek
+changes from 0/3 correct on ambiguous 0009 to 3/3 on clear 0010; Qwen changes from 1/3 to 3/3. This is
+a replicated cross-model effect on the constructed pair, not yet a general population success-rate
+estimate."
+
+**Causal scope (qualification).** This is a **replication of the clarity-bundle effect on this
+controlled task pair** — not "the mechanism," not a component isolation, and not a generalization
+claim. The result establishes the effect of the *complete* visible clarity bundle shipped with 0010
+(canonical `scenario`/`corner` labels + disjoint-typed-axes declaration + PVT-descriptor definition +
+clock coverage fact + glossary + pairwise-conflict summary + the "slow scenario / functional corner"
+signoff-pair assertion). It does **not** isolate which component of that bundle is causal, and it does
+**not** by itself establish generalization beyond the single 0009/0010 pair. Isolating the causal
+component(s) is the subject of the Phase-4W ablation design. 0009/0010 share identical hidden truth +
+grader + flow + mutant + decoys; the clarity bundle is the only visible difference.
 
 ## 0. Matrix (2 models × 2 tasks, each cell k=3)
 | cell | transport | k | pass | wrong-axis fails | submitted tuples |
@@ -63,6 +74,29 @@ anti-cheat clean, 0 transport events, 0 chat retries. `stream_rep3` is protocol-
 HIGH confidence, **correct** — a confident-correct solve, not overconfident); the other two hit the
 60-action cap with the correct config already committed (gradeable action-cap PASS).
 
+## 1b. Per-cell independent dimensions (artifact correctness ≠ protocol completion)
+Reported independently for every cell (these must not be conflated):
+
+| cell | transport-valid | gradeable | artifact/grader pass | typed-binding pass | protocol-complete FINISH | action-cap / task-wall term. |
+|---|---|---|---|---|---|---|
+| DeepSeek × 0009 | 1/3 (t3 clean; t1,t2 late-socket) | 3/3 | 0/3 | 0/3 | 0/3 | 1 action-cap (t3); 2 late-socket (t1,t2) |
+| DeepSeek × 0010 | 2/3 (t1,t2 clean; t3 late-socket) | 3/3 | 3/3 | 3/3 | 1/3 (t1) | 1 action-cap (t2); 1 late-socket (t3) |
+| Qwen × 0009 | 3/3 | 3/3 | 1/3 (rep2) | 1/3 (rep2) | 1/3 (trial1) | 2 task-wall (rep2,rep3) |
+| Qwen × 0010 | 3/3 | 3/3 | **3/3** | **3/3** | **1/3** (stream_rep3) | 2 action-cap (stream_trial1, stream_rep2) |
+
+- `artifact/grader pass` = episode scored 1.00 (the regenerated evidence artifact is correct).
+- `typed-binding pass` = the typed-binding oracle accepts the semantic binding (for this oracle family,
+  typed-binding pass ⟺ score 1.00, since a wrong binding forces `evidence_generation=0` → 0.20; the two
+  are reported separately because they can diverge in other task families).
+- `protocol-complete FINISH` = the agent issued the finish action (not merely terminated gradeably).
+
+**Qwen × 0010 achieved 3/3 artifact and typed-binding correctness but only 1/3 protocol-complete
+FINISH, with two action-cap passes.** Role clarity suppressed the binding error but did **not**
+establish efficient or reliable termination: the agent reliably produced the correct package, yet in
+2/3 episodes kept acting until the 60-action cap rather than signaling completion. Across all four
+cells, protocol completion is the exception (3/12), not the rule — artifact correctness is the
+cleaner signal than FINISH for this task family.
+
 ## 2. Normal-completion vs timeout/action-cap termination
 - **Protocol-complete (FINISH issued): 3/12.** DeepSeek×0010 t1 (1.00, high-confidence correct);
   Qwen×0009 trial1 (0.20, HIGH-confidence WRONG → `overconfident_wrong`); Qwen×0010 stream_rep3
@@ -92,26 +126,34 @@ Across both models on 0009, `scenario` was misassigned to `func` in every wrong-
 | Qwen × 0010 | 3/3 | 0 | 0 |
 
 ## 5. Separated conclusions
-**(a) Transport validity.** The Qwen row is fully streaming (Phase-4V1 + 4V2): **0 transport events
-across all 6 episodes** (0 socket_timeout / 0 hard_deadline / 0 incomplete_stream / 0 malformed_stream
-/ 0 chat retries), delivering 33K–77K reasoning tokens each — the band the non-streaming transport
-censored. The DeepSeek row is Phase-4U frozen (non-streaming): 3 of 6 episodes had a late
-socket_timeout AFTER work was done (gradeable; capability outcomes unaffected). The streaming fix
-(`e1c36d2`) is what made the Qwen row transport-clean; the DeepSeek row is retained under its frozen
-condition per spec. The 3 Qwen × 0010 streaming episodes confirmed 0 transport events.
+**(a) Transport validity.** The Qwen row is fully streaming and **transport-homogeneous**: 0 transport
+events across all 6 episodes (0 socket_timeout / 0 hard_deadline / 0 stream errors / 0 chat retries),
+delivering 33K–77K reasoning tokens each. The DeepSeek row is Phase-4U-frozen (non-streaming); its
+late gradeable socket_timeouts, **reported per cell** (not as an aggregate), are: DeepSeek × 0009 —
+2/3 late-socket (t1, t2; 1/3 transport-clean, t3); DeepSeek × 0010 — 1/3 late-socket (t3; 2/3
+transport-clean, t1, t2). All 6 DeepSeek episodes are gradeable (the config was committed before the
+late socket_timeout), so the capability outcomes stand. **The cross-model headline rests on the same
+within-model direction** (each model improves 0009 → 0010); it is **not** an absolute
+transport-homogeneous Qwen-versus-DeepSeek comparison, because the two rows used different transports
+(Qwen streaming, DeepSeek Phase-4U non-streaming).
 
-**(b) Capability — does 0010 suppress the wrong-axis failure? YES, for both models.** DeepSeek:
-0009 0/3 (3 wrong-axis) vs 0010 3/3 (0 wrong-axis). Qwen: 0009 1/3 (2 wrong-axis, both DeepSeek
-variants) vs **0010 3/3 (0 wrong-axis)**. The clarity bundle — the only visible difference between
-0009 and 0010 — removes the semantic-role binding failure in both models. This is a cross-model,
-k=3-per-cell replication of the controlled-pair mechanism.
+**(b) Capability — the clarity-bundle effect on this controlled task pair.** DeepSeek: 0009 0/3
+(3 wrong-axis) vs 0010 3/3 (0 wrong-axis). Qwen: 0009 1/3 (2 wrong-axis, both DeepSeek variants) vs
+**0010 3/3 (0 wrong-axis)**. The full visible clarity bundle — the only difference between 0009 and
+0010 — suppresses the semantic-role binding failure in both models. This is a **replication of the
+clarity-bundle effect on this controlled task pair**, cross-model at k=3 per cell. It does **not**
+isolate which component of the bundle is causal (the bundle ships labeling, type declarations,
+decoy disambiguation, a coverage fact, and a near-answer signoff-pair assertion together), and it
+does **not** establish generalization beyond 0009/0010. Separately, role clarity suppressed the
+binding error but did **not** establish efficient or reliable termination (Qwen × 0010: 3/3 artifact
+correct, only 1/3 protocol-complete FINISH; see §1b).
 
-**(c) Reliability / calibration.** Confidence tracks correctness on the clear task and breaks on the
-ambiguous one: the only protocol-complete Qwen × 0010 episode (stream_rep3) was HIGH-confidence and
-**correct** (calibrated), whereas the only protocol-complete Qwen × 0009 episode (trial1) was
-HIGH-confidence and **wrong** (`overconfident_wrong`). On 0009 the two gradeable-timeout rows split
-one PASS / one failure — a sampling-level ambiguity-resolution instability, not a deterministic
-inability. k=3 establishes the mechanism (0010 suppresses; 0009 does not) but not a success rate.
+**(c) Calibration — illustrative anecdote, not a claim.** The only protocol-complete Qwen × 0010
+episode (stream_rep3) was HIGH-confidence and correct, while the only protocol-complete Qwen × 0009
+episode (trial1) was HIGH-confidence and wrong (`overconfident_wrong`). With only **one
+confidence-bearing clear episode and one confidence-bearing ambiguous episode**, this is an
+illustrative anecdote, not a calibration claim: it is consistent with "confidence tracks correctness
+on the clear task and not on the ambiguous one" but cannot establish it.
 
 ## 6. Sample-size statement
 k=3 per cell is a small replication sample. Pass counts are point observations with wide uncertainty;

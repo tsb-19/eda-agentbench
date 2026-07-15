@@ -5,7 +5,8 @@
   "status": "COMPLETE",
   "code_commit": "e1c36d2",
   "purpose": "Balance the Qwen side of the workflow_handoff_0009 (ambiguous) / 0010 (clear control) controlled pair to k=3 under SSE streaming; test whether the clarity bundle suppresses the wrong-axis binding failure for both models.",
-  "headline": "The clear-role 0010 task SUPPRESSES the scenario/corner wrong-axis binding failure for BOTH models: DeepSeek 0009 0/3 -> 0010 3/3; Qwen 0009 1/3 (2 wrong-axis) -> 0010 3/3 (0 wrong-axis). The clarity bundle is the only visible difference between 0009 and 0010.",
+  "headline": "Across this controlled task pair, the full clarity bundle suppresses the scenario/corner wrong-axis binding failure for both evaluated models. DeepSeek changes from 0/3 correct on ambiguous 0009 to 3/3 on clear 0010; Qwen changes from 1/3 to 3/3. This is a replicated cross-model effect on the constructed pair, not yet a general population success-rate estimate.",
+  "causal_scope": "Replication of the clarity-bundle effect on this controlled task pair -- NOT 'the mechanism', NOT a component isolation, NOT a generalization claim. Establishes the effect of the COMPLETE visible clarity bundle shipped with 0010; does not isolate which component is causal; does not establish generalization beyond 0009/0010. Component isolation is the Phase-4W ablation subject.",
   "golden_tuple": ["netlist_v2.v", "clk_main", "slow", "func"],
   "matrix_2x2_k3": {
     "DeepSeek_0009": {"transport": "non-streaming (Phase-4U frozen)", "k": 3, "pass": 0, "wrong_axis_fails": 3, "tuples": ["func/typ", "func/slow", "func/slow"]},
@@ -28,10 +29,18 @@
     "note": "the two confident solves on the CLEAR task were correct; the one confident solve on the AMBIGUOUS task was wrong"
   },
   "deepseek_cells_note": "Phase-4U frozen (non-streaming). 3 of 6 DeepSeek episodes had a late socket_timeout AFTER the config was committed (gradeable, work-done; capability outcome unaffected). Distinct from the Phase-4V Qwen early-abort transport-invalid case. Retained under frozen condition per spec; not re-run under streaming.",
+  "per_cell_independent_dimensions": {
+    "_note": "artifact correctness != protocol completion; reported independently per cell.",
+    "DeepSeek_0009": {"transport_valid": "1/3 (t3 clean; t1,t2 late-socket)", "gradeable": "3/3", "artifact_grader_pass": "0/3", "typed_binding_pass": "0/3", "protocol_complete_FINISH": "0/3", "action_cap_or_task_wall": "1 action-cap (t3); 2 late-socket (t1,t2)"},
+    "DeepSeek_0010": {"transport_valid": "2/3 (t1,t2 clean; t3 late-socket)", "gradeable": "3/3", "artifact_grader_pass": "3/3", "typed_binding_pass": "3/3", "protocol_complete_FINISH": "1/3 (t1)", "action_cap_or_task_wall": "1 action-cap (t2); 1 late-socket (t3)"},
+    "Qwen_0009": {"transport_valid": "3/3", "gradeable": "3/3", "artifact_grader_pass": "1/3 (rep2)", "typed_binding_pass": "1/3 (rep2)", "protocol_complete_FINISH": "1/3 (trial1)", "action_cap_or_task_wall": "2 task-wall (rep2,rep3)"},
+    "Qwen_0010": {"transport_valid": "3/3", "gradeable": "3/3", "artifact_grader_pass": "3/3", "typed_binding_pass": "3/3", "protocol_complete_FINISH": "1/3 (stream_rep3)", "action_cap_or_task_wall": "2 action-cap (stream_trial1, stream_rep2)"},
+    "key_statement": "Qwen x 0010 = 3/3 artifact and typed-binding correctness but only 1/3 protocol-complete FINISH (2 action-cap passes). Role clarity suppressed the binding error but did NOT establish efficient or reliable termination."
+  },
   "conclusions": {
-    "transport_validity": "Qwen row fully streaming: 0 transport events across all 6 episodes (0 socket_timeout / 0 hard_deadline / 0 stream errors / 0 chat retries), 33K-77K reasoning tokens each. DeepSeek row Phase-4U frozen non-streaming: 3/6 late socket_timeout (gradeable, work-done). Streaming fix e1c36d2 made the Qwen row transport-clean.",
-    "capability_wrong_axis_suppression": "YES for both models. DeepSeek 0009 0/3 (3 wrong-axis) vs 0010 3/3 (0 wrong-axis); Qwen 0009 1/3 (2 wrong-axis) vs 0010 3/3 (0 wrong-axis). The clarity bundle -- the only visible difference -- removes the semantic-role binding failure in both. Cross-model k=3-per-cell replication.",
-    "reliability_calibration": "Confidence tracks correctness on the clear task and breaks on the ambiguous one: the only protocol-complete Qwen x 0010 episode (stream_rep3) was HIGH-confidence and CORRECT (calibrated); the only protocol-complete Qwen x 0009 episode (trial1) was HIGH-confidence and WRONG (overconfident_wrong). k=3 establishes the mechanism (0010 suppresses; 0009 does not) but not a success rate."
+    "transport_validity": "Qwen row fully streaming and transport-homogeneous: 0 transport events across all 6 episodes. DeepSeek row Phase-4U-frozen non-streaming; late gradeable socket_timeouts PER CELL: DeepSeek x 0009 = 2/3 late-socket (t1,t2; 1/3 clean), DeepSeek x 0010 = 1/3 late-socket (t3; 2/3 clean); all 6 gradeable. The cross-model headline rests on the same within-model direction (each model improves 0009->0010); it is NOT an absolute transport-homogeneous Qwen-vs-DeepSeek comparison (different transports per row).",
+    "capability_clarity_bundle_effect": "Replication of the clarity-bundle effect on this controlled task pair: DeepSeek 0009 0/3 -> 0010 3/3; Qwen 0009 1/3 -> 0010 3/3 (0 wrong-axis). Establishes the effect of the COMPLETE bundle; does NOT isolate which component is causal; does NOT generalize beyond 0009/0010. Role clarity suppressed the binding error but did NOT establish efficient/reliable termination (3/3 artifact correct, 1/3 protocol-complete).",
+    "calibration": "ILLUSTRATIVE ANECDOTE, NOT A CLAIM. The only protocol-complete Qwen x 0010 episode was HIGH-confidence and correct; the only protocol-complete Qwen x 0009 episode was HIGH-confidence and wrong (overconfident_wrong). With only one confidence-bearing clear episode and one confidence-bearing ambiguous episode, no calibration claim is made."
   },
   "sample_size_statement": "k=3 per cell is a small replication sample. Pass counts are point observations with wide uncertainty; no population success-rate claim is made. The controlled-pair signal is qualitative mechanism evidence replicated across two models, not a rate estimate.",
   "historical_reference_excluded": {
