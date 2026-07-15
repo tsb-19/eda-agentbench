@@ -21,14 +21,18 @@ hash, hidden-shadow checks).
 → `synthetic_p14_v5_0006_constraint_graph_probe.*`, task family under
 `tasks/p14_workflow_handoff/`, designs in `docs/synthetic_*.md`.
 
-**C2 — Mechanism-level controlled-pair methodology (the clarity bundle).**
-`workflow_handoff_0009` (ambiguous) vs `0010` (clear control): byte-identical hidden truth,
-grader, flow, mutant, decoys — differing ONLY in the visible clarity bundle. DeepSeek: 0/3 vs
-3/3 (Phase-4U, k=3). Qwen (once the transport was fixed): reproduces the same wrong-axis
-failure on 0009 while passing 0010.
-→ `synthetic_p14_semantic_role_controlled_pair_probe.*`,
-`synthetic_p14_qwen_0009_stream_anchor.*` (Phase-4V1), evidence in
-`evidence/p14_qwen_0009_stream_anchor/`.
+**C2 — Clarity-bundle controlled-pair methodology.** `workflow_handoff_0009` (ambiguous) vs
+`0010` (clear control): byte-identical hidden truth, grader, flow, mutant, decoys — differing ONLY
+in the visible clarity bundle. Accepted primary conclusion (k=3 per cell, Phase-4V2): *the full
+clarity bundle suppresses the scenario/corner wrong-axis binding failure for both models — DeepSeek
+0/3→3/3, Qwen 1/3→3/3 — a replicated cross-model effect on this constructed pair, not yet a general
+population success-rate estimate.* This establishes the effect of the complete bundle; it does not
+isolate the causal component or generalize beyond 0009/0010 (Phase-4W ablation subject). Qwen × 0010
+reached 3/3 artifact/typed-binding correctness but only 1/3 protocol-complete FINISH — role clarity
+suppressed the binding error, not termination inefficiency.
+→ `synthetic_p14_balanced_controlled_pair.*` (Phase-4V2, the balanced 2×2 × k=3 result),
+`synthetic_p14_qwen_0009_stream_anchor.*` (Phase-4V1), `synthetic_p14_semantic_role_controlled_pair_probe.*`
+(Phase-4U), evidence in `evidence/p14_qwen_0009_stream_anchor/` and `evidence/p14_qwen_0010_stream_anchor/`.
 
 **C3 — Reliability/calibration layer over agentic capability.** pass@k / pass^k, run-to-run
 variance at temperature>0, confidence elicitation, `overconfident_wrong`,
@@ -61,7 +65,8 @@ live in `docs/synthetic_p14_*_synthesis.md` and `docs/synthetic_negative_results
 | `synthetic_p14_v5_0006_deepseek_k5_preserved` | Reproducibility of the 0006 signal at k=5 (4/5, one byte-confirmed wrong-global-assignment) |
 | `synthetic_p14_semantic_role_controlled_pair_probe` | Phase-4U controlled pair: DeepSeek 0009 0/3 vs 0010 3/3 — the clarity bundle produces the difference |
 | `synthetic_p14_qwen_0009_fairness_anchor` | Phase-4V: the fairness anchor UNRESOLVED — measurement-invalid via non-streaming long-reasoning transport censoring (the C4 discovery) |
-| `synthetic_p14_qwen_0009_stream_anchor` | Phase-4V1 (streaming, k=3): Qwen anchor over the fixed transport *(lands with the Phase-4V1 commit)* |
+| `synthetic_p14_qwen_0009_stream_anchor` | Phase-4V1 (streaming, k=3): Qwen × 0009 anchor over the fixed transport — wrong-axis failure reproduces (2/3) |
+| `synthetic_p14_balanced_controlled_pair` | Phase-4V2 balanced 2×2 × k=3: the full clarity bundle suppresses the wrong-axis failure for both models (DeepSeek 0/3→3/3, Qwen 1/3→3/3); effect of the complete bundle on this pair, not component-isolated |
 | `synthetic_p14_v4_0005_deepseek_calibrated` / `_deepseek_k5_preserved` / `_deepseek_preserved_followup` | v4 0005 reliability chain: mixed solve + confident-wrong episodes (calibration evidence); digested in `docs/synthetic_p14_v4_post_k5_synthesis.md` |
 | `reliability_phase2` / `reliability_phase2_repaired` | Reliability layer result: non-passes are dominantly protocol, trust discriminates models |
 | `prompt_diversification_real_pilot` / `prompt_diversification_review_packet` | Prompt-diversification evidence (referenced by `tests/test_prompt_diversification.py` — do not move) |
