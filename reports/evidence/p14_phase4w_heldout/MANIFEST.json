@@ -1,0 +1,80 @@
+{
+  "generator": "scripts/gen_phase4w_heldout.py",
+  "generator_sha256": "c99675eec3b77190f3ab4d06b8eabc36e989adc41edcb57c93345729d5cf166b",
+  "source_commit": "0f38cc06826e3dcad22dacbb1baea27049872da5",
+  "source_hashes": {
+    "0009/flow_config": "65d3682943022f6306a5ef1391d322a03695cb7c285c364b1aa50f983d75b203",
+    "0010/flow_config": "7d56dbefafc27215217e9ca9ffe20b26cd428b1fb2b9c2df1a9418dd5f9242e6",
+    "0009/truth": "5c0c2e867d7546f8cc20c26e9351aaf4d3510edd735f26f224f4e1aff457b522",
+    "0010/truth": "3c7be745872b0ab08eec5a361a7bb4d32110325a8075bddc08d1859675f03629"
+  },
+  "role_map": {
+    "golden_scenario": {
+      "src": "slow",
+      "tgt": "typ"
+    },
+    "golden_corner": {
+      "src": "func",
+      "tgt": "test"
+    },
+    "swap_scen_slot": {
+      "src": "func",
+      "tgt": "test"
+    },
+    "swap_corner_slot": {
+      "src": "typ",
+      "tgt": "slow"
+    },
+    "pvt_label": {
+      "src": "slow_1.0V_125C",
+      "tgt": "typ_1.0V_25C"
+    }
+  },
+  "golden_heldout": [
+    "typ",
+    "test"
+  ],
+  "per_variant_role_counts": {
+    "workflow_handoff_0011": {
+      "swap_scen_slot": 8,
+      "swap_corner_slot": 8,
+      "golden_scenario": 11,
+      "golden_corner": 9,
+      "pvt_label": 2
+    },
+    "workflow_handoff_0012": {
+      "swap_scen_slot": 8,
+      "swap_corner_slot": 8,
+      "golden_scenario": 12,
+      "golden_corner": 10,
+      "pvt_label": 2
+    }
+  },
+  "total_role_counts": {
+    "swap_scen_slot": 16,
+    "swap_corner_slot": 16,
+    "golden_scenario": 23,
+    "golden_corner": 19,
+    "pvt_label": 4
+  },
+  "expected_min_counts": {
+    "golden_scenario": 10,
+    "golden_corner": 10,
+    "swap_scen_slot": 7,
+    "swap_corner_slot": 7,
+    "pvt_label": 2
+  },
+  "outputs": {
+    "workflow_handoff_0011": {
+      "derived_from": "workflow_handoff_0009",
+      "variant": "ambiguous",
+      "tree_sha256": "c504848f1f2f54ef5a25558397f37d54f1009ccdb4c3bf2f0fafb69552844137"
+    },
+    "workflow_handoff_0012": {
+      "derived_from": "workflow_handoff_0010",
+      "variant": "clear_control",
+      "tree_sha256": "4dfb15ee9142dd104c092a73fa085d3227b0da816a69aed3e3195ed438b488bd"
+    }
+  },
+  "determinism": "regenerated twice in independent temp dirs + byte-identical verify pass"
+}
