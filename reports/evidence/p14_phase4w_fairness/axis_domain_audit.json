@@ -1,0 +1,352 @@
+{
+  "legal_public_scenario_values": [
+    "slow",
+    "typ",
+    "fast"
+  ],
+  "legal_public_corner_values": [
+    "func",
+    "test",
+    "lowpower"
+  ],
+  "heldout_golden_0011": [
+    "typ",
+    "test"
+  ],
+  "heldout_golden_0012": [
+    "typ",
+    "test"
+  ],
+  "heldout_mutant_swap": [
+    "test",
+    "slow"
+  ],
+  "how_typ_established_as_scenario": "C5 constraint allows only [[typ,test]]; typ is a scenario_axis member in the scenario slot of the unique satisfying assignment. In 0012 the C6 analogue asserts it directly (answer-bearing); in 0011 it is inferred from the report intersection (not directly asserted).",
+  "how_test_established_as_corner": "test is a corner_axis member in the corner slot of the unique satisfying assignment; C5 [[typ,test]].",
+  "wrong_axis_candidate_test_slow": {
+    "test_is_corner_member": true,
+    "slow_is_scenario_member": true,
+    "wrong_axis_scenario_slot_test_is_type_error": true,
+    "wrong_axis_corner_slot_slow_is_type_error": true,
+    "note": "test/slow wrong-axis is syntactically a valid string submission; PT-executable (signoff green on v2/clk_main because the body is corner-independent); rejected by typed-binding."
+  },
+  "disclosure_audit_0011": {
+    "filename_discloses_typ_test": false,
+    "ships_glossary": false,
+    "ships_public_check_summary": false,
+    "c6_assertion_present": false,
+    "verdict_0011_no_new_disclosure_channel_vs_0009": true
+  },
+  "public_occurrences_0011": {
+    "typ": 7,
+    "test": 9,
+    "slow": 7,
+    "func": 4
+  },
+  "public_occurrences_0012": {
+    "typ": 8,
+    "test": 10,
+    "slow": 7,
+    "func": 4
+  },
+  "occurrences_detail_0011": {
+    "typ": [
+      {
+        "file": "evidence_manifest.json",
+        "line": 12,
+        "ctx": "\"scenario\": \"typ\","
+      },
+      {
+        "file": "pt_signoff.tcl",
+        "line": 17,
+        "ctx": "# Authority: handoff_manifest.json (netlist v2 / clk_main / func / typ). The handoff is co"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v2.v clock=clk_main scenario=typ corner=test signoff=OK paths=1"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v  clock=clk_main  op_point=typ  mode=test"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk  op_point=typ  mode=typ_1.0V_25C"
+      },
+      {
+        "file": "stage2_summary.json",
+        "line": 3,
+        "ctx": "\"corner\": \"typ\","
+      },
+      {
+        "file": "timing_report.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=func corner=typ signoff=OK paths=1 "
+      }
+    ],
+    "test": [
+      {
+        "file": "evidence_D_role_mismatch.json",
+        "line": 10,
+        "ctx": "\"op_point\": \"test\","
+      },
+      {
+        "file": "evidence_manifest.json",
+        "line": 4,
+        "ctx": "\"corner\": \"test\","
+      },
+      {
+        "file": "flow_config.json",
+        "line": 7,
+        "ctx": "\"scenario\": \"test\","
+      },
+      {
+        "file": "prev_signoff.log",
+        "line": 6,
+        "ctx": "op_point=test"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk_main  op_point=test  mode=slow"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v2.v clock=clk_main scenario=typ corner=test signoff=OK paths=1"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v  clock=clk_main  op_point=typ  mode=test"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      }
+    ],
+    "slow": [
+      {
+        "file": "evidence_D_role_mismatch.json",
+        "line": 9,
+        "ctx": "\"mode\": \"slow\","
+      },
+      {
+        "file": "evidence_manifest.json",
+        "line": 2,
+        "ctx": "\"_comment\": \"CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netl"
+      },
+      {
+        "file": "flow_config.json",
+        "line": 8,
+        "ctx": "\"corner\": \"slow\""
+      },
+      {
+        "file": "prev_signoff.log",
+        "line": 7,
+        "ctx": "mode=slow"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk_main  op_point=test  mode=slow"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      }
+    ],
+    "func": [
+      {
+        "file": "evidence_manifest.json",
+        "line": 2,
+        "ctx": "\"_comment\": \"CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netl"
+      },
+      {
+        "file": "pt_signoff.tcl",
+        "line": 17,
+        "ctx": "# Authority: handoff_manifest.json (netlist v2 / clk_main / func / typ). The handoff is co"
+      },
+      {
+        "file": "stage2_summary.json",
+        "line": 10,
+        "ctx": "\"scenario\": \"func\","
+      },
+      {
+        "file": "timing_report.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=func corner=typ signoff=OK paths=1 "
+      }
+    ]
+  },
+  "occurrences_detail_0012": {
+    "typ": [
+      {
+        "file": "evidence_manifest.json",
+        "line": 12,
+        "ctx": "\"scenario\": \"typ\","
+      },
+      {
+        "file": "pt_signoff.tcl",
+        "line": 17,
+        "ctx": "# Authority: handoff_manifest.json (netlist v2 / clk_main / func / typ). The handoff is co"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v2.v clock=clk_main scenario=typ corner=test signoff=OK paths=1"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v  clock=clk_main  scenario=typ  corner=test"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk  scenario=typ  corner=typ_1.0V_25C"
+      },
+      {
+        "file": "spec.md",
+        "line": 13,
+        "ctx": "- The setup signoff is taken at the **typ scenario** in the **test corner**."
+      },
+      {
+        "file": "stage2_summary.json",
+        "line": 3,
+        "ctx": "\"corner\": \"typ\","
+      },
+      {
+        "file": "timing_report.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=func corner=typ signoff=OK paths=1 "
+      }
+    ],
+    "test": [
+      {
+        "file": "evidence_D_role_mismatch.json",
+        "line": 12,
+        "ctx": "\"scenario\": \"test\","
+      },
+      {
+        "file": "evidence_manifest.json",
+        "line": 4,
+        "ctx": "\"corner\": \"test\","
+      },
+      {
+        "file": "flow_config.json",
+        "line": 7,
+        "ctx": "\"scenario\": \"test\","
+      },
+      {
+        "file": "prev_signoff.log",
+        "line": 6,
+        "ctx": "scenario=test"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=test  corner=slow"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v2.v clock=clk_main scenario=typ corner=test signoff=OK paths=1"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v  clock=clk_main  scenario=typ  corner=test"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      },
+      {
+        "file": "spec.md",
+        "line": 13,
+        "ctx": "- The setup signoff is taken at the **typ scenario** in the **test corner**."
+      }
+    ],
+    "slow": [
+      {
+        "file": "evidence_D_role_mismatch.json",
+        "line": 4,
+        "ctx": "\"corner\": \"slow\","
+      },
+      {
+        "file": "evidence_manifest.json",
+        "line": 2,
+        "ctx": "\"_comment\": \"CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netl"
+      },
+      {
+        "file": "flow_config.json",
+        "line": 8,
+        "ctx": "\"corner\": \"slow\""
+      },
+      {
+        "file": "prev_signoff.log",
+        "line": 7,
+        "ctx": "corner=slow"
+      },
+      {
+        "file": "report_A_role_swap.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=test  corner=slow"
+      },
+      {
+        "file": "report_B_role_stale.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      },
+      {
+        "file": "report_C_role_pvt.rpt",
+        "line": 5,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=test corner=slow signoff=OK paths=1"
+      }
+    ],
+    "func": [
+      {
+        "file": "evidence_manifest.json",
+        "line": 2,
+        "ctx": "\"_comment\": \"CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netl"
+      },
+      {
+        "file": "pt_signoff.tcl",
+        "line": 17,
+        "ctx": "# Authority: handoff_manifest.json (netlist v2 / clk_main / func / typ). The handoff is co"
+      },
+      {
+        "file": "stage2_summary.json",
+        "line": 10,
+        "ctx": "\"scenario\": \"func\","
+      },
+      {
+        "file": "timing_report.rpt",
+        "line": 2,
+        "ctx": "# consumed_netlist=netlist_v1.v clock=clk_old scenario=func corner=typ signoff=OK paths=1 "
+      }
+    ]
+  }
+}

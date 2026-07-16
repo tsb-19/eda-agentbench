@@ -1,0 +1,97 @@
+{
+  "seed": 20260715,
+  "seed_name": "phase4w_run1_seed",
+  "method": "random.Random(seed).random()<0.5 per block decides V1-first vs V9-first; 3 blocks",
+  "variants": {
+    "V1": "workflow_handoff_0013",
+    "V9": "workflow_handoff_0014"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "V1",
+        "V9"
+      ],
+      "v1_first": true,
+      "draw": 0.071508
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "V9",
+        "V1"
+      ],
+      "v1_first": false,
+      "draw": 0.989348
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "V1",
+        "V9"
+      ],
+      "v1_first": true,
+      "draw": 0.79524
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:V1",
+    "block1:V9",
+    "block2:V9",
+    "block2:V1",
+    "block3:V1",
+    "block3:V9"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "variant": "V1",
+      "task_id": "workflow_handoff_0013",
+      "planned_results_dir": "/tmp/p4w_run1_block1_V1_0"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "variant": "V9",
+      "task_id": "workflow_handoff_0014",
+      "planned_results_dir": "/tmp/p4w_run1_block1_V9_1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "variant": "V9",
+      "task_id": "workflow_handoff_0014",
+      "planned_results_dir": "/tmp/p4w_run1_block2_V9_0"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "variant": "V1",
+      "task_id": "workflow_handoff_0013",
+      "planned_results_dir": "/tmp/p4w_run1_block2_V1_1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "variant": "V1",
+      "task_id": "workflow_handoff_0013",
+      "planned_results_dir": "/tmp/p4w_run1_block3_V1_0"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "variant": "V9",
+      "task_id": "workflow_handoff_0014",
+      "planned_results_dir": "/tmp/p4w_run1_block3_V9_1"
+    }
+  ],
+  "code_commit_at_freeze": "97fe7891d3882f0885bd4b3ecabed988a398fe66",
+  "randomization_script_sha256": "1075eba66ab2b4d5f4f10539d5ac0ac3a877d67a598af2ff3e34f4d816670935",
+  "rule": "Order is FROZEN at this manifest. Must not change after the first paid result is observed.",
+  "counts": {
+    "V1": 3,
+    "V9": 3
+  }
+}

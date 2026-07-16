@@ -1,0 +1,27 @@
+{
+  "manifest": "p14_phase4w_fairness_gate",
+  "purpose": "Real-PrimeTime fairness gate for Phase-4W Run-1 (V1=0013, V9=0014) + held-out pair (0011/0012). 4 candidates x 6 tasks, per-candidate evidence regeneration, full grader vectors.",
+  "code_commit": "97fe789 (held-out frozen) ; V1/V9 at 0f38cc0 ; gate scripts uncommitted with this evidence",
+  "tasks": ["workflow_handoff_0009", "workflow_handoff_0010 (source)", "workflow_handoff_0011", "workflow_handoff_0012 (held-out)", "workflow_handoff_0013 (V1=0010-C6)", "workflow_handoff_0014 (V9=0009+C6)"],
+  "candidates": ["golden", "wrong_axis (right netlist/clock + role swap)", "stale_decoy (stale netlist + golden roles)", "unchanged_mutant (shipped mutant)"],
+  "hard_gates": {
+    "gate1_source_equivalence": "PASS — 0013 full vector == 0010 ; 0014 full vector == 0009 (all components + total, all 4 candidates). Confirms V1/V9 differ from source only in public C6 text + task_id (grader inputs byte-identical).",
+    "gate2_heldout_relational": "PASS — 0011/0012 golden = 1.0 (all 8 components); wrong-axis rejected by typed-binding/evidence (0.20) while signoff-green; stale-decoy + unchanged-mutant low (0.10).",
+    "gate3_axis_domain_lexical": "PASS — axis vocabulary unchanged (no token substitution); golden typ/test via C5 [[typ,test]] + unique intersection; wrong-axis test/slow are type errors but syntactically valid + PT-executable; 0011 no new disclosure channel (no glossary/summary/C6).",
+    "plausibility": "PASS — wrong-axis signoff-green for ALL 6 tasks (the role-binding decoy relevant to C6). NOTE: stale-decoy is signoff-red in SOURCE AND held-out alike (netlist-family rejection: netlist_v1 under the manifest's pinned clk_main has no clk_main -> PT red); this is a faithful preservation, not a held-out regression (the 'source green -> held-out red' failure condition is not met).",
+    "ALL_HARD_GATES_PASS": true
+  },
+  "transient_note": "0011 golden first run: transient empty-PT-body on b04 (ref digest 01ba4719 = sha256 newline); re-run = 1.0. Merged into gate_results.json; raw logs preserved under pt_evidence/ (0011_* from the re-run runs_root).",
+  "candidate_vector_summary": {"golden": "1.0 all tasks", "wrong_axis": "0.2 (signoff 1.0 / evidence_gen 0.0 / explanation 1.0) all tasks", "stale_decoy": "0.1 (signoff 0.0) all tasks", "unchanged_mutant": "0.1 (signoff 0.0) all tasks"},
+  "artifacts": {
+    "gate_results.json": "full 24 candidate vectors (components + submitted binding + anti_cheat)",
+    "fairness_verdict.json/.md": "hard-gate analysis (source equivalence detail + held-out + plausibility)",
+    "axis_domain_audit.json/.md": "axis vocabulary + public token occurrences + leakage audit",
+    "randomization_manifest.json": "frozen blocked-randomized Run-1 order (seed 20260715)",
+    "pt_evidence/": "72 sanitized real-PT files (24 candidates x score.json + hidden.log + public.log)",
+    "SHA256SUMS": "hashes over pt_evidence/",
+    "pt_evidence_MANIFEST.json": "candidate->grading_dir mapping"
+  },
+  "predeclared_interpretation_table": "docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md section 7a (5-cell C6 outcome table) — fixed before execution, not changed after any result.",
+  "next_step_if_gates_pass": "distinct pre-run commit (this evidence) with clean tree, then Run-1: 0013/V1 k=3 + 0014/V9 k=3 in the frozen blocked-randomized order, Qwen streaming, no k=5/DeepSeek/held-out-calls/other-variants/non-streaming-fallback."
+}
