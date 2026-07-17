@@ -8,8 +8,16 @@ fairness gate `ee6f8a6` (all hard gates PASS). Model: Qwen3.7-Max, SSE streaming
 **Headline (predeclared §7a cell): V1 remains STRONG (3/3) and V9 RECOVERS (3/3) → "C6 is sufficient
 on 0009 but redundant within 0010."** Removing the answer-bearing C6 assertion from the clear bundle
 did not degrade it (the non-C6 bundle components already suffice at the clear endpoint); adding C6
-ALONE to the ambiguous baseline recovered it to 3/3. Since C6 is **answer-bearing**, its sufficiency
-(V9) is an **answer-disclosure effect**, not isolated semantic-role-mechanism evidence.
+ALONE to the ambiguous baseline recovered it to 3/3. The supported conclusion: C6 is **locally
+sufficient** on the ambiguous 0009 endpoint; C6 is **not locally necessary** within the clear 0010
+bundle — so the data support **two successful routes** (an answer-bearing C6 route and a non-C6
+clarity-bundle route).
+
+> **Causal-interpretation correction (review amendment).** Do not attribute the Phase-4V2 full-bundle
+> effect to C6. The original full clarity bundle contained an answer-bearing confound, but its observed
+> success did not depend on that component. C6 supplies an alternative sufficient route on the ambiguous
+> baseline, while the remaining non-C6 bundle is also locally sufficient. Run-1 therefore motivates
+> **decomposition of the non-C6 route** rather than attributing the Phase-4V2 effect to C6.
 
 ## 1. Per-episode outcomes (frozen order; full dimension set)
 | # | block | variant (task) | transport_valid | gradeable | protocol_complete | termination | FINISH | score | submitted | conf | actions | rtok | retries | tport_ev | cost ¥ |
@@ -44,20 +52,34 @@ Both conditions cleanly 3/3 → **no within-condition instability** (the §7a in
 **(a) Transport validity.** All 6 episodes transport-clean (0 socket_timeout / 0 hard_deadline / 0 stream
 errors; 1 chat retry on ep2, recovered). Streaming at `e1c36d2` over the Phase-4V2 model–harness config.
 
-**(b) Capability — C6 (answer-bearing) local effect.** This Run-1 is a **local** two-endpoint ablation
-(§1a framing — NOT a main effect): V1 estimates local *necessity* of C6 at the clear endpoint (not
-necessary: 3/3 without it); V9 estimates local *sufficiency* of C6 at the ambiguous endpoint (sufficient:
-3/3 with it alone). Because C6 is **answer-bearing** (it nearly publishes `slow/func`), its sufficiency
-is an **answer-disclosure effect**: publishing the answer recovers the ambiguous task. This does NOT by
-itself establish that the Phase-4V2 clarity-bundle effect is a semantic-role *inference* effect — that
-requires the deferred **non-answer-bearing** controls (PC2 labeling, PC3 decoy-disambiguation, PC4
-lexical), which have not been run. Note V1 staying 3/3 shows the non-C6 bundle components also suffice at
-the clear endpoint, so the clear-endpoint effect is not solely answer-disclosure.
+**(b) Capability — C6 local effect (two sufficient routes; do NOT attribute the bundle to C6).** This
+Run-1 is a **local** two-endpoint ablation (§1a framing — NOT a main effect). The supported conclusions:
+(i) C6 is **locally sufficient** on the ambiguous 0009 endpoint (V9 = 0009+C6 → 3/3); (ii) C6 is **not
+locally necessary** within the clear 0010 bundle (V1 = 0010−C6 → 3/3). The data therefore support **two
+successful routes** — an answer-bearing C6 route and a non-C6 clarity-bundle route.
+
+**Causal-interpretation correction (per review):** the original full clarity bundle contained an
+**answer-bearing confound** (C6), but its observed success **did not depend on that component** (V1
+stays 3/3 without C6). C6 supplies an **alternative sufficient route** on the ambiguous baseline, while
+the remaining non-C6 bundle is also locally sufficient. Run-1 therefore **motivates decomposition of the
+non-C6 route** (Phase-4W Run-2: BundleS vs BundleD) rather than attributing the Phase-4V2 effect to C6.
+The causal contribution of C6 *within 0010* is not identified; only its standalone sufficiency on 0009
+is. (Whether the non-C6 routes act via semantic-role inference vs some other channel is what Run-2
+begins to test.)
 
 **(c) Calibration — illustrative anecdote, not a claim.** 4/6 episodes were protocol-complete with HIGH
 confidence, all **correct** (no overconfident_wrong); 2/6 were gradeable-timeout (action-cap / task-wall)
 with the correct config committed. With 4 confidence-bearing episodes, this is an anecdote, not a
 calibration claim.
+
+**(d) Negative controls are DISTINCT hazards — do not combine them.**
+- **Wrong-axis** is the **primary semantic-role failure**: right netlist+clock, role fields swapped →
+  **signoff-green but typed-binding/evidence rejected** (0.20 signature). This is the role-binding
+  decoy the C6/non-C6 contrasts act on.
+- **Stale-decoy** is a **separate stale/netlist-family hazard**: it is already **signoff-RED** in both
+  source (0009/0010) and held-out (0011/0012) — netlist_v1 under the manifest's pinned `clk_main` has no
+  `clk_main`, so PT fails. It is rejected via netlist-family (C1), not semantic-role binding, and is not
+  equivalent to the wrong-axis semantic-binding failure.
 
 ## 5. Sample-size + scope statement
 k=3 per condition is a small local-ablation sample. The result is a **local** necessity/sufficiency
