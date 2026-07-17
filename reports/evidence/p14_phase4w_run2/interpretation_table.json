@@ -1,0 +1,12 @@
+{
+  "predeclared": "fixed before execution; not changed after any result. 'succeeds' = 3/3 artifact-correct (clusters with the clear endpoint); 'does not' = <=1/3 (clusters with the ambiguous 0009 baseline).",
+  "cells": {
+    "BundleS_succeeds_BundleD_not": "prioritize semantic schema/contract decomposition (labels+types+PVT-def+glossary+contract)",
+    "BundleD_succeeds_BundleS_not": "prioritize ambiguity/decoy-filter decomposition (coverage fact + pairwise conflicts)",
+    "both_succeed": "two redundant non-answer sufficient routes (the non-C6 bundle decomposes into independent sufficient sub-routes)",
+    "neither_succeeds": "interaction between the two bundles is required (neither alone suffices on the ambiguous baseline)",
+    "unstable": "report recurrence/instability only; no decomposition claim; return for review"
+  },
+  "primary_outcomes": ["typed_binding_correctness", "artifact_grader_correctness"],
+  "independent_report_dims": ["transport_validity","gradeability","protocol_completion","termination","submitted_tuple","score_breakdown","actions","reasoning_tokens","confidence","retries","transport_events"]
+}

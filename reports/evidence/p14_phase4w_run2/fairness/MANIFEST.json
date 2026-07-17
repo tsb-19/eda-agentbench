@@ -1,0 +1,15 @@
+{
+  "manifest": "p14_phase4w_run2_fairness_gate",
+  "purpose": "Phase-4W Run-2 pre-run gate: BundleS (0015 = 0009+C1/C2/C4/C7) and BundleD (0016 = 0009+C3/C5), both NON-C6 grouped screening additions to the frozen 0009 ambiguous baseline.",
+  "variants": {"BundleS_0015": "0009 + {C1 labels+type-decls, C2 PVT-def, C4 glossary, C7 contract-wording} = 0010 - public_check_summary - C6", "BundleD_0016": "0009 + {C3 coverage-fact, C5 pairwise-conflict-info}"},
+  "hard_gates": {
+    "disclosure_audit": "PASS (reports/evidence/p14_phase4w_run2/disclosure_audit.json) — both bundles non-answer-bearing: golden not stated; 9 typed tuples remain plausible; wrong-axis in reports + signoff-green; no directive/filename/glossary/summary/conflict unique-answer channel. Neither bundle uniquely identifies slow/func.",
+    "gate1_source_equivalence": "PASS — 0015 full vector == 0010; 0016 full vector == 0009 (all 4 candidates). Hidden/grader/flow/mutant/scoring byte-identical.",
+    "gate2_relational": "PASS — 0015/0016 golden = 1.0; wrong-axis 0.20 (signoff-green, typed-binding/evidence rejected); stale-decoy + unchanged-mutant 0.10.",
+    "ALL_HARD_GATES_PASS": true
+  },
+  "candidate_vectors": {"golden": "1.0 (all tasks)", "wrong_axis": "0.2 (signoff 1.0 / evidence_gen 0.0) all tasks", "stale_decoy": "0.1 (signoff 0.0) all tasks", "unchanged_mutant": "0.1 (signoff 0.0) all tasks"},
+  "negative_controls_distinct": {"wrong_axis": "primary semantic-role failure (signoff-green, typed-binding rejected)", "stale_decoy": "separate netlist-family hazard (signoff-RED in source+held-out; netlist_v1 under pinned clk_main)"},
+  "artifacts": {"source_diff.txt": "0009->0016, 0010->0015", "component_classification.json": "full component classification + invariance", "disclosure_audit.json": "tuple enumeration + eligibility", "interpretation_table.json": "predeclared 5-cell + primary outcomes", "randomization_manifest.json": "frozen blocked order (seed 20260718)", "gate_results.json": "16 fairness vectors", "fairness_verdict.json": "hard-gate analysis", "pt_evidence/": "48 sanitized real-PT files", "SHA256SUMS": "hashes"},
+  "next_step_if_gates_pass": "Run-2: BundleS/0015 k=3 + BundleD/0016 k=3, frozen order block1:D,S / block2:S,D / block3:D,S (seed 20260718), Qwen streaming, no C6/k=5/DeepSeek/held-out/other/non-streaming."
+}

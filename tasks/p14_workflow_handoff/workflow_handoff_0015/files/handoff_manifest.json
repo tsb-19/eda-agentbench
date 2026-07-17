@@ -1,0 +1,30 @@
+{
+  "_comment": "Handoff package manifest -- PARTIAL AUTHORITY for the semantic-role-binding handoff (variant=clear_control). Declares the netlist FAMILY + interface (C1) and the design intent; it deliberately OMITS the concrete clock/scenario/corner values and any typed-axis mapping. The unique assignment is the INTERSECTION of the spec.md constraints -- NOT a line in this file. Read-only and FROZEN.",
+  "design": "acc_stage",
+  "top_module": "acc_stage",
+  "interface": {
+    "ports": [
+      "clk_main",
+      "din",
+      "en",
+      "dout"
+    ],
+    "note": "v2.x family interface"
+  },
+  "netlist_family": "v2.x",
+  "netlist_revision": "v2",
+  "library": "tiny.db",
+  "terminology": "glossary.md (INCOMPLETE examples only; NOT a schema)",
+  "constraints": "constraints.sdc",
+  "flow_config": "flow_config.json",
+  "stage1_generator": "run_evidence_stage1.sh",
+  "report": "timing_report.rpt",
+  "evidence_manifest": "evidence_manifest.json",
+  "recovery_note": "the reports use canonical scenario/corner labels; glossary.md states the disjoint typed axes -- infer clock/scenario/corner by intersecting the constraints; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched). A signoff-green-but-mis-typed package is still rejected.",
+  "netlist": "netlist_v2.v",
+  "netlist_provenance_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+  "history": {
+    "v1": "legacy pre-ECO revision on clk_old (provenance only -- out of family, must NOT be consumed)",
+    "v2": "current post-ECO family on clk_main, enable-qualified (the handoff design family)"
+  }
+}

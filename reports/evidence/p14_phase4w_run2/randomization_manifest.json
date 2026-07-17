@@ -1,0 +1,97 @@
+{
+  "seed": 20260718,
+  "seed_name": "phase4w_run2_seed",
+  "method": "random.Random(seed).random()<0.5 per block; 3 blocks",
+  "variants": {
+    "BundleS": "workflow_handoff_0015",
+    "BundleD": "workflow_handoff_0016"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "BundleD",
+        "BundleS"
+      ],
+      "BundleS_first": false,
+      "draw": 0.061633
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "BundleS",
+        "BundleD"
+      ],
+      "BundleS_first": true,
+      "draw": 0.363721
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "BundleD",
+        "BundleS"
+      ],
+      "BundleS_first": false,
+      "draw": 0.746129
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:BundleD",
+    "block1:BundleS",
+    "block2:BundleS",
+    "block2:BundleD",
+    "block3:BundleD",
+    "block3:BundleS"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "variant": "BundleD",
+      "task_id": "workflow_handoff_0016",
+      "planned_results_dir": "/tmp/p4w_run2_1_BundleD_0"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "variant": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4w_run2_1_BundleS_1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "variant": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4w_run2_2_BundleS_0"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "variant": "BundleD",
+      "task_id": "workflow_handoff_0016",
+      "planned_results_dir": "/tmp/p4w_run2_2_BundleD_1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "variant": "BundleD",
+      "task_id": "workflow_handoff_0016",
+      "planned_results_dir": "/tmp/p4w_run2_3_BundleD_0"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "variant": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4w_run2_3_BundleS_1"
+    }
+  ],
+  "code_commit_at_freeze": "74890d2cea5c7b36e59c8dc10db18083f6e09a89",
+  "randomization_script_sha256": "e5f54f2371e678e9c6a551bcab8e54e0f9f0a5bdd38e1a8991b2f6ddb17c15a2",
+  "rule": "FROZEN; must not change after the first paid result.",
+  "counts": {
+    "BundleS": 3,
+    "BundleD": 3
+  }
+}

@@ -1,0 +1,282 @@
+{
+  "_comment": "Hidden oracle metadata for p14 workflow handoff. Used ONLY inside grade_workflow.py; never seen by the agent.",
+  "evidence_steps": 2,
+  "top_module": "acc_stage",
+  "expected_netlist": "netlist_v2.v",
+  "expected_revision": "v2",
+  "expected_netlist_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+  "stale_netlist": "netlist_v1.v",
+  "stale_netlist_sha256": "64c06ccd792ed33c8c3296778bbb832642e98eaeaffce5e2268fc5211428da62",
+  "expected_clock": "clk_main",
+  "stale_clock": "clk_old",
+  "scenario": "slow",
+  "corner": "func",
+  "library": "tiny.db",
+  "required_ports": [
+    "clk_main",
+    "din",
+    "en",
+    "dout"
+  ],
+  "min_constrained_paths": 1,
+  "clock_period_ns": 3.0,
+  "forbid_weakening": true,
+  "manifest_netlist": "netlist_v2.v",
+  "manifest_clock": "clk_main",
+  "authority_source": "inferred from evidence/provenance (variant=clear_control): handoff_manifest (family) + report intersection + (ambiguous: no anchors; clear: glossary + public_check_summary)",
+  "authority_hierarchy": [
+    "spec.md",
+    "handoff_manifest.json",
+    "flow_config.json",
+    "evidence_manifest.json",
+    "report_A_role_swap.rpt",
+    "report_B_role_stale.rpt",
+    "report_C_role_pvt.rpt",
+    "evidence_D_role_mismatch.json",
+    "prev_signoff.log"
+  ],
+  "hazard_type": "semantic_role_binding_reproduction",
+  "variant": "clear_control",
+  "expected_scenario": "slow",
+  "expected_corner": "func",
+  "stale_scenario": "func",
+  "stale_corner": "typ",
+  "global_authority_tuple": [
+    "netlist_v2.v",
+    "clk_main",
+    "slow",
+    "func"
+  ],
+  "semantic_role_mapping": {
+    "scenario": "scenario",
+    "corner": "corner"
+  },
+  "report_role_labels": {
+    "scenario": "scenario",
+    "corner": "corner"
+  },
+  "decoy_embedded_values": {
+    "report_A_role_swap.rpt": {
+      "scenario_slot": "func",
+      "corner_slot": "typ"
+    },
+    "report_C_role_pvt.rpt": {
+      "scenario_slot": "slow",
+      "corner_slot": "slow_1.0V_125C"
+    }
+  },
+  "axis_schema": {
+    "typed_axes": {
+      "netlist_axis": [
+        "netlist_v1.v",
+        "netlist_v2.v"
+      ],
+      "clock_axis": [
+        "clk_old",
+        "clk_main"
+      ],
+      "scenario_axis": [
+        "slow",
+        "typ",
+        "fast"
+      ],
+      "corner_axis": [
+        "func",
+        "test",
+        "lowpower"
+      ],
+      "pvt_label_axis": [
+        "slow_1.0V_125C",
+        "typ_1.0V_25C",
+        "fast_0.8V_0C"
+      ]
+    },
+    "pvt_label_mapping": {
+      "slow_1.0V_125C": [
+        "slow",
+        "func"
+      ],
+      "typ_1.0V_25C": [
+        "typ",
+        "test"
+      ],
+      "fast_0.8V_0C": [
+        "fast",
+        "lowpower"
+      ]
+    },
+    "type_rules": [
+      "scenario_axis values may occupy ONLY the scenario field",
+      "corner_axis values may occupy ONLY the corner field",
+      "a pvt_label_axis token is descriptive metadata mapping to a (scenario, corner) pair; it is never a valid scenario or corner value",
+      "clock_axis requires exact identity (clk_main); a generic/aliased name is rejected"
+    ],
+    "membership_visibility": "IMPLICIT, variant=clear_control -- ambiguous: inferred from report intersection with NO glossary/summary anchor; clear: canonical labels + anchors",
+    "axes": {
+      "netlist": [
+        "netlist_v1.v",
+        "netlist_v2.v"
+      ],
+      "clock": [
+        "clk_main",
+        "clk_old",
+        "clk"
+      ],
+      "scenario": [
+        "slow",
+        "typ",
+        "fast",
+        "func",
+        "test",
+        "lowpower",
+        "slow_1.0V_125C"
+      ],
+      "corner": [
+        "func",
+        "test",
+        "lowpower",
+        "slow",
+        "typ",
+        "fast",
+        "slow_1.0V_125C"
+      ]
+    },
+    "constraints": [
+      {
+        "id": "C1",
+        "name": "netlist_family",
+        "over": [
+          "netlist"
+        ],
+        "allowed": [
+          [
+            "netlist_v2.v"
+          ]
+        ],
+        "source": "handoff_manifest.json family + acc_stage interface"
+      },
+      {
+        "id": "C2",
+        "name": "clock_identity",
+        "over": [
+          "clock"
+        ],
+        "allowed": [
+          [
+            "clk_main"
+          ]
+        ],
+        "source": "the only clock with non-zero intended-clock coverage on netlist_v2"
+      },
+      {
+        "id": "C3",
+        "name": "scenario_typed",
+        "over": [
+          "scenario"
+        ],
+        "allowed": [
+          [
+            "slow"
+          ],
+          [
+            "typ"
+          ],
+          [
+            "fast"
+          ]
+        ],
+        "source": "scenario field must be a scenario_axis member; a corner value or PVT label in the scenario slot is a type error"
+      },
+      {
+        "id": "C4",
+        "name": "corner_typed",
+        "over": [
+          "corner"
+        ],
+        "allowed": [
+          [
+            "func"
+          ],
+          [
+            "test"
+          ],
+          [
+            "lowpower"
+          ]
+        ],
+        "source": "corner field must be a corner_axis member; a scenario value or PVT label in the corner slot is a type error"
+      },
+      {
+        "id": "C5",
+        "name": "scenario_corner_signoff_pair",
+        "over": [
+          "scenario",
+          "corner"
+        ],
+        "allowed": [
+          [
+            "slow",
+            "func"
+          ]
+        ],
+        "source": "the unique signoff pair recovered by intersecting the (partially-truthful) report sources"
+      }
+    ],
+    "expected_unique_assignment": {
+      "netlist": "netlist_v2.v",
+      "clock": "clk_main",
+      "scenario": "slow",
+      "corner": "func"
+    },
+    "decoy_violates": {
+      "report_A_role_swap.rpt": "C3+C4 (right netlist/clock; the role fields are SWAPPED -- a corner value in the scenario role, a scenario value in the corner role)",
+      "report_B_role_stale.rpt": "C1 (correct role fields; netlist stale v1)",
+      "report_C_role_pvt.rpt": "C2+C4 (right netlist/scenario; corner is a PVT label; clock alias 'clk')",
+      "evidence_D_role_mismatch.json": "C3+C4 (valid digest; role fields swapped inside)"
+    },
+    "uniqueness": {
+      "total_assignments": 294,
+      "satisfying_count": 1,
+      "satisfying_assignments": [
+        {
+          "netlist": "netlist_v2.v",
+          "clock": "clk_main",
+          "scenario": "slow",
+          "corner": "func"
+        }
+      ],
+      "exactly_one": true,
+      "unique_matches_expected": true
+    }
+  },
+  "decoy_sources": [
+    "report_A_role_swap.rpt(netlist_v2/clk_main right; role fields swapped func/typ -> C3+C4)",
+    "report_B_role_stale.rpt(correct role fields slow/func; netlist_v1 stale -> C1)",
+    "report_C_role_pvt.rpt(netlist_v2/slow right; corner=PVT label slow_1.0V_125C + clock alias clk -> C2+C4)",
+    "evidence_D_role_mismatch.json(valid-looking chain; role fields swapped -> C3+C4)",
+    "prev_signoff.log(recent, plausible, non-authoritative)"
+  ],
+  "pairwise_valid_but_global_invalid_sources": [
+    "report_A_role_swap.rpt",
+    "report_B_role_stale.rpt",
+    "report_C_role_pvt.rpt",
+    "evidence_D_role_mismatch.json"
+  ],
+  "non_authoritative_sources": [
+    "prev_signoff.log",
+    "report_A_role_swap.rpt",
+    "report_B_role_stale.rpt",
+    "report_C_role_pvt.rpt",
+    "evidence_D_role_mismatch.json"
+  ],
+  "invalidated_by": "no_single_source_satisfies_all_typed_constraints_only_their_intersection",
+  "recovery_step_expected": [
+    "resolve_semantic_role_binding_from_report_intersection",
+    "infer_unique_typed_assignment_from_C1_C2_C3_C4_C5",
+    "fix_flow_config_netlist_to_v2",
+    "fix_flow_config_scenario_to_slow",
+    "fix_flow_config_corner_to_func",
+    "rerun_stage1",
+    "rerun_stage2"
+  ]
+}
