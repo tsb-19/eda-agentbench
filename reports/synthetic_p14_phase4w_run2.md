@@ -1,18 +1,20 @@
 # p14 Phase-4W Run-2 — non-C6 grouped screening (BundleS=0015, BundleD=0016), k=3 each — COMPLETE
 
-**Status: COMPLETE.** Report-only commit. HEAD `[SHA-TBD]`. Code: variants `5abb5c5` (pre-run gate, all hard
-gates PASS). Model: Qwen3.7-Max, SSE streaming. Cost **¥76.79** (BundleS ¥38.08 + BundleD ¥38.71).
+**Status: COMPLETE.** Report-only commit `b2d2c1a`; wording amended per review (this commit). Code:
+variants `5abb5c5` (pre-run gate, all hard gates PASS). Model: Qwen3.7-Max, SSE streaming. Cost **¥76.79** (BundleS ¥38.08 + BundleD ¥38.71).
 Frozen blocked-randomized order `block1:D,S / block2:S,D / block3:D,S` (seed `phase4w_run2_seed=20260718`).
 No C6, no k=5, no DeepSeek, no held-out/other-variant/non-streaming calls.
 
-**Headline (primary = typed-binding + artifact, both reported).** On the **typed-binding** measure, the
-schema/contract bundle **BundleS (0009+C1/C2/C4/C7) succeeds (3/3 correct slow/func binding)** while the
-decoy-disambiguation bundle **BundleD (0009+C3/C5) does not (1/3 binding; 2/3 wrong-axis)**. This indicates
-the non-C6 clarity-bundle's sufficiency on the ambiguous baseline is carried by the **schema/contract
-components (C1 labels+type-decls, C2 PVT-def, C4 glossary, C7 wording)**, not the decoy-disambiguation
-components (C3 coverage-fact, C5 pairwise-conflict). On the **artifact** measure BundleS is **2/3** (one
-episode bound correctly but did not finish evidence regeneration before the wall) and BundleD is 1/3 — so
-the schema-succeeds verdict is clean on binding but carries an artifact-completion caveat.
+**Headline (supported conclusion, review-refined wording).** "On the predeclared primary
+typed-binding outcome, Run-2 **localizes the stable non-C6 improvement on this development task pair
+to the schema/contract bundle (C1+C2+C4+C7) rather than the decoy-disambiguation bundle (C3+C5)**.
+BundleS achieved 3/3 correct typed bindings; BundleD achieved 1/3 and reproduced two wrong-axis
+failures." BundleD is **not** thereby proven to have no effect or to be categorically insufficient —
+it **did not establish stable local sufficiency under the predeclared k=3 criterion**. Semantic
+binding and end-to-end completion are kept separate: BundleS typed-binding **3/3**, artifact
+completion **2/3**; BundleD typed-binding **1/3**, artifact completion **1/3**. The BundleS
+incomplete-artifact episode is an **evidence-regeneration/task-wall failure after the correct binding
+was already selected**, not a semantic-binding failure.
 
 ## 1. Per-episode outcomes (frozen order; full dimension set)
 | # | block | bundle (task) | tv | gradeable | pc | termination | FINISH | score | submitted | binding | conf | act | rtok | retries | tport | ¥ |
@@ -37,20 +39,22 @@ All 6: anti-cheat clean, 0 transport events, netlist correct (v2).
 ## 3. Interpretation (predeclared table; `reports/evidence/p14_phase4w_run2/interpretation_table.json`)
 | measure | BundleS | BundleD | cell |
 |---|---|---|---|
-| typed-binding (primary) | **3/3 (succeeds)** | **1/3 (does not)** | **schema succeeds, decoy does not → prioritize semantic schema/contract decomposition** |
-| artifact (primary) | 2/3 (intermediate) | 1/3 (does not) | schema-leaning, with an artifact-completion caveat (see §4) |
+| typed-binding (primary) | **3/3 (stable correct binding)** | **1/3 (did not establish stable local sufficiency under the predeclared k=3 criterion; 2 wrong-axis reproduced)** | **localizes the stable non-C6 improvement to the schema/contract bundle → prioritize semantic schema/contract decomposition** |
+| artifact (secondary here) | 2/3 (intermediate) | 1/3 | schema-leaning, with an artifact-completion caveat (see §4) |
 
 ## 4. Separated conclusions
 **(a) Transport validity.** All 6 episodes transport-clean (0 socket_timeout / 0 hard_deadline / 0 stream
 errors; 1 recovered chat retry on ep3).
 
-**(b) Capability — the non-C6 route is the schema/contract route.** Run-1 established two sufficient routes
-(answer-bearing C6 + the non-C6 bundle); Run-2 decomposes the non-C6 bundle. On the **typed-binding**
-measure, the schema/contract bundle (C1 canonical labels + disjoint-typed-axes declaration, C2 PVT-def,
-C4 glossary, C7 contract-wording) alone recovers correct binding on 0009 (3/3), whereas the
-decoy-disambiguation bundle (C3 coverage-fact, C5 pairwise-conflict) alone does not (1/3; 2/3 wrong-axis,
-clustering with the ambiguous 0009 baseline). This is a **local sufficiency** finding (schema/contract
-sufficient; decoy-disambiguation insufficient) at one endpoint of one pair — not a general main effect and
+**(b) Capability — Run-2 localizes the non-C6 route to schema/contract.** Run-1 established two
+sufficient routes (answer-bearing C6 + the non-C6 bundle); Run-2 decomposes the non-C6 bundle. On the
+**typed-binding** measure, the schema/contract bundle (C1 canonical labels + disjoint-typed-axes
+declaration, C2 PVT-def, C4 glossary, C7 contract-wording) achieved stable correct binding on 0009
+(3/3), whereas the decoy-disambiguation bundle (C3 coverage-fact, C5 pairwise-conflict) **did not
+establish stable local sufficiency under the predeclared k=3 criterion** (1/3 binding; two wrong-axis
+failures reproduced, clustering with the ambiguous 0009 baseline). This localizes the stable non-C6
+improvement **on this development task pair** to the schema/contract bundle; it does NOT prove BundleD
+has no effect. This is a **local** finding at one endpoint of one pair — not a general main effect and
 not a generalization claim (held-out 0011/0012 not yet run).
 
 **(c) Artifact-completion caveat (do not overclaim a clean 3/3).** On the **artifact** measure BundleS is
