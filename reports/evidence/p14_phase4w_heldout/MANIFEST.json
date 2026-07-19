@@ -1,80 +1,42 @@
 {
-  "generator": "scripts/gen_phase4w_heldout.py",
-  "generator_sha256": "c99675eec3b77190f3ab4d06b8eabc36e989adc41edcb57c93345729d5cf166b",
-  "source_commit": "0f38cc06826e3dcad22dacbb1baea27049872da5",
-  "source_hashes": {
-    "0009/flow_config": "65d3682943022f6306a5ef1391d322a03695cb7c285c364b1aa50f983d75b203",
-    "0010/flow_config": "7d56dbefafc27215217e9ca9ffe20b26cd428b1fb2b9c2df1a9418dd5f9242e6",
-    "0009/truth": "5c0c2e867d7546f8cc20c26e9351aaf4d3510edd735f26f224f4e1aff457b522",
-    "0010/truth": "3c7be745872b0ab08eec5a361a7bb4d32110325a8075bddc08d1859675f03629"
-  },
-  "role_map": {
-    "golden_scenario": {
-      "src": "slow",
-      "tgt": "typ"
-    },
-    "golden_corner": {
-      "src": "func",
-      "tgt": "test"
-    },
-    "swap_scen_slot": {
-      "src": "func",
-      "tgt": "test"
-    },
-    "swap_corner_slot": {
-      "src": "typ",
-      "tgt": "slow"
-    },
-    "pvt_label": {
-      "src": "slow_1.0V_125C",
-      "tgt": "typ_1.0V_25C"
-    }
-  },
-  "golden_heldout": [
-    "typ",
-    "test"
-  ],
-  "per_variant_role_counts": {
-    "workflow_handoff_0011": {
-      "swap_scen_slot": 8,
-      "swap_corner_slot": 8,
-      "golden_scenario": 11,
-      "golden_corner": 9,
-      "pvt_label": 2
-    },
-    "workflow_handoff_0012": {
-      "swap_scen_slot": 8,
-      "swap_corner_slot": 8,
-      "golden_scenario": 12,
-      "golden_corner": 10,
-      "pvt_label": 2
-    }
-  },
-  "total_role_counts": {
-    "swap_scen_slot": 16,
-    "swap_corner_slot": 16,
-    "golden_scenario": 23,
-    "golden_corner": 19,
-    "pvt_label": 4
-  },
-  "expected_min_counts": {
-    "golden_scenario": 10,
-    "golden_corner": 10,
-    "swap_scen_slot": 7,
-    "swap_corner_slot": 7,
-    "pvt_label": 2
-  },
-  "outputs": {
-    "workflow_handoff_0011": {
-      "derived_from": "workflow_handoff_0009",
-      "variant": "ambiguous",
-      "tree_sha256": "c504848f1f2f54ef5a25558397f37d54f1009ccdb4c3bf2f0fafb69552844137"
-    },
-    "workflow_handoff_0012": {
-      "derived_from": "workflow_handoff_0010",
-      "variant": "clear_control",
-      "tree_sha256": "4dfb15ee9142dd104c092a73fa085d3227b0da816a69aed3e3195ed438b488bd"
-    }
-  },
-  "determinism": "regenerated twice in independent temp dirs + byte-identical verify pass"
+  "evidence_root": "reports/evidence/p14_phase4w_heldout",
+  "files": {
+    "component_classification.json": "4d4c60de6b63e4defe57c2313b45702ff8584d7f1d368f96e22dd48f65c2e5c5",
+    "disclosure_audit.json": "869c440c61e511e5bd804620d6ccb62bd35a0a443ba8cfac06adc80e035cb0be",
+    "fairness/fairness_verdict.json": "c6ff6ff7f263501ae34a366c73028df03bb26110afed2685d50d73b7140ef4bc",
+    "fairness/gate_results.json": "3f7a5e6970f44b8330a2eb59d38ec5b3adbebeee2c673eab6dd6eb53fb4bfe33",
+    "fairness/pt_evidence/0011_golden_evidence_manifest.json": "1bca19427a78c8b82732672b77ab2c62feccb13097198779ed1e8be50496820d",
+    "fairness/pt_evidence/0011_golden_stage2_summary.json": "22decb2fcf3b017254d555f7460e23aa1d1eb13f46da9b92ad5676a448911a57",
+    "fairness/pt_evidence/0011_golden_timing_report.rpt": "70be8a5df4be6b0ec6b7fc9313b8152db643b1d2e3348321060e0e2d20c1cd81",
+    "fairness/pt_evidence/0011_stale_decoy_evidence_manifest.json": "0f0b1d46574e61a63a0a4c0bdfee727486956c8735a8daa77945b9832be25812",
+    "fairness/pt_evidence/0011_stale_decoy_stage2_summary.json": "1ffabda67f09efd8977c391f9dd5729e05963a819925dc5dc789f48c5953e106",
+    "fairness/pt_evidence/0011_stale_decoy_timing_report.rpt": "b327332307bb025f298654783d10c0a69f4bd65bcbda0e9ac986bea96b85ec43",
+    "fairness/pt_evidence/0011_unchanged_mutant_evidence_manifest.json": "aa232cca3b4e402f1e77c3d161011d6c01154d7d94492614ef7aeff1ad99ddb1",
+    "fairness/pt_evidence/0011_unchanged_mutant_stage2_summary.json": "da7ae20779542a78810f0a91ef56eb5b61bf48a2321d5269ff47b7574c771aa3",
+    "fairness/pt_evidence/0011_unchanged_mutant_timing_report.rpt": "f9a67eaae88e1d02d383d9027f1a96cc828137927b3f389b3b4578a43f301a19",
+    "fairness/pt_evidence/0011_wrong_axis_evidence_manifest.json": "33eab3e6193f5138da58b4e0ebaf7ba9f8a96e9bcfbbc92c8c4f090d1d431474",
+    "fairness/pt_evidence/0011_wrong_axis_stage2_summary.json": "a05b37894c456276b5576efb0bc1311fb97ed191e58cfff943b4720714665506",
+    "fairness/pt_evidence/0011_wrong_axis_timing_report.rpt": "99e9fc264a04d2f2b7fff41dc66587824e15f352f96565f4b8ddd7df89ec6dae",
+    "fairness/pt_evidence/0017_golden_evidence_manifest.json": "1bca19427a78c8b82732672b77ab2c62feccb13097198779ed1e8be50496820d",
+    "fairness/pt_evidence/0017_golden_stage2_summary.json": "22decb2fcf3b017254d555f7460e23aa1d1eb13f46da9b92ad5676a448911a57",
+    "fairness/pt_evidence/0017_golden_timing_report.rpt": "70be8a5df4be6b0ec6b7fc9313b8152db643b1d2e3348321060e0e2d20c1cd81",
+    "fairness/pt_evidence/0017_stale_decoy_evidence_manifest.json": "0f0b1d46574e61a63a0a4c0bdfee727486956c8735a8daa77945b9832be25812",
+    "fairness/pt_evidence/0017_stale_decoy_stage2_summary.json": "1ffabda67f09efd8977c391f9dd5729e05963a819925dc5dc789f48c5953e106",
+    "fairness/pt_evidence/0017_stale_decoy_timing_report.rpt": "b327332307bb025f298654783d10c0a69f4bd65bcbda0e9ac986bea96b85ec43",
+    "fairness/pt_evidence/0017_unchanged_mutant_evidence_manifest.json": "5954d196e33f3cf602dd925bfc28c29911f74829e0a352d2126e6ae8bb122441",
+    "fairness/pt_evidence/0017_unchanged_mutant_stage2_summary.json": "61b595a084055fe14104c5cf1394c8fff5d1460b976ed593fe7d47b4487216fa",
+    "fairness/pt_evidence/0017_unchanged_mutant_timing_report.rpt": "f9a67eaae88e1d02d383d9027f1a96cc828137927b3f389b3b4578a43f301a19",
+    "fairness/pt_evidence/0017_wrong_axis_evidence_manifest.json": "33eab3e6193f5138da58b4e0ebaf7ba9f8a96e9bcfbbc92c8c4f090d1d431474",
+    "fairness/pt_evidence/0017_wrong_axis_stage2_summary.json": "a05b37894c456276b5576efb0bc1311fb97ed191e58cfff943b4720714665506",
+    "fairness/pt_evidence/0017_wrong_axis_timing_report.rpt": "99e9fc264a04d2f2b7fff41dc66587824e15f352f96565f4b8ddd7df89ec6dae",
+    "interpretation_table.json": "7813348ef80b0a399f5b5912f00d7f3d5d17d238c4801b470e894358885bf782",
+    "leakage_audit.txt": "7db54d10bf64b570b1d1d4980b97ad2e22353e0d6dc6911be1611396d0afdbad",
+    "prerun_freeze_manifest.json": "3394186a5a34a3328116329e3a90b61744fa20bb2254d443c9eb2538def8f70a",
+    "randomization_manifest.json": "ca1ddc19117cc04a0c65808e2d72d17780fcc35f1ad35039caf59c43aa9a681e",
+    "semantic_diff.txt": "9fd854585174702a54ac149b789f47763d6b0b4061debabcb7e3ad266623de75",
+    "source_diff.txt": "7e1534a34d0b8f6ce22d090862eb007fd606cadc2fce8db7c79c6ec2a9ec3984",
+    "source_diff_0011_to_0017.txt": "ad91ac6381c88c0fa7e012dd9768e86be0133cfd56a2eec2a9e62323f3569541",
+    "source_diff_0012_to_0017.txt": "0f6196f5e2e27bf584e598adc235906b1c0996769973af7dd4f8ace0cab0c5d9",
+    "structural_equivalence.json": "5d8c73ab59e8476f513a15bdb1cf1fafb335f44ab64bbfba0d665a52b3376471"
+  }
 }

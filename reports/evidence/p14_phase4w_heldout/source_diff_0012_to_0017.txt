@@ -1,0 +1,123 @@
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/files/evidence_manifest.json tasks/p14_workflow_handoff/workflow_handoff_0017/files/evidence_manifest.json
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/files/evidence_manifest.json	2026-07-16 00:14:58.708631324 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/files/evidence_manifest.json	2026-07-19 00:00:53.809525053 +0800
+@@ -1,5 +1,5 @@
+ {
+-  "_comment": "CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netlist_v2/clk_main/slow/func) but its report body + input_hashes are the stale netlist_v1 run AND flow_config.json ships a value-SWAP on the signoff axes. Resolve the semantic role of each report field label (canonical scenario/corner labels; see glossary.md + public_check_summary.json); do NOT trust any single source's claim. Regenerate fresh evidence after inferring and repairing flow_config to the unique assignment.",
++  "_comment": "CONFLICTING evidence manifest: it CLAIMS the typed-authority assignment (netlist_v2/clk_main/slow/func) but its report body + input_hashes are the stale netlist_v1 run AND flow_config.json ships a value-SWAP on the signoff axes. Resolve the semantic role of each report field label (canonical scenario/corner labels; see glossary.md); do NOT trust any single source's claim. Regenerate fresh evidence after inferring and repairing flow_config to the unique assignment.",
+   "constrained_paths": 1,
+   "corner": "test",
+   "input_hashes": {
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/files/flow_config.json tasks/p14_workflow_handoff/workflow_handoff_0017/files/flow_config.json
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/files/flow_config.json	2026-07-16 00:14:58.708631324 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/files/flow_config.json	2026-07-19 00:00:53.809525053 +0800
+@@ -1,5 +1,5 @@
+ {
+-  "_comment": "Downstream evidence flow selection. Editable. SEMANTIC-ROLE-BINDING CONFLICT (clear control): stale netlist (v1) AND a value-SWAP on scenario/corner (a corner value is in the scenario slot and a scenario value is in the corner slot). The reports use canonical scenario/corner labels; glossary.md + public_check_summary.json state the disjoint typed axes and the coverage fact. Infer the unique assignment by intersecting the constraints.",
++  "_comment": "Downstream evidence flow selection. Editable. SEMANTIC-ROLE-BINDING CONFLICT (clear control): stale netlist (v1) AND a value-SWAP on scenario/corner (a corner value is in the scenario slot and a scenario value is in the corner slot). The reports use canonical scenario/corner labels; glossary.md states the disjoint typed axes. Infer the unique assignment by intersecting the constraints.",
+   "netlist": "netlist_v1.v",
+   "top_module": "acc_stage",
+   "constraints": "constraints.sdc",
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/files/handoff_manifest.json tasks/p14_workflow_handoff/workflow_handoff_0017/files/handoff_manifest.json
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/files/handoff_manifest.json	2026-07-09 23:57:23.245020271 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/files/handoff_manifest.json	2026-07-19 00:00:53.809525053 +0800
+@@ -20,7 +20,7 @@
+   "stage1_generator": "run_evidence_stage1.sh",
+   "report": "timing_report.rpt",
+   "evidence_manifest": "evidence_manifest.json",
+-  "recovery_note": "the reports use canonical scenario/corner labels; glossary.md + public_check_summary.json state the disjoint typed axes and the coverage fact -- infer clock/scenario/corner by intersecting the constraints; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched). A signoff-green-but-mis-typed package is still rejected.",
++  "recovery_note": "the reports use canonical scenario/corner labels; glossary.md states the disjoint typed axes -- infer clock/scenario/corner by intersecting the constraints; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched). A signoff-green-but-mis-typed package is still rejected.",
+   "netlist": "netlist_v2.v",
+   "netlist_provenance_sha256": "a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac",
+   "history": {
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/files/public_check_summary.json tasks/p14_workflow_handoff/workflow_handoff_0017/files/public_check_summary.json
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/files/public_check_summary.json	2026-07-09 23:57:23.245020271 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/files/public_check_summary.json	1970-01-01 08:00:00.000000000 +0800
+@@ -1,15 +0,0 @@
+-{
+-  "_comment": "Public pairwise consistency summary. Reports SYMPTOMS only; never the recovery target, the typed-axis membership, or the verdict.",
+-  "intended_clock_coverage": {
+-    "clk_main": 1,
+-    "clk_old": 0,
+-    "clk": 0
+-  },
+-  "pairwise_conflicts": [
+-    "report_A_role_swap.rpt scenario/corner disagree with report_B_role_stale.rpt",
+-    "report_C_role_pvt.rpt corner value looks like a PVT descriptor, not a corner value",
+-    "flow_config.json scenario/corner disagree with report_B_role_stale.rpt",
+-    "evidence_D_role_mismatch.json scenario/corner disagree internally"
+-  ],
+-  "note": "These are symptom-level pairwise conflicts; the globally-consistent assignment is NOT stated here."
+-}
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/files/spec.md tasks/p14_workflow_handoff/workflow_handoff_0017/files/spec.md
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/files/spec.md	2026-07-16 00:14:58.709631321 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/files/spec.md	2026-07-19 00:00:53.809525053 +0800
+@@ -10,7 +10,6 @@
+ 
+ - The reports carry a **scenario** field (`scenario=`) and a **corner** field (`corner=`). These are DISJOINT typed axes: a value valid on one is invalid on the other.
+ - A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.
+-- The setup signoff is taken at the **typ scenario** in the **test corner**.
+ - The consumed clock is the one yielding **non-zero intended-clock path coverage** on the design.
+ 
+ **No complete value-to-axis table is provided.** Infer the unique assignment from the constraints.
+@@ -30,7 +29,6 @@
+ - `report_B_role_stale.rpt` — correct role fields; stale netlist (netlist_v1).
+ - `report_C_role_pvt.rpt` — a PVT descriptor in the corner role (and a generic clock alias).
+ - `evidence_D_role_mismatch.json` — valid-looking chain; the role fields are swapped inside.
+-- `public_check_summary.json` — pairwise inconsistency symptoms + the coverage fact (verdict-first; never the answer/schema).
+ - `glossary.md` — INCOMPLETE terminology examples (NOT a schema).
+ - `prev_signoff.log` — recent, plausible, NON-authoritative.
+ 
+@@ -45,7 +43,7 @@
+ 
+ ## What correct looks like
+ 
+-1. **Infer** the unique assignment by intersecting C1–C5 (the reports use canonical scenario/corner labels; glossary.md + public_check_summary.json give the disjoint-axis rule and the coverage fact).
++1. **Infer** the unique assignment by intersecting C1–C5 (the reports use canonical scenario/corner labels; glossary.md gives the disjoint-axis rule).
+ 3. **Repair** `flow_config.json` to that netlist + `(scenario, corner)` pair + clock.
+ 4. Run `bash run_evidence_stage1.sh` then `bash run_evidence_stage2.sh` to regenerate fresh evidence.
+ 
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/metadata.json tasks/p14_workflow_handoff/workflow_handoff_0017/metadata.json
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/metadata.json	2026-07-16 00:14:58.709631321 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/metadata.json	2026-07-19 00:00:53.809525053 +0800
+@@ -1,5 +1,5 @@
+ {
+-  "task_id": "workflow_handoff_0012",
++  "task_id": "workflow_handoff_0017",
+   "track": "p14_workflow_handoff",
+   "tool": [
+     "pt"
+@@ -38,7 +38,6 @@
+       "report_C_role_pvt.rpt",
+       "evidence_D_role_mismatch.json",
+       "prev_signoff.log",
+-      "public_check_summary.json",
+       "glossary.md"
+     ],
+     "editable": [
+@@ -82,7 +81,6 @@
+       "report_C_role_pvt.rpt",
+       "evidence_D_role_mismatch.json",
+       "prev_signoff.log",
+-      "public_check_summary.json",
+       "glossary.md",
+       "run_hidden.sh",
+       "run_launder.tcl",
+@@ -173,5 +171,5 @@
+   },
+   "expected_error_category": "workflow_handoff_semantic_role_binding_clear_control_requires_role_resolution_recovery",
+   "version": "0.1.0",
+-  "phase4w_heldout": "held-out pair: workflow_handoff_0010 relabelled to golden typ/test (clear_control)"
++  "phase4w_heldout": "BundleS-heldout = 0012 - public_check_summary - C6 (= 0011 + C1+C2+C4+C7)"
+ }
+diff -ruN tasks/p14_workflow_handoff/workflow_handoff_0012/prompt.md tasks/p14_workflow_handoff/workflow_handoff_0017/prompt.md
+--- tasks/p14_workflow_handoff/workflow_handoff_0012/prompt.md	2026-07-09 23:57:23.245020271 +0800
++++ tasks/p14_workflow_handoff/workflow_handoff_0017/prompt.md	2026-07-19 00:00:53.809525053 +0800
+@@ -1,6 +1,6 @@
+ # Task: resolve the semantic-role binding, infer the unique package, AND regenerate the fresh sign-off chain
+ 
+-You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use canonical `scenario` / `corner` labels; glossary.md + public_check_summary.json state the disjoint typed axes and the coverage fact. Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.
++You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use canonical `scenario` / `corner` labels; glossary.md states the disjoint typed axes. Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.
+ 
+ Steps:
+ 1. Infer the unique assignment by intersecting C1–C5; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched).

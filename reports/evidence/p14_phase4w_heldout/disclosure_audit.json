@@ -1,0 +1,128 @@
+{
+  "audit": "Phase-4W held-out information-disclosure (0011 baseline + 0017 BundleS-heldout)",
+  "rule": "ELIGIBLE iff golden not stated, >=2 plausible typed tuples remain, wrong-axis plausible+green, no unique-answer channel. If C1+C2+C4+C7 uniquely identify the typ/test golden -> effectively answer-bearing -> STOP before paid calls.",
+  "variants": {
+    "Base_0011": {
+      "variant": "Base_0011",
+      "task": "workflow_handoff_0011",
+      "golden": [
+        "typ",
+        "test"
+      ],
+      "wrong_axis": [
+        "test",
+        "slow"
+      ],
+      "golden_explicitly_stated": false,
+      "directive_states_golden_pair": false,
+      "typed_tuples_enumerated": 9,
+      "publicly_plausible_tuples": [
+        [
+          "slow",
+          "func"
+        ],
+        [
+          "slow",
+          "test"
+        ],
+        [
+          "slow",
+          "lowpower"
+        ],
+        [
+          "typ",
+          "func"
+        ],
+        [
+          "typ",
+          "test"
+        ],
+        [
+          "typ",
+          "lowpower"
+        ],
+        [
+          "fast",
+          "func"
+        ],
+        [
+          "fast",
+          "test"
+        ],
+        [
+          "fast",
+          "lowpower"
+        ]
+      ],
+      "num_plausible": 9,
+      "wrong_axis_in_shipped_reports": true,
+      "wrong_axis_signoff_green_by_design": true,
+      "report_intersection_recovers_unique": true,
+      "ELIGIBLE_non_answer_bearing": true,
+      "axis_vocab_unchanged": true,
+      "golden_matches_hidden_truth": true
+    },
+    "BundleS_heldout_0017": {
+      "variant": "BundleS_heldout_0017",
+      "task": "workflow_handoff_0017",
+      "golden": [
+        "typ",
+        "test"
+      ],
+      "wrong_axis": [
+        "test",
+        "slow"
+      ],
+      "golden_explicitly_stated": false,
+      "directive_states_golden_pair": false,
+      "typed_tuples_enumerated": 9,
+      "publicly_plausible_tuples": [
+        [
+          "slow",
+          "func"
+        ],
+        [
+          "slow",
+          "test"
+        ],
+        [
+          "slow",
+          "lowpower"
+        ],
+        [
+          "typ",
+          "func"
+        ],
+        [
+          "typ",
+          "test"
+        ],
+        [
+          "typ",
+          "lowpower"
+        ],
+        [
+          "fast",
+          "func"
+        ],
+        [
+          "fast",
+          "test"
+        ],
+        [
+          "fast",
+          "lowpower"
+        ]
+      ],
+      "num_plausible": 9,
+      "wrong_axis_in_shipped_reports": true,
+      "wrong_axis_signoff_green_by_design": true,
+      "report_intersection_recovers_unique": true,
+      "ELIGIBLE_non_answer_bearing": true,
+      "axis_vocab_unchanged": true,
+      "golden_matches_hidden_truth": true
+    }
+  },
+  "ALL_ELIGIBLE": true,
+  "STOP_if_any_uniquely_identifies_golden": false
+}

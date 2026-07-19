@@ -1,0 +1,97 @@
+{
+  "seed": 20260719,
+  "seed_name": "phase4w_heldout_seed",
+  "method": "RESTRICTED (balanced) randomization: random.Random(seed).random() triples; Held first iff draw<0.5; accept the FIRST triple containing BOTH orderings (rejects fully-confounded all-same-leader allocations). Triple 1 was all-Base-first (draws below) and was rejected by the predeclared restriction; triple 2 accepted. Declared BEFORE commit and before any paid call.",
+  "rejected_triples": 1,
+  "conditions": {
+    "Base": "workflow_handoff_0011",
+    "Held": "workflow_handoff_0017"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "Held",
+        "Base"
+      ],
+      "Held_first": true,
+      "draw": 0.168357
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "Base",
+        "Held"
+      ],
+      "Held_first": false,
+      "draw": 0.732649
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "Held",
+        "Base"
+      ],
+      "Held_first": true,
+      "draw": 0.362342
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:Held",
+    "block1:Base",
+    "block2:Base",
+    "block2:Held",
+    "block3:Held",
+    "block3:Base"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "condition": "Held",
+      "task_id": "workflow_handoff_0017",
+      "planned_results_dir": "/tmp/p4w_ho_1_Held_0"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0011",
+      "planned_results_dir": "/tmp/p4w_ho_1_Base_1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0011",
+      "planned_results_dir": "/tmp/p4w_ho_2_Base_0"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "condition": "Held",
+      "task_id": "workflow_handoff_0017",
+      "planned_results_dir": "/tmp/p4w_ho_2_Held_1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "condition": "Held",
+      "task_id": "workflow_handoff_0017",
+      "planned_results_dir": "/tmp/p4w_ho_3_Held_0"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0011",
+      "planned_results_dir": "/tmp/p4w_ho_3_Base_1"
+    }
+  ],
+  "code_commit_at_freeze": "fde9dda2c77c2822daf6521bec331f95fe128a61",
+  "rule": "FROZEN; must not change after the first paid result. Confirmatory test: after the first held-out result is observed, 0011, 0017, the BundleS definition, the grader, and the stopping rule must not be modified.",
+  "counts": {
+    "Base": 3,
+    "Held": 3
+  }
+}
