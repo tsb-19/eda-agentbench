@@ -1,0 +1,21 @@
+{
+  "deviation": "Phase-4X Stage 1 mid-run protocol deviation: validity-checker stricter than the frozen rule caused block1:Base over-collection",
+  "date_utc": "2026-07-19",
+  "frozen_rule_authoritative": "reports/evidence/p14_phase4x_dev/frozen_config.json (commit 4977c48): an episode is invalid only for transport-failure markers, infra abort, or a runner timeout ATTRIBUTABLE TO TRANSPORT. A hard task-wall timeout with zero transport events and a gradeable workspace is a task-level termination (valid measurement; termination mode reported separately).",
+  "what_happened": [
+    "block1:BundleS attempt1 (16:59:47Z-17:30:42Z): 0.20, transport-clean, checker VALID -> slot correctly filled.",
+    "block1:Base attempt1 (17:30:42Z-18:01:57Z): PASS (1.0), 0 transport events, no infra abort, gradeable, agent.timed_out=true (hard 1800s task-wall kill; in-flight request straddled the wall). The uncommitted runs/p4x_validity.py helper implemented 'timed_out -> INVALID' unconditionally - STRICTER than the frozen rule - and mislabeled this episode INVALID.",
+    "block1:Base attempt2 (18:01:57Z-18:33:13Z): PASS (1.0), same transport-clean/timed_out signature; again mislabeled INVALID.",
+    "block1:Base attempt3 (started 18:33:13Z): launched by the deviation; the mismatch was detected at ~19:01Z; the chain and the in-flight attempt were terminated by the experimenter at ~19:03Z. No graded result exists for attempt3; its partial artifacts are preserved untouched in /tmp/p4x_dev_1_Base_1_a3/."
+  ],
+  "reconciliation": {
+    "block1_Base_slot": "filled by attempt1 (the FIRST frozen-rule-valid episode at that slot), score 1.0 PASS.",
+    "attempt2": "EXTRA authorized-in-error episode: preserved, sanitized, and reported separately; EXCLUDED from the primary k=3 tally by the sequential slot-filling logic of the frozen replacement rule (first valid episode fills the slot).",
+    "attempt3": "aborted extra episode (experimenter-terminated mid-flight, ungraded); disclosed here; excluded from all tallies.",
+    "remaining_slots": ["block2:Base", "block2:BundleS", "block3:BundleS", "block3:Base"],
+    "checker_correction": "scripts/phase4x_validity.py (committed with this log) implements the frozen text verbatim and replaces the runs/ helper for all remaining slots. The frozen tasks, grader, scoring, randomization order, interpretation table, and stop rule are UNCHANGED."
+  },
+  "cost_impact_cny": {"attempt1_counted": 12.28, "attempt2_extra": 15.25, "attempt3_aborted_partial": "tokens spent until kill (~30 min), no graded result",
+                       "note": "rates 12/24 CNY per M in/out"},
+  "prevention": "validity gates that arbitrate paid-episode counting must be committed as part of the pre-run freeze (not left as uncommitted helpers) and diffed against the frozen rule text before launch."
+}
