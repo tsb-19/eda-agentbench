@@ -1,0 +1,97 @@
+{
+  "seed": 20260720,
+  "seed_name": "phase4x_dev_seed",
+  "method": "RESTRICTED (balanced) randomization: random.Random(seed).random() triples; BundleS first iff draw<0.5; accept the FIRST triple containing BOTH orderings. 0 triple(s) rejected before acceptance. Declared BEFORE commit and any paid call.",
+  "rejected_triples": 0,
+  "conditions": {
+    "Base": "workflow_handoff_0009",
+    "BundleS": "workflow_handoff_0015"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "BundleS",
+        "Base"
+      ],
+      "BundleS_first": true,
+      "draw": 0.144379
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "Base",
+        "BundleS"
+      ],
+      "BundleS_first": false,
+      "draw": 0.977182
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "BundleS",
+        "Base"
+      ],
+      "BundleS_first": true,
+      "draw": 0.30481
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:BundleS",
+    "block1:Base",
+    "block2:Base",
+    "block2:BundleS",
+    "block3:BundleS",
+    "block3:Base"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x_dev_1_BundleS_0_a1"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x_dev_1_Base_1_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x_dev_2_Base_0_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x_dev_2_BundleS_1_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x_dev_3_BundleS_0_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x_dev_3_Base_1_a1"
+    }
+  ],
+  "code_commit_at_freeze_base": "03fd5c8ba5856f4582efcc428f17da6629556387",
+  "rule": "FROZEN; must not change after the first paid result.",
+  "counts": {
+    "Base": 3,
+    "BundleS": 3
+  }
+}

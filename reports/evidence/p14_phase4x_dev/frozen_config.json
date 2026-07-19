@@ -1,0 +1,50 @@
+{
+  "experiment": "Phase-4X Stage 1: DeepSeek streaming x frozen dev pair (0009 vs 0015)",
+  "model": {
+    "name": "DeepSeek-V4-Pro",
+    "model_id": "DeepSeek-V4-Pro",
+    "endpoint_host": "llmapi.paratera.com",
+    "api_base_env": "BASE_URL",
+    "api_base_suffix": "/v1",
+    "api_key_env": "API_KEY",
+    "max_tokens": 32000,
+    "rates_cny_per_M": {
+      "input": 12,
+      "output": 24
+    }
+  },
+  "transport": {
+    "streaming": "SSE (EDA_BENCH_STREAM_RESPONSES=1)",
+    "request_inactivity_timeout_sec": 120,
+    "hard_request_deadline_sec": 300,
+    "max_chat_retries": 1,
+    "transport_homogeneous_with": "Qwen Phase-4V2/4W runs (identical env + driver args; only the model differs)"
+  },
+  "episode": {
+    "temperature": 0.7,
+    "max_actions": 60,
+    "episode_timeout_sec": 1800,
+    "elicit_confidence": true,
+    "preserve_final_workspace": true,
+    "concurrency": 1
+  },
+  "tasks": {
+    "Base": "workflow_handoff_0009",
+    "BundleS": "workflow_handoff_0015"
+  },
+  "grader_scoring": "frozen task bytes at this commit (hashes in prerun_freeze_manifest.json); real-PT fairness vectors for 0009/0015 previously gated ALL_PASS at 5abb5c5 (golden 1.0 / wrong-axis 0.2 signoff-green evgen-0 / stale 0.1 signoff-red / mutant 0.1); grader unchanged since",
+  "result_dirs": "/tmp/p4x_dev_{block}_{cond}_{pos}_a{attempt}/results (attempt starts at 1)",
+  "valid_episode_rule": "k=3 VALID episodes per condition. An episode with transport_valid=false (any transport-failure marker / infra abort / runner timeout attributable to transport) does NOT count; it is re-run at the same block position and condition (attempt+1), max 2 replacements per slot (3 attempts total) \u2014 if still invalid, STOP the chain and report. Grader-valid episodes count toward k regardless of score. ALL attempts (valid and invalid) preserved + reported.",
+  "excluded": [
+    "0011/0017 with DeepSeek",
+    "C1/C2/C4/C7 individual ablations",
+    "C6",
+    "BundleD",
+    "Qwen",
+    "k=5",
+    "non-streaming fallback",
+    "DeepSeek held-out pair"
+  ],
+  "code_commit_at_freeze_base": "03fd5c8ba5856f4582efcc428f17da6629556387",
+  "stop_rule": "Stop after six valid development episodes and a report-only commit. Do not push. Held-out DeepSeek (0011 vs 0017) requires a NEW review authorization, only if the development comparison supports the same BundleS direction."
+}
