@@ -1,29 +1,32 @@
 # p14 Phase-4X Stage 1 — DeepSeek streaming × dev pair (0009 Base vs 0015 BundleS), k=3 valid each — COMPLETE
 
-**Status: COMPLETE.** Report-only commit. Code: pre-run freeze `4977c48` (preflight PASS 13/13,
-frozen config/order/rules); mid-run deviation reconciliation `4856189` (fully disclosed, §5). Model:
-DeepSeek-V4-Pro, SSE streaming, transport-homogeneous with the Qwen Phase-4V2/4W chains (identical
-env + driver args; only the model differs). Cost: primary six **¥73.79** (Base ¥35.63 + BundleS
-¥38.16) + extra episode ¥15.25 + aborted partial ~¥12 (est) + preflight <¥0.01. FROZEN restricted
-order `block1:BundleS,Base / block2:Base,BundleS / block3:BundleS,Base` (seed
-`phase4x_dev_seed=20260720`). Phase-4U non-streaming DeepSeek episodes = historical reference ONLY.
+**Status: COMPLETE.** Classification (review-assigned): **confirmatory experiment with a disclosed
+execution-protocol deviation** (§4e, §5). Report-only commit; interpretation amended per review. Code:
+pre-run freeze `4977c48` (preflight PASS 13/13, frozen config/order/rules); mid-run deviation
+reconciliation `4856189` (fully disclosed, §4e). Model: DeepSeek-V4-Pro, SSE streaming,
+transport-homogeneous with the Qwen Phase-4V2/4W chains (identical env + driver args; only the model
+differs). Cost: primary six **¥73.79** (Base ¥35.63 + BundleS ¥38.16) + extra episode ¥15.25 + aborted
+partial ~¥12 (est) + preflight <¥0.01. FROZEN restricted order `block1:BundleS,Base /
+block2:Base,BundleS / block3:BundleS,Base` (seed `phase4x_dev_seed=20260720`). Phase-4U non-streaming
+DeepSeek episodes = historical reference ONLY.
 
-**Headline (predeclared cell applied: high within-condition instability → report recurrence only).**
-Cross-model replication of the BundleS development effect is **NOT supported** on this pair at k=3.
-Typed-binding: **Base 2/3, BundleS 1/3** — no BundleS improvement over the ambiguous baseline was
-observed, and both conditions were internally unstable (Base 1.0/0.2/1.0; BundleS 0.2/1.0/0.2), so no
-condition met a stable-outcome criterion. All three failures are
+**Headline (accepted conclusion, review wording; predeclared cell: high within-condition instability →
+report recurrence only).** "Cross-model replication of the BundleS effect was **not established** for
+DeepSeek in Stage 1. The nominal Base 2/3 versus BundleS 1/3 contrast is not directionally
+interpretable because all three primary failures occurred at within-block position 0 and all three
+passes occurred at position 1." The result is **neither positive replication evidence nor clean
+evidence against BundleS**. The reportable recurrence: all three failures are
 **`semantic_binding_failure/axis_binding_failure` with the SAME submitted tuple `func/slow`**
-(recurring in BOTH conditions; no `role_conditioned_value_selection_failure` observed). Per the
-review's scoping: this reinforces that BundleS is **not a general cross-model harness mechanism** —
-its stable effect remains established only within Qwen3.7-Max.
+(both conditions; no `role_conditioned_value_selection_failure` observed). BundleS remains established
+only within Qwen3.7-Max on this task family.
 
-**Position-outcome alignment caveat.** In the realized allocation, all three failures landed at
-within-block position 0 and all three passes at position 1, across both conditions (probability ≈0.05
-under exchangeability). Condition and position are unconfounded by design (each condition appears at
-both positions), and outcome tracked POSITION, not condition — so the nominal 2/3-vs-1/3 condition
-contrast carries no interpretable direction in this sample. Reported as an observed alignment only;
-no causal claim.
+**Position-outcome pattern (unplanned anomaly; descriptive only; NO significance claim).** The
+block-respecting descriptive pattern is **three of three blocks with position-0 failure and position-1
+success**, across both conditions (condition and position are unconfounded by design — each condition
+appears at both positions). A naive ~0.05 value can be computed only as a one-sided Fisher-style
+calculation that ignores the blocked structure; it is **not used as inferential evidence**. The
+anomaly is investigated by the Stage-1B no-call position-nuisance audit before any further paid data
+collection.
 
 ## 1. Per-episode outcomes (frozen order; primary slots)
 | # | block:pos | cond (task) | tv | pc | termination | FINISH | score | submitted | binding | conf | act | rtok | tport | ¥ |
@@ -52,8 +55,8 @@ typed-binding-rejected).
 - *both succeed (saturated)* → **not observed** (neither 3/3).
 - *both fail* → **not observed** (Base 2/3).
 - *baseline succeeds while BundleS degrades* → **not established**: Base 2/3 is not a stable
-  condition-level success, and the 2/3-vs-1/3 contrast is fully absorbed by the position-outcome
-  alignment (§Headline caveat). Reported as a directional observation only: no BundleS benefit seen.
+  condition-level success, and the contrast is not directionally interpretable (position-outcome
+  pattern, §Headline). No directional conclusion is drawn in either direction.
 - ***high within-condition instability → report recurrence only* — APPLIED.** Both conditions mixed;
   the reportable recurrence is the failure signature itself: `axis_binding_failure` with tuple
   `func/slow`, 3/3 of failures, both conditions.
@@ -64,31 +67,36 @@ throughout). The two `task_wall_hard_kill` terminations are task-level (in-fligh
 the 1800 s wall with active token flow; 0 transport events) — valid measurements under the frozen
 rule, termination mode reported separately.
 
-**(b) Capability — no cross-model replication of the BundleS effect.** Within Qwen3.7-Max, BundleS
-was 3/3 on this pair (Run-2) and 3/3 held-out; for DeepSeek streaming it is 1/3, with no improvement
-over the 0009 baseline (2/3). The recurring DeepSeek failure is the same `func/slow` axis binding
-across both conditions — the schema/contract components did not suppress it. Consistent with the
-accepted scoping: BundleS is a Qwen-established mechanism on this family, not (yet) a model-robust
-harness mechanism. Per the review's gate, a DeepSeek held-out confirmation is **not** supported for
-consideration (the development comparison did not support the BundleS direction).
+**(b) Capability — cross-model replication not established in Stage 1.** Within Qwen3.7-Max, BundleS
+was 3/3 on this pair (Run-2) and 3/3 held-out; for DeepSeek streaming, replication was **not
+established** (accepted conclusion, headline verbatim): the nominal contrast is not directionally
+interpretable given the position-outcome pattern, and the result is neither positive replication
+evidence nor clean evidence against BundleS. In the three failing episodes the schema/contract
+components did not suppress the recurring `func/slow` axis binding. BundleS remains a Qwen-established
+mechanism on this family. The DeepSeek held-out pair was not run; further paid DeepSeek data
+collection is deferred pending the Stage-1B audit and review (a Stage-1C counterbalanced replication
+is proposed there, not executed).
 
-**(c) Protocol/reliability signature — DeepSeek never protocol-completes here.** 0/7 FINISH, 0/7
-confidence elicited (terminations: 3 action_cap, 2 task_wall, 2 hard_kill). Sharp contrast with Qwen
-(3/6 FINISH, HIGH-and-correct when finishing). DeepSeek's artifact success (3 primary 1.0s) always
-arrived without protocol completion — a reliability-layer discriminator, reported separately from
-capability.
+**(c) Protocol/reliability — notable descriptive observation only.** 0/7 FINISH and 0/7 confidence
+elicited across all graded DeepSeek episodes (terminations: 3 action_cap, 2 task_wall, 2 hard_kill);
+every artifact success arrived without protocol completion. For context, the corresponding Qwen runs
+showed 3/6 FINISH — recorded as a descriptive difference only; **no cross-model reliability ranking
+is made from these small samples**.
 
-**(d) Historical contrast vindicates the transport rule.** DeepSeek streaming Base = 2/3 vs Phase-4U
-non-streaming Base = 0/3 (historical reference only, transport-contaminated 3/6 episodes). The
-transport regime materially changes DeepSeek's measured baseline — reusing the Phase-4U episodes as a
-primary baseline would have manufactured a spurious "BundleS rescues DeepSeek" conclusion.
+**(d) Transport regimes are not pooled.** "The descriptive difference between the old non-streaming
+0/3 baseline and the new streaming 2/3 baseline reinforces the decision not to pool transport
+regimes, but does not independently establish a causal streaming effect on capability."
 
-**(e) Deviation disclosure (see `deviation_log.json`, commit `4856189`).** The uncommitted validity
-helper was stricter than the frozen rule (`timed_out` unconditional vs "timeout attributable to
-transport"), mislabeling two transport-clean PASS episodes at block1:Base and triggering unauthorized
-replacements (one extra graded episode, one aborted). Reconciled per the authoritative frozen text
-BEFORE resuming (slot = attempt 1; extra preserved + excluded; corrected checker committed as
-`scripts/phase4x_validity.py`). Prevention: paid-episode arbiters must ship in the pre-run freeze.
+**(e) Deviation disclosure and infrastructure rule (see `deviation_log.json`, commit `4856189`).**
+Stage 1 is classified as a **confirmatory experiment with a disclosed execution-protocol deviation**.
+The uncommitted validity helper was stricter than the frozen rule (`timed_out` unconditional vs
+"timeout attributable to transport"), mislabeling two transport-clean PASS episodes at block1:Base and
+triggering unauthorized replacements. The authoritative primary data are the **frozen attempt-1
+slots**; the unauthorized extra graded episode is preserved as **excluded evidence**; the aborted
+partial attempt is an **operational deviation**; neither enters the primary condition counts.
+Benchmark infrastructure rule (promoted from this deviation): **"All paid-episode validity and
+replacement arbiters must be implemented, tested, and committed inside the pre-run freeze. No
+uncommitted helper may determine whether a paid episode is valid, replaced, or excluded."**
 
 ## 5. Sample-size + scope
 k=3 valid per condition; one development pair; one model; point observations with wide uncertainty.
@@ -110,5 +118,5 @@ deviation log) at `reports/evidence/p14_phase4x_dev/` (commits `4977c48`, `48561
 *Compliance: DeepSeek-V4-Pro streaming only; workflow_handoff_0009 + 0015 only (no 0011/0017-DeepSeek
 / individual C-ablations / C6 / BundleD / Qwen / k=5 / non-streaming); frozen order; preflight before
 any benchmark episode; `.env` removed after runs; sanitized evidence + hashes; `scripts/check`
-PASSED. Real PrimeTime grading (b04 shim). Held-out DeepSeek NOT run and NOT supported for
-consideration. Not pushed.*
+PASSED. Real PrimeTime grading (b04 shim). Held-out DeepSeek NOT run; further paid DeepSeek data
+collection deferred to review (Stage-1B no-call audit first). Not pushed.*
