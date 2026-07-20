@@ -1,0 +1,754 @@
+{
+  "audit": "Phase-4X Stage 1B no-call position-nuisance audit",
+  "no_model_calls": true,
+  "episodes": [
+    {
+      "trial": "BundleS_ep1",
+      "role": "primary",
+      "chain": "chain1",
+      "block": "block1",
+      "position": 0,
+      "condition": "BundleS",
+      "task": "workflow_handoff_0015",
+      "start_utc": "2026-07-19T16:59:47+00:00",
+      "end_utc": "2026-07-19T17:30:42+00:00",
+      "duration_sec": 1855.0,
+      "gap_since_prev_episode_end_sec": null,
+      "chain_start_cold": true,
+      "score": 0.2,
+      "outcome": "fail",
+      "wall_time_sec": 1778.644,
+      "timed_out_hard_kill": false,
+      "tokens": {
+        "prompt_tokens": 775719,
+        "completion_tokens": 78449,
+        "reasoning_tokens": 76196
+      },
+      "actions_total": 60,
+      "action_types": {
+        "none": 18,
+        "write": 2,
+        "run": 40
+      },
+      "first_write_action_index": 20,
+      "termination_last_action": "none",
+      "proximity": {
+        "actions_vs_cap60": 60,
+        "wall_vs_1800": 1778.644
+      },
+      "transport_event_total": 0,
+      "chat_retries": 2,
+      "requests": {
+        "n": 62,
+        "first_elapsed_s": 2.95,
+        "mean_elapsed_s": 26.34,
+        "median_elapsed_s": 11.11,
+        "max_elapsed_s": 185.56,
+        "categories": {
+          "success": 60,
+          "socket_timeout": 2
+        },
+        "distinct_worker_pids": 62,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "62cf0b39855e78fecbb1d05639f2d75094fa1531ab6dcfebecf0cf3845c570d4",
+      "workspace_before_n_files": 26
+    },
+    {
+      "trial": "Base_ep2",
+      "role": "primary",
+      "chain": "chain1",
+      "block": "block1",
+      "position": 1,
+      "condition": "Base",
+      "task": "workflow_handoff_0009",
+      "start_utc": "2026-07-19T17:30:42+00:00",
+      "end_utc": "2026-07-19T18:01:57+00:00",
+      "duration_sec": 1875.0,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "score": 1.0,
+      "outcome": "pass",
+      "wall_time_sec": 1800.084,
+      "timed_out_hard_kill": true,
+      "tokens": {
+        "prompt_tokens": 816352,
+        "completion_tokens": 103506,
+        "reasoning_tokens": 101332
+      },
+      "actions_total": 57,
+      "action_types": {
+        "none": 5,
+        "deadline": 1,
+        "write": 1,
+        "run": 50
+      },
+      "first_write_action_index": 9,
+      "termination_last_action": "deadline",
+      "proximity": {
+        "actions_vs_cap60": 57,
+        "wall_vs_1800": 1800.084
+      },
+      "transport_event_total": 0,
+      "chat_retries": 1,
+      "requests": {
+        "n": 56,
+        "first_elapsed_s": 6.54,
+        "mean_elapsed_s": 26.6,
+        "median_elapsed_s": 17.15,
+        "max_elapsed_s": 150.09,
+        "categories": {
+          "success": 55,
+          "incomplete_stream": 1
+        },
+        "distinct_worker_pids": 56,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "c9a07bd80992a3864a753345f9f9b9d3ee1dff1023b73478c0931569823170a2",
+      "workspace_before_n_files": 25
+    },
+    {
+      "trial": "Base_ep2_extra_a2",
+      "role": "excluded_extra",
+      "chain": "chain1",
+      "block": "block1",
+      "position": 1,
+      "condition": "Base",
+      "task": "workflow_handoff_0009",
+      "start_utc": "2026-07-19T18:01:57+00:00",
+      "end_utc": "2026-07-19T18:33:13+00:00",
+      "duration_sec": 1876.0,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "score": 1.0,
+      "outcome": "pass",
+      "wall_time_sec": 1800.056,
+      "timed_out_hard_kill": true,
+      "tokens": {
+        "prompt_tokens": 1087369,
+        "completion_tokens": 91603,
+        "reasoning_tokens": 87238
+      },
+      "actions_total": 58,
+      "action_types": {
+        "none": 10,
+        "write_refused": 1,
+        "write": 1,
+        "deadline": 1,
+        "run": 45
+      },
+      "first_write_action_index": 14,
+      "termination_last_action": "deadline",
+      "proximity": {
+        "actions_vs_cap60": 58,
+        "wall_vs_1800": 1800.056
+      },
+      "transport_event_total": 0,
+      "chat_retries": 0,
+      "requests": {
+        "n": 56,
+        "first_elapsed_s": 2.39,
+        "mean_elapsed_s": 28.13,
+        "median_elapsed_s": 17.36,
+        "max_elapsed_s": 206.04,
+        "categories": {
+          "success": 56
+        },
+        "distinct_worker_pids": 56,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "c9a07bd80992a3864a753345f9f9b9d3ee1dff1023b73478c0931569823170a2",
+      "workspace_before_n_files": 25
+    },
+    {
+      "trial": "Base_a3_aborted",
+      "role": "aborted",
+      "chain": "chain1",
+      "block": "block1",
+      "position": 1,
+      "condition": "Base",
+      "task": "workflow_handoff_0009",
+      "start_utc": "2026-07-19T18:33:13+00:00",
+      "end_utc": null,
+      "duration_sec": null,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "note": "experimenter-terminated mid-episode; no agentlog/result/preserved dir; excluded everywhere"
+    },
+    {
+      "trial": "Base_ep3",
+      "role": "primary",
+      "chain": "chain2",
+      "block": "block2",
+      "position": 0,
+      "condition": "Base",
+      "task": "workflow_handoff_0009",
+      "start_utc": "2026-07-19T19:07:58+00:00",
+      "end_utc": "2026-07-19T19:38:59+00:00",
+      "duration_sec": 1861.0,
+      "gap_since_prev_episode_end_sec": 2085.0,
+      "chain_start_cold": true,
+      "score": 0.2,
+      "outcome": "fail",
+      "wall_time_sec": 1782.998,
+      "timed_out_hard_kill": false,
+      "tokens": {
+        "prompt_tokens": 685192,
+        "completion_tokens": 94654,
+        "reasoning_tokens": 90019
+      },
+      "actions_total": 53,
+      "action_types": {
+        "none": 2,
+        "deadline": 1,
+        "write": 4,
+        "run": 46
+      },
+      "first_write_action_index": 9,
+      "termination_last_action": "deadline",
+      "proximity": {
+        "actions_vs_cap60": 53,
+        "wall_vs_1800": 1782.998
+      },
+      "transport_event_total": 0,
+      "chat_retries": 2,
+      "requests": {
+        "n": 54,
+        "first_elapsed_s": 8.68,
+        "mean_elapsed_s": 30.54,
+        "median_elapsed_s": 21.55,
+        "max_elapsed_s": 166.33,
+        "categories": {
+          "success": 52,
+          "incomplete_stream": 2
+        },
+        "distinct_worker_pids": 54,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "c9a07bd80992a3864a753345f9f9b9d3ee1dff1023b73478c0931569823170a2",
+      "workspace_before_n_files": 25
+    },
+    {
+      "trial": "BundleS_ep4",
+      "role": "primary",
+      "chain": "chain2",
+      "block": "block2",
+      "position": 1,
+      "condition": "BundleS",
+      "task": "workflow_handoff_0015",
+      "start_utc": "2026-07-19T19:38:59+00:00",
+      "end_utc": "2026-07-19T20:05:34+00:00",
+      "duration_sec": 1595.0,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "score": 1.0,
+      "outcome": "pass",
+      "wall_time_sec": 1519.773,
+      "timed_out_hard_kill": false,
+      "tokens": {
+        "prompt_tokens": 963597,
+        "completion_tokens": 69613,
+        "reasoning_tokens": 66928
+      },
+      "actions_total": 60,
+      "action_types": {
+        "none": 5,
+        "write": 1,
+        "run": 54
+      },
+      "first_write_action_index": 17,
+      "termination_last_action": "run",
+      "proximity": {
+        "actions_vs_cap60": 60,
+        "wall_vs_1800": 1519.773
+      },
+      "transport_event_total": 0,
+      "chat_retries": 1,
+      "requests": {
+        "n": 61,
+        "first_elapsed_s": 5.5,
+        "mean_elapsed_s": 20.08,
+        "median_elapsed_s": 13.79,
+        "max_elapsed_s": 115.57,
+        "categories": {
+          "success": 60,
+          "incomplete_stream": 1
+        },
+        "distinct_worker_pids": 61,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "62cf0b39855e78fecbb1d05639f2d75094fa1531ab6dcfebecf0cf3845c570d4",
+      "workspace_before_n_files": 26
+    },
+    {
+      "trial": "BundleS_ep5",
+      "role": "primary",
+      "chain": "chain2",
+      "block": "block3",
+      "position": 0,
+      "condition": "BundleS",
+      "task": "workflow_handoff_0015",
+      "start_utc": "2026-07-19T20:05:34+00:00",
+      "end_utc": "2026-07-19T20:36:34+00:00",
+      "duration_sec": 1860.0,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "score": 0.2,
+      "outcome": "fail",
+      "wall_time_sec": 1782.471,
+      "timed_out_hard_kill": false,
+      "tokens": {
+        "prompt_tokens": 1006338,
+        "completion_tokens": 69419,
+        "reasoning_tokens": 65998
+      },
+      "actions_total": 53,
+      "action_types": {
+        "none": 6,
+        "deadline": 1,
+        "write": 2,
+        "run": 44
+      },
+      "first_write_action_index": 19,
+      "termination_last_action": "deadline",
+      "proximity": {
+        "actions_vs_cap60": 53,
+        "wall_vs_1800": 1782.471
+      },
+      "transport_event_total": 0,
+      "chat_retries": 1,
+      "requests": {
+        "n": 53,
+        "first_elapsed_s": 3.59,
+        "mean_elapsed_s": 30.5,
+        "median_elapsed_s": 9.57,
+        "max_elapsed_s": 300.11,
+        "categories": {
+          "success": 52,
+          "hard_request_deadline": 1
+        },
+        "distinct_worker_pids": 53,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "62cf0b39855e78fecbb1d05639f2d75094fa1531ab6dcfebecf0cf3845c570d4",
+      "workspace_before_n_files": 26
+    },
+    {
+      "trial": "Base_ep6",
+      "role": "primary",
+      "chain": "chain2",
+      "block": "block3",
+      "position": 1,
+      "condition": "Base",
+      "task": "workflow_handoff_0009",
+      "start_utc": "2026-07-19T20:36:34+00:00",
+      "end_utc": "2026-07-19T21:02:20+00:00",
+      "duration_sec": 1546.0,
+      "gap_since_prev_episode_end_sec": 0.0,
+      "chain_start_cold": false,
+      "score": 1.0,
+      "outcome": "pass",
+      "wall_time_sec": 1470.066,
+      "timed_out_hard_kill": false,
+      "tokens": {
+        "prompt_tokens": 927339,
+        "completion_tokens": 72012,
+        "reasoning_tokens": 67087
+      },
+      "actions_total": 60,
+      "action_types": {
+        "none": 5,
+        "write": 1,
+        "run": 54
+      },
+      "first_write_action_index": 9,
+      "termination_last_action": "run",
+      "proximity": {
+        "actions_vs_cap60": 60,
+        "wall_vs_1800": 1470.066
+      },
+      "transport_event_total": 0,
+      "chat_retries": 0,
+      "requests": {
+        "n": 60,
+        "first_elapsed_s": 3.88,
+        "mean_elapsed_s": 20.86,
+        "median_elapsed_s": 12.68,
+        "max_elapsed_s": 116.54,
+        "categories": {
+          "success": 60
+        },
+        "distinct_worker_pids": 60,
+        "fresh_worker_per_request": true,
+        "gateway_hosts": [
+          "llmapi.paratera.com"
+        ]
+      },
+      "model_identifier": "DeepSeek-V4-Pro",
+      "served_model_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "time_to_first_chunk_per_request": "NOT PERSISTED by harness (instrumentation gap)",
+      "workspace_before_tree_sha256": "c9a07bd80992a3864a753345f9f9b9d3ee1dff1023b73478c0931569823170a2",
+      "workspace_before_n_files": 25
+    }
+  ],
+  "position0_summary": {
+    "trials": [
+      "BundleS_ep1",
+      "Base_ep3",
+      "BundleS_ep5"
+    ],
+    "outcomes": [
+      "fail",
+      "fail",
+      "fail"
+    ],
+    "gaps_since_prev_end_sec": [
+      null,
+      2085.0,
+      0.0
+    ],
+    "chain_start_cold_flags": [
+      true,
+      true,
+      false
+    ],
+    "first_request_elapsed_s": [
+      2.95,
+      8.68,
+      3.59
+    ],
+    "mean_request_elapsed_s": [
+      26.34,
+      30.54,
+      30.5
+    ],
+    "request_timeout_categories": [
+      {
+        "success": 60,
+        "socket_timeout": 2
+      },
+      {
+        "success": 52,
+        "incomplete_stream": 2
+      },
+      {
+        "success": 52,
+        "hard_request_deadline": 1
+      }
+    ],
+    "wall_time_sec": [
+      1778.644,
+      1782.998,
+      1782.471
+    ],
+    "prompt_tokens": [
+      775719,
+      685192,
+      1006338
+    ],
+    "completion_tokens": [
+      78449,
+      94654,
+      69419
+    ],
+    "reasoning_tokens": [
+      76196,
+      90019,
+      65998
+    ],
+    "actions_total": [
+      60,
+      53,
+      53
+    ],
+    "first_write_action_index": [
+      20,
+      9,
+      19
+    ],
+    "terminations": [
+      "none",
+      "deadline",
+      "deadline"
+    ]
+  },
+  "position1_summary": {
+    "trials": [
+      "Base_ep2",
+      "BundleS_ep4",
+      "Base_ep6"
+    ],
+    "outcomes": [
+      "pass",
+      "pass",
+      "pass"
+    ],
+    "gaps_since_prev_end_sec": [
+      0.0,
+      0.0,
+      0.0
+    ],
+    "chain_start_cold_flags": [
+      false,
+      false,
+      false
+    ],
+    "first_request_elapsed_s": [
+      6.54,
+      5.5,
+      3.88
+    ],
+    "mean_request_elapsed_s": [
+      26.6,
+      20.08,
+      20.86
+    ],
+    "request_timeout_categories": [
+      {
+        "success": 55,
+        "incomplete_stream": 1
+      },
+      {
+        "success": 60,
+        "incomplete_stream": 1
+      },
+      {
+        "success": 60
+      }
+    ],
+    "wall_time_sec": [
+      1800.084,
+      1519.773,
+      1470.066
+    ],
+    "prompt_tokens": [
+      816352,
+      963597,
+      927339
+    ],
+    "completion_tokens": [
+      103506,
+      69613,
+      72012
+    ],
+    "reasoning_tokens": [
+      101332,
+      66928,
+      67087
+    ],
+    "actions_total": [
+      57,
+      60,
+      60
+    ],
+    "first_write_action_index": [
+      9,
+      17,
+      9
+    ],
+    "terminations": [
+      "deadline",
+      "run",
+      "run"
+    ]
+  },
+  "excluded_extra_diagnostic": {
+    "trials": [
+      "Base_ep2_extra_a2"
+    ],
+    "outcomes": [
+      "pass"
+    ],
+    "gaps_since_prev_end_sec": [
+      0.0
+    ],
+    "chain_start_cold_flags": [
+      false
+    ],
+    "first_request_elapsed_s": [
+      2.39
+    ],
+    "mean_request_elapsed_s": [
+      28.13
+    ],
+    "request_timeout_categories": [
+      {
+        "success": 56
+      }
+    ],
+    "wall_time_sec": [
+      1800.056
+    ],
+    "prompt_tokens": [
+      1087369
+    ],
+    "completion_tokens": [
+      91603
+    ],
+    "reasoning_tokens": [
+      87238
+    ],
+    "actions_total": [
+      58
+    ],
+    "first_write_action_index": [
+      14
+    ],
+    "terminations": [
+      "deadline"
+    ]
+  },
+  "workspace_initialization": {
+    "workflow_handoff_0015": {
+      "distinct_before_trees": 1,
+      "identical_across_episodes": true
+    },
+    "workflow_handoff_0009": {
+      "distinct_before_trees": 1,
+      "identical_across_episodes": true
+    }
+  },
+  "transport_degradation_analysis": {
+    "finding": "Recovered per-request transport degradation, invisible to the agentlog terminal-marker scan, asymmetric by position. Failed request ATTEMPTS (all recovered by retry or absorbed; 0 terminal transport failures, so the established terminal-marker convention and the Stage-1 'transport-clean' classification stand, with this distinction now explicit):",
+    "pos0_failed_attempts": {
+      "BundleS_ep1": {
+        "socket_timeout": 2
+      },
+      "Base_ep3": {
+        "incomplete_stream": 2
+      },
+      "BundleS_ep5": {
+        "hard_request_deadline": 1,
+        "note": "max request elapsed 300.11s = full hard deadline"
+      }
+    },
+    "pos1_failed_attempts": {
+      "Base_ep2": {
+        "incomplete_stream": 1
+      },
+      "BundleS_ep4": {
+        "incomplete_stream": 1
+      },
+      "Base_ep6": {}
+    },
+    "excluded_extra_failed_attempts": {
+      "Base_ep2_extra_a2": {}
+    },
+    "latency_asymmetry": {
+      "pos0_mean_request_elapsed_s": [
+        26.34,
+        30.54,
+        30.5
+      ],
+      "pos1_mean_request_elapsed_s": [
+        26.6,
+        20.08,
+        20.86
+      ],
+      "pos0_max_request_elapsed_s": [
+        185.56,
+        166.33,
+        300.11
+      ],
+      "pos1_max_request_elapsed_s": [
+        150.09,
+        115.57,
+        116.54
+      ]
+    },
+    "wall_pressure": "all pos0 episodes consumed the full task wall (~1780s); 2/3 pos1 passes ended early via action_cap (1520s, 1470s)",
+    "causal_status": "correlate, NOT an established root cause: (a) confounded - episodes that struggle run longer and encounter more degraded requests; (b) no positional mechanism - episodes interleave in wall-clock time with no time-of-day structure separating positions; (c) n=3 per position"
+  },
+  "qwen_reference": {
+    "source": "Phase-4W held-out preserved episodes (same stderr instrumentation)",
+    "failed_request_attempts": 0,
+    "total_requests_all_success": 293,
+    "reading": "the degradation is specific to the DeepSeek Stage-1 session window, not a general gateway property"
+  },
+  "instrumentation_gaps": [
+    "per-request time-to-first-chunk / time-to-first-answer not persisted",
+    "per-request served-model identifier not persisted",
+    "agentlog 'retries' field reads 0 despite retried request attempts visible in stderr [llm_deadline] lines (accounting semantics gap) - recovered degradation is currently invisible in-band"
+  ],
+  "cold_start_hypothesis": {
+    "claim_under_test": "every position-0 run was effectively cold-start AND every position-1 run benefited from reusable state or environmental warm-up",
+    "pos0_cold_flags": {
+      "BundleS_ep1": {
+        "chain_start": true,
+        "gap_sec": null
+      },
+      "Base_ep3": {
+        "chain_start": true,
+        "gap_sec": 2085.0
+      },
+      "BundleS_ep5": {
+        "chain_start": false,
+        "gap_sec": 0.0
+      }
+    },
+    "pos1_warm_flags": {
+      "Base_ep2": {
+        "gap_sec": 0.0
+      },
+      "BundleS_ep4": {
+        "gap_sec": 0.0
+      },
+      "Base_ep6": {
+        "gap_sec": 0.0
+      }
+    },
+    "counterexample": {
+      "trial": "BundleS_ep5 (position 0, FAIL)",
+      "facts": [
+        "started 0.0s after BundleS_ep4 ended, in the SAME chain process",
+        "same task (workflow_handoff_0015) as the immediately preceding episode BundleS_ep4 (position 1, PASS)",
+        "identical starting tree (workspace before-hash equality), identical env, identical gateway host",
+        "any server-side prompt/prefix cache would make ep5 the WARMEST episode of the run (same-task prefix just served), yet it failed"
+      ],
+      "conclusion": "position-0 runs were NOT uniformly cold; the warmest-started episode of the run failed at position 0"
+    },
+    "client_side_shared_state": "none possible across requests or episodes: every LLM request runs in a fresh isolated worker process (distinct pid per request, verified per episode), so no connection/session reuse even within an episode",
+    "workspace_state": "fresh temp workspace per episode staged from frozen task bytes; before-tree hashes identical across episodes of the same task",
+    "pt_state": "PT runs via the remote tool shim keyed on sha1(cwd) of the unique per-episode temp workspace -> no cross-episode PT directory or session reuse (structural); licenses checked out per invocation",
+    "environment": "chain1 and chain2 export identical env vars (script diff); both chains ran from the same repo cwd with the same shim env",
+    "verdict_cold_start_hypothesis": "REFUTED"
+  },
+  "code_commit_frozen_tasks": "03fd5c8ba5856f4582efcc428f17da6629556387",
+  "verdict": "NO credible deterministic infrastructure or shared-state explanation found for the position pattern (cold-start refuted; no client-side shared state; workspace/env/host uniform). The recovered-transport asymmetry is an observed correlate short of a root cause. Per the review branch: Stage-1C exact-counterbalanced replication is PROPOSED (not executed)."
+}

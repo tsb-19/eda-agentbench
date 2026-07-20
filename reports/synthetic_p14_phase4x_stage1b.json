@@ -1,0 +1,45 @@
+{
+  "report": "synthetic_p14_phase4x_stage1b",
+  "phase": "4X Stage 1B (no-call position-nuisance audit)",
+  "date": "2026-07-20",
+  "status": "COMPLETE",
+  "no_model_calls": true,
+  "no_task_changes": true,
+  "scope": "all existing DeepSeek Stage-1 episodes: 6 primary slots + excluded extra episode (diagnostics); aborted attempt documented as absent (no artifacts)",
+  "verdict": "No credible deterministic infrastructure or shared-state explanation found for the position-outcome pattern. Cold-start hypothesis REFUTED; client-side shared state structurally impossible; workspace/environment/gateway uniform. One genuine nuisance signal found: recovered per-request transport degradation, asymmetric by position, invisible to the in-band terminal-marker scan - a correlate short of a root cause. Stage 1C exact-counterbalanced replication PROPOSED, not executed.",
+  "cold_start_hypothesis": {
+    "claim": "every position-0 run effectively cold-start; every position-1 run warm",
+    "verdict": "REFUTED",
+    "counterexample": "BundleS_ep5 (pos0, FAIL) started 0s after BundleS_ep4 (pos1, PASS) in the SAME chain process on the SAME task (0015); identical starting tree/env/host; any server-side prefix cache would make it the warmest episode of the run; it failed anyway",
+    "pos0_gaps_sec": {"BundleS_ep1": "chain start", "Base_ep3": 2085.0, "BundleS_ep5": 0.0},
+    "pos1_gaps_sec": {"Base_ep2": 0.0, "BundleS_ep4": 0.0, "Base_ep6": 0.0},
+    "client_side_shared_state": "impossible: fresh isolated worker process per LLM request (distinct pid per request, 1:1 verified across all 402 requests in 7 graded episodes)",
+    "workspace_initialization": "before-tree hashes identical across episodes of the same task (staged from frozen bytes at 4977c48)",
+    "environment": "chain1/chain2 identical env exports; single gateway host for all 402 requests; PT via remote tool shim keyed on unique per-episode workspace (no cross-episode tool state, structural)"
+  },
+  "transport_degradation_finding": {
+    "summary": "Recovered per-request transport failures (invisible to the agentlog terminal-marker scan; all retried/absorbed; 0 terminal failures - Stage-1 'transport-clean' stands under the established terminal-only convention, distinction now explicit)",
+    "pos0_failed_attempts": 5,
+    "pos0_detail": {"BundleS_ep1": "2x socket_timeout", "Base_ep3": "2x incomplete_stream", "BundleS_ep5": "1x hard_request_deadline (300.1s = full deadline)"},
+    "pos1_failed_attempts": 2,
+    "pos1_detail": {"Base_ep2": "1x incomplete_stream", "BundleS_ep4": "1x incomplete_stream", "Base_ep6": "none"},
+    "latency_means_s": {"pos0": [26.3, 30.5, 30.5], "pos1": [26.6, 20.1, 20.9]},
+    "latency_max_s": {"pos0": [185.6, 166.3, 300.1], "pos1": [150.1, 115.6, 116.5]},
+    "wall_pressure": "all pos0 episodes consumed the full ~1780s wall; 2/3 pos1 passes ended early (action_cap 1520s/1470s)",
+    "qwen_reference": "0 failed attempts across all 293 requests of the six Phase-4W held-out episodes - degradation specific to the DeepSeek Stage-1 session window",
+    "causal_status": "correlate, not root cause: confounded (struggling episodes run longer and meet more degraded requests), no positional mechanism (positions interleave in time), n=3 per position"
+  },
+  "instrumentation_gaps": [
+    "agentlog 'retries' field reads 0 despite retried request attempts visible in stderr [llm_deadline] lines - recovered degradation invisible in-band",
+    "per-request time-to-first-chunk / time-to-first-answer not persisted",
+    "per-request served-model identifier not persisted"
+  ],
+  "stage1c_proposal": {
+    "status": "PROPOSED, NOT EXECUTED; requires review authorization; no paid calls made",
+    "purpose": "separate a treatment effect from the newly observed within-block position effect; NOT to increase k opportunistically",
+    "design": {"blocks": "four two-run blocks", "orders": "exactly two Base->BundleS and exactly two BundleS->Base", "block_order": "randomized, seeded, fixed before data collection", "position_balance": "Base 2x at pos0 + 2x at pos1; BundleS likewise", "config": "frozen DeepSeek streaming configuration identical to Stage 1", "arbiter": "validity arbiter committed in the pre-run freeze (promoted infrastructure rule)", "prerequisites": "instrumentation gaps fixed first (in-band per-request transport records + retry accounting)", "exclusions": ["held-out tasks", "Qwen", "other variants"], "episodes": 8, "est_cost_cny": 100},
+    "analysis_plan": "primary typed-binding by condition with position as stratifying factor (2x2 balanced); block-respecting descriptive reporting; predeclared interpretation table fixed at the pre-run freeze"
+  },
+  "artifacts": {"evidence": "reports/evidence/p14_phase4x_dev/stage1b/ (position_audit.json, chain_log.txt, SHA256SUMS)", "script": "scripts/phase4x_stage1b_audit.py"},
+  "process_compliance": {"paid_model_calls": 0, "task_changes": 0, "frozen_artifacts_touched": false, "leak_scan": "clean", "commit_type": "docs/evidence-only", "pushed": false, "stop": "for review before any additional paid call"}
+}
