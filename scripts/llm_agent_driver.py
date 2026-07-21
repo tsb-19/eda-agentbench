@@ -454,14 +454,103 @@ def _attempt_isolated(provider, messages, gen_kwargs, request_deadline, op_timeo
                           elapsed=elapsed)
 
 
-def _chat_with_retry_deadline(provider, messages, gen_kwargs, request_deadline, op_timeout, retries):
+def _chat_with_retry_deadline(provider, messages, gen_kwargs, request_deadline, op_timeout, retries,
+                              telemetry=None):
     """Production retry path: each attempt runs in a fresh isolated worker killed at the HARD deadline.
-    _retry_loop is the single retry authority; on_attempt logs the isolated-format diagnostics."""
+    _retry_loop is the single retry authority; on_attempt logs the isolated-format diagnostics.
+
+    telemetry: optional list. When provided, ONE sanitized record per LOGICAL request is appended
+    (also on terminal failure), containing per-attempt records (index, category, timestamps, elapsed,
+    worker pid, termination, diagnostic hash) plus, on success, the stream metrics (time-to-first-
+    chunk, time-to-first-answer, stream duration, finish reason, served model). NO prompt/response
+    content, NO credentials — categories, hashes, pids and floats only."""
+    attempts_rec = []
+    start_times = []  # wall-clock start per attempt (parallel to attempts_rec; _AttemptResult uses
+                      # __slots__, so the start time cannot live on the result object)
+
+    def attempt_fn():
+        t_start = time.time()
+        start_times.append(t_start)
+        return _attempt_isolated(provider, messages, gen_kwargs, request_deadline, op_timeout)
+
     def on_attempt(attempt, res, elapsed, next_delay):
         _log_isolated_attempt(attempt, res, elapsed, next_delay, op_timeout, request_deadline)
-    return _retry_loop(
-        lambda: _attempt_isolated(provider, messages, gen_kwargs, request_deadline, op_timeout),
-        retries, on_attempt)
+        if telemetry is not None:
+            d = res.diag or {}
+            start_wall = start_times[attempt] if attempt < len(start_times) else None
+            attempts_rec.append({
+                "attempt_index": attempt,
+                "category": "success" if res.success else (res.category or "other"),
+                "retryable": None if res.success else bool(res.retryable),
+                "status": res.status,
+                "start_ts": round(start_wall, 3) if start_wall else None,
+                "end_ts": round(start_wall + elapsed, 3) if start_wall else None,
+                "elapsed_s": round(elapsed, 3),
+                "termination": res.termination,
+                "worker_pid": res.worker_pid,
+                "body_sha256": d.get("body_sha256"),
+                "next_delay_s": next_delay,
+            })
+
+    def _request_record(resp=None, terminal_category=None):
+        failed = [a for a in attempts_rec if a["category"] != "success"]
+        rec = {
+            "request_index": len(telemetry),
+            "total_attempts": len(attempts_rec),
+            "attempts": attempts_rec,
+            "recovered_failed_attempts": len(failed) if terminal_category is None else max(0, len(failed) - 1),
+            "recovered_categories": sorted({a["category"] for a in failed
+                                             if terminal_category is None or a is not failed[-1]}),
+            "recovered_hard_deadlines": sum(1 for a in (failed if terminal_category is None else failed[:-1])
+                                             if a["category"] == "hard_request_deadline"),
+            "retry_wall_s": round(sum(a["elapsed_s"] for a in failed)
+                                   + sum(a["next_delay_s"] or 0.0 for a in failed), 3),
+            "terminal_failure_category": terminal_category,
+        }
+        if resp is not None:
+            st = (resp.metadata or {}).get("stream", {}) or {}
+            rec.update({
+                "time_to_first_chunk_s": st.get("time_to_first_chunk_s"),
+                "time_to_first_answer_s": st.get("time_to_first_answer_s"),
+                "stream_duration_s": st.get("total_duration_s"),
+                "finish_reason": (resp.metadata or {}).get("finish_reason"),
+                "served_model": getattr(resp, "model", None),
+            })
+        return rec
+
+    try:
+        resp, n_retry = _retry_loop(attempt_fn, retries, on_attempt)
+    except Exception:
+        if telemetry is not None:
+            last_cat = attempts_rec[-1]["category"] if attempts_rec else "other"
+            telemetry.append(_request_record(terminal_category=last_cat))
+        raise
+    if telemetry is not None:
+        telemetry.append(_request_record(resp=resp))
+    return resp, n_retry
+
+
+# transport failure categories (terminal OR recovered) as emitted by the isolated attempt path
+_TRANSPORT_CATEGORIES = ("socket_timeout", "hard_request_deadline", "incomplete_stream",
+                          "malformed_stream", "worker_crash", "malformed_worker_result",
+                          "retryable_http", "connection")
+
+
+def _episode_transport_summary(telemetry):
+    """Episode-level aggregate over the request telemetry. Two INDEPENDENT dimensions:
+    terminal_transport_valid (no logical request ended in an unrecovered transport failure) and
+    recovered_transport_degradation (>=1 recovered failed attempt). An episode may be terminally
+    valid while still having experienced recovered failed attempts."""
+    recovered_failed = sum(r["recovered_failed_attempts"] for r in telemetry)
+    return {
+        "logical_requests": len(telemetry),
+        "total_physical_attempts": sum(r["total_attempts"] for r in telemetry),
+        "recovered_failed_attempts": recovered_failed,
+        "recovered_hard_deadlines": sum(r["recovered_hard_deadlines"] for r in telemetry),
+        "cumulative_retry_wall_s": round(sum(r["retry_wall_s"] for r in telemetry), 3),
+        "terminal_transport_valid": not any(r.get("terminal_failure_category") for r in telemetry),
+        "recovered_transport_degradation": recovered_failed > 0,
+    }
 
 
 def parse_action(text: str):
@@ -607,7 +696,7 @@ def main(argv=None) -> int:
                  "actions": [], "usage": {"prompt_tokens": 0, "completion_tokens": 0,
                                           "reasoning_tokens": 0}, "finished": False,
                  "edited": [], "error": None, "confidence": "", "confidence_format_ok": None,
-                 "retries": 0}
+                 "retries": 0, "request_telemetry": []}
 
     try:
         for step in range(args.max_actions):
@@ -615,7 +704,8 @@ def main(argv=None) -> int:
                 log["actions"].append({"type": "deadline"})
                 break
             resp, n_retry = _chat_with_retry_deadline(provider, messages, gen_kwargs,
-                                                      request_deadline, request_timeout, max_chat_retries)
+                                                      request_deadline, request_timeout, max_chat_retries,
+                                                      telemetry=log["request_telemetry"])
             log["retries"] += n_retry
             for k in log["usage"]:
                 log["usage"][k] += (resp.usage or {}).get(k, 0)
@@ -691,6 +781,13 @@ def main(argv=None) -> int:
             messages.append({"role": "user", "content": obs})
     except Exception as e:  # noqa: BLE001 — record, let runner grade whatever edits exist
         log["error"] = f"{type(e).__name__}: {e}"
+
+    # Episode-level transport aggregate over the request telemetry (two independent dimensions:
+    # terminal_transport_valid + recovered_transport_degradation). Never breaks the episode.
+    try:
+        log["transport_summary"] = _episode_transport_summary(log["request_telemetry"])
+    except Exception:  # noqa: BLE001
+        log["transport_summary"] = None
 
     # Brief stdout summary (captured by the runner into stdout.log).
     print(f"[agent {args.model}] {meta['task_id']}: {len(log['actions'])} actions, "
