@@ -1,0 +1,70 @@
+{
+  "experiment": "Phase-4X Stage 1C: exact-counterbalanced DeepSeek streaming replication (0009 vs 0015)",
+  "purpose": "separate a treatment effect from the newly observed within-block position effect; NOT k escalation",
+  "model": {
+    "name": "DeepSeek-V4-Pro",
+    "model_id": "DeepSeek-V4-Pro",
+    "endpoint_host": "llmapi.paratera.com",
+    "api_base_env": "BASE_URL",
+    "api_base_suffix": "/v1",
+    "api_key_env": "API_KEY",
+    "max_tokens": 32000,
+    "rates_cny_per_M": {
+      "input": 12,
+      "output": 24
+    }
+  },
+  "transport": {
+    "streaming": "SSE (EDA_BENCH_STREAM_RESPONSES=1)",
+    "request_inactivity_timeout_sec": 120,
+    "hard_request_deadline_sec": 300,
+    "max_chat_retries": 1,
+    "request_telemetry": "instrumented driver persists per-request records + episode transport_summary (terminal_transport_valid + recovered_transport_degradation reported independently)"
+  },
+  "episode": {
+    "temperature": 0.7,
+    "max_actions": 60,
+    "episode_timeout_sec": 1800,
+    "elicit_confidence": true,
+    "preserve_final_workspace": true,
+    "concurrency": 1
+  },
+  "tasks": {
+    "Base": "workflow_handoff_0009",
+    "BundleS": "workflow_handoff_0015"
+  },
+  "grader_scoring": "frozen task bytes (hashes in prerun_freeze_manifest.json); real-PT fairness vectors previously gated ALL_PASS at 5abb5c5; grader unchanged",
+  "primary_sample": "exactly eight primary valid episodes (one per slot in the frozen schedule)",
+  "replacement_policy": "Predeclared BEFORE collection. A replacement is permitted ONLY for a terminally measurement-invalid episode under the committed arbiter (scripts/episode_arbiter.py: measurement_valid = terminal_transport_valid AND gradeable). Recovered degradation in an otherwise gradeable episode does NOT trigger replacement. A replacement occupies the same predeclared condition/block/position slot and does not alter subsequent ordering. The FIRST measurement-valid attempt fills the slot. Max 2 replacements per slot (3 attempts), then STOP fail-closed. Excluded attempts preserved as sanitized operational evidence.",
+  "analysis": {
+    "primary_outcome": "typed_binding_correctness",
+    "headline_analysis": "complete 2x2 condition-by-position table (Base@pos0, Base@pos1, BundleS@pos0, BundleS@pos1); block-respecting descriptive reporting",
+    "forbidden": "an unblocked post-hoc significance test as the headline analysis",
+    "per_episode_dims": [
+      "semantic_binding_failure_subtype",
+      "artifact_correctness",
+      "protocol_completion",
+      "termination",
+      "recovered_failed_attempts",
+      "recovered_hard_deadlines",
+      "request_latency_summaries",
+      "reasoning_tokens",
+      "wall_time"
+    ]
+  },
+  "excluded": [
+    "held-out tasks",
+    "Qwen",
+    "other variants",
+    "k escalation",
+    "non-streaming fallback",
+    "C6",
+    "BundleD",
+    "individual C-ablations",
+    "0011/0017"
+  ],
+  "generalized_membership_rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "clean_tree_rule": "No paid calls until the instrumentation commit and this freeze commit exist and the working tree is clean; the chain executor asserts a clean tree at launch.",
+  "code_commit_at_freeze_base": "616573dba473b3e6d31cd3dac232dd51ef97e41f",
+  "stop_rule": "Execute exactly the eight authorized episodes (plus arbiter-mandated replacements only), produce a separate report-only commit, stop for review. Do not push."
+}

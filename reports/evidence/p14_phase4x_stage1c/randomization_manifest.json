@@ -1,0 +1,123 @@
+{
+  "seed": 20260721,
+  "seed_name": "phase4x_stage1c_seed",
+  "method": "random.Random(seed).shuffle over the fixed multiset of block orders [Base->BundleS, Base->BundleS, BundleS->Base, BundleS->Base]; exactly two of each order by construction; each condition appears exactly twice at each within-block position. Declared and committed BEFORE any data collection.",
+  "conditions": {
+    "Base": "workflow_handoff_0009",
+    "BundleS": "workflow_handoff_0015"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "Base",
+        "BundleS"
+      ],
+      "type": "Base_first"
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "BundleS",
+        "Base"
+      ],
+      "type": "BundleS_first"
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "BundleS",
+        "Base"
+      ],
+      "type": "BundleS_first"
+    },
+    {
+      "block_id": "block4",
+      "order": [
+        "Base",
+        "BundleS"
+      ],
+      "type": "Base_first"
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:Base",
+    "block1:BundleS",
+    "block2:BundleS",
+    "block2:Base",
+    "block3:BundleS",
+    "block3:Base",
+    "block4:Base",
+    "block4:BundleS"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x1c_1_Base_0_a1"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x1c_1_BundleS_1_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x1c_2_BundleS_0_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x1c_2_Base_1_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x1c_3_BundleS_0_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x1c_3_Base_1_a1"
+    },
+    {
+      "block_id": "block4",
+      "position_in_block": 0,
+      "condition": "Base",
+      "task_id": "workflow_handoff_0009",
+      "planned_results_dir": "/tmp/p4x1c_4_Base_0_a1"
+    },
+    {
+      "block_id": "block4",
+      "position_in_block": 1,
+      "condition": "BundleS",
+      "task_id": "workflow_handoff_0015",
+      "planned_results_dir": "/tmp/p4x1c_4_BundleS_1_a1"
+    }
+  ],
+  "position_balance": {
+    "Base_pos0": 2,
+    "Base_pos1": 2,
+    "BundleS_pos0": 2,
+    "BundleS_pos1": 2
+  },
+  "code_commit_at_freeze_base": "616573dba473b3e6d31cd3dac232dd51ef97e41f",
+  "rule": "FROZEN; must not change after the first paid result.",
+  "counts": {
+    "Base": 4,
+    "BundleS": 4
+  }
+}
