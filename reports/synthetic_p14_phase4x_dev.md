@@ -40,9 +40,19 @@ collection.
 
 Extra (disclosed, EXCLUDED from tallies per `deviation_log.json`): `Base_ep2_extra_a2` = 1.0,
 slow/func correct, task_wall_hard_kill, ¥15.25. Aborted `a3`: experimenter-terminated mid-episode,
-ungraded, no agentlog (partial cost ~¥12 est). All graded episodes: anti-cheat clean, 0 transport
-events, 0 chat retries; failures show signoff=1.0 / evidence_generation=0.0 (signoff-green,
+ungraded, no agentlog (partial cost ~¥12 est). All graded episodes: anti-cheat clean, **0 terminal
+transport events**; **7 recovered retried attempts across the run** (agentlog `retries`: ep1=2,
+ep2=1, ep3=2, ep4=1, ep5=1, ep6=0, extra=0 — recovered per-request failures characterized in Stage
+1B); 0 chat-retry exhaustions; failures show signoff=1.0 / evidence_generation=0.0 (signoff-green,
 typed-binding-rejected).
+
+**ERRATUM (Stage-1B follow-up).** The original version of this report stated "0 chat retries" and
+`chat_retries: 0` for every episode. That was an authorship error: the extraction rows recorded the
+correct per-episode retry counts (above), but the report was written without the automated
+row-vs-report cross-check used in the Phase-4W finalize. The driver's episode-level retry accounting
+was and is CORRECT; what the agentlog lacks is per-request failure detail (categories/timestamps),
+which exists only in the stderr diagnostics — addressed by the Stage-1C instrumentation. No score,
+binding, tally, or interpretation is affected.
 
 ## 2. Condition tallies (primary outcome + secondaries)
 | condition | k | typed-binding correct | artifact 1.0 | FINISH | semantic_binding_failure (subtype) |
@@ -62,10 +72,11 @@ typed-binding-rejected).
   `func/slow`, 3/3 of failures, both conditions.
 
 ## 4. Separated conclusions
-**(a) Transport validity.** 7/7 graded episodes transport-clean (0 markers, 0 retries; SSE streamed
-throughout). The two `task_wall_hard_kill` terminations are task-level (in-flight request straddled
-the 1800 s wall with active token flow; 0 transport events) — valid measurements under the frozen
-rule, termination mode reported separately.
+**(a) Transport validity.** 7/7 graded episodes free of terminal transport failures (0 terminal
+markers; streamed throughout; 7 recovered retried attempts, see erratum + Stage 1B). The two
+`task_wall_hard_kill` terminations are task-level (in-flight request straddled the 1800 s wall with
+active token flow; 0 terminal transport events) — valid measurements under the frozen rule,
+termination mode reported separately.
 
 **(b) Capability — cross-model replication not established in Stage 1.** Within Qwen3.7-Max, BundleS
 was 3/3 on this pair (Run-2) and 3/3 held-out; for DeepSeek streaming, replication was **not

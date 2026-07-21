@@ -55,13 +55,16 @@ service → less effective work per wall-second → wall-pressure failures) cann
 model-driven failure at this sample size.
 
 ## 3. Instrumentation gaps found (fix before Stage 1C)
-1. The agentlog `retries` field reads 0 in every episode despite retried request attempts visible in
-   stderr — recovered degradation is currently invisible in-band.
+1. **CORRECTED (erratum):** the agentlog `retries` field is accurate at episode level (ep1=2, ep2=1,
+   ep3=2, ep4=1, ep5=1, ep6=0, extra=0). The original "retries=0 hides recovered retries" claim in
+   this audit and in the Stage-1 report was a report-authorship error (the extraction rows held the
+   correct values; the Phase-4X finalize lacked the automated row-vs-report cross-check used in
+   Phase-4W). The REAL gap: per-request failure **detail** (category, timestamps, which logical
+   request) is absent from the agentlog and exists only in the stderr `[llm_deadline]` lines.
 2. Per-request time-to-first-chunk / time-to-first-answer are not persisted.
 3. Per-request served-model identifier is not persisted.
 Recommendation: persist per-request `[llm_deadline]`-equivalent records (category, elapsed, TTFC,
-served-model) into the agentlog so episode-level transport quality is measurable in-band, and fix the
-retry accounting.
+served-model) into the agentlog so episode-level transport quality is measurable in-band.
 
 ## 4. Stage-1C proposal (NOT executed; requires review authorization)
 Purpose: separate a treatment effect from the newly observed within-block position effect — **not**

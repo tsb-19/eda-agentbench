@@ -227,7 +227,7 @@ def main():
                             "reading": "the degradation is specific to the DeepSeek Stage-1 session window, not a general gateway property"},
         "instrumentation_gaps": ["per-request time-to-first-chunk / time-to-first-answer not persisted",
                                    "per-request served-model identifier not persisted",
-                                   "agentlog 'retries' field reads 0 despite retried request attempts visible in stderr [llm_deadline] lines (accounting semantics gap) - recovered degradation is currently invisible in-band"],
+                                   "per-request failure DETAIL (category/timestamps/logical-request index) absent from the agentlog; exists only in stderr [llm_deadline] lines. ERRATUM: the agentlog 'retries' field itself is accurate at episode level (ep1=2, ep2=1, ep3=2, ep4=1, ep5=1, ep6=0); an earlier version of this audit wrongly called it a bug (report-authorship error in Stage 1, propagated here)"],
         "cold_start_hypothesis": hypothesis,
         "code_commit_frozen_tasks": FREEZE["code_commit_at_freeze_base"],
         "verdict": ("NO credible deterministic infrastructure or shared-state explanation found for the position "

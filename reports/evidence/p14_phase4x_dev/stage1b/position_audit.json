@@ -26,9 +26,9 @@
       },
       "actions_total": 60,
       "action_types": {
-        "none": 18,
         "write": 2,
-        "run": 40
+        "run": 40,
+        "none": 18
       },
       "first_write_action_index": 20,
       "termination_last_action": "none",
@@ -84,10 +84,10 @@
       },
       "actions_total": 57,
       "action_types": {
-        "none": 5,
-        "deadline": 1,
         "write": 1,
-        "run": 50
+        "run": 50,
+        "deadline": 1,
+        "none": 5
       },
       "first_write_action_index": 9,
       "termination_last_action": "deadline",
@@ -143,11 +143,11 @@
       },
       "actions_total": 58,
       "action_types": {
-        "none": 10,
+        "run": 45,
         "write_refused": 1,
-        "write": 1,
         "deadline": 1,
-        "run": 45
+        "none": 10,
+        "write": 1
       },
       "first_write_action_index": 14,
       "termination_last_action": "deadline",
@@ -217,10 +217,10 @@
       },
       "actions_total": 53,
       "action_types": {
-        "none": 2,
-        "deadline": 1,
         "write": 4,
-        "run": 46
+        "run": 46,
+        "deadline": 1,
+        "none": 2
       },
       "first_write_action_index": 9,
       "termination_last_action": "deadline",
@@ -276,9 +276,9 @@
       },
       "actions_total": 60,
       "action_types": {
-        "none": 5,
         "write": 1,
-        "run": 54
+        "run": 54,
+        "none": 5
       },
       "first_write_action_index": 17,
       "termination_last_action": "run",
@@ -334,10 +334,10 @@
       },
       "actions_total": 53,
       "action_types": {
-        "none": 6,
-        "deadline": 1,
         "write": 2,
-        "run": 44
+        "run": 44,
+        "deadline": 1,
+        "none": 6
       },
       "first_write_action_index": 19,
       "termination_last_action": "deadline",
@@ -393,9 +393,9 @@
       },
       "actions_total": 60,
       "action_types": {
-        "none": 5,
         "write": 1,
-        "run": 54
+        "run": 54,
+        "none": 5
       },
       "first_write_action_index": 9,
       "termination_last_action": "run",
@@ -704,7 +704,7 @@
   "instrumentation_gaps": [
     "per-request time-to-first-chunk / time-to-first-answer not persisted",
     "per-request served-model identifier not persisted",
-    "agentlog 'retries' field reads 0 despite retried request attempts visible in stderr [llm_deadline] lines (accounting semantics gap) - recovered degradation is currently invisible in-band"
+    "per-request failure DETAIL (category/timestamps/logical-request index) absent from the agentlog; exists only in stderr [llm_deadline] lines. ERRATUM: the agentlog 'retries' field itself is accurate at episode level (ep1=2, ep2=1, ep3=2, ep4=1, ep5=1, ep6=0); an earlier version of this audit wrongly called it a bug (report-authorship error in Stage 1, propagated here)"
   ],
   "cold_start_hypothesis": {
     "claim_under_test": "every position-0 run was effectively cold-start AND every position-1 run benefited from reusable state or environmental warm-up",
