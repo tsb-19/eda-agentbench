@@ -8,7 +8,21 @@ block2 BundleS→Base, block3 BundleS→Base, block4 Base→BundleS (each condit
 within-block position). No held-out, no Qwen, no other variants, no k escalation, no non-streaming.
 Validity/replacement driven entirely by the committed arbiter (`scripts/episode_arbiter.py`).
 
-**Headline (the complete 2×2 condition-by-position table; primary outcome = typed-binding correctness).**
+**Headline (accepted conclusion, review wording).** "Cross-model replication of the BundleS benefit
+was not established for DeepSeek. Under the exact-counterbalanced Stage-1C design, Base and BundleS
+both achieved 3/4 typed-binding correctness. The prior within-block position anomaly did not reproduce
+with a stable direction, and the new request-level telemetry does not support recovered transport
+degradation as the cause of the observed semantic-binding failures. The remaining DeepSeek errors are
+best reported as trajectory-level stochastic instability under this model–harness configuration." The
+treatment comparison is **null/inconclusive, not a clean negative effect** — BundleS is **not** stated
+to be ineffective for DeepSeek.
+
+**Mechanism scope (updated, review wording).** "BundleS is a **model-contingent harness mechanism
+candidate**. It has replicated development and pre-frozen held-out evidence within Qwen3.7-Max, while
+no detectable development benefit was established for DeepSeek-V4-Pro under the tested streaming
+configuration."
+
+**The complete 2×2 condition-by-position table (primary outcome = typed-binding correctness):**
 
 | | position 0 | position 1 | margin |
 |---|---|---|---|
@@ -16,13 +30,15 @@ Validity/replacement driven entirely by the committed arbiter (`scripts/episode_
 | **BundleS** | 2/2 | 1/2 | **3/4** |
 | margin | **4/4** | 2/4 | 6/8 |
 
-- **Treatment is tied (Base 3/4 = BundleS 3/4): no BundleS improvement was observed.** This is neither
-  positive replication evidence nor clean evidence against BundleS.
+- **Treatment is tied (Base 3/4 = BundleS 3/4).** Null/inconclusive — neither positive replication
+  evidence nor a clean negative effect.
 - **Predeclared cell applied: "both conditions unstable without a consistent position pattern → report
-  DeepSeek trajectory instability; do not claim for or against BundleS."** Both conditions sit at 3/4
-  (each has one failure), and the within-1C position edge (pos0 4/4 vs pos1 2/4) is **direction-inverted
-  from Stage 1** (Stage 1 had all failures at pos0). There is no *consistent* positional mechanism
-  across stages — exactly what Stage-1B's no-root-cause audit predicted.
+  DeepSeek trajectory instability; do not claim for or against BundleS."** The within-1C position edge
+  (pos0 4/4 vs pos1 2/4) is **direction-inverted from Stage 1** (Stage 1 had all failures at pos0) → no
+  stable positional mechanism, exactly as Stage-1B's no-root-cause audit predicted.
+- **Transport dimensions kept distinct.** Stage-1C provides evidence that recovered degradation was
+  **not** the proximate explanation for the two binding failures: both degraded episodes were correct,
+  while both binding failures had zero recovered degradation (§3).
 - No unblocked post-hoc significance test is used as the headline; the 2×2 table and its margins are
   descriptive (n=8).
 
@@ -68,12 +84,12 @@ per episode:
   was a runner `missing_results`, handled by the arbiter).
 
 ## 4. Separated conclusions
-**(a) Treatment — replication not established (again), now by null tie rather than uninterpretability.**
-Stage 1's contrast was uninterpretable (position-confounded). Stage 1C removed the confound by
-counterbalancing and got a clean **tie** (Base 3/4 = BundleS 3/4): there is no BundleS improvement to
-interpret on this pair for DeepSeek. Combined with Stage 1, the BundleS development effect remains
-**not established** for DeepSeek — and Stage 1C adds that it is not cleanly refuted either (BundleS is
-not worse than Base). BundleS stays Qwen-scoped.
+**(a) Treatment — null/inconclusive (not a clean negative).** Stage 1's contrast was uninterpretable
+(position-confounded). Stage 1C removed the confound by counterbalancing and got a clean **tie**
+(Base 3/4 = BundleS 3/4): the treatment comparison is **null/inconclusive** — BundleS is **not** stated
+to be ineffective for DeepSeek; no detectable development benefit was established under this
+configuration. Mechanism scope: BundleS is a **model-contingent harness mechanism candidate**
+(replicated within Qwen3.7-Max; no detectable benefit for DeepSeek-V4-Pro here).
 
 **(b) Position — no stable mechanism (inverted across stages).** 1C's pos0=4/4 vs pos1=2/4 edge is
 direction-inverted from Stage 1 (pos0 worse there). Across the two stages there is no consistent
