@@ -1,0 +1,1727 @@
+{
+  "model": "DeepSeek-V4-Pro",
+  "task_id": "workflow_handoff_0015",
+  "track": "p14_workflow_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "cat spec.md glossary.md flow_config.json handoff_manifest.json",
+      "rc": 0,
+      "out": "# acc_stage \u2014 Workflow / Multi-Stage Evidence-Chain Sign-off Handoff (semantic-role-binding, clear-control spec)\n\nThis is a downstream **timing sign-off handoff** for `acc_stage` whose evidence is **out of date** AND whose shipped `flow_config.json` carries a **value-swap** on the signoff axes. You must recover the only globally-consistent package by **resolving the semantic role of each shipped value** (which value belongs on which axis) and intersecting the partially-truthful sources, then regenerate fresh sign-off evidence by rerunning the flow in order.\n\n## Design intent (post-ECO v2 family)\n\nThe shipped design family is **netlist v2.x** with interface ports `{clk_main, din, en, dout}`. Legacy **v1** (`{clk_old, din, dout}`) is provenance-only. The exact recovery package is the **unique assignment** satisfying all constraints below -- it is **not** written out as a single tuple anywhere in this handoff.\n\n## Terminology (partial; see glossary.md for examples -- NOT a complete schema)\n\n- The reports carry a **scenario** field (`scenario=`) and a **corner** field (`corner=`). These are DISJOINT typed axes: a value valid on one is invalid on the other.\n- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.\n- The consumed clock is the one yielding **non-zero intended-clock path coverage** on the design.\n\n**No complete value-to-axis table i"
+    },
+    {
+      "type": "run",
+      "cmd": "cat glossary.md",
+      "rc": 0,
+      "out": "# acc_stage handoff glossary (examples only -- NOT a complete schema)\n\nThis glossary gives EXAMPLES of the terminology used in the reports. It is deliberately INCOMPLETE: it does not list every valid value, and it does not give a value-to-axis table.\n\n- **scenario**: a setup scenario field. The design's scenarios are named in the spec; a report's `scenario=` value is one of them.\n- **corner**: a signoff corner field.\n- **PVT descriptor**: a string of the form `<process>_<voltage>_<temperature>`, e.g. `slow_1.0V_125C`. A PVT descriptor CHARACTERIZES a (scenario, corner) pair but is NEVER a valid scenario or corner value itself.\n- The consumed clock is the one that yields full intended-clock path coverage on the design.\n- scenario and corner are DISJOINT typed axes: a value valid on one is invalid on the other.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat netlist_v2.v netlist_v1.v",
+      "rc": 0,
+      "out": "// Gate-level timing model for acc_stage -- HANDOFF NETLIST VERSION v2 (current).\n// Post-ECO: clock port is `clk_main` and the block is enable-qualified (`en` input + en->en_reg\n// path). This is the authoritative current handoff netlist (see handoff_manifest.json / spec.md).\n// Scalar-delay abstraction (BUFX1 0.10, DFFX1 clk->Q 0.08, setup 0.02), timed vs tiny.db.\n// Buffer-chain depths: din->cap_reg 13, cap_reg->acc_reg 21, acc_reg->dout 10, en->en_reg 8.\nmodule acc_stage (clk_main, din, en, dout);\n  input  clk_main;\n  input  din;\n  input  en;\n  output dout;\n\n  wire acc_d, acc_q, cap_d, cap_q, e0, e1, e2, e3, e4, e5, e6, en_d, en_q, i0, i1, i10, i11, i2, i3, i4, i5, i6, i7, i8, i9, o0, o1, o2, o3, o4, o5, o6, o7, o8, r0, r1, r10, r11, r12, r13, r14, r15, r16, r17, r18, r19, r2, r3, r4, r5, r6, r7, r8, r9;\n  BUFX1 i_b0 (.A(din), .Y(i0));\n  BUFX1 i_b1 (.A(i0), .Y(i1));\n  BUFX1 i_b2 (.A(i1), .Y(i2));\n  BUFX1 i_b3 (.A(i2), .Y(i3));\n  BUFX1 i_b4 (.A(i3), .Y(i4));\n  BUFX1 i_b5 (.A(i4), .Y(i5));\n  BUFX1 i_b6 (.A(i5), .Y(i6));\n  BUFX1 i_b7 (.A(i6), .Y(i7));\n  BUFX1 i_b8 (.A(i7), .Y(i8));\n  BUFX1 i_b9 (.A(i8), .Y(i9));\n  BUFX1 i_b10 (.A(i9), .Y(i10));\n  BUFX1 i_b11 (.A(i10), .Y(i11));\n  BUFX1 i_b12 (.A(i11), .Y(cap_d));\n  DFFX1 cap_reg (.D(cap_d), .CK(clk_main), .Q(cap_q));\n  BUFX1 r_b0 (.A(cap_q), .Y(r0));\n  BUFX1 r_b1 (.A(r0), .Y(r1));\n  BUFX1 r_b2 (.A(r1), .Y(r2));\n  BUFX1 r_b3 (.A(r2), .Y(r3));\n  BUFX1 r_b4 (.A(r3), .Y(r4));\n  BUFX1 r_b5 (.A(r4), .Y(r5));\n  BUFX1 r_b6 (.A(r5), "
+    },
+    {
+      "type": "run",
+      "cmd": "cat report_A_role_swap.rpt report_B_role_stale.rpt report_C_role_pvt.rpt evidence_D_role_mismatch.json prev_signoff.log",
+      "rc": 0,
+      "out": "# report_A_role_swap.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n# consumed_netlist=netlist_v2.v  clock=clk_main  scenario=func  corner=typ\n# Right design (netlist_v2) + clock (clk_main); the role fields are SWAPPED (a corner value in the scenario slot; a scenario value in the corner slot). PrimeTime signs off green here; semantic-role binding (C3+C4) is what rejects it.\n# acc_stage stage-1 evidence (generated by run_evidence_stage1.sh -- do not hand-edit)\n# consumed_netlist=netlist_v2.v clock=clk_main scenario=slow corner=func signoff=OK paths=1 slack=0.130000\n=== REPORT_TIMING BEGIN ===\n****************************************\nReport : timing\n-path_type full\n-delay_type max\n-max_paths 1\n-sort_by slack\n****************************************\nStartpoint: din (input port clocked by clk_main)\nEndpoint: cap_reg (rising edge-triggered flip-flop clocked by clk_main)\nPath Group: clk_main\nPath Type: max\nPoint Incr Path\n---------------------------------------------------------------\nclock clk_main (rise edge) 0.00 0.00\nclock network delay (ideal) 0.00 0.00\ninput external delay 1.40 1.40 r\ndin (in) 0.00 1.40 r\ni_b0/Y (BUFX1) 0.10 1.50 r\ni_b1/Y (BUFX1) 0.10 1.60 r\ni_b2/Y (BUFX1) 0.10 1.70 r\ni_b3/Y (BUFX1) 0.10 1.80 r\ni_b4/Y (BUFX1) 0.10 1.90 r\ni_b5/Y (BUFX1) 0.10 2.00 r\ni_b6/Y (BUFX1) 0.10 2.10 r\ni_b7/Y (BUFX1) 0.10 2.20 r\ni_b8/Y (BUFX1) 0.10 2.30 r\ni_b9/Y (BUFX1) 0.10 2.40 r\ni_b10/Y (BUFX1) 0.10 2.50 r\ni_b11/Y (BUFX1) 0.10 2.60 r\ni_b12/Y (BUFX1) 0.10 2.70 r\nca"
+    },
+    {
+      "type": "run",
+      "cmd": "cat report_C_role_pvt.rpt",
+      "rc": 0,
+      "out": "# report_C_role_pvt.rpt -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED).\n# consumed_netlist=netlist_v2.v  clock=clk  scenario=slow  corner=slow_1.0V_125C\n# Right design + scenario -> satisfies C1+C3; but the corner role is a PVT DESCRIPTOR (slow_1.0V_125C), not a corner value -> violates C4; and the clock is a GENERIC ALIAS ('clk'), not clk_main -> violates C2.\n# acc_stage evidence report (generated by run_evidence.sh -- do not hand-edit)\n# consumed_netlist=netlist_v1.v clock=clk_old scenario=func corner=typ signoff=OK paths=1 slack=0.130000\n=== REPORT_TIMING BEGIN ===\n****************************************\nReport : timing\n-path_type full\n-delay_type max\n-max_paths 1\n-sort_by slack\n****************************************\nStartpoint: din (input port clocked by clk_old)\nEndpoint: cap_reg (rising edge-triggered flip-flop clocked by clk_old)\nPath Group: clk_old\nPath Type: max\nPoint Incr Path\n---------------------------------------------------------------\nclock clk_old (rise edge) 0.00 0.00\nclock network delay (ideal) 0.00 0.00\ninput external delay 1.40 1.40 r\ndin (in) 0.00 1.40 r\ni_b0/Y (BUFX1) 0.10 1.50 r\ni_b1/Y (BUFX1) 0.10 1.60 r\ni_b2/Y (BUFX1) 0.10 1.70 r\ni_b3/Y (BUFX1) 0.10 1.80 r\ni_b4/Y (BUFX1) 0.10 1.90 r\ni_b5/Y (BUFX1) 0.10 2.00 r\ni_b6/Y (BUFX1) 0.10 2.10 r\ni_b7/Y (BUFX1) 0.10 2.20 r\ni_b8/Y (BUFX1) 0.10 2.30 r\ni_b9/Y (BUFX1) 0.10 2.40 r\ni_b10/Y (BUFX1) 0.10 2.50 r\ni_b11/Y (BUFX1) 0.10 2.60 r\ni_b12/Y (BUFX1) 0.10 2.70 r\ncap_reg/D (DFFX1) 0.00 2.70 r\ndata "
+    },
+    {
+      "type": "run",
+      "cmd": "cat evidence_D_role_mismatch.json prev_signoff.log handoff_manifest.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"evidence_D_role_mismatch.json -- shipped evidence candidate (PAIRWISE PLAUSIBLE / MIS-TYPED). Fresh-looking digest / upstream chain, but the scenario/corner fields are swapped inside (a corner value in the scenario role, a scenario value in the corner role). Syntactically valid; fails semantic-role binding (violates C3+C4).\",\n  \"constrained_paths\": 1,\n  \"corner\": \"typ\",\n  \"input_hashes\": {\n    \"constraints.sdc\": \"2750658a5f614589687c28590620b1d8d0769c1edb7ef1a8f5f9f61b4c81b772\",\n    \"consumed_netlist\": \"64c06ccd792ed33c8c3296778bbb832642e98eaeaffce5e2268fc5211428da62\",\n    \"flow_config.json\": \"9590fad3dd9c22f6c5115f5d140cb4e20d1503ca74241fc4f4be905c9ab15b29\"\n  },\n  \"report_digest\": \"8293e5fec72cd0c300e43611dee275ab7182b47498974f814fea8e0f0a6a7248\",\n  \"run_nonce\": \"9520b01ef832d3ce\",\n  \"scenario\": \"func\",\n  \"selected_clock\": \"clk_main\",\n  \"selected_netlist\": \"netlist_v2.v\",\n  \"selected_sdc\": \"constraints.sdc\",\n  \"signoff\": \"OK\",\n  \"stage\": \"stage1\",\n  \"tool\": \"pt_shell\",\n  \"tool_exit\": 0,\n  \"upstream_evidence_digest\": null\n}\n# prev_signoff.log -- ARCHIVED previous sign-off (NON-AUTHORITATIVE diagnostic).\n# Recent and plausible, but NOT the authority. Reinforces one pairwise-plausible decoy; it\n# must NOT be used to justify any role-mismatched package.\nconsumed_netlist=netlist_v2.v\nclock=clk_main\nscenario=func\ncorner=typ\nsignoff=OK\nworst_slack=0.45\nnote=characterization run; superseded by the unique assignment (the role-binding intersection)\n{\n  \"_comment\": \"Ha"
+    },
+    {
+      "type": "run",
+      "cmd": "cat flow_config.json constraints.sdc",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"Downstream evidence flow selection. Editable. SEMANTIC-ROLE-BINDING CONFLICT (clear control): stale netlist (v1) AND a value-SWAP on scenario/corner (a corner value is in the scenario slot and a scenario value is in the corner slot). The reports use canonical scenario/corner labels; glossary.md states the disjoint typed axes. Infer the unique assignment by intersecting the constraints.\",\n  \"netlist\": \"netlist_v1.v\",\n  \"top_module\": \"acc_stage\",\n  \"constraints\": \"constraints.sdc\",\n  \"library\": \"tiny.db\",\n  \"scenario\": \"func\",\n  \"corner\": \"typ\"\n}\n# Timing constraints (clk_main correct -- do not change).\ncreate_clock -name clk_main -period 3.0 [get_ports clk_main]\nset_clock_uncertainty 0.15 [get_clocks clk_main]\nset_input_delay  1.4 -clock clk_main [get_ports {din en}]\nset_output_delay 1.1 -clock clk_main [get_ports dout]\n"
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "write",
+      "file": "flow_config.json",
+      "bytes": 299
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_evidence_stage1.sh",
+      "rc": 0,
+      "out": "EVIDENCE_STAGE1_GENERATED timing_report.rpt evidence_manifest.json\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat timing_report.rpt evidence_manifest.json",
+      "rc": 0,
+      "out": "# acc_stage stage-1 evidence (generated by run_evidence_stage1.sh -- do not hand-edit)\n# consumed_netlist=netlist_v2.v clock=clk_main scenario=slow corner=func signoff=OK paths=1 slack=0.130000\n=== REPORT_TIMING BEGIN ===\n****************************************\nReport : timing\n-path_type full\n-delay_type max\n-max_paths 1\n-sort_by slack\n****************************************\nStartpoint: din (input port clocked by clk_main)\nEndpoint: cap_reg (rising edge-triggered flip-flop clocked by clk_main)\nPath Group: clk_main\nPath Type: max\nPoint Incr Path\n---------------------------------------------------------------\nclock clk_main (rise edge) 0.00 0.00\nclock network delay (ideal) 0.00 0.00\ninput external delay 1.40 1.40 r\ndin (in) 0.00 1.40 r\ni_b0/Y (BUFX1) 0.10 1.50 r\ni_b1/Y (BUFX1) 0.10 1.60 r\ni_b2/Y (BUFX1) 0.10 1.70 r\ni_b3/Y (BUFX1) 0.10 1.80 r\ni_b4/Y (BUFX1) 0.10 1.90 r\ni_b5/Y (BUFX1) 0.10 2.00 r\ni_b6/Y (BUFX1) 0.10 2.10 r\ni_b7/Y (BUFX1) 0.10 2.20 r\ni_b8/Y (BUFX1) 0.10 2.30 r\ni_b9/Y (BUFX1) 0.10 2.40 r\ni_b10/Y (BUFX1) 0.10 2.50 r\ni_b11/Y (BUFX1) 0.10 2.60 r\ni_b12/Y (BUFX1) 0.10 2.70 r\ncap_reg/D (DFFX1) 0.00 2.70 r\ndata arrival time 2.70\nclock clk_main (rise edge) 3.00 3.00\nclock network delay (ideal) 0.00 3.00\nclock reconvergence pessimism 0.00 3.00\nclock uncertainty -0.15 2.85\ncap_reg/CK (DFFX1) 2.85 r\nlibrary setup time -0.02 2.83\ndata required time 2.83\n---------------------------------------------------------------\ndata required time 2.83\ndata arrival time -2.70\n-----------"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_evidence_stage2.sh",
+      "rc": 0,
+      "out": "EVIDENCE_STAGE2_GENERATED stage2_summary.json\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=/ manifest=/ constrained_paths=0 signoff=NO_NETLIST evidence=STALE stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed= vs manifest=) -- check handoff_manifest.json / spec.md\nPUBLIC_HINT: zero constrained paths -- check constraints.sdc binds the consumed netlist's real clock PORT (authority clock=)\nPUBLIC_HINT: stage-1 evidence is STALE -- after repairing inputs run 'bash run_evidence_stage1.sh' to regenerate timing_report.rpt + evidence_manifest.json\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers."
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"import json; print(json.load(open('flow_config.json')))\"",
+      "rc": 0,
+      "out": "{'_comment': 'Repaired: netlist=v2, scenario=slow (setup scenario), corner=func (signoff corner), clock=clk_main via constraints.sdc', 'netlist': 'netlist_v2.v', 'top_module': 'acc_stage', 'constraints': 'constraints.sdc', 'library': 'tiny.db', 'scenario': 'slow', 'corner': 'func'}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat flow_config.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"Repaired: netlist=v2, scenario=slow (setup scenario), corner=func (signoff corner), clock=clk_main via constraints.sdc\",\n  \"netlist\": \"netlist_v2.v\",\n  \"top_module\": \"acc_stage\",\n  \"constraints\": \"constraints.sdc\",\n  \"library\": \"tiny.db\",\n  \"scenario\": \"slow\",\n  \"corner\": \"func\"\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat run_public.sh run_public.tcl",
+      "rc": 0,
+      "out": "#!/bin/bash\n# Public feedback runner (p14 workflow handoff). Verdict hoisted to the TOP of stdout.\nSCRIPT_DIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"; cd \"$SCRIPT_DIR\"\nPT_CMD=\"${EDA_PT_CMD:-pt_shell}\"\nif ! command -v \"$PT_CMD\" >/dev/null 2>&1; then echo \"SKIP: pt_shell not found\"; exit 0; fi\nRAW=\"$(\"$PT_CMD\" -f run_public.tcl 2>&1)\"\necho \"$RAW\" | grep -E '^WORKFLOW_PUBLIC:' || echo \"WORKFLOW_PUBLIC: UNKNOWN no_verdict\"\necho \"$RAW\" | grep -E '^PUBLIC_HINT:' || true\necho \"----- full PrimeTime log -----\"\nprintf '%s\\n' \"$RAW\"\nexit 0\n# Public feedback (p14 workflow handoff). Verdict-first; FEEDBACK not the grade. Reports whether\n# flow_config consumes the authority netlist + the SDC constrains the design, stage-1 evidence\n# FRESH/STALE/MISSING, and (steps=2) stage-2 summary freshness. Never reveals expected hashes/nonce/\n# digest. Reads only agent-visible files.\n\nproc jstr {text key} {\n    if {[regexp \"\\\"$key\\\"\\s*:\\s*\\\"(\\[^\\\"\\]*)\\\"\" $text -> v]} { return $v }\n    return \"\"\n}\nproc sha256_file {path} {\n    if {![file exists $path]} { return \"\" }\n    if {[catch {exec sha256sum $path} out]} { return \"\" }\n    return [lindex [split $out] 0]\n}\n\nset consumed \"\"; set top \"acc_stage\"; set sdc \"constraints.sdc\"\nif {[file exists flow_config.json]} {\n    set fh [open flow_config.json r]; set ft [read $fh]; close $fh\n    set consumed [jstr $ft netlist]\n    set t [jstr $ft top_module]; if {$t ne \"\"} { set top $t }\n    set s [jstr $ft constraints]; if {$s ne \"\"} { set sdc $s }\n}\nset want_net \"\"; set wan"
+    },
+    {
+      "type": "run",
+      "cmd": "xxd flow_config.json | head -5",
+      "rc": 0,
+      "out": "00000000: 7b0a 2020 225f 636f 6d6d 656e 7422 3a20  {.  \"_comment\": \n00000010: 2252 6570 6169 7265 643a 206e 6574 6c69  \"Repaired: netli\n00000020: 7374 3d76 322c 2073 6365 6e61 7269 6f3d  st=v2, scenario=\n00000030: 736c 6f77 2028 7365 7475 7020 7363 656e  slow (setup scen\n00000040: 6172 696f 292c 2063 6f72 6e65 723d 6675  ario), corner=fu\n"
+    },
+    {
+      "type": "run",
+      "cmd": "sha256sum flow_config.json constraints.sdc netlist_v2.v",
+      "rc": 0,
+      "out": "22058896204947bf641fba0d307f35ea254bfd74351bd4524e7d2ad76dcb08d2  flow_config.json\nde4dd15f3e933714b280125254ae406dc25d01e83d230ce54fac5fb1e5b6f737  constraints.sdc\na5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac  netlist_v2.v\n"
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"",
+      "rc": 2,
+      "out": "\n[stderr]\n/bin/sh: 1: Syntax error: Unterminated quoted string\n"
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"import json; f=open('flow_config.json'); d=json.load(f); f.close(); print('netlist:', d['netlist']); print('scenario:', d['scenario']); print('corner:', d['corner'])\"",
+      "rc": 0,
+      "out": "netlist: netlist_v2.v\nscenario: slow\ncorner: func\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat stage2_summary.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"Generated by run_evidence_stage2.sh from the stage-1 evidence. Do not hand-edit. upstream_evidence_digest binds the FRESH stage-1 report; run_nonce is deterministic.\",\n  \"corner\": \"func\",\n  \"input_hashes\": {\n    \"constraints.sdc\": \"de4dd15f3e933714b280125254ae406dc25d01e83d230ce54fac5fb1e5b6f737\",\n    \"consumed_netlist\": \"a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac\",\n    \"flow_config.json\": \"22058896204947bf641fba0d307f35ea254bfd74351bd4524e7d2ad76dcb08d2\"\n  },\n  \"run_nonce\": \"af03b541a92f2329\",\n  \"scenario\": \"slow\",\n  \"selected_clock\": \"clk_main\",\n  \"selected_netlist\": \"netlist_v2.v\",\n  \"signoff\": \"OK\",\n  \"stage\": \"stage2\",\n  \"stage2_constrained_paths\": 1,\n  \"stage2_report_digest\": \"1ce55c0d7522844f2d15545bf0ca4d1b2259b3c2a29b44ed4cf8e66ab18f199b\",\n  \"stage2_slack\": \"0.650000\",\n  \"tool\": \"pt_shell\",\n  \"tool_exit\": 0,\n  \"upstream_evidence_digest\": \"389cdd5f065ccc886343a4cda3b00a51c0fe9072589d5994983257c1f42aa64a\",\n  \"upstream_stage_ok\": true\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=/ manifest=/ constrained_paths=0 signoff=NO_NETLIST evidence=STALE stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed= vs manifest=) -- check handoff_manifest.json / spec.md\nPUBLIC_HINT: zero constrained paths -- check constraints.sdc binds the consumed netlist's real clock PORT (authority clock=)\nPUBLIC_HINT: stage-1 evidence is STALE -- after repairing inputs run 'bash run_evidence_stage1.sh' to regenerate timing_report.rpt + evidence_manifest.json\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers."
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"",
+      "rc": 2,
+      "out": "\n[stderr]\n/bin/sh: 1: Syntax error: Unterminated quoted string\n"
+    },
+    {
+      "type": "write",
+      "file": "flow_config.json",
+      "bytes": 163
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=/ manifest=/ constrained_paths=0 signoff=NO_NETLIST evidence=STALE stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed= vs manifest=) -- check handoff_manifest.json / spec.md\nPUBLIC_HINT: zero constrained paths -- check constraints.sdc binds the consumed netlist's real clock PORT (authority clock=)\nPUBLIC_HINT: stage-1 evidence is STALE -- after repairing inputs run 'bash run_evidence_stage1.sh' to regenerate timing_report.rpt + evidence_manifest.json\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers."
+    },
+    {
+      "type": "run",
+      "cmd": "xxd flow_config.json",
+      "rc": 0,
+      "out": "00000000: 7b0a 2020 226e 6574 6c69 7374 223a 2022  {.  \"netlist\": \"\n00000010: 6e65 746c 6973 745f 7632 2e76 222c 0a20  netlist_v2.v\",. \n00000020: 2022 746f 705f 6d6f 6475 6c65 223a 2022   \"top_module\": \"\n00000030: 6163 635f 7374 6167 6522 2c0a 2020 2263  acc_stage\",.  \"c\n00000040: 6f6e 7374 7261 696e 7473 223a 2022 636f  onstraints\": \"co\n00000050: 6e73 7472 6169 6e74 732e 7364 6322 2c0a  nstraints.sdc\",.\n00000060: 2020 226c 6962 7261 7279 223a 2022 7469    \"library\": \"ti\n00000070: 6e79 2e64 6222 2c0a 2020 2273 6365 6e61  ny.db\",.  \"scena\n00000080: 7269 6f22 3a20 2273 6c6f 7722 2c0a 2020  rio\": \"slow\",.  \n00000090: 2263 6f72 6e65 7222 3a20 2266 756e 6322  \"corner\": \"func\"\n000000a0: 0a7d 0a                                  .}.\n"
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh 2>&1 | head -30",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=/ manifest=/ constrained_paths=0 signoff=NO_NETLIST evidence=STALE stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed= vs manifest=) -- check handoff_manifest.json / spec.md\nPUBLIC_HINT: zero constrained paths -- check constraints.sdc binds the consumed netlist's real clock PORT (authority clock=)\nPUBLIC_HINT: stage-1 evidence is STALE -- after repairing inputs run 'bash run_evidence_stage1.sh' to regenerate timing_report.rpt + evidence_manifest.json\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers."
+    },
+    {
+      "type": "run",
+      "cmd": "echo 'set text {{",
+      "rc": 2,
+      "out": "\n[stderr]\n/bin/sh: 1: Syntax error: Unterminated quoted string\n"
+    },
+    {
+      "type": "run",
+      "cmd": "printf '{\"netlist\":\"netlist_v2.v\",\"top_module\":\"acc_stage\",\"constraints\":\"constraints.sdc\",\"library\":\"tiny.db\",\"scenario\":\"slow\",\"corner\":\"func\"}\\n' > flow_config.json && cat flow_config.json",
+      "rc": 0,
+      "out": "{\"netlist\":\"netlist_v2.v\",\"top_module\":\"acc_stage\",\"constraints\":\"constraints.sdc\",\"library\":\"tiny.db\",\"scenario\":\"slow\",\"corner\":\"func\"}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh 2>&1 | head -5",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=netlist_v2.v/clk_main manifest=/ constrained_paths=1 signoff=OK evidence=STALE stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed=netlist_v2.v vs manifest=) -- check handoff_manifest.json / spec.md\nPUBLIC_HINT: stage-1 evidence is STALE -- after repairing inputs run 'bash run_evidence_stage1.sh' to regenerate timing_report.rpt + evidence_manifest.json\n----- full PrimeTime log -----\n\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_evidence_stage1.sh",
+      "rc": 0,
+      "out": "EVIDENCE_STAGE1_GENERATED timing_report.rpt evidence_manifest.json\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh 2>&1 | head -5",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=netlist_v2.v/clk_main manifest=/ constrained_paths=1 signoff=OK evidence=FRESH stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed=netlist_v2.v vs manifest=) -- check handoff_manifest.json / spec.md\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_evidence_stage2.sh",
+      "rc": 0,
+      "out": "EVIDENCE_STAGE2_GENERATED stage2_summary.json\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "WORKFLOW_PUBLIC: MISMATCH consumed=netlist_v2.v/clk_main manifest=/ constrained_paths=1 signoff=OK evidence=FRESH stage2=FRESH\nPUBLIC_HINT: flow_config.json consumes a netlist the authority does not name (consumed=netlist_v2.v vs manifest=) -- check handoff_manifest.json / spec.md\n----- full PrimeTime log -----\n\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers.\n\n Inclusivity & Diversity - Visit SolvNetPlus to read the \"Synopsys Statement on\n            Inclusivity and Diversity\" (Refer to article 000036315 at\n                        https://solvnetplus.synopsys.com)\n# Public feedback (p14 workflow handoff). Verdi"
+    },
+    {
+      "type": "run",
+      "cmd": "cat handoff_manifest.json | python3 -c \"import sys,json; d=json.load(sys.stdin); print(repr(d))\"",
+      "rc": 0,
+      "out": "{'_comment': 'Handoff package manifest -- PARTIAL AUTHORITY for the semantic-role-binding handoff (variant=clear_control). Declares the netlist FAMILY + interface (C1) and the design intent; it deliberately OMITS the concrete clock/scenario/corner values and any typed-axis mapping. The unique assignment is the INTERSECTION of the spec.md constraints -- NOT a line in this file. Read-only and FROZEN.', 'design': 'acc_stage', 'top_module': 'acc_stage', 'interface': {'ports': ['clk_main', 'din', 'en', 'dout'], 'note': 'v2.x family interface'}, 'netlist_family': 'v2.x', 'netlist_revision': 'v2', 'library': 'tiny.db', 'terminology': 'glossary.md (INCOMPLETE examples only; NOT a schema)', 'constraints': 'constraints.sdc', 'flow_config': 'flow_config.json', 'stage1_generator': 'run_evidence_stage1.sh', 'report': 'timing_report.rpt', 'evidence_manifest': 'evidence_manifest.json', 'recovery_note': 'the reports use canonical scenario/corner labels; glossary.md states the disjoint typed axes -- infer clock/scenario/corner by intersecting the constraints; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched). A signoff-green-but-mis-typed package is still rejected.', 'netlist': 'netlist_v2.v', 'netlist_provenance_sha256': 'a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac', 'history': {'v1': 'legacy pre-ECO revision on clk_old (provenance only -- out of family, must NOT be consumed)', 'v2': 'current post-ECO family on clk_main, enable"
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"",
+      "rc": 2,
+      "out": "\n[stderr]\n/bin/sh: 1: Syntax error: Unterminated quoted string\n"
+    },
+    {
+      "type": "run",
+      "cmd": "python3 -c \"import json; d=json.load(open('handoff_manifest.json')); print('netlist:', d.get('netlist')); print('clock:', d.get('clock')); print('ports:', d.get('interface',{}).get('ports'))\"",
+      "rc": 0,
+      "out": "netlist: netlist_v2.v\nclock: None\nports: ['clk_main', 'din', 'en', 'dout']\n"
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "run",
+      "cmd": "xxd handoff_manifest.json | head -10",
+      "rc": 0,
+      "out": "00000000: 7b0a 2020 225f 636f 6d6d 656e 7422 3a20  {.  \"_comment\": \n00000010: 2248 616e 646f 6666 2070 6163 6b61 6765  \"Handoff package\n00000020: 206d 616e 6966 6573 7420 2d2d 2050 4152   manifest -- PAR\n00000030: 5449 414c 2041 5554 484f 5249 5459 2066  TIAL AUTHORITY f\n00000040: 6f72 2074 6865 2073 656d 616e 7469 632d  or the semantic-\n00000050: 726f 6c65 2d62 696e 6469 6e67 2068 616e  role-binding han\n00000060: 646f 6666 2028 7661 7269 616e 743d 636c  doff (variant=cl\n00000070: 6561 725f 636f 6e74 726f 6c29 2e20 4465  ear_control). De\n00000080: 636c 6172 6573 2074 6865 206e 6574 6c69  clares the netli\n00000090: 7374 2046 414d 494c 5920 2b20 696e 7465  st FAMILY + inte\n"
+    },
+    {
+      "type": "run",
+      "cmd": "printf 'set mt [exec cat handoff_manifest.json]\\nproc jstr {text key} {if {[regexp \"\\\\\"$key\\\\\"\\\\s*:\\\\s*\\\\\"(\\[^\\\\\"]*)\\\\\"\" $text -> v]} {return $v};return \"\"}\\nputs \"netlist=[jstr $mt netlist]\"\\nputs \"clock=[jstr $mt clock]\"\\n' | pt_shell -f /dev/stdin 2>&1 | tail -5",
+      "rc": 0,
+      "out": "CPU usage for this session: 4 seconds \nElapsed time for this session: 4 seconds\nElapsed time spent in memory sampling: 0 seconds\n\nThank you for using pt_shell!\n"
+    },
+    {
+      "type": "run",
+      "cmd": "printf 'set fh [open handoff_manifest.json r]; set mt [read $fh]; close $fh\\nset want_net [regexp -inline {\"netlist\"\\s*:\\s*\"([^\"]*)\"} $mt]\\nputs \"want_net=$want_net\"\\n' | pt_shell -f /dev/stdin 2>&1 | grep -E \"(want_net|Error|error)\"",
+      "rc": 1,
+      "out": ""
+    },
+    {
+      "type": "run",
+      "cmd": "grep -n \"netlist\" handoff_manifest.json",
+      "rc": 0,
+      "out": "2:  \"_comment\": \"Handoff package manifest -- PARTIAL AUTHORITY for the semantic-role-binding handoff (variant=clear_control). Declares the netlist FAMILY + interface (C1) and the design intent; it deliberately OMITS the concrete clock/scenario/corner values and any typed-axis mapping. The unique assignment is the INTERSECTION of the spec.md constraints -- NOT a line in this file. Read-only and FROZEN.\",\n14:  \"netlist_family\": \"v2.x\",\n15:  \"netlist_revision\": \"v2\",\n24:  \"netlist\": \"netlist_v2.v\",\n25:  \"netlist_provenance_sha256\": \"a5078a7788e67c29cbadb23980facf7d28c056656d6cc7e768034ebe3ad562ac\",\n"
+    },
+    {
+      "type": "run",
+      "cmd": "printf 'set fh [open handoff_manifest.json r]; set mt [read $fh]; close $fh\\nproc jstr {text key} {if {[regexp \"\\\\\"$key\\\\\"\\\\s*:\\\\s*\\\\\"(\\[^\\\\\"]*)\\\\\"\" $text -> v]} {return $v};return \"\"}\\nputs \"netlist=[jstr $mt netlist]\"\\nputs \"clock=[jstr $mt clock]\"\\n' | pt_shell -f /dev/stdin 2>&1 | grep \"netlist=\"",
+      "rc": 1,
+      "out": ""
+    },
+    {
+      "type": "run",
+      "cmd": "printf 'set fh [open handoff_manifest.json r]; set mt [read $fh]; close $fh; proc jstr {text key} {if {[regexp \"\\\\\"$key\\\\\"\\\\s*:\\\\s*\\\\\"(\\[^\\\\\"]*)\\\\\"\" $text -> v]} {return $v};return \"\"}; puts \"net=[jstr $mt netlist]\"; puts \"clock=[jstr $mt clock]\"; puts \"len=[string length $mt]\"' | pt_shell -f /dev/stdin 2>&1 | grep -E \"^(net=|clock=|len=)\"",
+      "rc": 1,
+      "out": ""
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "run",
+      "cmd": "echo 'set fh [open handoff_manifest.json r]; set mt [read $fh]; close $fh",
+      "rc": 2,
+      "out": "\n[stderr]\n/bin/sh: 1: Syntax error: Unterminated quoted string\n"
+    },
+    {
+      "type": "write_refused",
+      "file": "/tmp/debug.tcl"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 689869,
+    "completion_tokens": 48147,
+    "reasoning_tokens": 45426
+  },
+  "finished": true,
+  "edited": [
+    "flow_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661038.538,
+          "end_ts": 1784661042.194,
+          "elapsed_s": 3.657,
+          "termination": "normal_exit",
+          "worker_pid": 2829999,
+          "body_sha256": "3d516a0ed402",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.5549,
+      "stream_duration_s": 1.7304,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661042.198,
+          "end_ts": 1784661048.559,
+          "elapsed_s": 6.361,
+          "termination": "normal_exit",
+          "worker_pid": 2830080,
+          "body_sha256": "9adb35c8dd21",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.363,
+      "stream_duration_s": 3.3797,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661048.564,
+          "end_ts": 1784661055.55,
+          "elapsed_s": 6.986,
+          "termination": "normal_exit",
+          "worker_pid": 2830181,
+          "body_sha256": "7cda804ed1f0",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.3176,
+      "stream_duration_s": 3.3535,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661055.555,
+          "end_ts": 1784661060.196,
+          "elapsed_s": 4.642,
+          "termination": "normal_exit",
+          "worker_pid": 2830307,
+          "body_sha256": "f257701b8198",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.0001,
+      "stream_duration_s": 0.3882,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661060.201,
+          "end_ts": 1784661063.77,
+          "elapsed_s": 3.569,
+          "termination": "normal_exit",
+          "worker_pid": 2830426,
+          "body_sha256": "448450340e6a",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.5275,
+      "stream_duration_s": 1.6299,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661063.775,
+          "end_ts": 1784661074.284,
+          "elapsed_s": 10.508,
+          "termination": "normal_exit",
+          "worker_pid": 2830516,
+          "body_sha256": "6be4caa4d5ed",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 7.5633,
+      "stream_duration_s": 7.758,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 6,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661074.288,
+          "end_ts": 1784661100.38,
+          "elapsed_s": 26.092,
+          "termination": "normal_exit",
+          "worker_pid": 2830583,
+          "body_sha256": "0005c5f1b566",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 24.6159,
+      "stream_duration_s": 24.6163,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 7,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661100.385,
+          "end_ts": 1784661208.332,
+          "elapsed_s": 107.947,
+          "termination": "normal_exit",
+          "worker_pid": 2832192,
+          "body_sha256": "68ab544a7fdc",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 103.051,
+      "stream_duration_s": 106.2675,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 8,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661208.332,
+          "end_ts": 1784661219.135,
+          "elapsed_s": 10.803,
+          "termination": "normal_exit",
+          "worker_pid": 2835139,
+          "body_sha256": "377b15407bf5",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0,
+      "time_to_first_answer_s": 2.4638,
+      "stream_duration_s": 3.5127,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 9,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661219.136,
+          "end_ts": 1784661221.474,
+          "elapsed_s": 2.338,
+          "termination": "normal_exit",
+          "worker_pid": 2835280,
+          "body_sha256": "37811911a0b0",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.1776,
+      "stream_duration_s": 0.3253,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 10,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661234.455,
+          "end_ts": 1784661236.479,
+          "elapsed_s": 2.024,
+          "termination": "normal_exit",
+          "worker_pid": 2836716,
+          "body_sha256": "0aa624b2c1c7",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.1789,
+      "stream_duration_s": 0.2091,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 11,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661236.484,
+          "end_ts": 1784661244.438,
+          "elapsed_s": 7.954,
+          "termination": "normal_exit",
+          "worker_pid": 2836747,
+          "body_sha256": "1eec41686321",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.7375,
+      "stream_duration_s": 0.7758,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 12,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661256.838,
+          "end_ts": 1784661259.174,
+          "elapsed_s": 2.336,
+          "termination": "normal_exit",
+          "worker_pid": 2837400,
+          "body_sha256": "e20eee1e057f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.2623,
+      "stream_duration_s": 0.2681,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 13,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661271.435,
+          "end_ts": 1784661296.742,
+          "elapsed_s": 25.307,
+          "termination": "normal_exit",
+          "worker_pid": 2837674,
+          "body_sha256": "23a9139d9bdc",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 22.1599,
+      "stream_duration_s": 22.161,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 14,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661296.771,
+          "end_ts": 1784661315.206,
+          "elapsed_s": 18.435,
+          "termination": "normal_exit",
+          "worker_pid": 2838631,
+          "body_sha256": "e5ec02f2828f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 16.932,
+      "stream_duration_s": 16.9594,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 15,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661315.211,
+          "end_ts": 1784661344.719,
+          "elapsed_s": 29.508,
+          "termination": "normal_exit",
+          "worker_pid": 2839630,
+          "body_sha256": "b52f5396e862",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 27.1171,
+      "stream_duration_s": 27.3547,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 16,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661344.724,
+          "end_ts": 1784661358.399,
+          "elapsed_s": 13.675,
+          "termination": "normal_exit",
+          "worker_pid": 2840022,
+          "body_sha256": "98767bbc9588",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 11.7584,
+      "stream_duration_s": 11.7588,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 17,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661358.405,
+          "end_ts": 1784661362.771,
+          "elapsed_s": 4.367,
+          "termination": "normal_exit",
+          "worker_pid": 2840703,
+          "body_sha256": "e9a1df26fc52",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 2.3657,
+      "stream_duration_s": 2.389,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 18,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661362.777,
+          "end_ts": 1784661370.91,
+          "elapsed_s": 8.133,
+          "termination": "normal_exit",
+          "worker_pid": 2840856,
+          "body_sha256": "afbd8dc0254c",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 6.1762,
+      "stream_duration_s": 6.1768,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 19,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661370.912,
+          "end_ts": 1784661373.293,
+          "elapsed_s": 2.38,
+          "termination": "normal_exit",
+          "worker_pid": 2840971,
+          "body_sha256": "45f41f38ca25",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.125,
+      "stream_duration_s": 0.5325,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 20,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661373.319,
+          "end_ts": 1784661407.152,
+          "elapsed_s": 33.833,
+          "termination": "normal_exit",
+          "worker_pid": 2841433,
+          "body_sha256": "6a129df6d4d7",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0002,
+      "time_to_first_answer_s": 31.7964,
+      "stream_duration_s": 31.9936,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 21,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661407.157,
+          "end_ts": 1784661421.536,
+          "elapsed_s": 14.378,
+          "termination": "normal_exit",
+          "worker_pid": 2842141,
+          "body_sha256": "9b60e9a4e995",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.2784,
+      "stream_duration_s": 12.2787,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 22,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661434.315,
+          "end_ts": 1784661475.032,
+          "elapsed_s": 40.717,
+          "termination": "normal_exit",
+          "worker_pid": 2843183,
+          "body_sha256": "e3a510c31a5e",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 37.7498,
+      "stream_duration_s": 38.6532,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 23,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661475.034,
+          "end_ts": 1784661477.79,
+          "elapsed_s": 2.756,
+          "termination": "normal_exit",
+          "worker_pid": 2844458,
+          "body_sha256": "41021ded8b0c",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.2131,
+      "stream_duration_s": 0.7058,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 24,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661477.791,
+          "end_ts": 1784661499.875,
+          "elapsed_s": 22.084,
+          "termination": "normal_exit",
+          "worker_pid": 2844497,
+          "body_sha256": "2acccbacfbb9",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 19.9198,
+      "stream_duration_s": 20.0147,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 25,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661512.974,
+          "end_ts": 1784661528.516,
+          "elapsed_s": 15.542,
+          "termination": "normal_exit",
+          "worker_pid": 2846204,
+          "body_sha256": "693bc82e1fa2",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.7038,
+      "stream_duration_s": 12.7045,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 26,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661528.52,
+          "end_ts": 1784661574.468,
+          "elapsed_s": 45.948,
+          "termination": "normal_exit",
+          "worker_pid": 2846555,
+          "body_sha256": "3feaadd47e90",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 44.0203,
+      "stream_duration_s": 44.0208,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 27,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661574.469,
+          "end_ts": 1784661594.569,
+          "elapsed_s": 20.1,
+          "termination": "normal_exit",
+          "worker_pid": 2847878,
+          "body_sha256": "a6833af8cfea",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 16.5916,
+      "stream_duration_s": 16.848,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 28,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661607.322,
+          "end_ts": 1784661651.742,
+          "elapsed_s": 44.42,
+          "termination": "normal_exit",
+          "worker_pid": 2849118,
+          "body_sha256": "3a10281ab1ce",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 40.5717,
+      "stream_duration_s": 42.3392,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 29,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661651.744,
+          "end_ts": 1784661685.089,
+          "elapsed_s": 33.346,
+          "termination": "normal_exit",
+          "worker_pid": 2851028,
+          "body_sha256": "80ce968feb5b",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 28.7986,
+      "stream_duration_s": 28.7991,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 30,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661685.093,
+          "end_ts": 1784661689.171,
+          "elapsed_s": 4.078,
+          "termination": "normal_exit",
+          "worker_pid": 2851878,
+          "body_sha256": "0133f58a704b",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 2.3144,
+      "stream_duration_s": 2.4597,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 31,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661702.079,
+          "end_ts": 1784661705.253,
+          "elapsed_s": 3.174,
+          "termination": "normal_exit",
+          "worker_pid": 2852496,
+          "body_sha256": "ed307fa94add",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.0274,
+      "stream_duration_s": 1.0486,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 32,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661717.712,
+          "end_ts": 1784661720.829,
+          "elapsed_s": 3.117,
+          "termination": "normal_exit",
+          "worker_pid": 2853346,
+          "body_sha256": "6896dc27c13d",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.1314,
+      "stream_duration_s": 1.1537,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 33,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661733.397,
+          "end_ts": 1784661770.42,
+          "elapsed_s": 37.023,
+          "termination": "normal_exit",
+          "worker_pid": 2853767,
+          "body_sha256": "75860de739cd",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 29.9262,
+      "stream_duration_s": 29.9266,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 34,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661783.795,
+          "end_ts": 1784661790.332,
+          "elapsed_s": 6.537,
+          "termination": "normal_exit",
+          "worker_pid": 2855277,
+          "body_sha256": "d8e02bde83d2",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.0035,
+      "stream_duration_s": 0.0037,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 35,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661802.885,
+          "end_ts": 1784661810.716,
+          "elapsed_s": 7.831,
+          "termination": "normal_exit",
+          "worker_pid": 2856379,
+          "body_sha256": "241a5f699a14",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.2439,
+      "stream_duration_s": 3.658,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 36,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661810.746,
+          "end_ts": 1784661869.489,
+          "elapsed_s": 58.743,
+          "termination": "normal_exit",
+          "worker_pid": 2856498,
+          "body_sha256": "c844bbc757d9",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 55.5792,
+      "stream_duration_s": 56.5574,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 37,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661869.492,
+          "end_ts": 1784661873.277,
+          "elapsed_s": 3.785,
+          "termination": "normal_exit",
+          "worker_pid": 2858656,
+          "body_sha256": "370513138d25",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.5934,
+      "stream_duration_s": 1.6304,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 38,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661873.307,
+          "end_ts": 1784661930.83,
+          "elapsed_s": 57.523,
+          "termination": "normal_exit",
+          "worker_pid": 2858690,
+          "body_sha256": "27db49559c49",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 55.5268,
+      "stream_duration_s": 55.5274,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 39,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661930.83,
+          "end_ts": 1784661945.127,
+          "elapsed_s": 14.297,
+          "termination": "normal_exit",
+          "worker_pid": 2860827,
+          "body_sha256": "904309a8935f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0002,
+      "time_to_first_answer_s": 10.6484,
+      "stream_duration_s": 10.7137,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 40,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661945.133,
+          "end_ts": 1784661950.632,
+          "elapsed_s": 5.499,
+          "termination": "normal_exit",
+          "worker_pid": 2861013,
+          "body_sha256": "bc918ee4c99e",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.9772,
+      "stream_duration_s": 3.2427,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 41,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661963.214,
+          "end_ts": 1784661981.187,
+          "elapsed_s": 17.974,
+          "termination": "normal_exit",
+          "worker_pid": 2862049,
+          "body_sha256": "0b411111e9a4",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 13.7906,
+      "stream_duration_s": 15.1248,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 42,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784661993.189,
+          "end_ts": 1784662005.146,
+          "elapsed_s": 11.957,
+          "termination": "normal_exit",
+          "worker_pid": 2863138,
+          "body_sha256": "98849e2250ae",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 9.5326,
+      "stream_duration_s": 9.7064,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 43,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662005.15,
+          "end_ts": 1784662016.037,
+          "elapsed_s": 10.886,
+          "termination": "normal_exit",
+          "worker_pid": 2863408,
+          "body_sha256": "3c6e049102b1",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 7.4917,
+      "stream_duration_s": 8.6734,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 44,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662028.518,
+          "end_ts": 1784662058.138,
+          "elapsed_s": 29.62,
+          "termination": "normal_exit",
+          "worker_pid": 2864567,
+          "body_sha256": "45498d8a0798",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 24.964,
+      "stream_duration_s": 26.6847,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 45,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662070.492,
+          "end_ts": 1784662075.414,
+          "elapsed_s": 4.922,
+          "termination": "normal_exit",
+          "worker_pid": 2865887,
+          "body_sha256": "213640de1254",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.0001,
+      "stream_duration_s": 1.4441,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 46,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662075.414,
+          "end_ts": 1784662087.211,
+          "elapsed_s": 11.797,
+          "termination": "normal_exit",
+          "worker_pid": 2866491,
+          "body_sha256": "180b1127369c",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 10.2473,
+      "stream_duration_s": 10.2503,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 47,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662087.214,
+          "end_ts": 1784662096.12,
+          "elapsed_s": 8.906,
+          "termination": "normal_exit",
+          "worker_pid": 2866860,
+          "body_sha256": "45a42d074d54",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.709,
+      "stream_duration_s": 3.2305,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    },
+    {
+      "request_index": 48,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1784662096.12,
+          "end_ts": 1784662111.552,
+          "elapsed_s": 15.432,
+          "termination": "normal_exit",
+          "worker_pid": 2866988,
+          "body_sha256": "9fbab49c38b0",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 11.5768,
+      "stream_duration_s": 13.352,
+      "finish_reason": "stop",
+      "served_model": "DeepSeek-V4-Pro"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 49,
+    "total_physical_attempts": 49,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}
