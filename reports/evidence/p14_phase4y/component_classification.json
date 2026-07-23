@@ -1,0 +1,109 @@
+{
+  "c7_operational_definition": "pure procedural-contract clauses only (clause-level); excludes all schema",
+  "c7_strings": [
+    {
+      "location": "files/spec.md",
+      "old_0009": "**No value-to-axis mapping is provided.** Resolve the role of each label from the evidence.",
+      "new_0019": "**No value-to-axis mapping is provided.** Infer the unique assignment from the constraints.",
+      "clause_swapped": "Resolve the role of each label from the evidence. -> Infer the unique assignment from the constraints."
+    },
+    {
+      "location": "prompt.md",
+      "old_0009": "1. Resolve the semantic role of each report field label from the report intersection. Then Infer the unique assignment by intersecting C1\u2013C5; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched).",
+      "new_0019": "1. Infer the unique assignment by intersecting C1\u2013C5; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched).",
+      "clause_dropped": "Resolve the semantic role of each report field label from the report intersection. Then"
+    }
+  ],
+  "mixed_sentences_left_at_0009_baseline": [
+    "spec 'What correct looks like' step (0015 fuses the procedural drop with a C1+C4 schema parenthetical; not clause-separable without invention -> kept at 0009 in BOTH variants)",
+    "prompt line-3 framing is schema-only (C1+C4); applied to Schema, kept at 0009 in Contract"
+  ],
+  "c1_report_rename": "op_point=->scenario=, mode=->corner= (applied via frozen 0015 report files in Schema)",
+  "semantic_diff_gate": "PASS (0018 schema-only no-C7; 0019 contract-only no-schema)",
+  "diffs": {
+    "0018": [
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology (partial; see glossary.md for examples -- NOT a complete schema)",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- The shipped reports use two field labels: `op_point=` / `mode=`. Their meaning is NOT defined here -- infer it from how the values are used across the (conflicting) report sources.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- The reports carry a **scenario** field (`scenario=`) and a **corner** field (`corner=`). These are DISJOINT typed axes: a value valid on one is invalid on the other.",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- `glossary.md` \u2014 INCOMPLETE terminology examples (NOT a schema).",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest generators, or runners; weakening `constraints.sdc`.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest, glossary, generators, or runners; weakening `constraints.sdc`.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (no glossary or summary is provided). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use canonical `scenario` / `corner` labels; glossary.md states the disjoint typed axes. Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest, `glossary.md`, the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "added"
+      }
+    ],
+    "0019": [
+      {
+        "file": "files/spec.md",
+        "line": "**No value-to-axis mapping is provided.** Resolve the role of each label from the evidence.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "**No value-to-axis mapping is provided.** Infer the unique assignment from the constraints.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "1. Resolve the semantic role of each report field label from the report intersection. Then Infer the unique assignment by intersecting C1\u2013C5; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched).",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "1. Infer the unique assignment by intersecting C1\u2013C5; do NOT trust any single shipped source (each decoy is pairwise plausible but role-mismatched).",
+        "kind": "added"
+      }
+    ]
+  }
+}

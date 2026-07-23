@@ -1,0 +1,15 @@
+{
+  "rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "committed_membership_code_sha256": {
+    "scripts/episode_arbiter.py": "c060852f7a442cf28144bc4445417962519e7998a4d8981db09c99ed627f24a5",
+    "scripts/llm_agent_driver.py": "da69dba0b516fa43191fce4085084ad2285f2d7b51572c49d80ef94145cf8775",
+    "scripts/chain_executor.py": "8983c34e9df18b8802ec23564dc9debd688483930daa5ce0b9409af0c0d0c0cf",
+    "scripts/gen_phase4y.py": "8872dcac4cf80ee5ef2ee6612ba1a4343b1007acf3d4ca712cdf715615c69f38",
+    "scripts/phase4y_freeze.py": "d91c74201719e727af19d8e55990422857b27a3518cc3ec8d61c7de15bf0f2d5"
+  },
+  "tests": [
+    "tests/test_transport_telemetry.py",
+    "tests/test_episode_arbiter.py",
+    "tests/test_chain_executor.py"
+  ]
+}

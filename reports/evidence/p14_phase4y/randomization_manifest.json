@@ -1,0 +1,102 @@
+{
+  "seed": 20260723,
+  "seed_name": "phase4y_seed",
+  "method": "random.Random(seed).random()<0.5 per block; 3 blocked pairs (one Schema + one Contract each)",
+  "conditions": {
+    "Schema": "workflow_handoff_0018",
+    "Contract": "workflow_handoff_0019"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "Contract",
+        "Schema"
+      ],
+      "Schema_first": false,
+      "draw": 0.356481
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "Contract",
+        "Schema"
+      ],
+      "Schema_first": false,
+      "draw": 0.542575
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "Schema",
+        "Contract"
+      ],
+      "Schema_first": true,
+      "draw": 0.068586
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:Contract",
+    "block1:Schema",
+    "block2:Contract",
+    "block2:Schema",
+    "block3:Schema",
+    "block3:Contract"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "condition": "Contract",
+      "task_id": "workflow_handoff_0019",
+      "planned_results_dir": "/tmp/p4y_1_Contract_0_a1"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "condition": "Schema",
+      "task_id": "workflow_handoff_0018",
+      "planned_results_dir": "/tmp/p4y_1_Schema_1_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "condition": "Contract",
+      "task_id": "workflow_handoff_0019",
+      "planned_results_dir": "/tmp/p4y_2_Contract_0_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "condition": "Schema",
+      "task_id": "workflow_handoff_0018",
+      "planned_results_dir": "/tmp/p4y_2_Schema_1_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "condition": "Schema",
+      "task_id": "workflow_handoff_0018",
+      "planned_results_dir": "/tmp/p4y_3_Schema_0_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "condition": "Contract",
+      "task_id": "workflow_handoff_0019",
+      "planned_results_dir": "/tmp/p4y_3_Contract_1_a1"
+    }
+  ],
+  "position_balance": {
+    "Schema_pos0": 1,
+    "Schema_pos1": 2,
+    "Contract_pos0": 2,
+    "Contract_pos1": 1
+  },
+  "code_commit_at_freeze_base": "67199e3ba141ae3d736a92cae1d7b368770c6ca5",
+  "rule": "FROZEN; must not change after the first paid result.",
+  "counts": {
+    "Schema": 3,
+    "Contract": 3
+  }
+}
