@@ -1,0 +1,82 @@
+{
+  "c1_operational_definition": "canonical scenario/corner labels + disjoint-axis declaration (clause-level; excludes C2-C7)",
+  "c24_operational_definition": "C2 PVT definition + C4 glossary + frozen C4 references (clause-level; excludes C1,C3,C5-C7)",
+  "clause_extraction_note": "mixed prompt-line-3 clause-separated: C1 takes 'canonical scenario/corner labels', C24 takes 'glossary.md states the disjoint typed axes'; each leaves the other portion at the 0009 baseline. No invented/smoothed prose.",
+  "semantic_diff_gate": "PASS (0020 C1-only no-C2/C4; 0021 C24-only no-C1, reports op_point/mode)",
+  "diffs": {
+    "0020": [
+      {
+        "file": "files/spec.md",
+        "line": "- The shipped reports use two field labels: `op_point=` / `mode=`. Their meaning is NOT defined here -- infer it from how the values are used across the (conflicting) report sources.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- The reports carry a **scenario** field (`scenario=`) and a **corner** field (`corner=`). These are DISJOINT typed axes: a value valid on one is invalid on the other.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (no glossary or summary is provided). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use canonical `scenario` / `corner` labels -- resolve it from the report intersection (no glossary or summary is provided). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "added"
+      }
+    ],
+    "0021": [
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology (partial; see glossary.md for examples -- NOT a complete schema)",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- `glossary.md` \u2014 INCOMPLETE terminology examples (NOT a schema).",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest generators, or runners; weakening `constraints.sdc`.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest, glossary, generators, or runners; weakening `constraints.sdc`.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (no glossary or summary is provided). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (glossary.md states the disjoint typed axes). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest, `glossary.md`, the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "added"
+      }
+    ]
+  }
+}
