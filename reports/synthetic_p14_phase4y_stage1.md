@@ -8,16 +8,20 @@ inherent to 3 pairs). Run via the committed chain_executor (stdin-isolated, arbi
 durable run-state: 6/6 ACCEPT first attempt, 0 excluded, exit 0). No DeepSeek, no held-out, no C6,
 no BundleD, no individual C1/C2/C4, no k=5, no non-streaming.
 
-**Headline.** Schema (C1+C2+C4) achieved **2/3 typed-binding** vs Contract (C7 alone) **1/3**. This is
-a **directional Schema-leaning signal** — consistent with the schema components carrying more of the
-BundleS effect than C7 alone — but at k=3 **neither condition is stable** (Schema not 3/3, Contract
-not 0/3), so it is a **weakened cell-1 direction, not a clean cell verdict**. Per the predeclared
-table this falls between "Schema succeeds / Contract fails → prioritize C1/C2/C4 decomposition"
-(directionally supported) and "high instability → report recurrence only" (neither condition clean).
-**Notable mechanistic split:** Contract's two failures are both **`axis_binding_failure`** (`func/slow`,
-the classic cross-axis swap), while Schema's single failure is a **`role_conditioned_value_selection_failure`**
-(`typ/func` — type-valid, wrong value). The schema components (canonical labels + disjoint-axes decl)
-appear to specifically suppress axis-binding errors; C7 alone leaves the agent prone to them.
+**Headline (accepted conclusion, review wording).** "Within Qwen3.7-Max, Schema (C1+C2+C4) shows a
+directional advantage over Contract-only (C7) on the development task: typed-binding correctness is
+2/3 versus 1/3. More importantly, the failure subtype shifts: both Contract failures are
+`axis_binding_failure`, whereas Schema produces no axis-binding failures and its single failure is
+`role_conditioned_value_selection_failure`. With k=3 and neither condition at a stable endpoint, this
+is a **mechanism-localization signal rather than a clean component-effect verdict**."
+
+**Two scope corrections (review):**
+1. **Do NOT claim an additive C7 effect.** The prior BundleS 3/3 result is consistent with a possible
+   Schema×C7 contribution, but these are small, separately collected samples — they do not identify an
+   additive C7 increment (no "C7 adds the final 2/3→3/3" claim) or a Schema×C7 interaction.
+2. **Do NOT attribute axis-error suppression to C1 specifically.** The Schema condition contains
+   C1+C2+C4 jointly; the observed absence of axis-binding failures under Schema cannot be isolated to
+   C1 from this condition. (Isolating C1 is exactly Phase-4Y Stage 2.)
 
 ## 1. Per-episode outcomes (frozen order)
 | slot | cond@pos | tv | recov | term | FINISH | score | submitted | binding subtype | conf | act | rtok | ¥ |
@@ -52,27 +56,26 @@ episode had recovered degradation.
 - *High instability → report recurrence*: partially — neither condition stable, but a consistent
   Schema-leaning direction exists. Reported as recurrence + directional signal.
 
-**Applied verdict:** weakened cell-1 direction (Schema-leaning) with the k=3 instability caveat. The
-schema components (C1/C2/C4) carry the effect directionally over C7; C7 alone ≈ the ambiguous baseline
-(1/3, matching BundleD 1/3 and 0009 1/3). If decomposition is pursued, C1/C2/C4 is the priority — but
-confirm at higher k first.
+**Applied verdict:** mechanism-localization signal (Schema-leaning direction + failure-subtype shift),
+not a clean component-effect verdict. No additive C7 claim; no C1-specific attribution (Schema is
+C1+C2+C4 jointly).
 
 ## 4. Separated conclusions
 **(a) Transport — clean, two-dimension reporting.** 6/6 terminal-transport-valid; 0 recovered
 degradation; 0 chat retries. (Qwen streaming is reliably clean on this family.)
 
-**(b) Capability — schema > contract, directionally.** Schema (C1+C2+C4) 2/3 vs Contract (C7) 1/3.
-Combined with Phase-4W Run-2 (BundleS C1+C2+C4+C7 = 3/3; BundleD C3+C5 = 1/3; 0009 baseline = 1/3):
-the schema components account for most of the BundleS effect; C7 adds a final increment (2/3→3/3 when
-added to schema) but C7 alone does not exceed baseline. All within Qwen3.7-Max (model-contingent
-candidate scope).
+**(b) Capability — mechanism-localization signal, not a component-effect verdict.** Schema (C1+C2+C4)
+2/3 vs Contract (C7) 1/3: a directional Schema-leaning advantage. The prior BundleS 3/3 result is
+consistent with a possible Schema×C7 contribution, but these small, separately collected samples do
+not identify an additive C7 effect or a Schema×C7 interaction (no "C7 adds 2/3→3/3" claim). Within
+Qwen3.7-Max (model-contingent candidate).
 
-**(c) Failure-subtype split (mechanistic hint).** Contract's failures: 2× `axis_binding_failure`
-(func/slow) — the agent kept the cross-axis swap. Schema's failure: 1× `role_conditioned_value_selection_failure`
-(typ/func) — the agent bound type-valid values but the wrong scenario value. The schema components
-(canonical labels + disjoint-axes declaration) plausibly suppress axis-binding errors specifically;
-without them (Contract), the agent reverts to the cross-axis failure. (Same novel value-error subtype
-appeared in the Qwen held-out baseline, ep2.)
+**(c) Failure-subtype shift (mechanistic hint; not attributed to C1).** Contract's failures: 2×
+`axis_binding_failure` (func/slow) — the agent kept the cross-axis swap. Schema's failure: 1×
+`role_conditioned_value_selection_failure` (typ/func) — type-valid values, wrong scenario value. The
+Schema condition produced no axis-binding failures. This is a mechanism-localization signal, **not**
+attributed to C1 specifically — the Schema condition contains C1+C2+C4 jointly, so the axis-error
+absence cannot be isolated to C1 here (that is Phase-4Y Stage 2).
 
 **(d) Reliability (descriptive).** FINISH 4/6 (Schema 2/3, Contract 2/3); all 4 FINISH episodes
 elicited high confidence and were correct where binding was correct (1 overconfident-wrong:
