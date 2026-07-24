@@ -10,6 +10,8 @@ sys.path.insert(0, REPO); sys.path.insert(0, REPO + "/scripts"); os.chdir(REPO)
 import json, tempfile, shutil
 from pathlib import Path
 import phase4w_fairness_gate as G
+import fairness_retry as FR
+import pt_health_sentinel as SEN
 from eda_agentbench.task.loader import TaskLoader
 from eda_agentbench.tools.detector import ToolEnvironmentDetector
 from eda_agentbench.tools.env_shim import EnvShim
@@ -23,17 +25,29 @@ if not tools:
 env = EnvShim(tools).get_env()
 runs = Path(tempfile.mkdtemp(prefix="p4y_fairness_runs_"))
 results = {}
-def _grade_candidate(task, tid, cand, env, runs, max_attempts):
-    """Regen + grade one candidate. For golden (the known-correct baseline), retry up to max_attempts
-    on a non-1.0 result: a fairness gate verifies variant SOUNDNESS, not b04 uptime, and a sustained
-    12-candidate run can degrade b04 PT mid-gate (observed: 0018 golden flaked under load while grading
-    1.0 in clean isolation). A real variant defect fails every attempt; a transient passes on retry.
-    Non-golden candidates use 1 attempt (their expected scores are robust to the transient mode).
-    Records every attempt for transparency."""
+
+# ---- b04/PT health sentinel (proactive; recorded SEPARATELY; aborts on failure; never changes
+# candidate membership/outcomes). Run before the heavy batch. ----
+sentinel_recs = []
+for stid in ("workflow_handoff_0009",):
+    s = SEN.check_pt_health(G.TRACK / stid, env, deadline=180.0)
+    sentinel_recs.append(s)
+    print(f"[sentinel] {stid}: healthy={s['healthy']} signoff_ok={s['signoff_ok']} "
+          f"elapsed={s['elapsed_s']}s err={s.get('error')}", flush=True)
+(OUT / "sentinel.json").write_text(json.dumps(sentinel_recs, indent=2) + "\n")
+if FR.SENTINEL_ABORT_ON_FAILURE and not all(s["healthy"] for s in sentinel_recs):
+    print("ABORT: PT health sentinel unhealthy -- pause/abort before the fairness batch "
+          "(does not change candidate membership)", flush=True)
+    sys.exit(3)
+def _grade_candidate(task, tid, cand, env, runs, max_replacements):
+    """Regen + grade one candidate under the CORRECTED retry policy: retry ONLY on an explicit
+    infra/tool failure (no valid grade); a valid grader result with an unfavorable score is FINAL
+    (hard gate, no retry-around a score). Records every attempt for transparency."""
     fc = G.build_candidate_fc(task, cand)
     attempts = []
-    need = 1.0 if cand == "golden" else -1  # golden retries until 1.0; others single-shot
-    for a in range(1, max_attempts + 1):
+    a = 0
+    while True:
+        a += 1
         work = Path(tempfile.mkdtemp(prefix=f"ev_{tid}_{cand}_a{a}_"))
         shutil.copytree(task / "files", work, dirs_exist_ok=True)
         shutil.copytree(task / "hidden", work, dirs_exist_ok=True)
@@ -49,7 +63,8 @@ def _grade_candidate(task, tid, cand, env, runs, max_attempts):
         res["submitted"] = {k: fc.get(k) for k in ("netlist", "scenario", "corner")}
         res["candidate"] = cand; res["attempt"] = a
         attempts.append(res)
-        if need < 0 or res.get("total_score") == need:
+        # corrected policy: retry only on infra failure (valid wrong score -> stop, hard gate)
+        if not FR.should_retry(res, expected_score=None, attempt=a, max_replacements=max_replacements):
             break
     return attempts
 
@@ -57,13 +72,14 @@ def _grade_candidate(task, tid, cand, env, runs, max_attempts):
 for tid in TASKS:
     task = G.TRACK / tid; meta = loader.load(task); results[tid] = {"task_id": tid, "candidates": {}}
     for cand in G.CANDIDATES:
-        attempts = _grade_candidate(task, tid, cand, env, runs, max_attempts=3)
-        res = attempts[-1] if len(attempts) == 1 else next((a for a in attempts if a.get("total_score") == 1.0), attempts[-1])
+        attempts = _grade_candidate(task, tid, cand, env, runs, max_replacements=2)
+        res = attempts[-1]
         res["all_attempts"] = [{"attempt": a["attempt"], "score": a.get("total_score"),
-                                "error": a.get("error")} for a in attempts] if len(attempts) > 1 else None
+                                "error": a.get("error"), "infra_retry": FR.is_measurement_infra_failure(a)}
+                               for a in attempts] if len(attempts) > 1 else None
         results[tid]["candidates"][cand] = res
         comps = {c["name"]: round(c["raw"], 2) for c in res.get("components", [])}
-        tag = f" (a{len(attempts)})" if len(attempts) > 1 else ""
+        tag = f" (a{len(attempts)},infra-retry)" if len(attempts) > 1 else ""
         print(f"[{tid}] {cand:16s} score={res.get('total_score')} signoff={comps.get('signoff')} "
               f"evgen={comps.get('evidence_generation')} sub={res['submitted']}{tag} err={res.get('error')}", flush=True)
 (OUT / "gate_results.json").write_text(json.dumps(results, indent=2) + "\n")
