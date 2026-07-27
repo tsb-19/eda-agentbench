@@ -1,0 +1,123 @@
+{
+  "seed": 20260724,
+  "seed_name": "phase4y2_seed",
+  "method": "random.Random(seed).shuffle over [C1->C24, C1->C24, C24->C1, C24->C1]; exactly 2 of each order; each condition exactly 2x per position (exact counterbalance). Declared and committed BEFORE any data collection.",
+  "conditions": {
+    "C1": "workflow_handoff_0020",
+    "C24": "workflow_handoff_0021"
+  },
+  "blocks": [
+    {
+      "block_id": "block1",
+      "order": [
+        "C1",
+        "C24"
+      ],
+      "type": "C1_first"
+    },
+    {
+      "block_id": "block2",
+      "order": [
+        "C1",
+        "C24"
+      ],
+      "type": "C1_first"
+    },
+    {
+      "block_id": "block3",
+      "order": [
+        "C24",
+        "C1"
+      ],
+      "type": "C24_first"
+    },
+    {
+      "block_id": "block4",
+      "order": [
+        "C24",
+        "C1"
+      ],
+      "type": "C24_first"
+    }
+  ],
+  "frozen_execution_order": [
+    "block1:C1",
+    "block1:C24",
+    "block2:C1",
+    "block2:C24",
+    "block3:C24",
+    "block3:C1",
+    "block4:C24",
+    "block4:C1"
+  ],
+  "flat": [
+    {
+      "block_id": "block1",
+      "position_in_block": 0,
+      "condition": "C1",
+      "task_id": "workflow_handoff_0020",
+      "planned_results_dir": "/tmp/p4y2_1_C1_0_a1"
+    },
+    {
+      "block_id": "block1",
+      "position_in_block": 1,
+      "condition": "C24",
+      "task_id": "workflow_handoff_0021",
+      "planned_results_dir": "/tmp/p4y2_1_C24_1_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 0,
+      "condition": "C1",
+      "task_id": "workflow_handoff_0020",
+      "planned_results_dir": "/tmp/p4y2_2_C1_0_a1"
+    },
+    {
+      "block_id": "block2",
+      "position_in_block": 1,
+      "condition": "C24",
+      "task_id": "workflow_handoff_0021",
+      "planned_results_dir": "/tmp/p4y2_2_C24_1_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 0,
+      "condition": "C24",
+      "task_id": "workflow_handoff_0021",
+      "planned_results_dir": "/tmp/p4y2_3_C24_0_a1"
+    },
+    {
+      "block_id": "block3",
+      "position_in_block": 1,
+      "condition": "C1",
+      "task_id": "workflow_handoff_0020",
+      "planned_results_dir": "/tmp/p4y2_3_C1_1_a1"
+    },
+    {
+      "block_id": "block4",
+      "position_in_block": 0,
+      "condition": "C24",
+      "task_id": "workflow_handoff_0021",
+      "planned_results_dir": "/tmp/p4y2_4_C24_0_a1"
+    },
+    {
+      "block_id": "block4",
+      "position_in_block": 1,
+      "condition": "C1",
+      "task_id": "workflow_handoff_0020",
+      "planned_results_dir": "/tmp/p4y2_4_C1_1_a1"
+    }
+  ],
+  "position_balance": {
+    "C1_pos0": 2,
+    "C1_pos1": 2,
+    "C24_pos0": 2,
+    "C24_pos1": 2
+  },
+  "code_commit_at_freeze_base": "b5a16d2d4cff227213308ddbbe552084ccb490eb",
+  "rule": "FROZEN; must not change after the first paid result.",
+  "counts": {
+    "C1": 4,
+    "C24": 4
+  }
+}

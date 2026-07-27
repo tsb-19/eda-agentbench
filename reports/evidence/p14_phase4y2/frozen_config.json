@@ -1,0 +1,57 @@
+{
+  "experiment": "Phase-4Y Stage-2: C1/Axis-schema (0020) vs C24/Value-schema (0021), k=4 each",
+  "model": {
+    "name": "Qwen3.7-Max",
+    "rates_cny_per_M": {
+      "input": 12,
+      "output": 36
+    }
+  },
+  "transport": {
+    "streaming": "SSE",
+    "request_inactivity_timeout_sec": 120,
+    "hard_request_deadline_sec": 300,
+    "max_chat_retries": 1,
+    "telemetry": "per-request + transport_summary (terminal_valid vs recovered)"
+  },
+  "episode": {
+    "temperature": 0.7,
+    "max_actions": 60,
+    "episode_timeout_sec": 1800,
+    "elicit_confidence": true,
+    "concurrency": 1
+  },
+  "tasks": {
+    "C1": "workflow_handoff_0020",
+    "C24": "workflow_handoff_0021"
+  },
+  "primary_sample": "exactly 8 primary valid episodes (4 C1 + 4 C24)",
+  "replacement_policy": "arbiter-driven (episode_arbiter + chain_executor); terminal-invalid only; recovered degradation never replaces; same-slot; max 2 then STOP",
+  "primary_outcome": "typed_binding_correctness",
+  "co_primary_mechanistic_diagnostic": "failure_subtype: axis_binding_failure vs role_conditioned_value_selection_failure",
+  "secondary_outcomes": [
+    "artifact_correctness",
+    "evidence_generation",
+    "protocol_completion",
+    "termination",
+    "actions",
+    "reasoning_tokens",
+    "confidence",
+    "terminal_transport_validity",
+    "recovered_degradation",
+    "cost"
+  ],
+  "excluded": [
+    "Contract/C7",
+    "full BundleS",
+    "held-out",
+    "DeepSeek",
+    "C6",
+    "k_escalation",
+    "non_streaming"
+  ],
+  "generalized_membership_rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "pt_health_policy": "b04/PT sentinel runs before the fairness batch (sentinel.json, recorded separately); failure aborts the gate, never changes candidate membership/outcomes. Fairness retry is infra-only (valid wrong score = hard failure).",
+  "code_commit_at_freeze_base": "b5a16d2d4cff227213308ddbbe552084ccb490eb",
+  "stop_rule": "After exactly 8 authorized episodes, a report-only commit, stop for review. Do not push."
+}
