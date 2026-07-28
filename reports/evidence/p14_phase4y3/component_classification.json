@@ -1,0 +1,62 @@
+{
+  "c2_operational_definition": "frozen PVT-definition spec line only (exclude C1,C3,C4-C7)",
+  "c4_operational_definition": "frozen glossary.md + exact frozen C4 references (exclude C1-C3,C5-C7)",
+  "note": "C2 (spec PVT-def line) and C4 (glossary file + refs) are cleanly separable; C4's glossary contains a PVT line as part of the frozen file but the C2 SPEC line is absent from 0023",
+  "semantic_diff_gate": "PASS (0022 C2-only no-C4/no-C1; 0023 C4-only no-C2-line, reports op_point/mode)",
+  "diffs": {
+    "0022": [
+      {
+        "file": "files/spec.md",
+        "line": "- A **PVT descriptor** (e.g. `slow_1.0V_125C`) is a string `<process>_<voltage>_<temperature>` that **characterizes** a (scenario, corner) pair but is **never** a valid scenario or corner value.",
+        "kind": "added"
+      }
+    ],
+    "0023": [
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "## Terminology (partial; see glossary.md for examples -- NOT a complete schema)",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- `glossary.md` \u2014 INCOMPLETE terminology examples (NOT a schema).",
+        "kind": "added"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest generators, or runners; weakening `constraints.sdc`.",
+        "kind": "removed"
+      },
+      {
+        "file": "files/spec.md",
+        "line": "- Editing the netlists, library, manifest, glossary, generators, or runners; weakening `constraints.sdc`.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (no glossary or summary is provided). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "You are handed a downstream **timing sign-off handoff** whose evidence is out of date AND whose `flow_config.json` carries a value-swap on the signoff axes. The reports use field labels `op_point` / `mode` whose logical-axis role is NOT defined upfront -- resolve it from the report intersection (glossary.md states the disjoint typed axes). Infer the unique assignment by intersecting the constraints in `spec.md` (C1 netlist family + C2 clock coverage + C3 scenario-typed + C4 corner-typed + C5 signoff pair), reject every pairwise-plausible decoy, repair `flow_config.json`, and **rerun the evidence flow (two ordered stages)** so the evidence is freshly generated from the inferred package.",
+        "kind": "added"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "removed"
+      },
+      {
+        "file": "prompt.md",
+        "line": "A package with the correct netlist+clock still PrimeTime-signs-off GREEN when the role fields are swapped -- semantic-role binding, not signoff, is what rejects it. You may edit `flow_config.json`. Do **not** edit netlists, the library, the manifest, `glossary.md`, the decoy reports, the generators, or the runners; do not hand-write evidence.",
+        "kind": "added"
+      }
+    ]
+  }
+}
