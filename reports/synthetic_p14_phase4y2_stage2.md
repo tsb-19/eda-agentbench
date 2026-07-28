@@ -7,20 +7,17 @@ C24 ¥49.66). FROZEN exact-counterbalanced 4 two-run blocks (seed `phase4y2_seed
 (stdin-isolated, arbiter-driven, durable run-state: 8/8 ACCEPT, 0 excluded, exit 0). No Contract/C7, no
 full BundleS, no held-out, no DeepSeek, no C6, no k-escalation, no non-streaming.
 
-**Headline (the decisive result is the co-primary failure-subtype diagnostic).** Isolating C1 from C24:
-- **C1** (canonical labels + disjoint-axis declaration): 2/4 typed-binding, **2 axis_binding_failure, 0
-  value-selection failures.**
-- **C24** (C2 PVT-def + C4 glossary): 3/4 typed-binding, **0 axis-binding failures, 1
-  role_conditioned_value_selection_failure.**
-
-**This REFUTES the predeclared "C1 specifically eliminates axis_binding_failure" cell (cell 5): C1 did
-NOT eliminate axis errors — it produced both of its failures as axis-binding errors.** The opposite
-pattern holds: **C24 (the value-schema), not C1 (the axis labels), is associated with axis-error
-suppression.** This confirms the Stage-1 caveat ("do not attribute axis-error suppression to C1
-specifically") and localizes the axis-suppression mechanism to the value-schema (C2+C4: PVT definition
-+ glossary). On the primary typed-binding count, **C24 (3/4) directionally exceeds C1 (2/4), but
-neither condition is at a stable 4/4 endpoint (k=4)** — closest to the "report recurrence" cell for the
-raw count, with the decisive signal being the subtype split.
+**Headline (accepted conclusion, review wording).** "Stage 2 localizes the strongest current
+axis-stabilization signal to the C2+C4 value-schema bundle rather than C1 alone. C24 produced 3/4
+typed-binding correctness with 0/4 axis-binding failures, while C1 produced 2/4 with 2/4 axis-binding
+failures. C24 did not eliminate semantic-binding failures overall: its remaining failure was a
+role-conditioned value-selection failure." The predeclared hypothesis that C1 alone would eliminate
+axis-binding errors is **refuted** (both C1 failures were `axis_binding_failure`). C1 **did not
+establish stable local sufficiency** in this tested condition (not stated as categorically
+insufficient beyond it). The axis-suppression mechanism is **not yet definitively localized to C2+C4**,
+and C24 (a two-component bundle, not itself at a stable 4/4 endpoint) is **not claimed to carry the
+complete operative correctness mechanism** — this is the strongest current signal, pending the C2-vs-C4
+decomposition (Stage 3).
 
 ## 1. Per-episode outcomes (frozen order)
 | slot | cond@pos | tv | recov | term | FINISH | score | submitted | binding subtype | conf | act | rtok | ¥ |
@@ -71,27 +68,45 @@ C24 (3/4) directionally exceeds C1 (2/4), neither stable at k=4.
 had recovered degradation (1 recovered failure, terminally valid → accepted, no replacement); 0 chat
 retries. (b04 was confirmed healthy by the sentinel before the run.)
 
-**(b) Capability — value-schema (C24) is the stronger subset and the axis-suppressor.** C24 (C2+C4)
-3/4 vs C1 (canonical labels + disjoint-axes) 2/4. Combined with Stage-1 (Schema C1+C2+C4 = 2/3;
-BundleS C1+C2+C4+C7 = 3/3): the value-schema (C2+C4) carries the operative correctness mechanism;
-C1 alone is insufficient and does not suppress axis errors.
+**(b) Capability — strongest current axis-stabilization signal is C2+C4, not C1.** C24 (C2+C4) 3/4 vs
+C1 (canonical labels + disjoint-axes) 2/4. This localizes the strongest current axis-stabilization
+signal to the C2+C4 value-schema bundle rather than C1 alone. C24 did not eliminate semantic-binding
+failures overall (its remaining failure was a value-selection failure). C1 did not establish stable
+local sufficiency in this condition. The axis-suppression mechanism is not yet definitively localized
+to C2+C4 (C24 is a two-component bundle below a stable 4/4 endpoint); the C2-vs-C4 split is Stage 3.
 
-**(c) Failure-subtype localization (decisive).** C1: 2 axis_binding_failure (func/slow, func/typ), 0
-value. C24: 0 axis, 1 role_conditioned_value_selection_failure (typ/func). The explicit axis labels
-(C1) do NOT prevent axis-binding errors; the value-schema (PVT definition + glossary) does. This is
-the clean negative result on the C1-eliminates-axis hypothesis.
+**(c) Failure-subtype localization.** C1: 2 axis_binding_failure (func/slow, func/typ), 0 value. C24:
+0 axis, 1 role_conditioned_value_selection_failure (typ/func). The predeclared "C1 eliminates axis
+errors" hypothesis is refuted; the axis-stabilization signal currently rests with C24.
 
 **(d) Reliability (descriptive).** FINISH C1 2/4, C24 1/4 — several correct episodes did not
 protocol-complete (action_cap/task_wall) yet still bound correctly. All 3 FINISH episodes were
 high-confidence and correct (no overconfident-wrong in this batch).
 
-## 5. Sample-size + scope
+## 5. Infrastructure-validation case (b04 outage) + retry rule
+Between the Stage-2 pre-run freeze and execution, b04/PT entered an approximately **13-hour outage**
+(stage1 timing out at 380 s vs the normal ~13 s; ssh to b04 hung past its ConnectTimeout). The b04/PT
+health sentinel correctly reported the unhealthy state and **blocked fairness collection, preventing
+any paid calls during the unhealthy tool window**. Once b04 recovered, the sentinel passed and the run
+proceeded cleanly. This validates the sentinel as a paid-call guard. The **validity-based retry rule**
+is preserved: a fairness candidate is retried ONLY on an explicit infra/tool failure (PT crash,
+license/shim failure, truncated/unparsable output, explicit infra timeout); a valid grader result
+with an unfavorable score is a hard gate failure and is never retried.
+
+## 6. Held-out-family-1 (0011/0017) reuse caveat
+The 0011/0017 held-out family (used in Phase-4W) remains frozen at the file level but has already been
+exposed through model outcomes and subsequently informed continued mechanism development. Any future
+result on 0011 (e.g., a C24 test) must be labeled **secondary / adaptively-reused evidence, not
+pristine confirmatory evidence**. A fresh held-out family-2 (distinct hidden truth) is being
+constructed for any future pristine confirmation.
+
+## 7. Sample-size + scope
 k=4 per condition; one development pair; one model; exact-counterbalanced (2×2 balanced, n=2/cell).
 The supported statements are the directional C24 advantage + the decisive failure-subtype split
 (C1 axis-prone, C24 axis-free), not effect estimates. Within Qwen3.7-Max (model-contingent
 candidate). Position (pos0 2/4 vs pos1 3/4) is mild and not interpreted at this n.
 
-## 6. Artifacts + SHA-256
+## 8. Artifacts + SHA-256
 Evidence root: `reports/evidence/p14_phase4y2_episodes/` — 8 trials × 8 sanitized files + MANIFEST.json
 + SHA256SUMS; chain-of-custody byte-match verified for all 8. Pre-run gate (semantic-diff + disclosure
 + sentinel-guarded fairness + freeze + membership manifest) at `reports/evidence/p14_phase4y2/`
