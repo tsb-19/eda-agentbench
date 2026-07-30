@@ -1,0 +1,60 @@
+{
+  "experiment": "Phase-4Y Stage-3: C2-only/PVT-def (0022) vs C4-only/glossary+refs (0023), k=4 each",
+  "model": {
+    "name": "Qwen3.7-Max",
+    "rates_cny_per_M": {
+      "input": 12,
+      "output": 36
+    }
+  },
+  "transport": {
+    "streaming": "SSE",
+    "request_inactivity_timeout_sec": 120,
+    "hard_request_deadline_sec": 300,
+    "max_chat_retries": 1,
+    "telemetry": "per-request + transport_summary (terminal_valid vs recovered)"
+  },
+  "episode": {
+    "temperature": 0.7,
+    "max_actions": 60,
+    "episode_timeout_sec": 1800,
+    "elicit_confidence": true,
+    "concurrency": 1
+  },
+  "tasks": {
+    "C2": "workflow_handoff_0022",
+    "C4": "workflow_handoff_0023"
+  },
+  "primary_sample": "exactly 8 primary valid episodes (4 C2 + 4 C4)",
+  "replacement_policy": "arbiter-driven (episode_arbiter + chain_executor); terminal-invalid only; recovered degradation never replaces; same-slot; max 2 then STOP",
+  "primary_outcome": "typed_binding_correctness",
+  "co_primary_mechanistic_diagnostic": "failure_subtype: axis_binding_failure vs role_conditioned_value_selection_failure",
+  "secondary_outcomes": [
+    "artifact_correctness",
+    "evidence_generation",
+    "protocol_completion",
+    "termination",
+    "actions",
+    "reasoning_tokens",
+    "confidence",
+    "terminal_transport_validity",
+    "recovered_degradation",
+    "cost"
+  ],
+  "context_from_stage2": "Stage-2 localized the strongest axis-stabilization signal to the C2+C4 value-schema bundle (C24), not C1. Stage-3 decomposes C24 into its two components to attribute the signal.",
+  "excluded": [
+    "C1",
+    "full BundleS",
+    "held-out (both families)",
+    "DeepSeek",
+    "C3/C5/C6/C7",
+    "k_escalation",
+    "non_streaming"
+  ],
+  "generalized_membership_rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "fairness_control_code_committed_separately": "fullpath_check.py + measurement_control.py + phase4y3_fairness.py (block measurement-control; score-independent; commits f6a716e, 95aa33c). NOT part of this pre-run gate commit.",
+  "measurement_control_policy": "Stage-3 fairness ran under block measurement-control (full-path L2 check -> candidate subset -> full-path L2 check); a block is admissible only if both bookends healthy; a valid unexpected score in an admissible block is a HARD fairness fail (no retry); inadmissible blocks are diagnostic-only and rerun unchanged.",
+  "pt_health_policy": "b04/PT sentinel runs before the fairness batch (sentinel.json, recorded separately); failure aborts the gate, never changes candidate membership/outcomes. Fairness retry is infra-only (valid wrong score = hard failure).",
+  "code_commit_at_freeze_base": "7f36954c662caec5db77624c3de5de4a7c4b6f2b",
+  "stop_rule": "After exactly 8 authorized episodes, a report-only commit, stop for review. Do not push."
+}
