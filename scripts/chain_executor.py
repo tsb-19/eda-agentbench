@@ -28,6 +28,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "scripts"))
 import episode_arbiter as arb  # noqa: E402  (sole membership authority)
+import canonical_integrity as cig  # noqa: E402  (canonical-tree integrity guard)
 
 
 def _now_iso():
@@ -85,6 +86,22 @@ def run_slot(runner_cmd, log):
     return p.returncode
 
 
+def _integrity_fail(state_path, state, manifest, incidents, log):
+    """Atomically mark FAILED_INTEGRITY + sidecar incident record, log, and raise SystemExit(3).
+
+    The canonical tree was mutated. The run is STOPPED (remaining slots not executed) and the source
+    tree is NEVER silently restored+continued. Caught by the except-SystemExit branch on se.code==3,
+    which MUST preserve FAILED_INTEGRITY rather than clobbering to FAILED.
+    """
+    state.update({"state": "FAILED_INTEGRITY", "executor_finished_at": _now_iso(),
+                  "executor_exit_code": 3, "integrity_incidents": len(incidents)})
+    _atomic_write_json(state_path, state)
+    cig.record_incident_sidecar(state_path, manifest, incidents)
+    with open(log, "a") as lf:
+        lf.write(f"[integrity] FAILED_INTEGRITY: {len(incidents)} incident(s); run STOPPED, not restored\n")
+    raise SystemExit(3)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--schedule", required=True)
@@ -101,6 +118,12 @@ def main():
     ap.add_argument("--temperature", type=float, default=0.7)
     ap.add_argument("--elicit-confidence", action="store_true")
     ap.add_argument("--extra-runner-args", default=None)
+    ap.add_argument("--integrity-manifest", default=None,
+                    help="canonical_integrity_manifest.json; if set, verify HEAD+canonical hashes pre-run, "
+                         "after every episode, and post-chain; any mutation -> FAILED_INTEGRITY (exit 3)")
+    ap.add_argument("--integrity-repo", default=None,
+                    help="repo root for integrity verify (default: this executor's REPO); lets tests "
+                         "point at a tmp task tree without touching the real canonical tree")
     a = ap.parse_args()
 
     schedule, counts = _load_schedule(Path(a.schedule))
@@ -116,6 +139,19 @@ def main():
     _atomic_write_json(state_path, state)
     open(a.log, "w").close()
 
+    # Canonical-tree integrity: load the frozen manifest and verify HEAD+hashes BEFORE any paid call.
+    # Bound here so the per-episode and post-chain hooks reuse them; outside try: so a pre-run
+    # failure (SystemExit 3) propagates directly with zero clobber risk.
+    m = None
+    irepo = Path(a.integrity_repo) if a.integrity_repo else REPO
+    if a.integrity_manifest:
+        m = json.loads(Path(a.integrity_manifest).read_text())
+        ok, inc = cig.verify(irepo, m)
+        if not ok:
+            with open(a.log, "a") as lf:
+                lf.write(f"[integrity] pre-run verify FAILED: {len(inc)} incident(s)\n")
+            _integrity_fail(state_path, state, m, inc, a.log)
+
     completed, exit_code = 0, 0
     try:
         for e in schedule:
@@ -128,6 +164,10 @@ def main():
                 res_dir = Path(f"{a.results_prefix}_{blk}_{cond}_{pos}_a{attempt}/results")
                 cmd = _runner_cmd(a.runner, a.models, a.track, task_id, res_dir, a)
                 rc = run_slot(cmd, a.log)
+                if m is not None:  # post-episode canonical verify (separate from arbiter/transport)
+                    ok, inc = cig.verify(irepo, m)
+                    if not ok:
+                        _integrity_fail(state_path, state, m, inc, a.log)
                 cls, result, agentlog = classify(res_dir, a.model_name, a.track, task_id)
                 decision = arb.replacement_decision(cls, attempt, a.max_replacements)
                 with open(a.log, "a") as lf:
@@ -156,12 +196,20 @@ def main():
             completed += 1
             state["completed_primary_slots"] = completed
             _atomic_write_json(state_path, state)
+        if m is not None:  # post-chain canonical verify
+            ok, inc = cig.verify(irepo, m)
+            if not ok:
+                _integrity_fail(state_path, state, m, inc, a.log)
         state.update({"state": "COMPLETE", "executor_finished_at": _now_iso(),
                        "executor_exit_code": 0, "completed_primary_slots": completed})
         _atomic_write_json(state_path, state)
         print(json.dumps({"state": "COMPLETE", "completed": completed, "expected": expected}))
         return 0
-    except SystemExit:
+    except SystemExit as se:
+        if getattr(se, "code", None) == 3:
+            # Integrity failure: state already written FAILED_INTEGRITY + sidecar by _integrity_fail.
+            # MUST NOT overwrite to FAILED. Re-raise so the process exits 3.
+            raise
         state.update({"state": "FAILED", "executor_finished_at": _now_iso(), "executor_exit_code": 2})
         _atomic_write_json(state_path, state)
         raise

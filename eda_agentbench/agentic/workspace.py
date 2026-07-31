@@ -3,14 +3,39 @@
 Security model:
 - Agent workspace: visible + editable files ONLY. No hidden/oracle/scoring files.
 - Evaluator workspace: agent output + hidden files merged. Created after agent exits.
+
+Canonical-tree integrity: when a paid run executes under the canonical-tree guard, the canonical task
+directories are made non-writable (os.chmod a-w). copytree/copy2 propagate that mode into the /tmp
+runtime workspaces, which would silently break agent editing and grading. _ensure_writable() resets the
+runtime copy to user-writable AFTER copying — the canonical stays locked, the editable copy stays
+editable.
 """
 
 from __future__ import annotations
 
 import hashlib
+import os
 import shutil
 import tempfile
 from pathlib import Path
+
+
+def _ensure_writable(tree: Path) -> None:
+    """Ensure every file/dir in a runtime workspace copy is user-writable.
+
+    Needed because copytree/copy2/copystat propagate the canonical tree's a-w mode (set by the
+    integrity guard's enforce()) into the /tmp copy. The canonical stays non-writable; this restores
+    writability on the COPY only (the agent must edit it; the grader must write ref artifacts into it).
+    """
+    tree = Path(tree)
+    if not tree.exists():
+        return
+    targets = [tree] + [p for p in tree.rglob("*")]
+    for p in targets:
+        try:
+            os.chmod(p, p.stat().st_mode | 0o200)  # add user-write
+        except OSError:
+            pass
 
 
 def create_agent_workspace(task_path: Path, meta: dict) -> Path:
@@ -28,6 +53,7 @@ def create_agent_workspace(task_path: Path, meta: dict) -> Path:
         src_visible = task_path / "files"
     if src_visible.is_dir():
         shutil.copytree(src_visible, work_dir, dirs_exist_ok=True)
+    _ensure_writable(work_dir)
 
     return work_dir
 
@@ -69,6 +95,7 @@ def create_evaluator_workspace(task_path: Path, meta: dict, agent_workspace: Pat
     src_hidden = task_path / "hidden"
     if src_hidden.is_dir():
         shutil.copytree(src_hidden, eval_dir, dirs_exist_ok=True)
+    _ensure_writable(eval_dir)
 
     return eval_dir
 
