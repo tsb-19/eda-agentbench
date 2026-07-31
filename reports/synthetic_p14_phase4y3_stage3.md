@@ -9,11 +9,11 @@ Stage-2 localized the strongest axis-stabilization signal to the **C2+C4 value-s
 
 Predeclared interpretation cells (frozen before any paid result, `reports/evidence/p14_phase4y3/interpretation_table.json`): `c2_stable_c4_weak`, `c2_weak_c4_stable`, `both_stable`, **`both_weak`** (*axis stabilization requires the C2+C4 bundle jointly; do not attribute the Stage-2 C24 signal to C2 or C4 individually*), `c2_eliminates_axis_only`, `c4_eliminates_axis_only`, `substantial_instability`.
 
-## Result → predeclared cell: **`both_weak`**
+## Result → predeclared cell: **`both_weak`** (candidate interaction, not formally identified)
 
-Neither C2-alone nor C4-alone suppresses axis-binding failures (3/4 each). This maps to the predeclared `both_weak` cell: the axis-stabilization mechanism is a joint property of the C2+C4 bundle, not reducible to either component alone. Do not attribute the Stage-2 C24 signal to C2 or C4 individually.
+Neither C2-only nor C4-only reproduced the C24 axis-stabilization pattern. C2 produced 1/4 correct bindings with three axis-binding failures; C4 produced 0/4 with three axis-binding failures and one role-conditioned value-selection failure. Together with the prior C24 result of 3/4 and zero axis-binding failures, this supports a candidate C2×C4 interaction or joint-sufficiency effect. Because C24 and the singleton conditions were collected in separate stages, the result remains directional cross-stage evidence rather than a formally identified super-additive interaction.
 
-This is a predeclared-cell mapping, not a post-hoc interpretation.
+This maps to the predeclared `both_weak` cell and is a predeclared-cell mapping, not a post-hoc interpretation. It does **not** claim that a super-additive interaction has been definitively established, nor that the mechanism is conclusively irreducible to either component.
 
 ## Per-condition table (primary: typed-binding; co-primary: failure subtype)
 
@@ -45,7 +45,7 @@ The dominant failure mode is the axis swap (scenario/corner reversed, e.g. `func
 | C2-only (0022, Stage-3) | C2 | 1/4 | **3** | 0 |
 | C4-only (0023, Stage-3) | C4 | 0/4 | **3** | 1 |
 
-The bundle (C24) suppressed axis errors (0/4); each component alone admits 3/4 axis errors. The axis-stabilization signal is **super-additive** — it emerges from C2 and C4 together and is not present in either alone. (Same base 0009, identical frozen C2/C4 wording, same model/transport/episode params; comparison is cross-run, so treat as directional given k=4 and run-to-run variance, not a definitive rate.)
+The bundle (C24) suppressed axis errors (0/4); each singleton component admitted 3/4 axis errors. This is consistent with a **candidate C2×C4 interaction or joint-sufficiency effect**, but because the C24 and singleton conditions were collected in separate stages the comparison is cross-run and directional (k=4, run-to-run variance), **not a formally identified super-additive interaction**. (Same base 0009, identical frozen C2/C4 wording, same model/transport/episode params.)
 
 ## Transport (2-dimension)
 
@@ -69,7 +69,7 @@ finish_action 2/8 (both C4, both overconfident_wrong); action_cap (60 actions) 3
 
 ## Scoped conclusion
 
-Within Qwen3.7-Max and this p14 workflow-handoff family, **the axis-stabilization mechanism is a joint property of the C2+C4 value-schema bundle, not reducible to C2 (PVT-def) or C4 (glossary+refs) alone.** Both components individually admit ~3/4 axis-binding failures; only the bundle (Stage-2 C24) suppresses them. This is directional given k=4 and the cross-run comparison with Stage-2; it is a mechanism-localization signal, consistent with Stage-2, not a component-effect rate to extrapolate. A recurrence caveat applies: axis errors dominate (6/8 submissions), so single-component presentation remains instability-prone at this k.
+Within Qwen3.7-Max and this p14 workflow-handoff family: neither C2-only nor C4-only reproduced the C24 axis-stabilization pattern (C2 1/4, C4 0/4 correct; 3/4 axis-binding failures each), while the prior C24 bundle result was 3/4 correct with zero axis-binding failures. This supports a **candidate C2×C4 interaction or joint-sufficiency effect**. Because C24 and the singleton conditions were collected in separate stages, the result remains **directional cross-stage evidence rather than a formally identified super-additive interaction**; it is not claimed that a super-additive interaction is definitively established or that the mechanism is conclusively irreducible to either component. A recurrence caveat applies: axis errors dominate (6/8 submissions), so single-component presentation remains instability-prone at this k. An in-window C24 (0021) k=4 bridge remeasurement is the natural next step to test whether the bundle pattern replicates across run windows before any held-out consumption.
 
 ## Exclusions respected
 

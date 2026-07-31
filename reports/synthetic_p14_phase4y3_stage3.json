@@ -7,7 +7,7 @@
   "measurement_control_commits": ["f6a716e", "95aa33c"],
   "predeclared_question": "Does the Stage-2 C24 axis-stabilization signal reduce to C2-alone or C4-alone, or require the bundle jointly?",
   "predeclared_cell_matched": "both_weak",
-  "interpretation": "Neither C2-alone nor C4-alone suppresses axis-binding failures (3/4 each); the axis-stabilization mechanism is a joint property of the C2+C4 bundle, not reducible to either component. Do not attribute the Stage-2 C24 signal to C2 or C4 individually.",
+  "interpretation": "Neither C2-only nor C4-only reproduced the C24 axis-stabilization pattern (C2 1/4 correct with 3 axis-binding failures; C4 0/4 with 3 axis-binding failures and 1 value-selection failure). Together with the prior C24 result of 3/4 and zero axis-binding failures, this supports a candidate C2xC4 interaction or joint-sufficiency effect. Because C24 and the singleton conditions were collected in separate stages, the result remains directional cross-stage evidence rather than a formally identified super-additive interaction.",
   "per_condition": {
     "C2_only_0022": {"k": 4, "correct": 1, "axis_binding_failure": 3, "role_conditioned_value_selection_failure": 0,
                      "terminal_transport_valid": 4, "recovered_degradation": 1, "overconfident_wrong": 0, "abstained": 4, "cost_cny": 53.38},
@@ -18,14 +18,14 @@
     "C24_0021_stage2": {"correct": 3, "axis_binding_failure": 0, "value_selection_failure": 1, "components": "C2+C4"},
     "C2_only_0022_stage3": {"correct": 1, "axis_binding_failure": 3, "value_selection_failure": 0, "components": "C2"},
     "C4_only_0023_stage3": {"correct": 0, "axis_binding_failure": 3, "value_selection_failure": 1, "components": "C4"},
-    "reading": "bundle suppresses axis errors (0/4); each component alone admits 3/4 — super-additive interaction; directional given k=4 and cross-run variance"
+    "reading": "bundle suppressed axis errors (0/4); each singleton admitted 3/4 — consistent with a candidate C2xC4 interaction/joint-sufficiency, but cross-stage and directional (k=4, run-to-run variance), not a formally identified super-additive interaction"
   },
   "transport": {"terminal_transport_valid": "8/8", "recovered_degradation": "3/8 (C2 1, C4 2)", "censoring": "none", "config": "SSE streaming, inactivity 120s, hard deadline 300s, max 1 retry"},
   "reliability": {"C2": "4/4 abstained, 0/4 overconfident", "C4": "2/4 abstained, 2/4 overconfident_wrong", "note": "when the model commits confidence it is overconfident+wrong (2/2); abstention high overall (6/8)"},
   "termination_6dim": {"finish_action": 2, "action_cap": 3, "task_wall_limit": 3, "anti_cheat_clean": "8/8"},
   "fairness": {"gate": "block measurement-control (L2 -> subset -> L2)", "verdict": "ALL_PASS", "tasks": ["0009", "0022", "0023"], "score_ladder": "golden 1.0 / wrong_axis 0.2 / stale_decoy 0.1 / unchanged_mutant 0.1", "prior_0022_flake": "explained by external transient golden-file corruption, not the variant, not b04"},
   "method": {"randomization_seed": 20260730, "blocks": "4 exactly-counterbalanced 2-run blocks (each cond 2x per position)", "frozen_order": ["b1:C4", "b1:C2", "b2:C2", "b2:C4", "b3:C4", "b3:C2", "b4:C2", "b4:C4"], "episodes": 8, "replacements": 0, "invalid_attempts": 0, "executor_exit_code": 0, "wall_time": "~3h53m", "cost_cny_total": 101.67, "tokens_in_M": 6.85, "tokens_out_M": 0.54},
-  "scoped_conclusion": "Within Qwen3.7-Max and this p14 family, axis stabilization is a joint property of the C2+C4 bundle, not reducible to C2 or C4 alone. Directional given k=4 + cross-run; mechanism-localization signal consistent with Stage-2.",
+  "scoped_conclusion": "Within Qwen3.7-Max and this p14 family: neither C2-only nor C4-only reproduced the C24 axis-stabilization pattern; supports a candidate C2xC4 interaction or joint-sufficiency effect, but directional cross-stage evidence rather than a formally identified super-additive interaction. Not claimed that a super-additive interaction is definitively established or that the mechanism is conclusively irreducible to either component.",
   "exclusions_respected": ["no held-out (either family)", "no DeepSeek", "no C1/C3/C5/C6/C7", "no k-escalation", "no non-streaming", "no push"],
   "stop_rule": "8 authorized episodes; report-only commit; stop for review.",
   "evidence": {"episodes": "reports/evidence/p14_phase4y3_episodes/ (8 trials, 64 files, custody byte-match)", "rows": "reports/evidence/p14_phase4y3/episode_rows.json", "summary": "reports/evidence/p14_phase4y3/episode_summary.json"},
