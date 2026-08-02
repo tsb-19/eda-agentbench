@@ -1,0 +1,30 @@
+{
+  "rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "committed_membership_code_sha256": {
+    "scripts/episode_arbiter.py": "c060852f7a442cf28144bc4445417962519e7998a4d8981db09c99ed627f24a5",
+    "scripts/llm_agent_driver.py": "da69dba0b516fa43191fce4085084ad2285f2d7b51572c49d80ef94145cf8775",
+    "scripts/chain_executor.py": "ee860efcf2ad1b6c5075a555b22b944ea3e5c983114a234def6710a45394ed97",
+    "scripts/run_agentic_baseline.py": "32e89eb48a49089d4d4d1fca0171d96b131ad9414bb3f574796991fafbb10aa9",
+    "scripts/canonical_integrity.py": "bd946813e9c2ee6f704f26505ae3ae4d316258ddf21611c9b1094967838e6748",
+    "scripts/run_chain_guarded.py": "a4d1224968bc65254ac0f5c971ebc72dee1a9afca05d6ccf302b8b36086ee6fb",
+    "scripts/phase4y3_c24_bridge_freeze.py": "865c39f4402e3b43c68dc66a447e9bd40bb44b3f7362a766c83c9b1856883ea1",
+    "scripts/fairness_retry.py": "338330da5a75bdea8937f8d983d99b20b5ad338f11d09f97b0d454ea15733610",
+    "scripts/pt_health_sentinel.py": "232a3e09e781f5f0859a2c55e0968eb5dc01ef339cb1780c085093606224ab02"
+  },
+  "fairness_generator_control_code_sha256": {
+    "scripts/fullpath_check.py": "76cedf944218ec7fe049f2862278919c9335cae1d707f1be9507ded1e0501661",
+    "scripts/measurement_control.py": "c1d74e01d131098454aa203f8cc4f69f42b486f9ba6b8b938e25f3f38d03850b",
+    "scripts/phase4y3_fairness.py": "bdc179207e45efc1790f9647a0b8b84ac38552830e49d4d3e2bb9e1dd5b22218",
+    "scripts/gen_phase4y2.py": "29fd839a5ac6ab9fa627f816aed6402fd0b5b9650473716f298ffd0a03523e2e"
+  },
+  "tests": [
+    "tests/test_transport_telemetry.py",
+    "tests/test_episode_arbiter.py",
+    "tests/test_chain_executor.py",
+    "tests/test_fairness_retry.py",
+    "tests/test_pt_health_sentinel.py",
+    "tests/test_fullpath_check.py",
+    "tests/test_measurement_control.py",
+    "tests/test_canonical_integrity.py"
+  ]
+}

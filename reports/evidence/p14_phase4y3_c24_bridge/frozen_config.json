@@ -1,0 +1,60 @@
+{
+  "experiment": "Phase-4Y C24 bridge: in-window C24/0021 k=4 remeasurement (under canonical-tree integrity guard)",
+  "model": {
+    "name": "Qwen3.7-Max",
+    "rates_cny_per_M": {
+      "input": 12,
+      "output": 36
+    }
+  },
+  "transport": {
+    "streaming": "SSE",
+    "request_inactivity_timeout_sec": 120,
+    "hard_request_deadline_sec": 300,
+    "max_chat_retries": 1,
+    "telemetry": "per-request + transport_summary (terminal_valid vs recovered)"
+  },
+  "episode": {
+    "temperature": 0.7,
+    "max_actions": 60,
+    "episode_timeout_sec": 1800,
+    "elicit_confidence": true,
+    "concurrency": 1
+  },
+  "tasks": {
+    "C24": "workflow_handoff_0021"
+  },
+  "primary_sample": "exactly 4 primary valid C24 episodes",
+  "replacement_policy": "arbiter-driven (episode_arbiter + chain_executor); terminal-invalid only; recovered degradation never replaces; same-slot; max 2 then STOP",
+  "integrity": "canonical-tree guard: run inside an exact-commit isolated git worktree; canonical task dirs non-writable; hashes verified pre-run, after every episode, post-chain; any mutation -> FAILED_INTEGRITY (exit 3), stop, no restore",
+  "primary_outcome": "typed_binding_correctness",
+  "co_primary_mechanistic_diagnostic": "failure_subtype: axis_binding_failure vs role_conditioned_value_selection_failure",
+  "secondary_outcomes": [
+    "artifact_correctness",
+    "evidence_generation",
+    "protocol_completion",
+    "termination",
+    "actions",
+    "reasoning_tokens",
+    "confidence",
+    "terminal_transport_validity",
+    "recovered_degradation",
+    "cost"
+  ],
+  "context_from_stage3": "Stage-3 found neither C2-only (1/4) nor C4-only (0/4) reproduced the C24 axis-stabilization pattern (candidate C2xC4 interaction, cross-stage directional). This bridge tests whether C24 itself replicates in-window (Stage-2's C24 3/4 + 0 axis was cross-run).",
+  "excluded": [
+    "C2",
+    "C4",
+    "C1",
+    "full BundleS components other than 0021",
+    "held-out (both families)",
+    "DeepSeek",
+    "C3/C5/C6/C7",
+    "k_escalation",
+    "non_streaming"
+  ],
+  "generalized_membership_rule": "All code capable of changing primary-sample membership\u2014including validity classification, transport-invalid classification, replacement policy, attempt-to-slot assignment, and inclusion/exclusion logic\u2014must be implemented, tested, committed, hashed, and included in the pre-run manifest before the first paid episode.",
+  "pt_health_policy": "b04/PT sentinel + Level-2 full-path check run before the gate (recorded separately); failure aborts, never changes membership. Fairness retry is infra-only (valid wrong score = hard failure).",
+  "code_commit_at_freeze_base": "4aef6a6b30baf1e30da73bf440b587b200037f05",
+  "stop_rule": "After exactly 4 authorized episodes, a report-only commit, stop for review. Do not push."
+}
