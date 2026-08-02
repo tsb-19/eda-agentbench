@@ -29,6 +29,10 @@ AN.DB/
 *.vcd
 *.log
 *.lis
+# p14 curated prior-signoff task artifacts (NOT sim outputs) — must be tracked so clean checkouts /
+# exact-commit worktrees contain them (the *.log rule above would otherwise drop them).
+!tasks/p14_workflow_handoff/**/prev_signoff.log
+!tasks/p14_workflow_handoff/**/prev_corner_signoff.log
 
 # DC synthesis artifacts
 *.mr
