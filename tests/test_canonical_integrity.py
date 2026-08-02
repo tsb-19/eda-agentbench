@@ -139,6 +139,26 @@ def test_runtime_cannot_write_canonical_solution_and_copy_is_isolated(tmp_path):
     assert os.access(sol, os.W_OK)
 
 
+def test_evaluator_workspace_overlay_works_under_enforce(tmp_path):
+    """Regression: under the integrity guard (canonical a-w), create_evaluator_workspace's copytree
+    creates a-w copies; the overlay (copy2 of the agent's edit) must be able to overwrite them.
+    _ensure_writable must run AFTER the copytree and BEFORE the overlay (the original bug: overlay hit
+    an a-w destination -> PermissionError -> every guarded episode scored 0.00)."""
+    root = tmp_path / TASK_ROOT
+    _seed_fake_task(tmp_path)
+    (root / "files" / "constraints.sdc").write_text("orig\n")  # an editable file
+    plan = cig.enforce(tmp_path, [TASK_ROOT])
+    from eda_agentbench.agentic.workspace import create_agent_workspace, create_evaluator_workspace
+    meta = {"track": TRACK, "files": {"editable": ["constraints.sdc"],
+            "visible": ["constraints.sdc", "run_public.sh"], "hidden": ["grade.py"], "forbidden": []}}
+    aw = create_agent_workspace(root, meta)
+    (aw / "constraints.sdc").write_text("edited\n")  # agent edits the writable copy
+    ew = create_evaluator_workspace(root, meta, aw)   # must NOT raise PermissionError
+    assert (ew / "constraints.sdc").read_text() == "edited\n"          # overlay applied
+    assert os.access(ew / "constraints.sdc", os.W_OK)                  # grader may write it
+    cig.relax(plan)
+
+
 # --------------------------------------------------------------------------- (b) simulated mutation stops the chain
 
 # Mock runner that writes a valid ACCEPT result, and on block2 mutates the canonical solution file at

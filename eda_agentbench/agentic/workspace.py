@@ -74,6 +74,7 @@ def create_evaluator_workspace(task_path: Path, meta: dict, agent_workspace: Pat
         src_visible = task_path / "visible"
         if src_visible.is_dir():
             shutil.copytree(src_visible, eval_dir, dirs_exist_ok=True)
+            _ensure_writable(eval_dir)  # canonical may be a-w (integrity guard); writable before overlay
         # Overlay agent's edits (editable .sp files)
         for ef in editable:
             edit_name = Path(ef).name
@@ -85,6 +86,7 @@ def create_evaluator_workspace(task_path: Path, meta: dict, agent_workspace: Pat
         src_files = task_path / "files"
         if src_files.is_dir():
             shutil.copytree(src_files, eval_dir, dirs_exist_ok=True)
+            _ensure_writable(eval_dir)  # canonical may be a-w (integrity guard); writable before overlay
         # Overlay agent's edits (editable files only)
         for ef in editable:
             src = agent_workspace / ef
