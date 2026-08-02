@@ -1,0 +1,81 @@
+{
+  "_comment": "Phase-4I opt-in probe-artifact preservation. SUBMITTED EDITABLE files only; hidden truth, netlists, library, decoy reports, .env, and model configs are EXCLUDED; no secrets are recorded.",
+  "task_id": "workflow_handoff_0021",
+  "track": "p14_workflow_handoff",
+  "run_id": "20260803_012734",
+  "total_score": 0.2,
+  "passed": false,
+  "anti_cheat": {
+    "forbidden_files_modified": false,
+    "checked_files": [
+      "spec.md",
+      "handoff_manifest.json",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "pt_signoff.tcl",
+      "run_evidence_stage1.sh",
+      "gen_evidence_stage1.py",
+      "evidence_signoff.tcl",
+      "tiny.lib",
+      "tiny.db",
+      "run_public.sh",
+      "run_public.tcl",
+      "run_evidence_stage2.sh",
+      "gen_evidence_stage2.py",
+      "evidence_signoff_stage2.tcl",
+      "report_A_role_swap.rpt",
+      "report_B_role_stale.rpt",
+      "report_C_role_pvt.rpt",
+      "evidence_D_role_mismatch.json",
+      "prev_signoff.log",
+      "run_hidden.sh",
+      "run_launder.tcl",
+      "run_coverage.tcl",
+      "run_signoff.tcl",
+      "regen_reference.sh",
+      "gen_evidence_stage1_trusted.py",
+      "evidence_signoff_trusted.tcl",
+      "grade_workflow.py",
+      "handoff_truth.json",
+      "gen_evidence_stage2_trusted.py",
+      "evidence_signoff_stage2_trusted.tcl"
+    ],
+    "hash_mismatches": [],
+    "tcl_injection": [],
+    "hidden_shadows": []
+  },
+  "component_scores": {
+    "signoff": 1.0,
+    "final_state": 0.0,
+    "evidence_generation": 0.0,
+    "stage_chain": 0.0,
+    "provenance": 0.0,
+    "authority_consistency": 0.0,
+    "hazard_recovery": 0.0,
+    "explanation": 1.0
+  },
+  "component_scores_note": "AUTHORITATIVE gated component raw scores (mirrors score.json). Use these, not affirmative_grader_markers, for pass/fail of a component.",
+  "affirmative_grader_markers": {
+    "STAGE_CHAIN_OK": true
+  },
+  "affirmative_grader_markers_note": "Raw grader sub-check signals parsed affirmative-only (bare MARKER / MARKER=1 / STEM_SCORE>=1.0; MARKER=0 is NOT affirmative). These are sub-checks and may exceed the gated component_scores; score.json / component_scores are authoritative.",
+  "preserved_editable_files": [
+    "flow_config.json",
+    "constraints.sdc",
+    "timing_report.rpt",
+    "evidence_manifest.json",
+    "stage2_summary.json"
+  ],
+  "submitted_file_hashes": {
+    "flow_config.json": "0ff8379ff880321ab412b7c27e6bc58e0bff4320d4ed40190d1325ad894db41d",
+    "constraints.sdc": "de4dd15f3e933714b280125254ae406dc25d01e83d230ce54fac5fb1e5b6f737",
+    "timing_report.rpt": "f00984f2a895a5e176ce0d7ce1d0fd94187f5626ad2d4395f8bace2b4d9c53ca",
+    "evidence_manifest.json": "56f779062af458a35305129c4e5aa13c7e9cca5f549b00b1a338c199415b99d9",
+    "stage2_summary.json": "756279c0309e405f23f9971698f68a6daaeb2c5b05d17e5fbb8662677be4dfc7"
+  },
+  "preserved_dir": "preserved",
+  "score_json": "score.json",
+  "transcript": "transcript.jsonl",
+  "action_trace_note": "agent action trace is in the driver's <results>/<model>/<track>/<task>.agentlog.json",
+  "secrets_excluded": true
+}
