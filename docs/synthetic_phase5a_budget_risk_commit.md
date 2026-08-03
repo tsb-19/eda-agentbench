@@ -20,23 +20,25 @@ Per-episode rate is **derived from committed Phase-4 ledgers** (not hand-copied)
 
 **Committed-to-date (last known):** Phase-4Z freeze manifest records **¥682.25** for the p14 program (58 primary + 3 excluded + 0 invalid + 1 aborted).
 
-**Budget gate (binding, must be resolved at review):** the Phase-5B **core + pilot ≈ ¥703** (core-48 alone ≈ ¥563) must be **confirmed against the current account balance** before any paid call.
-- If the program budget is the **original ¥1000** baseline (memory: `baseline-models-and-budget`), remaining after Phase-4Z ≈ **¥318**, and the core-48 **does not fit** (shortfall ≈ ¥245; core+pilot shortfall ≈ ¥385).
-- This is a **budget decision for the user**, not an automatic scope cut. Per the no-adaptive-k rule, **no k reduction is made opportunistically**; the predeclared 2-rep / 48-episode design is the registered intent. If the user confirms a lower ceiling, the registered fallback is **1 rep / 24 episodes ≈ ¥282** (fits within ¥318), with the 2-rep design retained as the declared intent — but this requires explicit re-review and re-freeze, not a mid-run cut.
-- If additional budget is confirmed, the full ¥703 core + ¥281 secondary proceeds as predeclared.
+**Budget gate (committed-ledger binding):** the committed ledger is the binding source unless a newer balance is supplied. Phase-4Z committed ¥682.25 of ¥1000 ⇒ **≈ ¥318 remaining**. Under that balance:
+- **Binding core = Qwen3.7-Max only, 24 primary episodes** (2 fam × 3 inst × Base+BundleS × 2 reps ≈ **¥282**, fits). Within-task stochastic replication (2 reps) is **preserved**; only the model dimension is cut. This directly tests whether the established **Qwen** BundleS effect generalizes across the two independent families.
+- The **full 48-episode** variant (Qwen + DeepSeek ≈ ¥563) is **pre-frozen** and selected **only if ≥ ¥650–700 usable** is confirmed at the next review.
+- The **two-model / one-repetition fallback is NOT used** (per directive).
+- **DeepSeek** is kept as a **separately-frozen 24-episode extension run across ALL tasks** (≈ ¥281; never selectively on favorable families), authorized later.
+- Both core schedules + the DeepSeek extension are **pre-frozen this phase**; **none executed** (no paid calls in Phase-5B). The next review selects Qwen-24 vs full-48 by the actual balance.
 
-The budget table is therefore **honest about a likely shortfall under the original cap** and makes the gate explicit. No paid call occurs in Phase-5A regardless.
+No paid call occurs in Phase-5B regardless; all figures are projections from the committed per-episode rate.
 
 ## 6. Risk register
 
 | # | Risk | Impact | Likelihood | Mitigation / gate |
 |---|---|---|---|---|
-| R1 | **Budget shortfall** (core-48 ≈ ¥563 > remaining ≈ ¥318 under original cap) | blocks the predeclared core | Med-High | **#1 GO/NO-GO gate**: confirm current balance at review; if capped, fall back to 1-rep/24 only via explicit re-review; never auto-k-cut. |
-| R2 | **Tool-success-≠-semantic fails to hold** for a generated instance (wrong binding causes a violation / implausible number) | instance invalidates the core property | Low (baked per-instance evidence proves it) | per-instance real-tool `wrong_binding_signoff.rpt` (A) / `wrong_tuple_measure.lis` (B); instance rejected at freeze if property fails. |
+| R1 | **Budget shortfall** (full core-48 ≈ ¥563 > committed-ledger remaining ≈ ¥318) | blocks the full two-model core | Med-High | **committed-ledger binding ⇒ Qwen-only 24-ep core (≈¥282, fits)**; full-48 pre-frozen and selected only if ≥¥650–700 confirmed at review; two-model/one-rep fallback NOT used; DeepSeek-24 separately-frozen all-tasks extension; both schedules pre-frozen, none executed. |
+| R2 | **Hard feasibility fails** for a generated instance (wrong binding is tool-red / unparsable / NaN / obvious, or not rejected by the grader) | instance ineligible | Med | **hard-feasibility gate (5 criteria)** inside `bake_golden`: wrong binding must be tool-syntax-accepted, execute, produce a plausible signoff/number, remain semantically incorrect, AND be rejected by the typed grader; else regenerate (fail-closed). |
 | R3 | **Independence audit failure** (accidental reuse of p14 signature) | undermines external-validity claim | Low | committed/hashed `scripts/phase5a_independence_check.py` (no `grade_workflow` import; disjoint vocab; no `axis_schema` keys) — fail-closed at freeze. |
 | R4 | **Semantic-diff audit failure** (BundleS/TypedContract discloses golden) | invalidates a condition contrast | Low-Med | per-(family,instance,condition) `semantic_diff_audit.json`; fail-closed regenerate at freeze. |
 | R5 | **New HSPICE fairness gate** (Family B) introduces a measurement-control gap | masking/distortion of B results | Med | clone of the proven PT sentinel/fullpath pattern; smoke against a known-good and known-wrong tuple before any paid episode; golden must =1.0, wrong-tuple must measure-plausible. |
-| R6 | **Small n=3 instances/family** | low power; one-episode/one-instance swings within variance | High (by design) | instance is the unit; primary is paired direction + counts + bootstrap-over-instances; no pooled-episode significance as primary; predeclared thresholds. |
+| R6 | **Small n=3 instances/family** | low power; one-instance swings within variance | High (by design) | **task instance is the primary unit; reps are nested observations, not independent instances**; primary = instance-level paired Base-vs-BundleS + family raw counts; bootstrap-over-3 is **descriptive only** (no bootstrap p-value headline); **no pooled trajectory-level test**; **no precise population-level success rate claimed**. |
 | R7 | **External-validity confound** (families resemble p14 in some unaccounted way) | over-claim generalization | Med | 5-dimension independence audit + mechanical independence-check; report family-specific effects separately; label claims by family. |
 | R8 | **Transport censoring** (non-streaming / thinking-model long reasoning) | false capability failures | Low (mitigated) | SSE streaming mandatory; terminal_valid vs recovered two-dimension telemetry; measurement-invalid episodes replaced, valid-wrong = hard fail. |
 | R9 | **Source-tree integrity** (the recurring external writer in the dev workspace) | run contamination | Med (recurring) | mandatory exact-commit isolated worktree; `cig.verify` pre/post; `FAILED_INTEGRITY` stop; dev workspace non-authoritative. |

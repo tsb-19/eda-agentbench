@@ -3,7 +3,7 @@
 **Date:** 2026-08-03 · **Branch:** `synthetic-phase0a` · **Status:** design-only, no implementation, no paid calls, stopped for review (no push).
 **Companion:** `docs/synthetic_phase5a_design.md` (master), `…generator_grader_plans.md` (3), `…budget_risk_commit.md` (4+6+7), `reports/synthetic_phase5a_design.json`.
 
-This document specifies the two new semantic-handoff families at task-level detail and gives the independence audit proving they share none of p14's signature structures. It is **design only**; no generator or grader is implemented in Phase-5A.
+This document specifies the two new semantic-handoff families at task-level detail and gives the independence audit that **operationally verifies structural independence under the five preregistered criteria** (it does not *prove* independence). It is **design only**; no generator or grader is implemented in Phase-5A.
 
 ## Family A — STA constraint/exception handoff (PrimeTime; new track `p15_sta_handoff`)
 
@@ -186,7 +186,9 @@ Substitution-by-source, structurally unlike p14's value-swap and unlike Family A
 | Grader implementation | `grade_workflow.py` master `EVIDENCE_OK` + typed echecks | `grade_sta_handoff.py` provenance-attestation + coverage-cell (no master gate) | `grade_spice_handoff.py` 6-dimension separation | ✅ |
 | Decoy logic | multi-source **intersection** (role-swap/stale-netlist/PVT) | **authority-conflict** (stale-intent/mis-scope) | **authority-substitution** (stale-profile/swapped-load) | ✅ |
 
-**Conclusion of audit:** Family A and Family B share **none** of p14's five signature dimensions and differ from each other on all five. The new families therefore test **generalization of the BundleS mechanism** rather than re-testing p14's content. (The audit is re-verified mechanically at generation time by the independence-check tool described in `…generator_grader_plans.md` §6.)
+**Conclusion of audit (operational, not a proof):** under the five preregistered criteria, Family A and Family B show **no detected structural overlap** with p14 and differ from each other on all five. The mechanical checker (`scripts/phase5a_independence_check.py`, `…generator_grader_plans.md` §7) **operationally verifies structural independence under the five preregistered criteria** at generation time; it does **not** prove semantic novelty.
+
+**Family × execution-tool confound (recorded).** Family A (STA) runs on PrimeTime and Family B (SPICE) on HSPICE, so family and tool are confounded: family-specific differences **cannot be attributed** to semantic domain versus tool environment. Inference is limited to the within-family, within-model Base-vs-BundleS contrast (tool held constant); cross-family comparison is descriptive only.
 
 ## §4. Public-information disclosure audit (per family × instance × condition)
 

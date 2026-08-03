@@ -34,11 +34,17 @@ Each new family is constructed to differ from p14 (and from each other) on **fiv
 
 **Shared (re-used) generic infrastructure** (safe; not task-defining): `prompt.md`+`metadata.json`+`files/`/`hidden/`/`solution/` directory shape; `metadata.json` `tool`/`track`/`scoring.weights`/`files.{visible,editable,hidden,forbidden}` schema; `ToolEnvironmentDetector`/`EnvShim` PATH injection; `run_public.sh`/`run_hidden.sh` orchestrator + forge-resistant launder (`applied_*.sdc`, raw-output `[apply]` prefix); `BaseEvaluator` weighted-component pattern; generator `build_task_skeleton`(pure)+`bake_golden`(tool-backed) two-phase; the canonical-tree integrity guard (`canonical_integrity.py`/`run_chain_guarded.py`); `chain_executor`+`episode_arbiter`; freeze→pipeline→launcher pattern; custody byte-match; request-telemetry transport dimensions.
 
+### 2a. Operational scope of the independence check + family×tool confound *(amendment 1)*
+
+The mechanical checker (`scripts/phase5a_independence_check.py`) **does not prove independence**. It **operationally verifies structural independence under the five preregistered criteria** (no `grade_workflow`/p14-generator import; role vocabularies disjoint from p14's; truth-file schema free of p14's `axis_schema`/`semantic_role_mapping`/`global_authority_tuple` keys; grader module distinct; decoy-recipe class distinct). A pass means no *detected* structural overlap under those criteria — not a proof of semantic novelty.
+
+**Family × execution-tool confound (recorded, not resolved).** Family A (STA) is executed through **PrimeTime** and Family B (SPICE) through **HSPICE**. Family and tool are therefore **confounded**: any family-specific difference *cannot be separately attributed* to semantic domain versus tool environment. Inference is limited to the **within-family, within-model Base-vs-BundleS contrast** (tool held constant); cross-family comparison is descriptive only and is never used to attribute effects to the semantic domain.
+
 ## 3. The two families (at a glance; detail in `…family_specs.md`)
 
 **Family A — STA constraint/exception handoff (PrimeTime; new track `p15_sta_handoff`).** The agent receives a small design + a partial SDC + an **authority chain** (micro-architecture intent, a CDC report, a reset-domain report, a prior signoff log) and must edit `exception_config.json` to bind each timing exception to `(intent_class, target_partition, check_mode)`. The design is **marginally timed and healthy**: a *wrong* binding — e.g. an `cdc_isolate` intent bound to the `core` partition, or a `hold`-only check applied as `setup` — still produces a **green `report_timing`** (the wrong exception either relaxes a path that already has slack, or is a legal-but-different exception), so **tool success cannot distinguish correct from semantically incorrect execution**. A typed **evidence/provenance oracle** (`grade_sta_handoff.py`) walks the authority DAG and rejects any binding not attested by an authority edge of sufficient trust, *independently* of the PT signoff result.
 
-**Family B — SPICE model/measurement handoff (HSPICE; new track `p16_spice_handoff`).** The agent receives a characterization measurement request + an authority chain (a characterization spec naming the metric, a PVT mission profile, a load/application note, a stale prior measurement log) and must edit `meas_config.json` to bind `(corner, load_condition, metric)`. The deck **runs and yields a plausible number for any tuple**: a wrong binding (e.g. `metric=pm` but at the `FF` fast corner instead of the spec's `SS` slow corner, or `load=heavy` instead of `light`) still exits 0 and produces a **plausible** measurement (e.g. 62° phase margin where the spec-correct binding gives 48° — both physically reasonable), so **simulation success + numeric plausibility ≠ semantic correctness**. Correctness depends on **role-conditioned evidence binding** (which corner/load/metric is *authoritative*), not on deck syntax. The grader (`grade_spice_handoff.py`) reports **six separated dimensions**: simulation success, numeric validity, semantic binding, evidence provenance, artifact completion, protocol completion.
+**Family B — SPICE model/measurement handoff (HSPICE; new track `p16_spice_handoff`).** The agent receives a characterization measurement request + an authority chain (a characterization spec naming the metric, a PVT mission profile, a load/application note, a stale prior measurement log) and must edit `meas_config.json` to bind `(corner, load_condition, metric)`. The deck **runs and yields a plausible number for any tuple**: a wrong binding (e.g. the requested metric evaluated at a fast corner instead of the spec's slow corner, or a heavy load instead of the spec's light load) still exits 0 and produces a **plausible** measurement (e.g. a phase margin of 62° where the spec-correct binding gives 48° — both physically reasonable, illustrative numbers), so **simulation success + numeric plausibility ≠ semantic correctness**. Correctness depends on **role-conditioned evidence binding** (which corner/load/metric is *authoritative*), not on deck syntax. The grader (`grade_spice_handoff.py`) reports **six separated dimensions**: simulation success, numeric validity, semantic binding, evidence provenance, artifact completion, protocol completion.
 
 Tool feasibility is **established** (not a risk): HSPICE, Spectre, and PrimeTime are all forwarded to b04 through `/data1/tongsb/eda-remote-shim/` (`synopsys/hspice/V-2023.12`, `cadence/SPECTRE21.10.582/V21`, `synopsys/prime/V-2023.12`); open-source simulators (ngspice/Xyce) are intentionally unsupported and are not used.
 
@@ -51,6 +57,10 @@ Identical hidden truth and grader across conditions within a family; the conditi
 3. **TypedContract** — the **same information content** as BundleS (same labels, value-domains, glossary, contract) delivered as a **machine-readable typed schema** (JSON Schema declaring roles, axes, source-IDs, provenance precedence, types). **No golden values.** **No post-submission oracle/verifier feedback** (true of all three conditions; the agent submits once). Matched action/token/tool/timeout/feedback budgets to Base and BundleS.
 
 BundleS and TypedContract are therefore **information-equivalent** and differ only in *representation* (NL prose vs. machine-readable schema). This isolates "machine-readable typed contract" as a variable from "non-answer disclosure content."
+
+### 4a. TypedContract information-equivalence audit *(amendment 5)*
+
+For **every** BundleS/TypedContract pair, a **machine-readable information inventory** (`info_equiv_audit.json`) enumerates every semantic fact — role names, value domains, source identifiers, authority relations, provenance structure, legal types — and asserts each fact is **present in both or absent from both**. Golden values, answer-bearing assertions, and post-submission verifier feedback must be **absent from both**. Token count and surface format need **not** match; however **every semantic addition or omission between the pair must be disclosed** in the inventory. The audit is a generation-time hard gate (fail-closed regenerate). This makes "information-equivalent" a checked property, not an assertion.
 
 ## 5. Semantic-diff audit (automatic; per family × instance × condition)
 
@@ -67,20 +77,28 @@ The audit is emitted as `semantic_diff_audit.json` per (family, instance, condit
 
 | Parameter | Value |
 |---|---|
-| Models | Qwen3.7-Max, DeepSeek-V4-Pro (one gateway, SSE streaming) |
 | Primary families | Family A (`p15_sta_handoff`, PT) **and** Family B (`p16_spice_handoff`, HSPICE) |
 | Evaluation instances | **3 per family**, with distinct hidden truths, value vocabularies, and decoy structures |
 | Dev/debug instance | **1 per family**, pilot-only, **never enters primary analysis** (excluded by predeclared id) |
 | Conditions in core experiment | **Base** and **BundleS** |
-| Repetitions | **2 stochastic** per task–model–condition (temperature 0.7, distinct provider seeds) |
-| **Total core primary episodes** | **48** = 2 families × 3 instances × 2 models × 2 conditions × 2 reps |
-| Unit of external-validity analysis | **task instance** (n=3 per family); episodes are nested replications |
+| Repetitions | **2 stochastic** per task–model–condition (temperature 0.7, distinct provider seeds) — within-task stochastic replication is preserved in **both** budget variants |
+| Core model scope (budget-conditional) | **Binding core = Qwen3.7-Max only** under the committed-ledger balance (~¥318 remaining ⇒ core-24). The **full-budget variant** adds DeepSeek-V4-Pro (core-48), selected **only if** ≥¥650–700 usable is confirmed at review. Both schedules are pre-frozen; the review selects. The two-model/one-repetition fallback is **not** used. |
+| **Core primary episodes (binding)** | **24** = Qwen-only: 2 families × 3 instances × 1 model × 2 conditions × 2 reps |
+| Core primary episodes (full-budget variant) | **48** = 2 families × 3 instances × 2 models × 2 conditions × 2 reps |
+| DeepSeek extension | **24 episodes** = DeepSeek × 2 families × 3 instances × Base+BundleS × 2 reps; **separately frozen**, across **all** tasks (never selectively on favorable families); authorized later |
+| Unit of external-validity analysis | **task instance** (n=3 per family); stochastic repetitions are **nested observations**, not independent instances |
 | Counterbalancing | seeded exact-counterbalanced blocked randomization, frozen pre-run (position balance asserted) |
 | k escalation | **none** (no adaptive k) |
 | Task/wording changes after first result | **none** (frozen) |
-| Secondary extension (TypedContract) | **24 episodes** = 2×3×2×1×2; **separately authorized**, **not executed in Phase-5A** |
+| Secondary extension (TypedContract) | separately authorized; **not** part of the current core |
 
-No task or wording change is permitted after the first model result. If a generator instance fails its semantic-diff audit or fairness gate **before** the first paid result, it is regenerated/replaced at the **pre-run freeze** (still design-time); after the first paid result, the instance set is frozen.
+No task or wording change is permitted after the first model result. If a generator instance fails its semantic-diff / information-equivalence / hard-feasibility gate **before** the first paid result, it is regenerated/replaced at the **pre-run freeze** (still design-time); after the first paid result, the instance set is frozen.
+
+### 6a. Freeze the treatment mapping before evaluation generation *(amendment 3)*
+
+Before any primary evaluation instance is generated, the following are **frozen (committed + hash-pinned)**: (i) the **family-independent abstract definitions** of C1 (canonical labels + disjoint-axis declaration), C2 (value-domain definitions), C4 (glossary + references), C7 (procedural contract); (ii) the **deterministic STA mapping** (abstract components → Family-A roles/files); (iii) the **deterministic SPICE mapping** (abstract components → Family-B roles/files). The mapping is mechanical (no task-specific wording optimization) and identical-in-spirit across families. Evaluation instances are generated **only after** this mapping is frozen, so no instance content can retroactively reshape the treatment.
+
+**Dev-instance constraint.** The excluded development instance may be used to expose **implementation, generator, grader, or tool-path defects** (and to validate the real-tool golden + wrong-binding feasibility). It **must not** be used to optimize condition wording based on model performance. (In Phase-5B there are no model calls, so the dev instance is used purely for implementation/tool-path validation.)
 
 ## 7. Predeclared outcomes
 
@@ -93,18 +111,18 @@ No task or wording change is permitted after the first model result. If a genera
 
 **Secondary (descriptive):** artifact/tool correctness (Family A: signoff component; Family B: 6-dimension sub-scores), numeric/signoff correctness (number in spec range / slack MET), evidence/provenance correctness (cited authority source == golden authority), protocol completion (voluntary FINISH), terminal transport validity, recovered transport degradation, actions/tokens/wall-time/cost.
 
-## 8. Predeclared analysis plan (no unblocked pooled test as primary)
+## 8. Predeclared analysis plan (instance is the unit; descriptive, not population)
 
-1. **Principal contrast (primary):** per-task paired **Base vs BundleS** outcomes, within instance, within model. Reported as a per-instance direction and a per-episode 2×2 (condition × correct) table. The instance is the unit; the headline is the **per-instance paired direction + raw counts**, not a pooled rate.
-2. **Family-specific effects:** Family A vs Family B, reported separately (the two families are not pooled for the primary).
-3. **Model-specific effects:** Qwen vs DeepSeek, reported separately.
+1. **Principal contrast (primary):** **instance-level paired Base vs BundleS** outcomes, within instance, within model. Reported as a per-instance paired direction and a per-instance 2×2 (condition × correct) table of raw counts. The **task instance is the primary experimental unit**; stochastic repetitions are **nested observations** and are **not** counted as independent task instances.
+2. **Family-specific effects:** Family A vs Family B, reported separately as **raw counts** (the two families are not pooled for the primary).
+3. **Model-specific effects:** the binding core is Qwen-only; DeepSeek is reported only in the separately-frozen extension (all tasks). Model effects are never pooled across the core/extension boundary.
 4. **Interactions (descriptive):** model×harness and family×harness, given n=3 instances/family (directional only; explicitly labeled exploratory/descriptive).
-5. **Uncertainty:** exact binomial intervals per cell and a **non-parametric bootstrap over the 3 instances** (instance is the resampling unit, since episodes are nested); reported as intervals, not p-values, for the primary.
-6. **Significance testing (secondary, predeclared):** a **blocked** test only — an exact sign test / McNemar over **instance-level** paired Base-vs-BundleS outcomes (n=3 per family; underpowered by design) — reported as descriptive, **never as the primary headline**. **No unblocked pooled-over-episodes significance test is computed as a primary or secondary result** (episode pooling would inflate n and ignore nesting; it is predeclared out).
+5. **Uncertainty:** exact binomial intervals per cell. A **non-parametric bootstrap over the 3 instances** (instance = resampling unit; repetitions are nested, not independent) is reported as **descriptive only — not as a headline, and no bootstrap p-value is reported as a headline**. **No precise population-level success rate is claimed** (n=3 instances/family supports directional, not population, inference).
+6. **Significance testing:** **no pooled trajectory-level (episode-level) significance test and no bootstrap p-value is used as a headline.** A blocked exact sign test / McNemar over **instance-level** paired outcomes (n=3/family; underpowered by design) may be reported as descriptive, **never as the primary result**. Episode pooling is predeclared out (it would inflate n and ignore nesting).
 7. **Diagnostic enrichment:** failure-subtype bar per (family, model, condition), mapped to the family-specific subtypes above.
 8. **Reliability layers:** the seven independent dimensions (semantic binding, artifact/tool, numeric/signoff, evidence/provenance, protocol completion, terminal transport validity, recovered degradation) + tool-health sentinel + source-tree integrity, reported separately, never collapsed.
 
-The primary result is **descriptive and paired**: "for each instance, does BundleS change the semantic-binding direction relative to Base, for each model, in each family." Replication of the p14 BundleS effect would be: a consistent Base→BundleS improvement direction across the 3 instances of a family, for a given model. A clean null would be: no consistent direction. Either outcome is informative about external validity.
+The primary result is **instance-level paired outcomes + family-specific raw counts**, and is **descriptive**: "for each instance, does BundleS change the semantic-binding direction relative to Base, for each model, in each family." Replication of the p14 BundleS effect would be: a consistent Base→BundleS improvement direction across the 3 instances of a family, for a given model. A clean null would be: no consistent direction. Either outcome is informative about external validity. **No precise population-level success rate is claimed.**
 
 ## 9. Infrastructure reuse (mandatory; detail in `…generator_grader_plans.md`)
 
@@ -119,20 +137,26 @@ The primary result is **descriptive and paired**: "for each instance, does Bundl
 
 ## 10. GO / NO-GO gates (before any Phase-5B paid call)
 
-1. **Budget confirmation (binding):** core-48 projects to **≈ ¥563** (rate ¥11.72/ep derived from committed ledgers; range ¥528–578); secondary-24 ≈ ¥281; dev-pilot ≈ ¥94. Phase-4Z committed ¥682.25. The predeclared core-48 **must be confirmed against the current account balance** before execution — see `…budget_risk_commit.md`. If the account is the original ¥1000 (remaining ≈ ¥318), the core-48 does **not** fit; this is a budget decision for review, **not** an automatic k-cut (scope reduction requires explicit re-review and would reduce to 1 rep = 24 episodes ≈ ¥282, with the 2-rep design retained as the registered intent).
-2. **Independence audit passes:** the 5-dimension audit (§2) shows no structural reuse of p14's signature; the semantic-diff audit (§5) shows no golden disclosure under any condition.
-3. **Wrong-binding feasibility evidence:** each instance ships a baked artifact proving the misbinding still runs green (Family A) / still simulates with a plausible number (Family B) through the **real** tool on b04.
-4. **Fairness gates healthy:** PT sentinel (A) and HSPICE sentinel (B) + full-path checks healthy on b04 at the pre-run freeze.
-5. **Clean canonical tree** at the freeze commit; `cig.verify` passes.
+1. **Budget (binding, per committed ledger):** the committed ledger is the binding source (Phase-4Z ¥682.25 of ¥1000 ⇒ ≈¥318 remaining). Under that balance the **binding core is Qwen-only, 24 episodes** (≈¥282, fits). The **full 48-episode** variant (≈¥563) is pre-frozen and selected **only if** ≥¥650–700 usable is confirmed at review. The two-model/one-repetition fallback is **not** used. DeepSeek-24 is a separately-frozen, all-tasks extension. The next review selects Qwen-24 vs full-48 by the actual balance.
+2. **Independence (operational):** the checker **operationally verifies structural independence under the five preregistered criteria** (it does not *prove* independence); the family×tool confound (§2a) is recorded.
+3. **Hard feasibility gate *(amendment 4)*:** every primary instance contains **at least one semantic misbinding** that (a) is **accepted by the tool syntax**, (b) **executes successfully**, (c) **produces a plausible signoff or numeric output**, (d) **remains semantically incorrect**, and (e) is **rejected by the typed provenance/authority grader** — evidenced by a baked real-tool artifact on b04. If the wrong binding is trivially tool-red, unparsable, NaN, or otherwise obvious, the instance is **ineligible**.
+4. **Disclosure gates:** semantic-diff audit (§5, no golden disclosure under any condition) **and** information-equivalence audit (§4a, every BundleS/TypedContract semantic fact present-in-both-or-neither) pass.
+5. **Fairness gates healthy:** PT sentinel (A) and HSPICE sentinel (B) + full-path checks healthy on b04 at the pre-run freeze.
+6. **Clean canonical tree** at the freeze commit; `cig.verify` passes; treatment mapping (§6a) frozen before any eval instance generation.
 
-## 11. Proposed commit sequence
+## 11. Commit sequence
 
-**Phase-5A (this phase; docs-only, no paid calls):**
-1. `docs(phase5a): cross-family external-validity design + predeclared analysis plan` (this doc) + `reports/synthetic_phase5a_design.json`.
-2. `docs(phase5a): Family A & B task specifications + independence audit`.
-3. `docs(phase5a): generator, grader, and fairness-gate plans`.
-4. `docs(phase5a): budget table, risk register, commit sequence`.
+**Phase-5A (done; docs-only):** the four design docs + `reports/synthetic_phase5a_design.json`, the information-disclosure security fix, and this amendment pass.
 
-**Phase-5B (separately authorized; NOT executed in Phase-5A):** Family A generator+grader+dev instance; Family B generator+grader+dev instance; `hspice_health_sentinel`+SPICE fullpath check; semantic-diff audit tooling; freeze scripts+manifests (`cig.freeze`); analysis code (instance-resampling, paired tables); pre-run review freeze; guarded execution (48 core episodes); pipeline+custody; report. The TypedContract secondary (24 episodes) is a **further** separately-authorized step.
+**Phase-5B (authorized, NO paid model calls; real EDA-tool runs for golden/wrong-binding baking are required):**
+1. `docs(phase5a): apply conditional-acceptance amendments (1–5)` (this pass) — wording, experimental-unit posture, treatment-freeze ordering, hard feasibility gate, information-equivalence, budget logic.
+2. `feat(phase5b): freeze treatment mapping` — abstract C1/C2/C4/C7 + deterministic STA + SPICE mappings, hash-pinned **before** eval generation.
+3. `feat(phase5b): Family A generator + grader + evaluator + dev instance` (baked on real PT).
+4. `feat(phase5b): Family B generator + grader + evaluator + dev instance` (baked on real HSPICE).
+5. `feat(phase5b): fairness gates` — PT re-point (A) + `hspice_health_sentinel` + SPICE fullpath (B).
+6. `feat(phase5b): independence checker + semantic-diff + information-equivalence audit tooling` (+ tests).
+7. `feat(phase5b): 3 eval instances/family` (baked; hard-feasibility + disclosure gates per instance).
+8. `feat(phase5b): integrity manifests (cig.freeze) + analysis code + frozen schedules` (Qwen-24 core **and** full-48 variant **and** DeepSeek-24 extension, all pre-frozen; none executed).
+9. `chore(phase5b): gate report` — every primary instance passes hard feasibility / disclosure / fairness / independence / reproducibility. **Stop for review.**
 
-Stop for review before any Phase-5B implementation or paid call.
+The review then selects Qwen-24 vs full-48 by the actual balance and authorizes the (separately-scoped) paid execution. TypedContract remains a separately-authorized secondary. **No push** at any step.
