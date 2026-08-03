@@ -1,0 +1,43 @@
+{
+  "schema": "phase5_treatment_mapping_sta/v1",
+  "family": "A",
+  "family_name": "STA constraint/exception handoff",
+  "tool": "PrimeTime (pt_shell)",
+  "track": "p15_sta_handoff",
+  "doc": "Deterministic concretization of the abstract BundleS components (abstract_components.json) for Family A. FROZEN before eval-instance generation (amendment 3). The BundleS/TypedContract disclosure of every p15 instance is derived mechanically from this mapping + the instance's value domains; no per-instance wording optimization.",
+  "typed_axes": {
+    "axis_1": {"role": "intent_class", "domain_source": "instance enum over {functional_close, cdc_isolate, reset_exempt, scan_override}"},
+    "axis_2": {"role": "target_partition", "domain_source": "instance enum over {core, cdc_a, cdc_b, reset_ctrl, scan}"},
+    "axis_3": {"role": "check_mode", "domain_source": "instance enum over {setup, hold, both}"}
+  },
+  "authority_sources_and_precedence": [
+    {"rank": 1, "id": "INT", "artifact": "intent.md", "axis_evidence": "intent_class"},
+    {"rank": 2, "id": "CDC", "artifact": "cdc_report.rpt", "axis_evidence": "target_partition (for cdc_* intents)"},
+    {"rank": 2, "id": "RST", "artifact": "reset_report.rpt", "axis_evidence": "target_partition (for reset_exempt)"},
+    {"rank": 2, "id": "SCN", "artifact": "scan section", "axis_evidence": "target_partition (for scan_override)"},
+    {"rank": 3, "id": "COV", "artifact": "coverage matrix", "axis_evidence": "check_mode (requires_exception cell)"}
+  ],
+  "abstract_to_concrete": {
+    "C1": {
+      "canonical_labels": ["intent_class", "target_partition", "check_mode"],
+      "disjoint_axis_declaration": "intent_class, target_partition, and check_mode are disjoint typed axes; a value on one axis does not satisfy another axis's type."
+    },
+    "C2": {
+      "value_domains": "per-instance enum for each axis (the instance's value vocabulary); full domain disclosed; no value marked golden"
+    },
+    "C4": {
+      "glossary_terms": ["intent_class", "target_partition", "check_mode", "authority", "provenance attestation", "signoff-green"],
+      "references": {"intent_class": "INT:intent.md", "target_partition": "CDC| RST| SCN", "check_mode": "COV:coverage matrix"}
+    },
+    "C7": {
+      "procedural_contract": "Read INT, then the CDC/RST/SCN report by precedence, then COV; bind intent_class from INT, target_partition from the crossing/reset/scan report, check_mode from the COV requires_exception cell; report_timing is green regardless of binding, so correctness is provenance-attested, not slack-attested."
+    }
+  },
+  "delivery_files": {
+    "Base": "authority artifacts use the overloaded label 'timing_tag' (no C1/C2/C4/C7 shipped)",
+    "BundleS": "files/disclosure_bundles.md (C1+C2+C4+C7 prose) — templated from this mapping + instance domains",
+    "TypedContract": "files/typed_contract.json (JSON Schema: typed axes + enums + term->source map + precedence) — same semantic facts as BundleS"
+  },
+  "deterministic": true,
+  "wording_optimization_on_model_performance": "forbidden"
+}

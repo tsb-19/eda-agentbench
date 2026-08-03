@@ -1,0 +1,42 @@
+{
+  "schema": "phase5_treatment_mapping_spice/v1",
+  "family": "B",
+  "family_name": "SPICE model/measurement handoff",
+  "tool": "HSPICE (hspice)",
+  "track": "p16_spice_handoff",
+  "doc": "Deterministic concretization of the abstract BundleS components (abstract_components.json) for Family B. FROZEN before eval-instance generation (amendment 3). The BundleS/TypedContract disclosure of every p16 instance is derived mechanically from this mapping + the instance's value domains; no per-instance wording optimization.",
+  "typed_axes": {
+    "axis_1": {"role": "corner", "domain_source": "instance enum over model corners (e.g. {SS,FF,TT} x V x T)"},
+    "axis_2": {"role": "load_condition", "domain_source": "instance enum over {light, nominal, heavy}"},
+    "axis_3": {"role": "metric", "domain_source": "instance enum over {gain, gbw, pm, slew, vdsat}"}
+  },
+  "authority_sources_and_precedence": [
+    {"rank": 1, "id": "REQ", "artifact": "char_spec", "axis_evidence": "metric (which measurement was requested)"},
+    {"rank": 2, "id": "PVT", "artifact": "mission_profile", "axis_evidence": "corner (signoff corner for this characterization)"},
+    {"rank": 3, "id": "LOAD", "artifact": "application_note", "axis_evidence": "load_condition (operating load)"},
+    {"rank": 4, "id": "PRIOR", "artifact": "measurement.log", "axis_evidence": "decoy (stale, non-authoritative)"}
+  ],
+  "abstract_to_concrete": {
+    "C1": {
+      "canonical_labels": ["corner", "load_condition", "metric"],
+      "disjoint_axis_declaration": "corner, load_condition, and metric are disjoint typed axes; a value on one axis does not satisfy another axis's type."
+    },
+    "C2": {
+      "value_domains": "per-instance enum for each axis (the instance's value vocabulary); full domain disclosed; no value marked golden"
+    },
+    "C4": {
+      "glossary_terms": ["corner", "load_condition", "metric", "authority", "request-authority join", "plausible-range"],
+      "references": {"metric": "REQ:char_spec", "corner": "PVT:mission_profile", "load_condition": "LOAD:application_note"}
+    },
+    "C7": {
+      "procedural_contract": "Read REQ, then PVT, then LOAD; bind metric from REQ, corner from PVT, load_condition from LOAD (the 3-way request-authority join); the deck measures a plausible number for any binding, so correctness is authority-joined, not numeric-attested."
+    }
+  },
+  "delivery_files": {
+    "Base": "authority artifacts use the overloaded label 'condition_id' (no C1/C2/C4/C7 shipped)",
+    "BundleS": "files/disclosure_bundles.md (C1+C2+C4+C7 prose) — templated from this mapping + instance domains",
+    "TypedContract": "files/typed_contract.json (JSON Schema: typed axes + enums + term->source map + precedence) — same semantic facts as BundleS"
+  },
+  "deterministic": true,
+  "wording_optimization_on_model_performance": "forbidden"
+}

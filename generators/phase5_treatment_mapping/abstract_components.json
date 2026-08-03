@@ -1,0 +1,56 @@
+{
+  "schema": "phase5_treatment_mapping_abstract/v1",
+  "doc": "Family-INDEPENDENT abstract definitions of the non-answer-bearing BundleS components C1/C2/C4/C7. These are disclosure TYPES, not family content. FROZEN before any evaluation-instance generation (Phase-5A amendment 3). The deterministic STA and SPICE mappings (sta_mapping.json, spice_mapping.json) concretize these per family, mechanically, with NO task-specific wording optimization. Generators MUST derive each instance's BundleS/TypedContract disclosure from this frozen mapping + the instance's value domains; they MUST NOT optimize wording based on model performance (no model calls in Phase-5B).",
+  "bundle_scope": "BundleS = C1 + C2 + C4 + C7. Excludes C3 (coverage fact), C5 (pairwise-conflict enumeration), and C6 (answer-bearing signoff-pair assertion). No golden values; no answer-bearing content.",
+  "components": {
+    "C1": {
+      "name": "canonical_labels_and_disjoint_axis_declaration",
+      "abstract_definition": "Canonical role labels for each typed binding axis, plus an explicit declaration that the axes are disjoint typed dimensions (each disclosed value belongs to exactly one axis; no axis's value may satisfy another axis's type).",
+      "discloses_golden": false,
+      "answer_bearing": false,
+      "delivery_form": {
+        "BundleS": "natural-language/structured-prose label section + an explicit disjoint-axis statement",
+        "TypedContract": "JSON Schema with one typed property per axis + a disjointness constraint"
+      }
+    },
+    "C2": {
+      "name": "value_domain_definitions",
+      "abstract_definition": "For each typed axis, the explicit value domain: the finite set of legal values the role may take (the instance's value vocabulary). No value is marked or hinted as golden; the FULL domain is disclosed so the agent knows the vocabulary, not the answer.",
+      "discloses_golden": false,
+      "answer_bearing": false,
+      "delivery_form": {
+        "BundleS": "per-axis value-domain list in prose",
+        "TypedContract": "JSON Schema enum per axis"
+      }
+    },
+    "C4": {
+      "name": "glossary_and_references",
+      "abstract_definition": "A glossary defining the domain terms used in the handoff, plus cross-references locating each term/authority inside the instance's authority artifacts (artifact + clause). Defines vocabulary and where to look; does NOT state which authority is authoritative.",
+      "discloses_golden": false,
+      "answer_bearing": false,
+      "delivery_form": {
+        "BundleS": "glossary table + reference list",
+        "TypedContract": "term -> source-id map in schema"
+      }
+    },
+    "C7": {
+      "name": "procedural_contract",
+      "abstract_definition": "A procedural contract stating the binding procedure: read the authority sources in precedence order, bind each role from the attesting authority, and note that the tool signs/measures green regardless of binding, so correctness is provenance-attested (not slack/number-attested). Procedure only; no answer.",
+      "discloses_golden": false,
+      "answer_bearing": false,
+      "delivery_form": {
+        "BundleS": "procedural-contract prose",
+        "TypedContract": "provenance-precedence ordering + procedure notes in schema"
+      }
+    }
+  },
+  "excluded_from_BundleS": {
+    "C3": "coverage fact (clock-coverage / requires-exception cell) — NOT a BundleS component",
+    "C5": "pairwise-conflict enumeration — NOT a BundleS component",
+    "C6": "answer-bearing signoff-pair assertion — EXCLUDED from BundleS by definition (its effect is answer-disclosure, not inference-aid)"
+  },
+  "mechanical_mapping_rule": "Each abstract component is concretized per family by a deterministic mapping (sta_mapping.json / spice_mapping.json) that names the family's typed axes, the files that carry each axis's evidence, and the authority-source precedence. The BundleS prose and TypedContract schema are templated mechanically from the abstract definition + the instance's value domains — IDENTICAL IN SPIRIT across families, with no per-instance wording optimization.",
+  "information_equivalence": "For every instance, BundleS and TypedContract carry the SAME semantic facts (every fact present in both or neither); they differ only in representation (prose vs schema). Checked by info_equiv_audit.json (amendment 5).",
+  "frozen_before_eval_generation": true,
+  "wording_optimization_on_model_performance": "forbidden (amendment 3; and there are no model calls in Phase-5B)"
+}
