@@ -1,0 +1,406 @@
+{
+  "schema": "phase4z_experiment_freeze/v1",
+  "frozen_at_head": "30436d3156bca287526eec4f060ef23c9ea1ae9d",
+  "frozen_at_head_short": "30436d3",
+  "program": "p14 workflow-handoff clarity-bundle program (Phase-4V/4W/4X/4Y + C24 bridge)",
+  "branch": "synthetic-phase0a",
+  "load_bearing_commits": [
+    {
+      "commit": "d8fb7bd",
+      "what": "canonical-tree integrity guard (freeze/verify/enforce + FAILED_INTEGRITY)"
+    },
+    {
+      "commit": "a1ce79e",
+      "what": "track p14 prev_signoff.log artifacts (worktree-checkout completeness)"
+    },
+    {
+      "commit": "4aef6a6",
+      "what": "eval-workspace _ensure_writable-before-overlay (guarded-run fix)"
+    },
+    {
+      "commit": "1f9d4a6",
+      "what": "C24 bridge report (not_established)"
+    },
+    {
+      "commit": "c18bb1a",
+      "what": "Stage-3/C24 conclusion amendment (C2xC4 unresolved)"
+    },
+    {
+      "commit": "f2ab1ae",
+      "what": "Phase-4Z consolidated synthesis"
+    },
+    {
+      "commit": "30436d3",
+      "what": "Phase-4Z paper outline + claim-evidence matrix"
+    }
+  ],
+  "commit_chain_oneline_25": [
+    "30436d3 docs(p14): Phase-4Z paper outline + claim-evidence matrix (no paid calls)",
+    "f2ab1ae docs(p14): Phase-4Z consolidated evidence synthesis (no paid calls)",
+    "c18bb1a docs(p14): Stage-3 + C24 bridge conclusion amendment \u2014 C2xC4 joint-effect hypothesis UNRESOLVED (report-only)",
+    "1f9d4a6 report(p14): Phase-4Y C24 bridge \u2014 in-window C24/0021 k=4 NOT replicated at threshold (2/4, 1 axis) under the integrity guard",
+    "9d76645 feat(p14): C24 bridge pre-run freeze (re-run on workspace-fix 4aef6a6) \u2014 in-window C24/0021 k=4 under the canonical-tree integrity guard",
+    "4aef6a6 fix(agentic): _ensure_writable before eval-workspace overlay (guarded-run 0.00 fix)",
+    "a1ce79e fix(p14): track curated prev_signoff.log task artifacts (were dropped by *.log gitignore)",
+    "d8fb7bd feat(infra): canonical-tree integrity guard for paid runs (freeze/verify/enforce + FAILED_INTEGRITY stop)",
+    "5a7f8db docs(p14): Stage-3 wording amendment \u2014 candidate C2xC4 interaction, not a formally identified super-additive interaction (report-only)",
+    "315f247 chore(reports): refresh dataset inventory summaries for p14 0022-0027 (2923 -> 2929)",
+    "39d9609 report(p14): Phase-4Y Stage-3 C2-only vs C4-only \u2014 both_weak (bundle interaction), k=4 Qwen",
+    "3f058e1 feat(p14): Phase-4Y Stage-3 pre-run gate \u2014 fairness ALL_PASS (block measurement-control) + freeze (C2-only 0022 vs C4-only 0023, k=4, exact-counterbalanced)",
+    "7f36954 feat(p14): held-out family-2 static freeze (golden fast/lowpower; Base/+C2/+C4/+C24) \u2014 no model calls",
+    "95aa33c feat(p14): Stage-3 fairness under block measurement-control (validated; b04 window unhealthy)",
+    "f6a716e feat(infra): score-independent measurement-control \u2014 Level-2 full-path check + block protocol (tested)",
+    "8381570 feat(p14): Phase-4Y Stage-3 construction (C2-only 0022 vs C4-only 0023) \u2014 fairness blocked by b04 golden-corruption",
+    "007aa7b docs(p14): Phase-4Y Stage-2 acceptance \u2014 narrow C24 conclusion, C1 'not stable sufficient', b04 outage + held-out-1 caveat (report-only)",
+    "1c2cc6a report(p14): Phase-4Y Stage-2 C1 vs C24 \u2014 C1 does NOT eliminate axis errors (refutes cell 5)",
+    "05bb7cd feat(p14): Phase-4Y Stage-2 pre-run gate PASS \u2014 C1 vs C24 fairness + freeze (b04 recovered)",
+    "b5a16d2 feat(p14): Phase-4Y Stage-2 construction (C1 0020 vs C24 0021) \u2014 FAIRNESS BLOCKED BY b04 OUTAGE",
+    "751e38f feat(p14): fairness-gate validity-based retry + b04/PT health sentinel (tested)",
+    "ffc23e5 docs(p14): Phase-4Y Stage-1 causal-wording correction (report-only)",
+    "934ed44 report(p14): Phase-4Y Stage-1 Schema vs Contract \u2014 Schema 2/3 > Contract 1/3 (directional, within Qwen)",
+    "1d2b2c9 chore: refresh auto-generated benchmark summary/inventory (p14 17->19, total 2921)",
+    "50e2ded feat(p14): Phase-4Y Stage-1 pre-run freeze \u2014 Schema (0018) vs Contract (0019), Qwen"
+  ],
+  "phase_matrix": [
+    {
+      "phase": "4W-Run1",
+      "label": "BundleS necessity/sufficiency (C6 ablation)",
+      "design_label": "confirmatory",
+      "report": "reports/synthetic_p14_phase4w_run1.json",
+      "evidence_episodes": null,
+      "tasks": "0013/0014",
+      "conditions": "V1/V9",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 6,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 60.71,
+      "ledger_primary_episodes": null
+    },
+    {
+      "phase": "4W-Run2",
+      "label": "Non-answer screening (BundleS vs BundleD)",
+      "design_label": "confirmatory",
+      "report": "reports/synthetic_p14_phase4w_run2.json",
+      "evidence_episodes": "reports/evidence/p14_phase4w_run2_episodes",
+      "tasks": "0015/0016",
+      "conditions": "BundleS/BundleD",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 6,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 76.79,
+      "ledger_primary_episodes": 6
+    },
+    {
+      "phase": "4W-Held",
+      "label": "Held-out generalization (0017 vs 0011)",
+      "design_label": "frozen held-out confirmation",
+      "report": "reports/synthetic_p14_phase4w_heldout.json",
+      "evidence_episodes": "reports/evidence/p14_phase4w_heldout_episodes",
+      "tasks": "0011/0017",
+      "conditions": "Base/Held",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 6,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 64.78,
+      "ledger_primary_episodes": 6
+    },
+    {
+      "phase": "4X-S1",
+      "label": "DeepSeek cross-model dev pair",
+      "design_label": "confirmatory (deviation disclosed)",
+      "report": "reports/synthetic_p14_phase4x_dev.json",
+      "evidence_episodes": "reports/evidence/p14_phase4x_dev_episodes",
+      "tasks": "0009/0010(0015)",
+      "conditions": "Base/BundleS",
+      "model": "DeepSeek-V4-Pro",
+      "transport": "SSE streaming",
+      "primary": 6,
+      "excluded": 2,
+      "invalid": 0,
+      "aborted": 1,
+      "cost_cny": 73.79,
+      "primary_ledger_discrepancy": "report=6 ledger=7",
+      "ledger_primary_episodes": 7
+    },
+    {
+      "phase": "4X-S1B",
+      "label": "Stage-1 no-call position audit",
+      "design_label": "no-call audit (0 episodes)",
+      "report": "reports/synthetic_p14_phase4x_stage1b.json",
+      "evidence_episodes": null,
+      "tasks": "\u2014",
+      "conditions": "\u2014",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 0,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 0,
+      "ledger_primary_episodes": null
+    },
+    {
+      "phase": "4X-S1C",
+      "label": "DeepSeek exact-counterbalanced re-run",
+      "design_label": "confirmatory",
+      "report": "reports/synthetic_p14_phase4x_stage1c.json",
+      "evidence_episodes": "reports/evidence/p14_phase4x_stage1c_episodes",
+      "tasks": "0009/0010(0015)",
+      "conditions": "Base/BundleS",
+      "model": "DeepSeek-V4-Pro",
+      "transport": "SSE streaming",
+      "primary": 8,
+      "excluded": 1,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 81.44,
+      "ledger_primary_episodes": 8
+    },
+    {
+      "phase": "4Y-S1",
+      "label": "Schema vs Contract decomposition",
+      "design_label": "sequential exploratory localization",
+      "report": "reports/synthetic_p14_phase4y_stage1.json",
+      "evidence_episodes": "reports/evidence/p14_phase4y_episodes",
+      "tasks": "0018/0019",
+      "conditions": "Schema/Contract",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 6,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 73.63,
+      "ledger_primary_episodes": 6
+    },
+    {
+      "phase": "4Y-S2",
+      "label": "C1 vs C24 (value-schema)",
+      "design_label": "sequential exploratory localization",
+      "report": "reports/synthetic_p14_phase4y2_stage2.json",
+      "evidence_episodes": "reports/evidence/p14_phase4y2_episodes",
+      "tasks": "0020/0021",
+      "conditions": "C1/C24",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 8,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 95.21,
+      "ledger_primary_episodes": 8
+    },
+    {
+      "phase": "4Y-S3",
+      "label": "C2-only vs C4-only",
+      "design_label": "sequential exploratory localization",
+      "report": "reports/synthetic_p14_phase4y3_stage3.json",
+      "evidence_episodes": "reports/evidence/p14_phase4y3_episodes",
+      "tasks": "0022/0023",
+      "conditions": "C2/C4",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming, inactivity 120s, hard deadline 300s, max 1 retry",
+      "primary": 8,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 101.67,
+      "ledger_primary_episodes": 8
+    },
+    {
+      "phase": "4Y-Bridge",
+      "label": "In-window C24 bridge remeasurement",
+      "design_label": "null/inconclusive replication",
+      "report": "reports/synthetic_p14_phase4y3_c24_bridge.json",
+      "evidence_episodes": "reports/evidence/p14_phase4y3_c24_bridge_episodes",
+      "tasks": "0021",
+      "conditions": "C24",
+      "model": "Qwen3.7-Max",
+      "transport": "SSE streaming",
+      "primary": 4,
+      "excluded": 0,
+      "invalid": 0,
+      "aborted": 0,
+      "cost_cny": 54.23,
+      "ledger_primary_episodes": 4
+    }
+  ],
+  "program_totals": {
+    "primary": 58,
+    "excluded": 3,
+    "invalid": 0,
+    "aborted": 1,
+    "cost_cny": 682.25
+  },
+  "task_model_matrix": [
+    {
+      "phase": "4W-Run1",
+      "tasks": "0013/0014",
+      "model": "Qwen3.7-Max",
+      "conditions": "V1/V9"
+    },
+    {
+      "phase": "4W-Run2",
+      "tasks": "0015/0016",
+      "model": "Qwen3.7-Max",
+      "conditions": "BundleS/BundleD"
+    },
+    {
+      "phase": "4W-Held",
+      "tasks": "0011/0017",
+      "model": "Qwen3.7-Max",
+      "conditions": "Base/Held"
+    },
+    {
+      "phase": "4X-S1",
+      "tasks": "0009/0010(0015)",
+      "model": "DeepSeek-V4-Pro",
+      "conditions": "Base/BundleS"
+    },
+    {
+      "phase": "4X-S1B",
+      "tasks": "\u2014",
+      "model": "Qwen3.7-Max",
+      "conditions": "\u2014"
+    },
+    {
+      "phase": "4X-S1C",
+      "tasks": "0009/0010(0015)",
+      "model": "DeepSeek-V4-Pro",
+      "conditions": "Base/BundleS"
+    },
+    {
+      "phase": "4Y-S1",
+      "tasks": "0018/0019",
+      "model": "Qwen3.7-Max",
+      "conditions": "Schema/Contract"
+    },
+    {
+      "phase": "4Y-S2",
+      "tasks": "0020/0021",
+      "model": "Qwen3.7-Max",
+      "conditions": "C1/C24"
+    },
+    {
+      "phase": "4Y-S3",
+      "tasks": "0022/0023",
+      "model": "Qwen3.7-Max",
+      "conditions": "C2/C4"
+    },
+    {
+      "phase": "4Y-Bridge",
+      "tasks": "0021",
+      "model": "Qwen3.7-Max",
+      "conditions": "C24"
+    }
+  ],
+  "report_inventory": {
+    "count": 22,
+    "files_sha256": {
+      "reports/synthetic_p14_phase4w_heldout.json": "b10c2f9e8e2e8ef330d016eacb977d7dd226a5f2d70fcd8b01e2b85e3b1aa5fa",
+      "reports/synthetic_p14_phase4w_run1.json": "860ec290c4736aa1edc38f93c0b46f03678b01d76cb7dd37cfd50e75092457b6",
+      "reports/synthetic_p14_phase4w_run2.json": "ad92d9da767e8142f9d18efe8196ab3071953bd7e8ef4d0dc23fa2eb03a33861",
+      "reports/synthetic_p14_phase4x_dev.json": "64c77d2195cb680a8881eeea89c9bb05ab5a0ee7a4a5760867a7d4ea270da04e",
+      "reports/synthetic_p14_phase4x_stage1b.json": "cd766045f65a537a2be582ddc082e7caf95d673127871f13e746789172fcc0ec",
+      "reports/synthetic_p14_phase4x_stage1c.json": "30fe4ca390cf0b2a106490b3de2981e139c1f70a6297d54a9096f8d2e816af34",
+      "reports/synthetic_p14_phase4y2_stage2.json": "b546cd00d50b3e536a47da8b031dee46322fee8e2252dc0ebab70e839c536ac1",
+      "reports/synthetic_p14_phase4y3_c24_bridge.json": "baf5a7aa216128bf593c95ab519997c948ae80d515fd69fa19461fdf0e5fae38",
+      "reports/synthetic_p14_phase4y3_stage3.json": "6a04e662748ab09f82cb257a15fc86e6fda89e151cc91e50ea12ac7f462c6681",
+      "reports/synthetic_p14_phase4y_stage1.json": "2eb63914c8954cdf6ac776a13ddf6593bcf692f659632fab9d43a31d938442c4",
+      "reports/synthetic_p14_phase4z_synthesis.json": "f37c63424d93607a2a69c8ab90a8d6fbfd1d257195853d1e97e6f6c738b120f4",
+      "reports/synthetic_p14_phase4w_heldout.md": "f654ae62301d4d65c2d871e53a36dd61f88db0fedf9b7e86e7ce311327782d88",
+      "reports/synthetic_p14_phase4w_run1.md": "a21526bae21381b2a6f12f170f54d47cfbdc79d3ea356cb33452b4d33d3bf661",
+      "reports/synthetic_p14_phase4w_run2.md": "a90f808bb771d1df0ed431d6277e1dd5c774e526be005b49f15e97bf2e37cba6",
+      "reports/synthetic_p14_phase4x_dev.md": "d6ba1aa7e51010de3f0d4741ef84eb8e0ac9f35c8612cdbca6be60a51de6428a",
+      "reports/synthetic_p14_phase4x_stage1b.md": "d689d5e0f3e8a903167c19b9def8fd55cd8433cbdaef22be70933df2c6785c81",
+      "reports/synthetic_p14_phase4x_stage1c.md": "ea38a228711513c4d51cc51395dd8544b4bb7c1684015a52f7bac4858f1c28c6",
+      "reports/synthetic_p14_phase4y2_stage2.md": "433e26fb153f41cb4667a4e1091c3f6d3d96fe8f2d85adaf10af6eef0e9c6bac",
+      "reports/synthetic_p14_phase4y3_c24_bridge.md": "7110f4f003349abe08414993a3bb86b2245bcf4eb9a9d7cf243b6a3316592727",
+      "reports/synthetic_p14_phase4y3_stage3.md": "71a1fb0a7b115c301b12a5a1e39cde5db1e7a0f4c3bf93d91072885e5f7bb32f",
+      "reports/synthetic_p14_phase4y_stage1.md": "34e1e786c720eb45348f1cae49515dffe0eecbe35285cec4e38e5bc85a119232",
+      "reports/synthetic_p14_phase4z_synthesis.md": "92ed19d26e8ca62dbc868d7ec383ebb8269c220df967b06bfbc9df26bd08909f"
+    }
+  },
+  "evidence_inventory": {
+    "dirs": [
+      "reports/evidence/p14_phase4w_fairness",
+      "reports/evidence/p14_phase4w_heldout",
+      "reports/evidence/p14_phase4w_heldout_episodes",
+      "reports/evidence/p14_phase4w_run1",
+      "reports/evidence/p14_phase4w_run2",
+      "reports/evidence/p14_phase4w_run2_episodes",
+      "reports/evidence/p14_phase4x_dev",
+      "reports/evidence/p14_phase4x_dev_episodes",
+      "reports/evidence/p14_phase4x_stage1c",
+      "reports/evidence/p14_phase4x_stage1c_episodes",
+      "reports/evidence/p14_phase4y",
+      "reports/evidence/p14_phase4y2",
+      "reports/evidence/p14_phase4y2_episodes",
+      "reports/evidence/p14_phase4y3",
+      "reports/evidence/p14_phase4y3_c24_bridge",
+      "reports/evidence/p14_phase4y3_c24_bridge_episodes",
+      "reports/evidence/p14_phase4y3_episodes",
+      "reports/evidence/p14_phase4y_episodes",
+      "reports/evidence/p14_phase4y_heldout2"
+    ],
+    "manifest_hashes": {
+      "reports/evidence/p14_phase4w_fairness/MANIFEST.json": "af4de8be3cb296568c6c7817c511b8075c5fc8394f99c1150e2d1f7c03ffea58",
+      "reports/evidence/p14_phase4w_fairness/SHA256SUMS": "0d786ec7a6cd0236d3a323778cab363dfd651fccc06515a8d26bd3f49898e444",
+      "reports/evidence/p14_phase4w_heldout/MANIFEST.json": "d59ffb464d20a4b265d4242d387ceffefd06e7a02edab8d6540be4de7e30b497",
+      "reports/evidence/p14_phase4w_heldout/SHA256SUMS": "42a871c0ebd0a732a06e5fb6bfc6e91745ce512db0150cc107c7de50849fa1c3",
+      "reports/evidence/p14_phase4w_heldout_episodes/MANIFEST.json": "2a50f94e5e75a4b8983492f57556b27b696cffdc63f76308df538afb08c2ecbe",
+      "reports/evidence/p14_phase4w_heldout_episodes/SHA256SUMS": "ddec92cfde3044a5cd7d263d15749bf3a67e0e9dabb2927d6ff61ea0a549c113",
+      "reports/evidence/p14_phase4w_run1/MANIFEST.json": "e6f2c97dfca46fdc4b1a7a0aa6f8f51738fe098ce30145ae2f85aa1f3c706e4c",
+      "reports/evidence/p14_phase4w_run1/SHA256SUMS": "59de739d476fdabca687b91c909b8c9bbb7feee014228b94f1a8b0747ac3d052",
+      "reports/evidence/p14_phase4w_run2_episodes/MANIFEST.json": "4c837bcf19d5fc6413d6d0814e608c6b4ae97c83ddfa7994fec1baf5e0350593",
+      "reports/evidence/p14_phase4w_run2_episodes/SHA256SUMS": "1b2ca935acab3f304784538bfb731be0226a6a1ef8338494531999d5980895c4",
+      "reports/evidence/p14_phase4x_dev_episodes/MANIFEST.json": "ce2ed931b97a46b46bd17cc04edb57b2286da6d8a62a230a24544f2eef6d04b6",
+      "reports/evidence/p14_phase4x_dev_episodes/SHA256SUMS": "07f9ae6bfd9f9dd3be23011f13584a8f47384ee0fd3aa88d855f16a0422f0b6c",
+      "reports/evidence/p14_phase4x_stage1c_episodes/MANIFEST.json": "14a1db6efe06493e2dc69f74767e95e7a4f84b6fe6cde87b6cdebef1915a8860",
+      "reports/evidence/p14_phase4x_stage1c_episodes/SHA256SUMS": "a894bdc62f2bd9e34b54f5bbb429138fa061f94ed9e23cee71886245e587111f",
+      "reports/evidence/p14_phase4y2_episodes/MANIFEST.json": "f84949557be9640b8d127f1de39b3bc80d1fcee20056bcdf08d84cb3cefff348",
+      "reports/evidence/p14_phase4y2_episodes/SHA256SUMS": "5b5858a10535cd9e847748793406ebc94a897041db260c2455cba78c48ee419b",
+      "reports/evidence/p14_phase4y3_c24_bridge_episodes/MANIFEST.json": "2a53aa9e5d8b86457c7fcab2a460471768fbacdd940ede650d5ab6c1da4f45b3",
+      "reports/evidence/p14_phase4y3_c24_bridge_episodes/SHA256SUMS": "53a1cde0b0a631a40c74ab9d21a8138e4a5d7444cc369f68209c147d265437cd",
+      "reports/evidence/p14_phase4y3_episodes/MANIFEST.json": "3e3faccfdfe257be28df237ffd45da81a06bf7c0546213ac0e33d07bcc5c3ea5",
+      "reports/evidence/p14_phase4y3_episodes/SHA256SUMS": "a00f027589a9964f404ade20e96907f160335c379967580ec186996261eaf1af",
+      "reports/evidence/p14_phase4y_episodes/MANIFEST.json": "ee87e17c27bfafee66e52b6f1ae936cfe0cc7e385a80a3b7b5df8f610552ed4b",
+      "reports/evidence/p14_phase4y_episodes/SHA256SUMS": "ad71b4e2bbba97ed3056e7f83afa7ffbb6b254b5dfc8aa4d7d1df2018a280bf2",
+      "reports/evidence/p14_phase4y_heldout2/MANIFEST.json": "bdcc8654108b659cdb655e769e709e7b64f011f2b14396479e48d6cd9e847b9e"
+    }
+  },
+  "transport_mode": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1; inactivity 120s, hard deadline 300s, max 1 retry) for all model phases",
+  "held_out_family_2": {
+    "path": "reports/evidence/p14_phase4y_heldout2",
+    "manifest_present": true,
+    "manifest_sha256": "bdcc8654108b659cdb655e769e709e7b64f011f2b14396479e48d6cd9e847b9e",
+    "model_calls": 0,
+    "status": "UNTOUCHED future-replication asset; not run, not altered, no variant selected on existing outcomes"
+  },
+  "integrity_guard": {
+    "authoritative_control_commit": "d8fb7bd",
+    "mandatory": true,
+    "files_sha256": {
+      "scripts/canonical_integrity.py": "bd946813e9c2ee6f704f26505ae3ae4d316258ddf21611c9b1094967838e6748",
+      "scripts/run_chain_guarded.py": "a4d1224968bc65254ac0f5c971ebc72dee1a9afca05d6ccf302b8b36086ee6fb",
+      "eda_agentbench/agentic/workspace.py": "eea6f4c55cb0d43ffea9aab47d0d05b7e20c65c1e7d1c380c31b287869f83b86",
+      "scripts/chain_executor.py": "ee860efcf2ad1b6c5075a555b22b944ea3e5c983114a234def6710a45394ed97",
+      "scripts/episode_arbiter.py": "c060852f7a442cf28144bc4445417962519e7998a4d8981db09c99ed627f24a5"
+    }
+  },
+  "typo_check": {
+    "C2xC2_sought": true,
+    "occurrences_found": 0,
+    "verdict": "no C2xC2 typo; all forms are C2xC4"
+  },
+  "declaration": "No subsequent data collection (paid model calls or mechanism-search experiments) contributes to the current paper. The experimental program is frozen at this HEAD. Held-out-family-2 is preserved untouched as a future-replication asset."
+}
