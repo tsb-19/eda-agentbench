@@ -50,16 +50,17 @@ Distinct from p14's `handoff_truth.json`. No `axis_schema`, no `semantic_role_ma
     {"id":"PRIOR","artifact":"signoff.log","trust":"none (decoy)"}
   ],
   "derivation_edges": [
-    {"from":"INT+CDC","to":"intent_class=cdc_isolate","rule":"override"},
-    {"from":"CDC","to":"target_partition=cdc_b","rule":"crossing_pin"},
-    {"from":"COV","to":"check_mode=setup","rule":"requires_exception[cdc_b][setup]"}
+    {"from":"INT+CDC","to":"intent_class=<G_intent>","rule":"override"},
+    {"from":"CDC","to":"target_partition=<G_partition>","rule":"crossing_pin"},
+    {"from":"COV","to":"check_mode=<G_view>","rule":"requires_exception[<G_partition>][<G_view>]"}
   ],
-  "coverage_matrix": {"cdc_b": {"setup": {"cdc_isolate": "requires_exception"}, "hold": {}}},
-  "golden_binding": {"intent_class":"cdc_isolate","target_partition":"cdc_b","check_mode":"setup"},
-  "wrong_binding_green": {"intent_class":"functional_close","target_partition":"cdc_b","check_mode":"setup"},
+  "coverage_matrix": {"<G_partition>": {"<G_view>": {"<G_intent>": "requires_exception"}}},
+  "golden_binding": {"intent_class":"<G_intent>","target_partition":"<G_partition>","check_mode":"<G_view>"},
+  "wrong_binding_green": {"intent_class":"<W_intent>","target_partition":"<G_partition>","check_mode":"<G_view>"},
   "decoy_sources": ["PRIOR","INT_stale","RST_misScoped"]
 }
 ```
+*(illustrative **schema only**; `<G_*>` are the hidden golden tokens and `<W_*>` the wrong-but-green tokens. Concrete values are generated per-instance from committed seeds and frozen in this hidden file at the Phase-5B pre-run freeze — **never published in a design document**.)*
 
 The grader **re-derives** the golden by walking the DAG (defensive: it does not trust `golden_binding` as a literal — it recomputes and asserts equality), so a tampered truth file is caught.
 
@@ -86,12 +87,12 @@ Each decoy is internally consistent (real PT-backed timing bodies where applicab
 
 ### A.7 Instances (1 dev + 3 eval)
 
-| Instance | id | hidden golden (intent,partition,view) | value vocabulary | decoy structure |
+| Instance | id | golden region (hidden) | value vocabulary | decoy structure |
 |---|---|---|---|---|
-| Dev/debug | `p15_dev_0000` | (cdc_isolate, cdc_a, setup) | base set | minimal (pilot only) |
-| Eval 1 | `p15_eval_0001` | (reset_exempt, reset_ctrl, both) | base set | authority-conflict A |
-| Eval 2 | `p15_eval_0002` | (scan_override, scan, both) | alt partition names | authority-conflict B (stale-intent-led) |
-| Eval 3 | `p15_eval_0003` | (functional_close, core, setup) | alt intent names | authority-conflict C (mis-scope-led) |
+| Dev/debug | `p15_dev_0000` | R-dev (pilot only) | base set | minimal |
+| Eval 1 | `p15_eval_0001` | R1 | base set | authority-conflict A |
+| Eval 2 | `p15_eval_0002` | R2 (disjoint from R1) | alt partition names | authority-conflict B (stale-intent-led) |
+| Eval 3 | `p15_eval_0003` | R3 (disjoint from R1,R2) | alt intent names | authority-conflict C (mis-scope-led) |
 
 `p15_dev_0000` is **excluded from primary analysis** by predeclared id. Each eval instance has a distinct golden, a distinct value vocabulary (renamed enum members), and a distinct decoy structure, so the instance set spans the design space rather than replicating one instance.
 
@@ -118,7 +119,7 @@ The representation is a **request-authority relational join** (`meas_request_tru
 
 ### B.3 Tool success ≠ semantic correctness (wrong tuple still simulates, plausible number)
 
-The deck runs and yields a **plausible number for any tuple**. A wrong binding — e.g. `metric=pm` at `FF_1p3_125` (fast) instead of the spec's `SS_0p9_-40` (slow), or `load=heavy` instead of `light` — still exits 0 and produces a phase margin like **62°** where the spec-correct binding gives **48°**. Both are physically reasonable opamp PM values; simulation success + numeric plausibility do **not** identify the semantic binding. The instance ships a baked **wrong-tuple-plausible artifact** (`wrong_tuple_measure.lis`, real HSPICE on b04) proving the wrong tuple simulates with a plausible number.
+The deck runs and yields a **plausible number for any tuple**. A wrong binding — e.g. the requested metric evaluated at a fast corner instead of the spec's slow corner, or a heavy load instead of the spec's light load — still exits 0 and produces a phase margin like **62°** where the spec-correct binding gives **48°** (illustrative numbers). Both are physically reasonable opamp PM values; simulation success + numeric plausibility do **not** identify the semantic binding. The instance ships a baked **wrong-tuple-plausible artifact** (`wrong_tuple_measure.lis`, real HSPICE on b04) proving the wrong tuple simulates with a plausible number.
 
 ### B.4 Hidden-truth representation (`meas_request_truth.json`)
 
@@ -126,21 +127,22 @@ Distinct from p14 and Family A. No `axis_schema`, no DAG. A relational join:
 
 ```json
 {
-  "request": {"metric":"pm","requested_by":"char_spec","clause":"§4.1"},
+  "request": {"metric":"<G_metric>","requested_by":"char_spec","clause":"§4.1"},
   "authorities": {
-    "metric": {"src":"char_spec","value":"pm","trust":"primary"},
-    "corner": {"src":"mission_profile","value":"SS_0p9_-40","trust":"primary"},
-    "load_condition":{"src":"application_note","value":"light","trust":"primary"}
+    "metric": {"src":"char_spec","value":"<G_metric>","trust":"primary"},
+    "corner": {"src":"mission_profile","value":"<G_corner>","trust":"primary"},
+    "load_condition":{"src":"application_note","value":"<G_load>","trust":"primary"}
   },
   "decoy_authorities": [
-    {"role":"corner","src":"mission_profile_stale","value":"FF_1p3_125","trust":"none"},
-    {"role":"load_condition","src":"load_note_swapped","value":"heavy","trust":"none"}
+    {"role":"corner","src":"mission_profile_stale","value":"<W_corner>","trust":"none"},
+    {"role":"load_condition","src":"load_note_swapped","value":"<W_load>","trust":"none"}
   ],
-  "golden_join": {"corner":"SS_0p9_-40","load_condition":"light","metric":"pm"},
-  "wrong_join_plausible": {"corner":"FF_1p3_125","load_condition":"heavy","metric":"pm"},
-  "plausible_range": {"pm_min":40,"pm_max":75}
+  "golden_join": {"corner":"<G_corner>","load_condition":"<G_load>","metric":"<G_metric>"},
+  "wrong_join_plausible": {"corner":"<W_corner>","load_condition":"<W_load>","metric":"<G_metric>"},
+  "plausible_range": {"min":40,"max":75}
 }
 ```
+*(illustrative **schema only**; `<G_*>` hidden golden tokens, `<W_*>` wrong-but-plausible tokens. Concrete values are generated per-instance from committed seeds and frozen in this hidden file at the Phase-5B pre-run freeze — **never published in a design document**.)*
 
 ### B.5 Grader (`grade_spice_handoff.py`) — six separated dimensions (as required)
 
@@ -165,12 +167,12 @@ Substitution-by-source, structurally unlike p14's value-swap and unlike Family A
 
 ### B.7 Instances (1 dev + 3 eval)
 
-| Instance | id | hidden golden (corner,load,metric) | value vocabulary | decoy structure |
+| Instance | id | golden region (hidden) | value vocabulary | decoy structure |
 |---|---|---|---|---|
-| Dev/debug | `p16_dev_0000` | (TT_1p2_25, nominal, gain) | base set | minimal (pilot only) |
-| Eval 1 | `p16_eval_0001` | (SS_0p9_-40, light, pm) | base corners | substitution A (stale corner) |
-| Eval 2 | `p16_eval_0002` | (SS_0p9_125_cold, heavy, slew) | alt corner naming | substitution B (swapped load) |
-| Eval 3 | `p16_eval_0003` | (FF_1p3_125, light, gbw) | alt metric naming | substitution C (stale prior log) |
+| Dev/debug | `p16_dev_0000` | R-dev (pilot only) | base set | minimal |
+| Eval 1 | `p16_eval_0001` | R1 | base corners | substitution A (stale corner) |
+| Eval 2 | `p16_eval_0002` | R2 (disjoint from R1) | alt corner naming | substitution B (swapped load) |
+| Eval 3 | `p16_eval_0003` | R3 (disjoint from R1,R2) | alt metric naming | substitution C (stale prior log) |
 
 `p16_dev_0000` excluded from primary analysis by predeclared id. Distinct golden, vocabulary, and decoy structure per eval instance.
 
@@ -201,3 +203,14 @@ These are the empirical proof that tool success ≠ semantic correctness for the
 ## §6. Manifests and hashes (per family)
 
 Each instance is covered by `canonical_integrity.freeze(repo, task_roots=[<instance dir>], code_files=[generator, grader, evaluator, fairness code], evidence_files=[freeze manifests])`. The per-family pre-run freeze emits the standard 6 manifests (`randomization_manifest`, `frozen_config`, `interpretation_table`, `membership_code_manifest`, `prerun_freeze_manifest`, `canonical_integrity_manifest`) plus the per-instance `semantic_diff_audit.json` and wrong-binding-feasibility artifact hashes. Custody byte-match (`MANIFEST.json`+`SHA256SUMS`) is produced by the pipeline for every preserved episode, identical contract to Phase-4Y.
+
+## §7. Information isolation — no literal goldens are published
+
+These design documents and `reports/synthetic_phase5a_design.json` deliberately contain **no literal golden binding** for any instance. Instance tables and the machine-readable design carry only (a) an opaque disjoint-region tag (`R1`/`R2`/`R3`, plus `R-dev` for the excluded dev instance), (b) a vocabulary variant, and (c) a decoy recipe — enough to prove the three eval instances have **distinct** hidden truths drawn from **disjoint** regions of the role space, without disclosing any truth. Worked-example truth-file blocks use placeholder tokens (`<G_*>`, `<W_*>`) to illustrate **schema only**.
+
+The actual golden tuples are:
+- **generated** deterministically from committed per-instance seeds at Phase-5B generation time;
+- **stored** only in the access-controlled per-instance hidden files (`hidden/signoff_intent_truth.json`, `meas_request_truth.json`), which are listed under `metadata.json` `files.hidden` + `files.forbidden` and are **never copied into the agent workspace** by `create_agent_workspace`;
+- **frozen** (hash-pinned by `canonical_integrity.freeze`) at the Phase-5B pre-run freeze, under the exact-commit integrity-guarded worktree, **before the first paid episode** — which is the methodologically correct point to pre-register the goldens.
+
+`reports/`, `docs/`, and the repo root are **not** in the agent's workspace scope; the `anti_cheat` `ForbiddenModificationGuard` and the custody byte-match (submitted editable files only; hidden truth/netlist/library/decoys/`.env`/model configs excluded) enforce that no agent-readable artifact carries a golden value. This was hardened on 2026-08-03 after an automated security review flagged that an earlier draft of `synthetic_phase5a_design.json` committed the literal eval-instance goldens (information-disclosure); the literal tuples were removed and replaced by the region tags above.

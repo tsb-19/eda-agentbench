@@ -34,9 +34,9 @@
       "instances": {
         "dev": {"id": "p15_dev_0000", "in_primary_analysis": false},
         "eval": [
-          {"id": "p15_eval_0001", "golden": {"intent_class": "reset_exempt", "target_partition": "reset_ctrl", "check_mode": "both"}, "vocab": "base", "decoy": "authority-conflict A"},
-          {"id": "p15_eval_0002", "golden": {"intent_class": "scan_override", "target_partition": "scan", "check_mode": "both"}, "vocab": "alt partition names", "decoy": "authority-conflict B"},
-          {"id": "p15_eval_0003", "golden": {"intent_class": "functional_close", "target_partition": "core", "check_mode": "setup"}, "vocab": "alt intent names", "decoy": "authority-conflict C"}
+          {"id": "p15_eval_0001", "golden_region": "R1", "vocab": "base", "decoy": "authority-conflict A"},
+          {"id": "p15_eval_0002", "golden_region": "R2 (disjoint from R1)", "vocab": "alt partition names", "decoy": "authority-conflict B"},
+          {"id": "p15_eval_0003", "golden_region": "R3 (disjoint from R1,R2)", "vocab": "alt intent names", "decoy": "authority-conflict C"}
         ]
       },
       "fairness_gate": "reuse pt_health_sentinel + fullpath_check + measurement_control, re-pointed at Family-A golden"
@@ -57,9 +57,9 @@
       "instances": {
         "dev": {"id": "p16_dev_0000", "in_primary_analysis": false},
         "eval": [
-          {"id": "p16_eval_0001", "golden": {"corner": "SS_0p9_-40", "load_condition": "light", "metric": "pm"}, "vocab": "base corners", "decoy": "substitution A"},
-          {"id": "p16_eval_0002", "golden": {"corner": "SS_0p9_125_cold", "load_condition": "heavy", "metric": "slew"}, "vocab": "alt corner naming", "decoy": "substitution B"},
-          {"id": "p16_eval_0003", "golden": {"corner": "FF_1p3_125", "load_condition": "light", "metric": "gbw"}, "vocab": "alt metric naming", "decoy": "substitution C"}
+          {"id": "p16_eval_0001", "golden_region": "R1", "vocab": "base corners", "decoy": "substitution A"},
+          {"id": "p16_eval_0002", "golden_region": "R2 (disjoint from R1)", "vocab": "alt corner naming", "decoy": "substitution B"},
+          {"id": "p16_eval_0003", "golden_region": "R3 (disjoint from R1,R2)", "vocab": "alt metric naming", "decoy": "substitution C"}
         ]
       },
       "fairness_gate": "NEW hspice_health_sentinel.py + SPICE fullpath check (clone of pt pattern, metric-range assertion); precedented by P4 damping/OTA real-Spectre gate"
@@ -155,6 +155,13 @@
     "fairness gates healthy (PT sentinel for A; HSPICE sentinel for B + fullpath checks)",
     "clean canonical tree at freeze commit; cig.verify passes"
   ],
+  "information_isolation": {
+    "rule": "No agent-readable artifact (including this design document) contains a literal golden binding. Instance entries carry only an opaque disjoint-region tag (R1/R2/R3), a vocabulary variant, and a decoy recipe — sufficient to prove instance diversity without disclosing any hidden truth.",
+    "golden_freeze_location": "per-instance hidden/signoff_intent_truth.json (A) / meas_request_truth.json (B); access-controlled (metadata files.hidden + files.forbidden; never copied into the agent workspace by create_agent_workspace)",
+    "golden_freeze_when": "Phase-5B pre-run freeze, under the canonical-tree integrity guard (cig.freeze hashes the hidden truth files), before the first paid episode",
+    "agent_workspace_scope": "only the task files/ visible set; reports/ and docs/ are NOT in the agent workspace and are covered by anti_cheat ForbiddenModificationGuard + custody exclusion (submitted editable files only; hidden truth/netlist/library/decoys/.env/model configs excluded)",
+    "history": "2026-08-03 security review (information-disclosure): literal golden tuples were removed from this JSON and from docs/synthetic_phase5a_family_specs.md instance tables and worked-example blocks; goldens are generated deterministically from committed seeds and frozen at the Phase-5B pre-run, never published."
+  },
   "commit_sequence": {
     "phase5a_docs_only": [
       "docs(phase5a): cross-family external-validity design + predeclared analysis plan (+ this json)",
