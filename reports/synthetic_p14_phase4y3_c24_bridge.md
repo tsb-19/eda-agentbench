@@ -35,7 +35,7 @@ This is a predeclared-rule mapping, not a post-hoc interpretation.
 | Stage-2 (cross-run reference) | 2026-07-28 | 3/4 | **0** | 1 |
 | **Stage-3 bridge (in-window)** | 2026-08-02 | **2/4** | **1** | 1 |
 
-The bundle's axis suppression did not replicate (0/4 → 1/4 axis) and correctness dropped 3/4 → 2/4. Note this is **within k=4 run-to-run variance** for a thinking model at temperature 0.7 (a one-episode swing); the predeclared threshold (≥3/4 + 0 axis) was simply not met in this window. The result does **not** refute a bundle effect — it shows the C24 reference is itself **not stable at ≥3/4 + 0 axis across windows at k=4**, so the directional cross-stage evidence from Stage-3 (singleton C2 1/4, C4 0/4 vs bundle) is **not strengthened** by in-window replication: the in-window gap between the bundle (2/4) and the singletons (C2 1/4, C4 0/4) is smaller than the cross-run comparison suggested and is within k=4 noise.
+The bundle's axis suppression did not replicate (0/4 → 1/4 axis) and correctness dropped 3/4 → 2/4; the predeclared ≥3/4 + 0-axis threshold was **not met**, so the verdict is `not_established`. The C24 reference is therefore **not stable at ≥3/4 + 0 axis across windows**, which means the Stage-3 cross-stage bundle-versus-singleton contrast rests on an unstable reference and the C2×C4 hypothesis is **unresolved**. (Context: single window, k=4; small k and run-to-run variance are noted, but the predeclared `not_established` decision is the headline — the failed threshold is not minimized to a one-episode swing.)
 
 ## Method & provenance
 
@@ -46,7 +46,11 @@ The bundle's axis suppression did not replicate (0/4 → 1/4 axis) and correctne
 
 ## Scoped conclusion
 
-Within Qwen3.7-Max and this p14 workflow-handoff family: the C24 bundle pattern did **not** replicate at the predeclared ≥3/4 + 0-axis threshold in-window (2/4 correct, 1 axis failure). Per the predeclared rule, **stable C24 interaction evidence is not established and held-out-family-2 is not consumed.** This tempers — does not refute — the Stage-3 candidate C2×C4 interaction: the difference between in-window C24 (2/4) and Stage-3 singletons (C2 1/4, C4 0/4) is within k=4 run-to-run variance, so no component or bundle effect is discriminable at this k.
+**C24 stabilization is not established.** The in-window C24 bridge returned 2/4 correct with one axis-binding failure, failing the predeclared ≥3/4-correct + 0-axis replication threshold; per the predeclared rule the verdict is `not_established` and held-out-family-2 is **not consumed**.
+
+Together with Stage 3 — where neither C2-only nor C4-only reproduced the earlier C24 axis-stabilization pattern — the independently collected C24 bridge also failed its predeclared replication threshold. The evidence therefore leaves a C2×C4 joint-effect hypothesis **unresolved**; it does not establish a stable super-additive interaction, an irreducible bundle mechanism, or a reliable minimal axis-stabilization component.
+
+(The result is a single window at k=4; small k and run-to-run variance are noted, but the predeclared `not_established` decision is the headline — the failed threshold is not minimized to a one-episode swing. A future identification attempt would require a newly preregistered same-window 2×2 design (Base, C2, C4, C2+C4) with fixed sample sizes, exact counterbalancing, and a new pre-run review; not executed here.)
 
 ## Exclusions respected
 
