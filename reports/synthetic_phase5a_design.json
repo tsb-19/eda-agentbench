@@ -1,0 +1,179 @@
+{
+  "schema": "phase5a_external_validity_design/v1",
+  "doc": "Phase-5A cross-family external-validity design (machine-readable predeclared freeze). Design-only; no paid calls; no implementation. Prose in docs/synthetic_phase5a_{design,family_specs,generator_grader_plans,budget_risk_commit}.md.",
+  "date": "2026-08-03",
+  "branch": "synthetic-phase0a",
+  "status": "design-only, no paid calls, no implementation, stopped for review (no push)",
+  "program_context": {
+    "frozen_program": "p14 workflow-handoff clarity-bundle (Phase-4V/4W/4X/4Y + C24 bridge), frozen at Phase-4Z",
+    "established": "BundleS (C1+C2+C4+C7) is a model-contingent mechanism: established for Qwen (dev + held-out), NOT established for DeepSeek under exact counterbalancing; no stable minimal component.",
+    "external_validity_question": "Does the BundleS effect replicate on task content and tools sharing NONE of p14's signature structures?",
+    "non_goals": [
+      "no additional C1/C2/C4/C7/C24 experiments on p14",
+      "no modification of any existing p14 task or report",
+      "no consumption/modification of held-out-family-2 (p14 0024-0027)",
+      "no paid model calls and no generator/grader implementation in Phase-5A",
+      "no push",
+      "no adaptive k escalation; no task/wording change after the first model result"
+    ]
+  },
+  "families": {
+    "A": {
+      "name": "STA constraint/exception handoff",
+      "track": "p15_sta_handoff",
+      "tool": "pt",
+      "semantic_roles": {
+        "intent_class": ["functional_close", "cdc_isolate", "reset_exempt", "scan_override"],
+        "target_partition": ["core", "cdc_a", "cdc_b", "reset_ctrl", "scan"],
+        "check_mode": ["setup", "hold", "both"]
+      },
+      "hidden_truth_representation": "provenance DAG + coverage matrix (signoff_intent_truth.json)",
+      "grader": "grade_sta_handoff.py (provenance-attestation + coverage-cell; no master EVIDENCE_OK gate)",
+      "decoy_logic": "authority-conflict (stale-intent / mis-scope / wrong-domain / non-authoritative prior signoff)",
+      "tool_success_neq_semantic_mechanism": "marginally-timed healthy design: wrong binding applies a different-but-legal exception that relaxes an already-slack path => report_timing green; provenance oracle rejects",
+      "instances": {
+        "dev": {"id": "p15_dev_0000", "in_primary_analysis": false},
+        "eval": [
+          {"id": "p15_eval_0001", "golden": {"intent_class": "reset_exempt", "target_partition": "reset_ctrl", "check_mode": "both"}, "vocab": "base", "decoy": "authority-conflict A"},
+          {"id": "p15_eval_0002", "golden": {"intent_class": "scan_override", "target_partition": "scan", "check_mode": "both"}, "vocab": "alt partition names", "decoy": "authority-conflict B"},
+          {"id": "p15_eval_0003", "golden": {"intent_class": "functional_close", "target_partition": "core", "check_mode": "setup"}, "vocab": "alt intent names", "decoy": "authority-conflict C"}
+        ]
+      },
+      "fairness_gate": "reuse pt_health_sentinel + fullpath_check + measurement_control, re-pointed at Family-A golden"
+    },
+    "B": {
+      "name": "SPICE model/measurement handoff",
+      "track": "p16_spice_handoff",
+      "tool": "hspice",
+      "semantic_roles": {
+        "corner": ["SS_0p9_-40", "FF_1p3_125", "TT_1p2_25", "SS_0p9_125_cold"],
+        "load_condition": ["light", "nominal", "heavy"],
+        "metric": ["gain", "gbw", "pm", "slew", "vdsat"]
+      },
+      "hidden_truth_representation": "request-authority relational join (meas_request_truth.json)",
+      "grader": "grade_spice_handoff.py (6-dimension separation: simulation_success / numeric_validity / semantic_binding / evidence_provenance / artifact_completion / protocol_completion)",
+      "decoy_logic": "authority-substitution (stale mission profile / swapped load note / stale prior measurement log)",
+      "tool_success_neq_semantic_mechanism": "deck runs + yields a plausible number for any tuple; wrong corner/load still exits 0 with a physically-reasonable measurement; correctness is role-conditioned authority join, not deck syntax",
+      "instances": {
+        "dev": {"id": "p16_dev_0000", "in_primary_analysis": false},
+        "eval": [
+          {"id": "p16_eval_0001", "golden": {"corner": "SS_0p9_-40", "load_condition": "light", "metric": "pm"}, "vocab": "base corners", "decoy": "substitution A"},
+          {"id": "p16_eval_0002", "golden": {"corner": "SS_0p9_125_cold", "load_condition": "heavy", "metric": "slew"}, "vocab": "alt corner naming", "decoy": "substitution B"},
+          {"id": "p16_eval_0003", "golden": {"corner": "FF_1p3_125", "load_condition": "light", "metric": "gbw"}, "vocab": "alt metric naming", "decoy": "substitution C"}
+        ]
+      },
+      "fairness_gate": "NEW hspice_health_sentinel.py + SPICE fullpath check (clone of pt pattern, metric-range assertion); precedented by P4 damping/OTA real-Spectre gate"
+    }
+  },
+  "independence_audit": {
+    "dimensions_not_shared_with_p14": ["text_template", "role_vocabulary", "hidden_truth_representation", "grader_implementation", "decoy_generation_logic"],
+    "families_also_differ_from_each_other_on_all_5": true,
+    "mechanical_check": "scripts/phase5a_independence_check.py (no grade_workflow import; disjoint vocab from {slow,typ,fast,func,test,lowpower}+PVT; no axis_schema/semantic_role_mapping/global_authority_tuple keys)",
+    "shared_generic_infrastructure": ["dir shape (files/hidden/solution)", "metadata.json schema", "EnvShim/ToolEnvironmentDetector", "run_public.sh/run_hidden.sh + launder", "BaseEvaluator weighted components", "build_task_skeleton+bake_golden", "canonical_integrity guard", "chain_executor+episode_arbiter", "freeze/pipeline/launcher", "custody byte-match", "request telemetry"]
+  },
+  "harness_conditions": {
+    "Base": {"disclosure": "ambiguous NL; overloaded field labels; no glossary/schema/value-domains/contract", "answer_bearing": false},
+    "BundleS": {"disclosure": "canonical labels + disjoint-axis decl (C1) + value-domain definitions (C2) + glossary/refs (C4) + procedural contract (C7), mapped mechanically, no task-specific wording optimization, no C6", "answer_bearing": false, "golden_values_disclosed": false},
+    "TypedContract": {"disclosure": "same info content as BundleS as machine-readable typed schema (roles/axes/source-IDs/provenance); no golden values; no post-submission oracle feedback", "answer_bearing": false, "budgets_matched_to_Base_BundleS": true}
+  },
+  "semantic_diff_audit": {
+    "per": ["family", "instance", "condition"],
+    "emits": "semantic_diff_audit.json",
+    "assertions": {
+      "consistent_tuples_public_count": ">=2",
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false
+    },
+    "on_failure": "fail-closed regenerate at pre-run freeze"
+  },
+  "preregistration": {
+    "models": ["Qwen3.7-Max", "DeepSeek-V4-Pro"],
+    "transport": "SSE streaming (EDA_BENCH_STREAM_RESPONSES=1; inactivity 120s, hard deadline 300s, max 1 retry)",
+    "core_conditions": ["Base", "BundleS"],
+    "repetitions_per_task_model_condition": 2,
+    "core_primary_episodes": 48,
+    "core_episode_breakdown": "2 families x 3 instances x 2 models x 2 conditions x 2 reps = 48",
+    "unit_of_external_validity_analysis": "task instance (n=3 per family); episodes are nested",
+    "counterbalancing": "seeded exact-counterbalanced blocked randomization, frozen pre-run (position balance asserted)",
+    "no_adaptive_k_escalation": true,
+    "no_task_or_wording_change_after_first_model_result": true,
+    "secondary_extension": {
+      "condition": "TypedContract",
+      "episodes": 24,
+      "breakdown": "2 families x 3 instances x 2 models x 1 condition x 2 reps = 24",
+      "executed_in_phase5a": false,
+      "separately_authorized": true
+    }
+  },
+  "outcomes": {
+    "primary": "semantic_binding_correctness (submitted tuple == golden tuple, binary per episode)",
+    "co_primary_diagnostic": {
+      "generic": ["axis/role_binding_failure", "role_conditioned_value_selection_failure"],
+      "family_A_subtypes": ["authority_unattested_binding", "coverage_cell_mismatch", "check_view_inversion", "scope_object_misbind"],
+      "family_B_subtypes": ["corner_authority_misbind", "load_authority_misbind", "metric_role_misbind", "analysis_implied_mismatch"]
+    },
+    "secondary": ["artifact_tool_correctness", "numeric_or_signoff_correctness", "evidence_provenance_correctness", "protocol_completion", "terminal_transport_validity", "recovered_transport_degradation", "actions", "tokens", "wall_time", "cost"]
+  },
+  "analysis_plan": {
+    "primary_contrast": "per-task paired Base vs BundleS, within instance, within model; instance is the unit; headline = per-instance paired direction + raw counts",
+    "family_effects": "A vs B reported separately (not pooled for primary)",
+    "model_effects": "Qwen vs DeepSeek reported separately",
+    "interactions": "model x harness, family x harness (descriptive only; n=3 instances/family)",
+    "uncertainty": "exact binomial per cell + non-parametric bootstrap over the 3 instances (instance = resampling unit)",
+    "significance_testing": "blocked only: exact sign test / McNemar over instance-level paired outcomes (n=3; underpowered), descriptive, never the headline",
+    "no_unblocked_pooled_significance_test_as_primary": true,
+    "replication_criterion": "consistent Base->BundleS improvement direction across the 3 instances of a family for a given model; clean null = no consistent direction; either is informative"
+  },
+  "budget": {
+    "per_episode_rate_cny": {"combined_mean": 11.72, "qwen_mean": 12.04, "deepseek_mean": 11.09, "manifest_floor": 11.0, "source": "derived from committed Phase-4 ledgers + Phase-4Z freeze manifest (682.25/62)"},
+    "core_48_cny": {"mid": 562.6, "low": 528.0, "high": 577.9},
+    "dev_pilot_cny": 93.8,
+    "exclusions_budgeted_cny": 46.9,
+    "phase5b_core_plus_pilot_cny": 703.0,
+    "secondary_24_cny": 281.3,
+    "all_in_cny": 984.0,
+    "committed_to_date_cny": 682.25,
+    "original_program_cap_cny": 1000,
+    "remaining_under_original_cap_cny": 317.75,
+    "budget_gate": "Phase-5B core-48 (~563) must be confirmed against current account balance before any paid call; under original cap, core-48 does NOT fit (shortfall ~245); fallback 1-rep/24 (~282) only via explicit re-review; never auto-k-cut",
+    "phase5a_paid_calls": 0
+  },
+  "infrastructure_reuse": [
+    "canonical_integrity.freeze/verify/enforce + run_chain_guarded.py (exact-commit isolated worktree; FAILED_INTEGRITY exit 3; no silent restore)",
+    "episode_arbiter (sole membership authority; measurement_valid = terminal_transport_valid AND workspace_gradeable)",
+    "chain_executor (stdin isolation; atomic state; arbiter ACCEPT/REPLACE/STOP)",
+    "request telemetry + SSE streaming; terminal_transport_valid vs recovered_transport_degradation",
+    "tool-health sentinel + fullpath_check + measurement_control block (L2 bookends; admissible iff both healthy; valid-unfavorable = hard fail)",
+    "custody byte-match (MANIFEST.json + SHA256SUMS)"
+  ],
+  "go_nogo_gates": [
+    "budget confirmed against current account balance",
+    "independence audit passes (5-dimension; mechanical check)",
+    "semantic-diff audit passes (no golden disclosure under any condition)",
+    "wrong-binding feasibility evidence baked per instance on real tool",
+    "fairness gates healthy (PT sentinel for A; HSPICE sentinel for B + fullpath checks)",
+    "clean canonical tree at freeze commit; cig.verify passes"
+  ],
+  "commit_sequence": {
+    "phase5a_docs_only": [
+      "docs(phase5a): cross-family external-validity design + predeclared analysis plan (+ this json)",
+      "docs(phase5a): Family A & B task specifications + independence audit",
+      "docs(phase5a): generator, grader, and fairness-gate plans",
+      "docs(phase5a): budget table, risk register, commit sequence"
+    ],
+    "phase5b_separately_authorized_not_executed": [
+      "feat(phase5b): Family A generator + grader + evaluator + dev instance",
+      "feat(phase5b): Family B generator + grader + evaluator + dev instance",
+      "feat(phase5b): hspice_health_sentinel + SPICE fullpath check (+ re-point PT gate)",
+      "feat(phase5b): phase5a_independence_check + semantic-diff audit wiring + tests",
+      "chore(phase5b): smoke both dev instances on b04 (golden=1.0; wrong-binding-green / wrong-tuple-plausible)",
+      "feat(phase5b): freeze scripts + manifests (cig.freeze) for 3x2 eval instances",
+      "feat(phase5b): analysis code (instance-resampling; paired tables; 6-dim for B) committed before first paid episode",
+      "chore(phase5b): pre-run review freeze",
+      "feat(phase5b): guarded execution (48 core episodes) -> pipeline + custody -> report",
+      "feat(phase5b-ext): TypedContract secondary (24 episodes) [further separately authorized]"
+    ]
+  },
+  "declaration": "Phase-5A is design-only. No paid model calls, no generator/grader implementation, no push. The predeclared design (families, instances, conditions, reps, outcomes, analysis) is frozen by this artifact; Phase-5B execution is separately authorized and gated by the budget confirmation and GO/NO-GO review. Held-out-family-2 remains untouched; no existing p14 task or report is modified."
+}
