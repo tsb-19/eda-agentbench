@@ -1,0 +1,79 @@
+{
+  "task_id": "p15_eval_0001",
+  "track": "p15_sta_handoff",
+  "golden": [
+    "cdc_isolate",
+    "cdc",
+    "setup"
+  ],
+  "wrong": [
+    "cdc_isolate",
+    "core",
+    "setup"
+  ],
+  "decoy_recipe": "stale_intent",
+  "signatures": {
+    "truth": "8081fb181beedae3",
+    "authority": "65a4986a8a785517",
+    "decoy": "89116d6990be1ec5",
+    "wrong_green": "b1993e36938f67d1"
+  },
+  "hard_feasibility": {
+    "wrong_tool_syntax_accepted": true,
+    "wrong_executes_finds_nonzero_paths": true,
+    "wrong_plausible_signoff_green": true,
+    "wrong_remains_semantically_wrong": true,
+    "wrong_rejected_by_provenance_not_PT": true,
+    "PASS": true
+  },
+  "output_channel_audit": {
+    "n_visible_candidates_run": 2,
+    "n_plausible": 2,
+    "plausible_candidates": [
+      "golden_('cdc_isolate', 'cdc', 'setup')",
+      "wrong_('cdc_isolate', 'core', 'setup')"
+    ],
+    "typed_space_size": 48,
+    "uniquely_determined_by_visible_surface": false,
+    "PASS": true
+  },
+  "semantic_diff_audit": {
+    "Base": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "BundleS": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "TypedContract": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    }
+  },
+  "info_equiv_audit": {
+    "roles_present_both": true,
+    "domain_values_present_both": true,
+    "same_role_presence": true,
+    "same_value_presence": true,
+    "same_semantic_facts": true,
+    "BundleS_forbidden_leak": [],
+    "TypedContract_forbidden_leak": [],
+    "both_omit_golden_answer_verifier": true,
+    "token_counts": {
+      "BundleS": 102,
+      "TypedContract": 78
+    },
+    "PASS": true
+  },
+  "wrong_green_but_unattested": true
+}

@@ -1,0 +1,104 @@
+{
+  "schema": "p16_meas_request_truth/v1",
+  "task_id": "p16_eval_0002",
+  "typed_axes": {
+    "corner": [
+      "SS_0p9_-40",
+      "TT_1p2_25",
+      "FF_1p3_125"
+    ],
+    "load_condition": [
+      "light",
+      "nominal",
+      "heavy"
+    ],
+    "metric": [
+      "gain",
+      "gbw",
+      "pm",
+      "slew",
+      "vdsat"
+    ]
+  },
+  "request": {
+    "metric": "gbw",
+    "src": "char_spec"
+  },
+  "authorities": {
+    "metric": {
+      "src": "char_spec",
+      "value": "gbw",
+      "trust": "primary"
+    },
+    "corner": {
+      "src": "mission_profile",
+      "value": "TT_1p2_25",
+      "trust": "primary"
+    },
+    "load_condition": {
+      "src": "application_note",
+      "value": "nominal",
+      "trust": "primary"
+    }
+  },
+  "decoy_authorities": [
+    {
+      "role": "corner",
+      "src": "mission_profile_stale",
+      "value": "SS_0p9_-40",
+      "trust": "none"
+    },
+    {
+      "role": "load_condition",
+      "src": "load_note_swapped",
+      "value": "heavy",
+      "trust": "none"
+    }
+  ],
+  "golden_join": {
+    "corner": "TT_1p2_25",
+    "load_condition": "nominal",
+    "metric": "gbw"
+  },
+  "wrong_join_plausible": {
+    "corner": "SS_0p9_-40",
+    "load_condition": "heavy",
+    "metric": "gbw"
+  },
+  "plausible_range": {
+    "gain": {
+      "min": 10.0,
+      "max": 60.0
+    },
+    "gbw": {
+      "min": 1.0,
+      "max": 300.0
+    },
+    "pm": {
+      "min": 30.0,
+      "max": 85.0
+    },
+    "slew": {
+      "min": 0.5,
+      "max": 400.0
+    },
+    "vdsat": {
+      "min": 0.04,
+      "max": 0.45
+    }
+  },
+  "units": {
+    "gain": "dB",
+    "gbw": "MHz",
+    "pm": "deg",
+    "slew": "V/us",
+    "vdsat": "V"
+  },
+  "analysis_for_metric": {
+    "gain": "ac",
+    "gbw": "ac",
+    "pm": "ac",
+    "slew": "tran",
+    "vdsat": "dc"
+  }
+}

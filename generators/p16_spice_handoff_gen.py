@@ -85,22 +85,25 @@ open("circuit_built.sp", "w").write(
 """
 
 PARSE_MEASURE_PY = """\
-# Public-ish parser: extract the requested metric's value from the HSPICE .lis.
+# Public parser: extract the requested metric's value from the HSPICE .lis (handles scale suffixes).
 import re, sys, json
+SCALE = {'':1,'f':1e-15,'p':1e-12,'n':1e-9,'u':1e-6,'m':1e-3,'%':1e-2,'k':1e3,'x':1e6,'meg':1e6,'g':1e9,'t':1e12}
 lis = open(sys.argv[1]).read() if len(sys.argv) > 1 else open("hspice_run.lis").read()
 metric = sys.argv[2] if len(sys.argv) > 2 else "gain"
 name = {"gain": "gain_db", "gbw": "gbw_hz", "pm": "pm_deg", "slew": "slew_v", "vdsat": "vdsat_v"}[metric]
 val = None
 for line in lis.splitlines():
-    m = re.match(r"^\\s*" + re.escape(name) + r"\\s*=\\s*([0-9.eE+\\-]+)", line)
+    m = re.match(r"^\\s*" + re.escape(name) + r"\\s*=\\s*([0-9.eE+\\-]+[a-zA-Z%]*)", line)
     if m:
-        try:
-            val = float(m.group(1)); break
-        except ValueError:
-            pass
-# gbw is in Hz; report in MHz. gain is in dB already.
+        tok = m.group(1).lower()
+        mm = re.match(r"^([-+]?[0-9]*\\.?[0-9]+(?:[eE][-+]?[0-9]+)?)([a-z%]*)$", tok)
+        if mm:
+            try:
+                val = float(mm.group(1)) * SCALE.get(mm.group(2), 1); break
+            except ValueError:
+                pass
 if val is not None and metric == "gbw":
-    val = val / 1e6
+    val = val / 1e6  # Hz -> MHz
 print(json.dumps({"metric": metric, "value": val, "measure_name": name}))
 """
 
@@ -109,18 +112,37 @@ def parse_lis_value(lis_text, metric):
     name = METRIC_MEASURE[metric]
     val = None
     for line in lis_text.splitlines():
-        m = re.match(r"^\s*" + re.escape(name) + r"\s*=\s*([0-9.eE+\-]+)", line)
+        m = re.match(r"^\s*" + re.escape(name) + r"\s*=\s*([0-9.eE+\-]+[a-zA-Z%]*)", line)
         if m:
-            try:
-                val = float(m.group(1)); break
-            except ValueError:
-                pass
+            v = _parse_hspice_num(m.group(1))
+            if v is not None:
+                val = v
+                break
     if val is not None and metric == "gbw":
-        val = val / 1e6
+        val = val / 1e6  # Hz -> MHz
     return val
 
 
 import re  # noqa: E402
+
+_HSPICE_SCALE = {"": 1, "f": 1e-15, "p": 1e-12, "n": 1e-9, "u": 1e-6, "um": 1e-6,
+                 "m": 1e-3, "%": 1e-2, "k": 1e3, "x": 1e6, "meg": 1e6, "g": 1e9, "t": 1e12}
+
+
+def _parse_hspice_num(tok):
+    """Parse a numeric token with an optional HSPICE scale suffix (e.g. '4.9335x' -> 4.9335e6)."""
+    tok = tok.strip().lower()
+    m = re.match(r"^([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)([a-z%]*)$", tok)
+    if not m:
+        return None
+    try:
+        base = float(m.group(1))
+    except ValueError:
+        return None
+    suf = m.group(2)
+    if suf not in _HSPICE_SCALE:
+        return None
+    return base * _HSPICE_SCALE[suf]
 
 
 # ---------------- truth (request-authority relational join) ----------------

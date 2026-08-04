@@ -1,0 +1,68 @@
+{
+  "results": {
+    "golden": {
+      "binding": {
+        "intent_class": "scan_override",
+        "target_partition": "scan",
+        "check_mode": "both"
+      },
+      "signoff_line": "SIGNOFF_OK worst_slack=0.600000",
+      "signoff_green": true,
+      "markers": {
+        "schema": "p15_grade_markers/v1",
+        "checks": {
+          "pt_signoff_green": true,
+          "semantic_binding": true,
+          "provenance_attested": true,
+          "coverage_cell_consistent": true,
+          "check_view_legal": true,
+          "not_masking": true
+        },
+        "tampered_truth": false,
+        "submitted": {
+          "intent_class": "scan_override",
+          "target_partition": "scan",
+          "check_mode": "both"
+        },
+        "failure_subtype": null,
+        "green_but_unattested": false
+      }
+    },
+    "wrong": {
+      "binding": {
+        "intent_class": "functional_close",
+        "target_partition": "core",
+        "check_mode": "setup"
+      },
+      "signoff_line": "SIGNOFF_OK worst_slack=0.600000",
+      "signoff_green": true,
+      "markers": {
+        "schema": "p15_grade_markers/v1",
+        "checks": {
+          "pt_signoff_green": true,
+          "semantic_binding": false,
+          "provenance_attested": false,
+          "coverage_cell_consistent": false,
+          "check_view_legal": true,
+          "not_masking": true
+        },
+        "tampered_truth": false,
+        "submitted": {
+          "intent_class": "functional_close",
+          "target_partition": "core",
+          "check_mode": "setup"
+        },
+        "failure_subtype": "authority_unattested_binding",
+        "green_but_unattested": true
+      }
+    }
+  },
+  "hard_feasibility": {
+    "wrong_tool_syntax_accepted": true,
+    "wrong_executes_finds_nonzero_paths": true,
+    "wrong_plausible_signoff_green": true,
+    "wrong_remains_semantically_wrong": true,
+    "wrong_rejected_by_provenance_not_PT": true,
+    "PASS": true
+  }
+}

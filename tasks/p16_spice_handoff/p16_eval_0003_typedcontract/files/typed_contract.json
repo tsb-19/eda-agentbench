@@ -1,0 +1,37 @@
+{
+  "schema": "p16_typed_contract/v1",
+  "typed_axes": {
+    "corner": {
+      "type": "enum",
+      "domain": [
+        "SS_0p9_-40",
+        "TT_1p2_25",
+        "FF_1p3_125"
+      ]
+    },
+    "load_condition": {
+      "type": "enum",
+      "domain": [
+        "light",
+        "nominal",
+        "heavy"
+      ]
+    },
+    "metric": {
+      "type": "enum",
+      "domain": [
+        "gain",
+        "gbw",
+        "pm",
+        "slew",
+        "vdsat"
+      ]
+    }
+  },
+  "authority_sources": {
+    "metric": "char_spec.md",
+    "corner": "mission_profile.md",
+    "load_condition": "application_note.md"
+  },
+  "procedure": "Join the request to its authorities: metric from char_spec, corner from mission_profile, load_condition from application_note; the deck measures a plausible number for any tuple, so correctness is authority-joined, not numeric."
+}

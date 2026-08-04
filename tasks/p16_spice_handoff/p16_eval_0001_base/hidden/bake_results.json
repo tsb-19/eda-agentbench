@@ -1,0 +1,72 @@
+{
+  "results": {
+    "golden": {
+      "binding": {
+        "corner": "SS_0p9_-40",
+        "load_condition": "light",
+        "metric": "gain"
+      },
+      "hspice_rc": 0,
+      "value": 40.0,
+      "sim_ok": true,
+      "markers": {
+        "schema": "p16_grade_markers/v1",
+        "dimensions": {
+          "simulation_success": true,
+          "numeric_validity": true,
+          "semantic_binding": true,
+          "evidence_provenance": true,
+          "artifact_completion": true,
+          "protocol_completion": true
+        },
+        "tampered_truth": false,
+        "submitted": {
+          "corner": "SS_0p9_-40",
+          "load_condition": "light",
+          "metric": "gain"
+        },
+        "plausible_but_wrong": false,
+        "failure_subtype": null
+      }
+    },
+    "wrong": {
+      "binding": {
+        "corner": "FF_1p3_125",
+        "load_condition": "heavy",
+        "metric": "gain"
+      },
+      "hspice_rc": 0,
+      "value": 29.5424,
+      "sim_ok": true,
+      "markers": {
+        "schema": "p16_grade_markers/v1",
+        "dimensions": {
+          "simulation_success": true,
+          "numeric_validity": true,
+          "semantic_binding": false,
+          "evidence_provenance": true,
+          "artifact_completion": true,
+          "protocol_completion": true
+        },
+        "tampered_truth": false,
+        "submitted": {
+          "corner": "FF_1p3_125",
+          "load_condition": "heavy",
+          "metric": "gain"
+        },
+        "plausible_but_wrong": true,
+        "failure_subtype": "corner_authority_misbind"
+      }
+    }
+  },
+  "hard_feasibility": {
+    "wrong_syntactically_valid": true,
+    "wrong_completes_simulation": true,
+    "wrong_produces_required_measurement": true,
+    "wrong_within_frozen_plausibility": true,
+    "wrong_not_trivially_numerically_failing": true,
+    "wrong_rejected_by_authority_not_numeric": true,
+    "grader_does_not_use_hidden_exact_answer": true,
+    "PASS": true
+  }
+}

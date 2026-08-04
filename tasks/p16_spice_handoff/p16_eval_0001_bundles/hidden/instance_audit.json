@@ -1,0 +1,81 @@
+{
+  "task_id": "p16_eval_0001",
+  "track": "p16_spice_handoff",
+  "golden": [
+    "SS_0p9_-40",
+    "light",
+    "gain"
+  ],
+  "wrong": [
+    "FF_1p3_125",
+    "heavy",
+    "gain"
+  ],
+  "decoy_recipe": "stale_corner",
+  "signatures": {
+    "truth": "8973892983727dc4",
+    "authority": "1a4858dd21c400b0",
+    "decoy": "824153c580dba8d2",
+    "wrong_green": "5352134156021d2c"
+  },
+  "hard_feasibility": {
+    "wrong_syntactically_valid": true,
+    "wrong_completes_simulation": true,
+    "wrong_produces_required_measurement": true,
+    "wrong_within_frozen_plausibility": true,
+    "wrong_not_trivially_numerically_failing": true,
+    "wrong_rejected_by_authority_not_numeric": true,
+    "grader_does_not_use_hidden_exact_answer": true,
+    "PASS": true
+  },
+  "output_channel_audit": {
+    "n_visible_candidates_run": 2,
+    "n_plausible": 2,
+    "plausible_candidates": [
+      "golden_('SS_0p9_-40', 'light', 'gain')",
+      "wrong_('FF_1p3_125', 'heavy', 'gain')"
+    ],
+    "typed_space_size": 45,
+    "uniquely_determined_by_visible_surface": false,
+    "PASS": true
+  },
+  "semantic_diff_audit": {
+    "Base": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "BundleS": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "TypedContract": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    }
+  },
+  "info_equiv_audit": {
+    "roles_present_both": true,
+    "domain_values_present_both": true,
+    "same_role_presence": true,
+    "same_value_presence": true,
+    "same_semantic_facts": true,
+    "BundleS_forbidden_leak": [],
+    "TypedContract_forbidden_leak": [],
+    "both_omit_golden_answer_verifier": true,
+    "token_counts": {
+      "BundleS": 97,
+      "TypedContract": 82
+    },
+    "PASS": true
+  },
+  "wrong_green_but_unattested": true
+}
