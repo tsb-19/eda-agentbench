@@ -1,0 +1,64 @@
+{
+  "task_id": "p16_dev_0000",
+  "track": "p16_spice_handoff",
+  "tool": [
+    "hspice"
+  ],
+  "difficulty": "hard",
+  "data_type": "flow_synthetic",
+  "resource_preset": "standard",
+  "timeout_sec": 300,
+  "max_tool_calls": 30,
+  "max_patch_attempts": 8,
+  "max_output_tokens": 32000,
+  "condition": "BundleS",
+  "files": {
+    "visible": [
+      "circuit_built.sp",
+      "meas_config.json",
+      "corner_models.json",
+      "load_models.json",
+      "build_deck.py",
+      "parse_measure.py",
+      "run_public.sh",
+      "char_spec.md",
+      "mission_profile.md",
+      "application_note.md",
+      "measurement.log"
+    ],
+    "editable": [
+      "meas_config.json"
+    ],
+    "hidden": [
+      "meas_request_truth.json",
+      "grade_spice_handoff.py",
+      "run_hidden.sh"
+    ],
+    "forbidden": [
+      "circuit_built.sp",
+      "run_public.sh",
+      "corner_models.json",
+      "load_models.json",
+      "meas_request_truth.json",
+      "grade_spice_handoff.py",
+      "run_hidden.sh"
+    ]
+  },
+  "run_command": "bash run_public.sh",
+  "scoring": {
+    "weights": {
+      "semantic_binding": 0.3,
+      "evidence_provenance": 0.2,
+      "simulation_success": 0.1,
+      "numeric_validity": 0.1,
+      "artifact_completion": 0.15,
+      "protocol_completion": 0.15
+    },
+    "evaluator": "spice_handoff.SPICEHandoffEvaluator"
+  },
+  "generator": {
+    "script": "p16_spice_handoff_gen.py",
+    "condition": "BundleS"
+  },
+  "version": "1.0.0"
+}
