@@ -1,0 +1,32 @@
+{
+  "schema": "phase5b_phase5c_budget_rule/v1",
+  "doc": "Phase-5C hard-spend rule, FROZEN in Phase-5B before any paid call. Per-slot cost re-estimated from the final primary prompts + visible tool artifacts via the committed Phase-4Z ledger rate (same task profile: streaming, max-actions 60, timeout 1800s, temp 0.7, elicit-confidence).",
+  "cost_basis": {
+    "per_episode_rate_cny": {"qwen_conservative": 12.04, "deepseek_conservative": 11.09, "source": "committed Phase-4 ledgers (Qwen mean 12.04 n=16, DeepSeek mean 11.09 n=8)"},
+    "note": "final eval-instance prompts are comparable in length/profile to p14 workflow-handoff (multi-artifact, max-actions 60); the Phase-4 rate is the binding projection"
+  },
+  "hard_spend_ceiling": {
+    "binding_under_committed_ledger_cny": 317.75,
+    "core_qwen24_projected_cny": 288.96,
+    "core_qwen24_plus_replacement_reserve_cny": 337.0,
+    "full48_projected_cny": 562.6,
+    "rule": "the hard ceiling is the CONFIRMED available balance at Phase-5C start. Under the committed ledger (~CNY318), the Qwen-24 core (~CNY289 + reserve) is within the ceiling; the full-48 (~CNY563) is NOT (requires >=CNY650-700 confirmed). If the confirmed ceiling is between, the Qwen-24 core runs and the full-48/DeepSeek extensions do not."
+  },
+  "replacement_reserve": {
+    "per_slot_reserve_cny": 12.04,
+    "max_replacements_per_slot": 2,
+    "reserve_rule": "a replacement reserve of (max_replacements x per_slot) is held per slot; total reserve bounded so core+reserve stays under the ceiling"
+  },
+  "replacement_policy": {
+    "only_terminal_measurement_invalid_may_be_replaced": true,
+    "terminal_measurement_invalid": "None result / None total_score / present infra error (per fairness_retry.is_measurement_infra_failure)",
+    "recovered_degradation_in_gradeable_episode": "does NOT trigger replacement (the episode is gradeable; the arbiter accepts it)",
+    "valid_unfavorable_score": "HARD fairness failure (block_hard_fail); NEVER retried/replaced"
+  },
+  "remaining_slot_projected_cost_rule": {
+    "rule": "before each slot, projected_remaining_cost = (remaining_primary_slots x per_slot) + reserve_already_consumed. If projected_remaining_cost > (ceiling - spent_so_far), STOP with an incomplete collection and report which slots were not collected.",
+    "no_k_cut": "do NOT reduce repetitions after results observed; do NOT omit a difficult instance; do NOT shorten only one condition; do NOT switch to one repetition; do NOT selectively continue DeepSeek; do NOT consume TypedContract budget"
+  },
+  "phase5b_paid_calls": 0,
+  "phase5c_execution": "separately authorized after Phase-5B gate review; this rule is frozen now"
+}
