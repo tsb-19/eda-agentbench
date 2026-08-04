@@ -155,6 +155,24 @@
     "format_note": "token count and surface format need not match; every semantic addition or omission must be disclosed in the inventory",
     "on_failure": "fail-closed regenerate at pre-run freeze"
   },
+  "construct_validity_status": {
+    "Family_A_grader": "real-tool construct-validated on the excluded development instance (2026-08-04)",
+    "Family_A_description": "A structurally independent semantic task family over shared generic PrimeTime infrastructure (the PT shim, tiny library, laundering path, and related generic infrastructure are reused — NOT a claim of complete technical-stack independence).",
+    "Family_A_accepted_result": [
+      "golden and wrong bindings are both accepted and executed by real PrimeTime",
+      "both have nonzero timing paths and signoff-green output",
+      "the wrong binding is not identifiable from PT failure",
+      "only the independently re-derived provenance/coverage relation distinguishes it",
+      "therefore tool success and signoff correctness are not sufficient evidence of semantic-handoff correctness"
+    ],
+    "Family_B_grader": "logic-verified (pending real-tool construct validation on the excluded dev instance)"
+  },
+  "family_A_primary_instance_requirements": {
+    "1_instance_diversity": "the 3 primary instances must vary the golden intent class, target partition, check mode, authority conflict, AND wrong-green candidate structure — not simple lexical relabels of cdc vs core",
+    "2_tool_green_diversity": ">=1 wrong semantic binding per instance remains PT-executable, nonzero-path, signoff-green; golden/wrong need NOT have identical slack (identical or different plausible green, or different nonzero path counts, are all acceptable); the invariant is that ordinary PT success/failure must not reveal semantic correctness",
+    "3_output_channel_leakage_audit": "audit all agent-visible PT outputs for answer channels (path-group/endpoint names, report ordering, warnings, path counts, exception counts, target-partition labels, generated filenames); require >=2 publicly plausible typed candidates after all visible tool information is considered",
+    "4_hidden_evidence_isolation": "hidden/wrong_binding_signoff.rpt and all golden/wrong fairness evidence remain evaluator-only; an anti-cheat regression proves the agent workspace cannot discover these via file traversal, grep, symlinks, tool commands, or evaluator paths"
+  },
   "infrastructure_reuse": [
     "canonical_integrity.freeze/verify/enforce + run_chain_guarded.py (exact-commit isolated worktree; FAILED_INTEGRITY exit 3; no silent restore)",
     "episode_arbiter (sole membership authority; measurement_valid = terminal_transport_valid AND workspace_gradeable)",

@@ -1,0 +1,33 @@
+{
+  "schema": "phase5_p16_plausibility_spec/v1",
+  "doc": "Family B (SPICE/HSPICE measurement-handoff) QUANTITATIVE PLAUSIBILITY SPECIFICATION. FROZEN before any HSPICE bake, INDEPENDENT of the observed golden or wrong-tuple output (declared a priori from physical expectation, not fit to results). A measured value inside these ranges is PLAUSIBLE (numeric_validity=True) but NOT correct: correctness is determined by the authority/provenance join (semantic_binding), never by closeness to a hidden exact numeric answer.",
+  "frozen_before_bake": true,
+  "independent_of_observed_output": true,
+  "frozen_at": "2026-08-04 (pre-bake)",
+  "metrics": {
+    "gain":  {"unit": "dB",   "range": [10.0, 60.0],   "analysis": "ac",   "measure": "peak magnitude of v(out)/v(in) in dB"},
+    "gbw":   {"unit": "MHz",  "range": [1.0, 300.0],   "analysis": "ac",   "measure": "frequency where gain crosses 0 dB"},
+    "pm":    {"unit": "deg",  "range": [30.0, 85.0],   "analysis": "ac",   "measure": "phase margin at the unity-gain frequency"},
+    "slew":  {"unit": "V/us", "range": [0.5, 400.0],   "analysis": "tran", "measure": "slew rate of v(out) over the input step"},
+    "vdsat": {"unit": "V",    "range": [0.04, 0.45],   "analysis": "dc",   "measure": "input device overdrive (Vgs-Vth) at the operating point"}
+  },
+  "global_requirements": {
+    "simulator_exit_zero": true,
+    "complete_and_parseable_lis": true,
+    "every_required_measurement_present": true,
+    "finite_numeric_values": true,
+    "explicit_physical_units": true,
+    "within_predeclared_range": true,
+    "no_NaN": true,
+    "no_missing_result": true,
+    "no_parser_fallback": true,
+    "no_simulator_error_signature": true
+  },
+  "hard_gate_wrong_tuple": {
+    "must": ["be syntactically valid", "complete HSPICE simulation", "produce all required measurements",
+             "remain within the frozen plausibility criteria", "not be rejectable from obvious numerical failure",
+             "be rejected by the independently derived authority/provenance relation"],
+    "grader_forbids": "classifying semantic correctness from closeness to a hidden exact numeric answer (semantic_binding compares the submitted (corner,load,metric) to the authority-joined golden, NOT the measured value to a hidden target)"
+  },
+  "on_violation": "if the wrong tuple is tool-red, numerically invalid, or trivially distinguishable on the dev instance, STOP before generating any primary Family B instance"
+}
