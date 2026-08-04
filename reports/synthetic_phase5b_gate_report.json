@@ -1,0 +1,115 @@
+{
+  "schema": "phase5b_gate_report/v1",
+  "status": "PASS \u2014 all gates green; ready for Phase-5C authorization review",
+  "grader_status": {
+    "Family_A": "real-tool construct-validated on excluded STA development instance",
+    "Family_B": "real-tool construct-validated on excluded SPICE development instance"
+  },
+  "per_instance": [
+    {
+      "task_id": "p15_eval_0001",
+      "family": "A_sta",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0002",
+      "family": "A_sta",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0003",
+      "family": "A_sta",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p16_eval_0001",
+      "family": "B_spice",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p16_eval_0002",
+      "family": "B_spice",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p16_eval_0003",
+      "family": "B_spice",
+      "hard_feasibility": true,
+      "output_channel": true,
+      "semantic_diff": true,
+      "info_equivalence": true,
+      "wrong_green_but_unattested": true
+    }
+  ],
+  "gates": {
+    "real_tool_hard_feasibility_all_6_instances": true,
+    "wrong_binding_feasibility_all_6": true,
+    "disclosure_output_channel": true,
+    "disclosure_semantic_diff": true,
+    "information_equivalence": true,
+    "fairness_infra_real_tool_validated": true,
+    "independence_operational_5_criteria": true,
+    "reproducibility_deterministic": true,
+    "anti_cheat_hidden_isolation": true,
+    "schedules_frozen_position_balanced": true,
+    "analysis_frozen_instance_unit": true,
+    "phase5c_budget_rule_frozen": true,
+    "custody_hashed": true,
+    "ALL_PASS": true
+  },
+  "independence_claim": "OPERATIONAL STRUCTURAL INDEPENDENCE under the five preregistered criteria (NOT a proof of independence)",
+  "family_tool_confound": "Family A (STA) runs on PrimeTime; Family B (SPICE) on HSPICE. Family and tool are CONFOUNDED: family-specific differences cannot be attributed to semantic domain vs tool environment. Inference is limited to the within-family, within-model Base-vs-BundleS contrast (tool held constant); cross-family comparison is descriptive only.",
+  "reproducibility": {
+    "check": "deterministic seed-regeneration -> byte-identical hidden truth",
+    "results": [
+      {
+        "family": "A",
+        "task": "p15_eval_0001",
+        "truth_byte_identical": true
+      },
+      {
+        "family": "B",
+        "task": "p16_eval_0001",
+        "truth_byte_identical": true
+      }
+    ],
+    "PASS": true
+  },
+  "custody": {
+    "head": "1b8bd804c2712ffae888248035a25f25197c986d",
+    "task_roots": 18,
+    "code_files": 17,
+    "path": "reports/evidence/phase5b_custody_manifest.json"
+  },
+  "schedules_summary": {
+    "schema": "phase5b_schedules_summary/v1",
+    "binding_core": "qwen24_core (24 ep) under committed-ledger budget",
+    "alternative": "full48_variant (48 ep) if >=CNY650-700 confirmed",
+    "extension": "deepseek24_extension (24 ep, all tasks, separately authorized)",
+    "typedcontract_secondary": "not in any schedule (separately authorized)",
+    "all_position_balanced": true
+  },
+  "budget_rule": "reports/synthetic_phase5b_phase5c_budget.json",
+  "phase5b_paid_model_calls": 0,
+  "declaration": "All six primary instances pass the real-tool, wrong-binding feasibility, disclosure, fairness, independence, reproducibility, anti-cheat, and information-equivalence gates. Schedules + analysis + Phase-5C budget rule are frozen. Phase-5B paid model calls = 0. Awaiting Phase-5C authorization (and budget-balance confirmation to select Qwen-24 vs full-48)."
+}
