@@ -1,0 +1,131 @@
+library (tiny) {
+  technology (cmos);
+  delay_model : table_lookup;
+  time_unit : "1ns";
+  voltage_unit : "1V";
+  current_unit : "1mA";
+  pulling_resistance_unit : "1kohm";
+  leakage_power_unit : "1nW";
+  capacitive_load_unit (1, pf);
+
+  nom_process : 1.0;
+  nom_temperature : 25.0;
+  nom_voltage : 1.0;
+  default_operating_conditions : "typ";
+  operating_conditions ("typ") {
+    process : 1.0;
+    temperature : 25.0;
+    voltage : 1.0;
+    tree_type : "balanced_tree";
+  }
+
+  default_input_pin_cap : 0.01;
+  default_output_pin_cap : 0.0;
+  default_fanout_load : 1.0;
+  default_max_transition : 1.0;
+
+  cell (BUFX1) {
+    area : 1.0;
+    pin (A) { direction : input; capacitance : 0.01; }
+    pin (Y) {
+      direction : output;
+      function : "A";
+      max_capacitance : 10.0;
+      timing () {
+        related_pin : "A";
+        timing_sense : positive_unate;
+        cell_rise (scalar) { values ("0.10"); }
+        cell_fall (scalar) { values ("0.10"); }
+        rise_transition (scalar) { values ("0.01"); }
+        fall_transition (scalar) { values ("0.01"); }
+      }
+    }
+  }
+
+  cell (INVX1) {
+    area : 1.0;
+    pin (A) { direction : input; capacitance : 0.01; }
+    pin (Y) {
+      direction : output;
+      function : "A'";
+      max_capacitance : 10.0;
+      timing () {
+        related_pin : "A";
+        timing_sense : negative_unate;
+        cell_rise (scalar) { values ("0.10"); }
+        cell_fall (scalar) { values ("0.10"); }
+        rise_transition (scalar) { values ("0.01"); }
+        fall_transition (scalar) { values ("0.01"); }
+      }
+    }
+  }
+
+  cell (AND2X1) {
+    area : 1.5;
+    pin (A) { direction : input; capacitance : 0.01; }
+    pin (B) { direction : input; capacitance : 0.01; }
+    pin (Y) {
+      direction : output;
+      function : "(A B)";
+      max_capacitance : 10.0;
+      timing () {
+        related_pin : "A";
+        timing_sense : positive_unate;
+        cell_rise (scalar) { values ("0.12"); }
+        cell_fall (scalar) { values ("0.12"); }
+        rise_transition (scalar) { values ("0.01"); }
+        fall_transition (scalar) { values ("0.01"); }
+      }
+      timing () {
+        related_pin : "B";
+        timing_sense : positive_unate;
+        cell_rise (scalar) { values ("0.12"); }
+        cell_fall (scalar) { values ("0.12"); }
+        rise_transition (scalar) { values ("0.01"); }
+        fall_transition (scalar) { values ("0.01"); }
+      }
+    }
+  }
+
+  cell (DFFX1) {
+    area : 4.0;
+    ff (IQ, IQN) {
+      next_state : "D";
+      clocked_on : "CK";
+    }
+    pin (D) {
+      direction : input;
+      capacitance : 0.01;
+      timing () {
+        related_pin : "CK";
+        timing_type : setup_rising;
+        rise_constraint (scalar) { values ("0.02"); }
+        fall_constraint (scalar) { values ("0.02"); }
+      }
+      timing () {
+        related_pin : "CK";
+        timing_type : hold_rising;
+        rise_constraint (scalar) { values ("0.01"); }
+        fall_constraint (scalar) { values ("0.01"); }
+      }
+    }
+    pin (CK) {
+      direction : input;
+      capacitance : 0.01;
+      clock : true;
+    }
+    pin (Q) {
+      direction : output;
+      function : "IQ";
+      max_capacitance : 10.0;
+      timing () {
+        related_pin : "CK";
+        timing_type : rising_edge;
+        cell_rise (scalar) { values ("0.08"); }
+        cell_fall (scalar) { values ("0.08"); }
+        rise_transition (scalar) { values ("0.01"); }
+        fall_transition (scalar) { values ("0.01"); }
+      }
+    }
+  }
+}
