@@ -1,0 +1,37 @@
+{
+  "schema": "phase5_independence_check/v1",
+  "claim": "OPERATIONAL STRUCTURAL INDEPENDENCE under the five preregistered criteria (NOT a proof of independence)",
+  "criteria": {
+    "C1_no_p14_import": {
+      "pass": true,
+      "findings": []
+    },
+    "C2_vocab_disjoint_from_p14": {
+      "pass": true,
+      "findings": []
+    },
+    "C3_no_p14_truth_keys": {
+      "pass": true,
+      "findings": []
+    },
+    "C4_distinct_grader_no_master_gate": {
+      "pass": true,
+      "findings": []
+    },
+    "C5_distinct_decoy_recipe": {
+      "pass": true,
+      "findings": []
+    }
+  },
+  "all_pass": true,
+  "shared_infrastructure_disclosed": [
+    "PrimeTime shim (forwarder to b04)",
+    "tiny.db / tiny.lib (shared 4-cell single-corner Liberty)",
+    "read_db/link_design/read_sdc PT setup",
+    "read_sdc/write_sdc laundering + [apply]-prefix anti-injection",
+    "HSPICE shim (forwarder to b04)",
+    ".measure/.lis run+parse pattern",
+    "canonical-tree integrity guard, chain_executor, episode_arbiter, freeze/pipeline/launcher, custody"
+  ],
+  "family_tool_confound": "Family A (STA) runs on PrimeTime; Family B (SPICE) on HSPICE. Family and tool are CONFOUNDED: family-specific differences cannot be attributed to semantic domain vs tool environment. Inference is limited to the within-family, within-model Base-vs-BundleS contrast (tool held constant); cross-family comparison is descriptive only."
+}
