@@ -11,7 +11,7 @@ PJ="$("$PY_CMD" parse_measure.py hspice_run.lis "$METRIC")"
 VALUE=$(echo "$PJ" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("value"))')
 ANALYSIS=$(python3 -c 'import json;a={"gain":"ac","gbw":"ac","pm":"ac","slew":"tran","vdsat":"dc"};print(a.get("'$METRIC'","ac"))')
 SIM_OK=$( [ $RC -eq 0 ] && [ -f hspice_run.lis ] && [ "$VALUE" != "None" ] && echo true || echo false )
-"$PY_CMD" - <<JSON > measure_result.json
+cat > measure_result.json <<JSON
 {"sim_ok": $SIM_OK, "value": ${VALUE:-null}, "metric": "$METRIC", "analysis": "$ANALYSIS", "hspice_rc": $RC}
 JSON
 "$PY_CMD" grade_spice_handoff.py

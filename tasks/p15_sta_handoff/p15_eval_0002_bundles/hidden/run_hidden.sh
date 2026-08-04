@@ -14,7 +14,7 @@ SIGN_LINE=$(echo "$SIGN_OUT" | grep -E '^SIGNOFF_OK|^SIGNOFF_FAIL' || echo 'SIGN
 SLACK=$(echo "$SIGN_LINE" | sed -E 's/.*worst_slack=([-0-9.]+|NONE).*/\1/')
 GREEN=$(echo "$SIGN_LINE" | grep -q '^SIGNOFF_OK' && echo true || echo false)
 AEX=$(grep -cE 'set_false_path|set_multicycle_path' applied_hidden.sdc 2>/dev/null || echo 0)
-"$PY_CMD" - <<JSON > signoff_result.json
+cat > signoff_result.json <<JSON
 {"signoff_green": $GREEN, "worst_slack": "$SLACK", "applied_exception_lines": $AEX, "expected_exception_lines": 1, "signoff_line": "$SIGN_LINE"}
 JSON
 # Phase 3: provenance/authority grade (python; reads truth + signoff_result + applied_hidden.sdc from cwd)
