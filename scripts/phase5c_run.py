@@ -46,9 +46,23 @@ def _setup_env():
     e["EDA_BENCH_STREAM_RESPONSES"] = "1"
     e["EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC"] = "120"; e["EDA_BENCH_LLM_REQUEST_DEADLINE_SEC"] = "300"
     e["EDA_BENCH_MAX_CHAT_RETRIES"] = "1"; e["EDA_BENCH_PRESERVE_FINAL_WORKSPACE"] = "1"
-    # load the .env gateway (API_KEY/BASE_URL) into the process env. .env is gitignored, so it
-    # lives in the MAIN repo (not this worktree); try a list of candidate paths.
-    for envf in (Path("/data1/tongsb/eda-agentbench/.env"), REPO / ".env", REPO.parent / ".env"):
+    # load the .env gateway (API_KEY/BASE_URL). .env is gitignored -> not in the worktree; it lives
+    # in the MAIN repo. Discover it WITHOUT a hardcoded user-absolute path: honor an explicit
+    # EDA_BENCH_GATEWAY_ENV override, else derive the main-repo root from the worktree's shared git
+    # dir (git rev-parse --git-common-dir), else fall back to the worktree itself. Fail-closed if none.
+    import subprocess as _sp
+    candidates = []
+    if e.get("EDA_BENCH_GATEWAY_ENV"):
+        candidates.append(Path(e["EDA_BENCH_GATEWAY_ENV"]))
+    try:
+        common = _sp.run(["git", "-C", str(REPO), "rev-parse", "--git-common-dir"],
+                         capture_output=True, text=True).stdout.strip()
+        if common:
+            candidates.append(Path(common).resolve().parent / ".env")  # main-repo root /.env
+    except Exception:
+        pass
+    candidates.append(REPO / ".env")
+    for envf in candidates:
         if envf.is_file():
             for line in envf.read_text().splitlines():
                 line = line.strip()
@@ -58,7 +72,8 @@ def _setup_env():
     for k, v in e.items():
         os.environ[k] = v
     if not e.get("API_KEY") or not e.get("BASE_URL"):
-        raise SystemExit("phase5c_run: API_KEY/BASE_URL not provisioned (no .env gateway with real values)")
+        raise SystemExit("phase5c_run: API_KEY/BASE_URL not provisioned (no .env gateway with real values; "
+                         "set EDA_BENCH_GATEWAY_ENV=/path/to/.env)")
     return e
 
 
