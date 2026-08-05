@@ -1,0 +1,237 @@
+{
+  "model": "Qwen3.7-Max",
+  "task_id": "p16_eval_0001",
+  "track": "p16_spice_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "ls -la",
+      "rc": 0,
+      "out": "total 1756\ndrwxrwxr-x    2 tongsb tongsb    4096 Aug  5 00:32 .\ndrwxrwxrwt 3767 root   root   1740800 Aug  6 00:38 ..\n-rw-rw-r--    1 tongsb tongsb      90 Aug  5 00:32 application_note.md\n-rw-rw-r--    1 tongsb tongsb     783 Aug  5 00:32 build_deck.py\n-rw-rw-r--    1 tongsb tongsb     147 Aug  5 00:32 char_spec.md\n-rw-rw-r--    1 tongsb tongsb     323 Aug  5 00:32 circuit_built.sp\n-rw-rw-r--    1 tongsb tongsb      96 Aug  5 00:32 corner_models.json\n-rw-rw-r--    1 tongsb tongsb     757 Aug  5 00:32 disclosure_bundles.md\n-rw-rw-r--    1 tongsb tongsb      83 Aug  5 00:32 load_models.json\n-rw-rw-r--    1 tongsb tongsb     202 Aug  5 00:32 meas_config.json\n-rw-rw-r--    1 tongsb tongsb     206 Aug  5 00:32 measurement.log\n-rw-rw-r--    1 tongsb tongsb     106 Aug  5 00:32 mission_profile.md\n-rw-rw-r--    1 tongsb tongsb    1046 Aug  5 00:32 parse_measure.py\n-rwxr-xr-x    1 tongsb tongsb     600 Aug  5 00:32 run_public.sh\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat disclosure_bundles.md",
+      "rc": 0,
+      "out": "# Disclosure bundle (BundleS: C1+C2+C4+C7, non-answer-bearing)\n\n## C1 canonical labels + disjoint-axis declaration\nTyped roles: corner, load_condition, metric \u2014 DISJOINT typed axes.\n\n## C2 value-domain definitions\n- corner in ['SS_0p9_-40', 'TT_1p2_25', 'FF_1p3_125']\n- load_condition in ['light', 'nominal', 'heavy']\n- metric in ['gain', 'gbw', 'pm', 'slew', 'vdsat']\n\n## C4 glossary + references\n- metric: see char_spec.md\n- corner: see mission_profile.md\n- load_condition: see application_note.md\n\n## C7 procedural contract\nJoin the request to its authorities: metric from char_spec, corner from mission_profile, load_condition from application_note; the deck measures a plausible number for any tuple, so correctness is authority-joined, not numeric.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat char_spec.md mission_profile.md application_note.md meas_config.json",
+      "rc": 0,
+      "out": "# Characterization spec (authority: REQ, primary)\nRequested measurement (metric): **gain**.\n (canonical typed roles: corner/load_condition/metric)\n# PVT mission profile (authority: PVT, primary)\nSignoff corner for this characterization: **SS_0p9_-40**.\n# Application / load note (authority: LOAD, primary)\nOperating load condition: **light**.\n{\n  \"_comment\": \"measurement binding (editable). Ships a plausible-but-wrong tuple; repair to the authority-joined binding.\",\n  \"corner\": \"FF_1p3_125\",\n  \"load_condition\": \"heavy\",\n  \"metric\": \"gain\"\n}\n"
+    },
+    {
+      "type": "write",
+      "file": "meas_config.json",
+      "bytes": 202
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "Using: /EDA/soft2/synopsys/hspice/S-2021.09-SP1/hspice/linux64/hspice  -i 'circuit_built.sp' -o hspice_run\n\n>info:         ***** hspice job concluded\n=== measured value (no verdict) ===\n{\"metric\": \"gain\", \"value\": 40.0, \"measure_name\": \"gain_db\"}\n"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 8201,
+    "completion_tokens": 711,
+    "reasoning_tokens": 568
+  },
+  "finished": true,
+  "edited": [
+    "meas_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947931.887,
+          "end_ts": 1785947933.364,
+          "elapsed_s": 1.477,
+          "termination": "normal_exit",
+          "worker_pid": 3468874,
+          "body_sha256": "22e7ab157564",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.658,
+      "stream_duration_s": 0.772,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947933.371,
+          "end_ts": 1785947935.491,
+          "elapsed_s": 2.121,
+          "termination": "normal_exit",
+          "worker_pid": 3468930,
+          "body_sha256": "4a125af6ea91",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.9919,
+      "stream_duration_s": 1.0282,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947935.497,
+          "end_ts": 1785947936.802,
+          "elapsed_s": 1.305,
+          "termination": "normal_exit",
+          "worker_pid": 3468978,
+          "body_sha256": "7bee52071d67",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.4361,
+      "stream_duration_s": 0.5684,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947936.805,
+          "end_ts": 1785947942.211,
+          "elapsed_s": 5.406,
+          "termination": "normal_exit",
+          "worker_pid": 3469038,
+          "body_sha256": "6b1ba696c82c",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.6373,
+      "stream_duration_s": 2.9731,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947942.212,
+          "end_ts": 1785947953.562,
+          "elapsed_s": 11.351,
+          "termination": "normal_exit",
+          "worker_pid": 3469229,
+          "body_sha256": "029dc198f12f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.3337,
+      "stream_duration_s": 1.4987,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785947961.688,
+          "end_ts": 1785948005.676,
+          "elapsed_s": 43.989,
+          "termination": "normal_exit",
+          "worker_pid": 3469844,
+          "body_sha256": "d23843e48c93",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 5.5137,
+      "stream_duration_s": 5.7858,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 6,
+    "total_physical_attempts": 6,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}

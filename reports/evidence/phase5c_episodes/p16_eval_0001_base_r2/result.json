@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "p16_eval_0001",
+  "track": "p16_spice_handoff",
+  "mode": "agentic",
+  "total_score": 0.0,
+  "objective_score": 0.0,
+  "explanation_score": 0.0,
+  "max_possible": 1.0,
+  "passed": false,
+  "passing_threshold": 0.5,
+  "evaluation_time_sec": 16.073124647140503,
+  "components": [],
+  "anti_cheat": {
+    "forbidden_files_modified": true,
+    "checked_files": [
+      "circuit_built.sp",
+      "run_public.sh",
+      "corner_models.json",
+      "load_models.json",
+      "meas_request_truth.json",
+      "grade_spice_handoff.py",
+      "run_hidden.sh"
+    ],
+    "hash_mismatches": [
+      "circuit_built.sp (modified)"
+    ],
+    "tcl_injection": [],
+    "hidden_shadows": []
+  },
+  "resource_usage": {
+    "wall_time_sec": 16.07
+  },
+  "metadata": {
+    "difficulty": "hard",
+    "data_type": "flow_synthetic",
+    "tool": [
+      "hspice"
+    ],
+    "version": "1.0.0",
+    "agent_cmd": "python3 \"/data1/tongsb/eda-agentbench-synthetic-phase0a/scripts/llm_agent_driver.py\" --model \"Qwen3.7-Max\" --models \"/data1/tongsb/eda-agentbench-synthetic-phase0a/configs/baseline_models.json\" --max-actions 60 --temperature 0.7 --elicit-confidence --stream-responses 1 --request-timeout-sec 120 --request-deadline-sec 300 --max-chat-retries 1 --log \"/data1/tongsb/eda-agentbench-synthetic-phase0a/runs/phase5c/p16_eval_0001_base_r2.agentlog.json\"",
+    "agent_exit_code": 0,
+    "agent_timed_out": false
+  },
+  "reliability": {
+    "confidence_decision": "",
+    "format_ok": null,
+    "protocol_status": "ok",
+    "overconfident_wrong": false,
+    "underconfident_correct": false,
+    "abstained": false
+  }
+}

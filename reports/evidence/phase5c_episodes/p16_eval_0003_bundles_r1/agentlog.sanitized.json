@@ -1,0 +1,272 @@
+{
+  "model": "Qwen3.7-Max",
+  "task_id": "p16_eval_0003",
+  "track": "p16_spice_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "ls -la",
+      "rc": 0,
+      "out": "total 1756\ndrwxrwxr-x    2 tongsb tongsb    4096 Aug  5 00:33 .\ndrwxrwxrwt 3767 root   root   1740800 Aug  6 00:45 ..\n-rw-rw-r--    1 tongsb tongsb      90 Aug  5 00:33 application_note.md\n-rw-rw-r--    1 tongsb tongsb     783 Aug  5 00:33 build_deck.py\n-rw-rw-r--    1 tongsb tongsb     147 Aug  5 00:33 char_spec.md\n-rw-rw-r--    1 tongsb tongsb     323 Aug  5 00:33 circuit_built.sp\n-rw-rw-r--    1 tongsb tongsb      96 Aug  5 00:33 corner_models.json\n-rw-rw-r--    1 tongsb tongsb     757 Aug  5 00:33 disclosure_bundles.md\n-rw-rw-r--    1 tongsb tongsb      83 Aug  5 00:33 load_models.json\n-rw-rw-r--    1 tongsb tongsb     203 Aug  5 00:33 meas_config.json\n-rw-rw-r--    1 tongsb tongsb     207 Aug  5 00:33 measurement.log\n-rw-rw-r--    1 tongsb tongsb     106 Aug  5 00:33 mission_profile.md\n-rw-rw-r--    1 tongsb tongsb    1046 Aug  5 00:33 parse_measure.py\n-rwxr-xr-x    1 tongsb tongsb     600 Aug  5 00:33 run_public.sh\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat disclosure_bundles.md",
+      "rc": 0,
+      "out": "# Disclosure bundle (BundleS: C1+C2+C4+C7, non-answer-bearing)\n\n## C1 canonical labels + disjoint-axis declaration\nTyped roles: corner, load_condition, metric \u2014 DISJOINT typed axes.\n\n## C2 value-domain definitions\n- corner in ['SS_0p9_-40', 'TT_1p2_25', 'FF_1p3_125']\n- load_condition in ['light', 'nominal', 'heavy']\n- metric in ['gain', 'gbw', 'pm', 'slew', 'vdsat']\n\n## C4 glossary + references\n- metric: see char_spec.md\n- corner: see mission_profile.md\n- load_condition: see application_note.md\n\n## C7 procedural contract\nJoin the request to its authorities: metric from char_spec, corner from mission_profile, load_condition from application_note; the deck measures a plausible number for any tuple, so correctness is authority-joined, not numeric.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat char_spec.md mission_profile.md application_note.md",
+      "rc": 0,
+      "out": "# Characterization spec (authority: REQ, primary)\nRequested measurement (metric): **gain**.\n (canonical typed roles: corner/load_condition/metric)\n# PVT mission profile (authority: PVT, primary)\nSignoff corner for this characterization: **FF_1p3_125**.\n# Application / load note (authority: LOAD, primary)\nOperating load condition: **light**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat meas_config.json corner_models.json load_models.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"measurement binding (editable). Ships a plausible-but-wrong tuple; repair to the authority-joined binding.\",\n  \"corner\": \"TT_1p2_25\",\n  \"load_condition\": \"nominal\",\n  \"metric\": \"gain\"\n}\n{\n  \"corner_av\": {\n    \"SS_0p9_-40\": 100.0,\n    \"TT_1p2_25\": 50.0,\n    \"FF_1p3_125\": 30.0\n  }\n}\n{\n  \"load_c\": {\n    \"light\": 1e-12,\n    \"nominal\": 5e-12,\n    \"heavy\": 2e-11\n  }\n}\n"
+    },
+    {
+      "type": "write",
+      "file": "meas_config.json",
+      "bytes": 202
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "Using: /EDA/soft2/synopsys/hspice/S-2021.09-SP1/hspice/linux64/hspice  -i 'circuit_built.sp' -o hspice_run\n\n>info:         ***** hspice job concluded\n=== measured value (no verdict) ===\n{\"metric\": \"gain\", \"value\": 29.5424, \"measure_name\": \"gain_db\"}\n"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 10150,
+    "completion_tokens": 1037,
+    "reasoning_tokens": 775
+  },
+  "finished": true,
+  "edited": [
+    "meas_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948351.945,
+          "end_ts": 1785948359.598,
+          "elapsed_s": 7.653,
+          "termination": "normal_exit",
+          "worker_pid": 3483402,
+          "body_sha256": "9c3061227113",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.7358,
+      "stream_duration_s": 0.7625,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948359.605,
+          "end_ts": 1785948361.434,
+          "elapsed_s": 1.829,
+          "termination": "normal_exit",
+          "worker_pid": 3483817,
+          "body_sha256": "072f4412506a",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.0217,
+      "stream_duration_s": 1.0464,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948361.44,
+          "end_ts": 1785948381.9,
+          "elapsed_s": 20.46,
+          "termination": "normal_exit",
+          "worker_pid": 3483830,
+          "body_sha256": "6f57e6f1e593",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.4468,
+      "stream_duration_s": 0.6508,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948381.905,
+          "end_ts": 1785948395.067,
+          "elapsed_s": 13.162,
+          "termination": "normal_exit",
+          "worker_pid": 3484400,
+          "body_sha256": "bb9c75e54d06",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.2883,
+      "stream_duration_s": 12.2887,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948395.071,
+          "end_ts": 1785948410.259,
+          "elapsed_s": 15.188,
+          "termination": "normal_exit",
+          "worker_pid": 3484768,
+          "body_sha256": "2a12a29b7f4b",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 14.0206,
+      "stream_duration_s": 14.0211,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948410.26,
+          "end_ts": 1785948419.916,
+          "elapsed_s": 9.656,
+          "termination": "normal_exit",
+          "worker_pid": 3485182,
+          "body_sha256": "1127da68ab82",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.4715,
+      "stream_duration_s": 0.644,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 6,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1785948428.025,
+          "end_ts": 1785948435.416,
+          "elapsed_s": 7.391,
+          "termination": "normal_exit",
+          "worker_pid": 3485791,
+          "body_sha256": "15d4801af1c3",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 5.9407,
+      "stream_duration_s": 6.6595,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 7,
+    "total_physical_attempts": 7,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}
