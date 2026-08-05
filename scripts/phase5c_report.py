@@ -28,6 +28,26 @@ def _load_json(p):
         return {}
 
 
+import re as _re
+_SAFE_NAME = _re.compile(r"^[A-Za-z0-9_]+$")
+
+
+def _safe_name(value, field):
+    """Validate an identifier used in path construction: only [A-Za-z0-9_], no separators/'.'.
+    Prevents path traversal if the durable state file is ever tampered."""
+    if not isinstance(value, str) or not _SAFE_NAME.match(value):
+        raise ValueError(f"unsafe {field}: {value!r}")
+    return value
+
+
+def _under(path, root):
+    """Assert a resolved path stays within root (defense-in-depth against traversal)."""
+    p = Path(path).resolve(); r = Path(root).resolve()
+    if not str(p).startswith(str(r) + "/") and p != r:
+        raise ValueError(f"path escapes root: {p}")
+    return p
+
+
 def _sem_subtype(family, submitted, truth):
     """Re-grade: semantic_binding (submitted==golden on the typed axes) + family-specific subtype."""
     if family == "A_sta":
@@ -62,11 +82,13 @@ def _sem_subtype(family, submitted, truth):
 
 
 def _truth_for(family, task_id):
+    _safe_name(family, "family"); _safe_name(task_id, "task_id")
     track = "p15_sta_handoff" if family == "A_sta" else "p16_spice_handoff"
     base_id = task_id.rsplit("_", 1)[0] if task_id.endswith(("_base", "_bundles", "_typedcontract")) else task_id
+    _safe_name(base_id, "base_id")
     tn = "signoff_intent_truth.json" if family == "A_sta" else "meas_request_truth.json"
     for cond in ("_bundles", "_base"):
-        p = REPO / "tasks" / track / f"{base_id}{cond}" / "hidden" / tn
+        p = _under(REPO / "tasks" / track / f"{base_id}{cond}" / "hidden" / tn, REPO)
         if p.is_file():
             return _load_json(p)
     return {}
@@ -80,13 +102,13 @@ def build():
     st = _load_json(STATE)
     episodes = []
     for rec in st.get("episodes", []):
-        tid = rec["task_id"]; fam = rec["family"]; trial = rec["trial"]
+        tid = _safe_name(rec["task_id"], "task_id"); fam = _safe_name(rec["family"], "family"); trial = _safe_name(rec["trial"], "trial")
         truth = _truth_for(fam, tid)
         ef = _edit_name(fam)
-        sub = _load_json(EVIDENCE / trial / f"{ef}.submitted.json")
+        sub = _load_json(_under(EVIDENCE / trial / f"{ef}.submitted.json", EVIDENCE))
         sem, subtype = _sem_subtype(fam, sub, truth) if sub else (None, "no_submitted_config")
-        sc = _load_json(EVIDENCE / trial / "result.json")
-        ag = _load_json(EVIDENCE / trial / "agentlog.sanitized.json")
+        sc = _load_json(_under(EVIDENCE / trial / "result.json", EVIDENCE))
+        ag = _load_json(_under(EVIDENCE / trial / "agentlog.sanitized.json", EVIDENCE))
         comps = sc.get("component_scores", {}) or {}
         ts = ag.get("transport_summary") or {}
         usage = ag.get("usage") or {}
