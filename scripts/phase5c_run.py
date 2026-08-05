@@ -46,15 +46,19 @@ def _setup_env():
     e["EDA_BENCH_STREAM_RESPONSES"] = "1"
     e["EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC"] = "120"; e["EDA_BENCH_LLM_REQUEST_DEADLINE_SEC"] = "300"
     e["EDA_BENCH_MAX_CHAT_RETRIES"] = "1"; e["EDA_BENCH_PRESERVE_FINAL_WORKSPACE"] = "1"
-    # load the .env gateway (API_KEY/BASE_URL) into the process env
-    envf = REPO / ".env"
-    if envf.is_file():
-        for line in envf.read_text().splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1); e[k.strip()] = v.strip().strip('"').strip("'")
+    # load the .env gateway (API_KEY/BASE_URL) into the process env. .env is gitignored, so it
+    # lives in the MAIN repo (not this worktree); try a list of candidate paths.
+    for envf in (Path("/data1/tongsb/eda-agentbench/.env"), REPO / ".env", REPO.parent / ".env"):
+        if envf.is_file():
+            for line in envf.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1); e[k.strip()] = v.strip().strip('"').strip("'")
+            break
     for k, v in e.items():
         os.environ[k] = v
+    if not e.get("API_KEY") or not e.get("BASE_URL"):
+        raise SystemExit("phase5c_run: API_KEY/BASE_URL not provisioned (no .env gateway with real values)")
     return e
 
 
