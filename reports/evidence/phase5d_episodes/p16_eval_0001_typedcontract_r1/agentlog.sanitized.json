@@ -1,0 +1,357 @@
+{
+  "model": "Qwen3.7-Max",
+  "task_id": "p16_eval_0001",
+  "track": "p16_spice_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "cat meas_config.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"measurement binding (editable). Ships a plausible-but-wrong tuple; repair to the authority-joined binding.\",\n  \"corner\": \"FF_1p3_125\",\n  \"load_condition\": \"heavy\",\n  \"metric\": \"gain\"\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat char_spec.md",
+      "rc": 0,
+      "out": "# Characterization spec (authority: REQ, primary)\nRequested measurement (metric): **gain**.\n (canonical typed roles: corner/load_condition/metric)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat mission_profile.md",
+      "rc": 0,
+      "out": "# PVT mission profile (authority: PVT, primary)\nSignoff corner for this characterization: **SS_0p9_-40**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat application_note.md",
+      "rc": 0,
+      "out": "# Application / load note (authority: LOAD, primary)\nOperating load condition: **light**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat corner_models.json",
+      "rc": 0,
+      "out": "{\n  \"corner_av\": {\n    \"SS_0p9_-40\": 100.0,\n    \"TT_1p2_25\": 50.0,\n    \"FF_1p3_125\": 30.0\n  }\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat load_models.json",
+      "rc": 0,
+      "out": "{\n  \"load_c\": {\n    \"light\": 1e-12,\n    \"nominal\": 5e-12,\n    \"heavy\": 2e-11\n  }\n}\n"
+    },
+    {
+      "type": "write",
+      "file": "meas_config.json",
+      "bytes": 202
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "Using: /EDA/soft2/synopsys/hspice/S-2021.09-SP1/hspice/linux64/hspice  -i 'circuit_built.sp' -o hspice_run\n\n>info:         ***** hspice job concluded\n=== measured value (no verdict) ===\n{\"metric\": \"gain\", \"value\": 40.0, \"measure_name\": \"gain_db\"}\n"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 9034,
+    "completion_tokens": 1275,
+    "reasoning_tokens": 1018
+  },
+  "finished": true,
+  "edited": [
+    "meas_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 1,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033125.063,
+          "end_ts": 1786033128.202,
+          "elapsed_s": 3.138,
+          "termination": "normal_exit",
+          "worker_pid": 682085,
+          "body_sha256": "9a0e66ea6228",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.6444,
+      "stream_duration_s": 0.7953,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033128.207,
+          "end_ts": 1786033129.673,
+          "elapsed_s": 1.466,
+          "termination": "normal_exit",
+          "worker_pid": 682102,
+          "body_sha256": "ff0a621ca787",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.3978,
+      "stream_duration_s": 0.4476,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033129.678,
+          "end_ts": 1786033137.175,
+          "elapsed_s": 7.497,
+          "termination": "normal_exit",
+          "worker_pid": 682109,
+          "body_sha256": "581cfdd5c034",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.3918,
+      "stream_duration_s": 0.4843,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033137.181,
+          "end_ts": 1786033151.683,
+          "elapsed_s": 14.503,
+          "termination": "normal_exit",
+          "worker_pid": 682176,
+          "body_sha256": "efd1cc39ad4f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.0007,
+      "stream_duration_s": 0.001,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033151.689,
+          "end_ts": 1786033165.905,
+          "elapsed_s": 14.216,
+          "termination": "normal_exit",
+          "worker_pid": 682305,
+          "body_sha256": "380edbcd3afb",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.1946,
+      "stream_duration_s": 3.3045,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033165.909,
+          "end_ts": 1786033170.11,
+          "elapsed_s": 4.201,
+          "termination": "normal_exit",
+          "worker_pid": 682436,
+          "body_sha256": "9bcc9e61d2a4",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 2.8818,
+      "stream_duration_s": 2.9545,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 6,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033170.115,
+          "end_ts": 1786033183.414,
+          "elapsed_s": 13.299,
+          "termination": "normal_exit",
+          "worker_pid": 682446,
+          "body_sha256": "ed624d908ddf",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 4.6491,
+      "stream_duration_s": 5.4306,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 7,
+      "total_attempts": 2,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "socket_timeout",
+          "retryable": true,
+          "status": null,
+          "start_ts": 1786033183.415,
+          "end_ts": 1786033303.637,
+          "elapsed_s": 120.222,
+          "termination": "normal_exit",
+          "worker_pid": 682564,
+          "body_sha256": "9c0a3b762fc9",
+          "next_delay_s": 3.0
+        },
+        {
+          "attempt_index": 1,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033306.638,
+          "end_ts": 1786033309.921,
+          "elapsed_s": 3.284,
+          "termination": "normal_exit",
+          "worker_pid": 683608,
+          "body_sha256": "9c0a3b762fc9",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 1,
+      "recovered_categories": [
+        "socket_timeout"
+      ],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 123.222,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0003,
+      "time_to_first_answer_s": 0.5385,
+      "stream_duration_s": 0.5792,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 8,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033318.953,
+          "end_ts": 1786033338.881,
+          "elapsed_s": 19.927,
+          "termination": "normal_exit",
+          "worker_pid": 683768,
+          "body_sha256": "8edbd7ec0bd9",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.9437,
+      "stream_duration_s": 5.7176,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 9,
+    "total_physical_attempts": 10,
+    "recovered_failed_attempts": 1,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 123.222,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": true
+  }
+}

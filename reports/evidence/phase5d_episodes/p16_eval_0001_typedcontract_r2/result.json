@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "p16_eval_0001",
+  "track": "p16_spice_handoff",
+  "mode": "agentic",
+  "total_score": 0.5,
+  "objective_score": 0.5,
+  "explanation_score": 0,
+  "max_possible": 1.0,
+  "passed": true,
+  "passing_threshold": 0.5,
+  "evaluation_time_sec": 17.03099250793457,
+  "components": [
+    {
+      "name": "semantic_binding",
+      "weight": 0.3,
+      "raw_score": 1.0,
+      "weighted_score": 0.3,
+      "details": "dim=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "evidence_provenance",
+      "weight": 0.2,
+      "raw_score": 0.0,
+      "weighted_score": 0.0,
+      "details": "dim=False",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "simulation_success",
+      "weight": 0.1,
+      "raw_score": 1.0,
+      "weighted_score": 0.1,
+      "details": "dim=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "numeric_validity",
+      "weight": 0.1,
+      "raw_score": 1.0,
+      "weighted_score": 0.1,
+      "details": "dim=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "artifact_completion",
+      "weight": 0.15,
+      "raw_score": 0.0,
+      "weighted_score": 0.0,
+      "details": "dim=False",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "protocol_completion",
+      "weight": 0.15,
+      "raw_score": 0.0,
+      "weighted_score": 0.0,
+      "details": "dim=False",
+      "tool_output_snippet": null
+    }
+  ],
+  "anti_cheat": {
+    "forbidden_files_modified": false,
+    "checked_files": [
+      "circuit_core.sp",
+      "run_public.sh",
+      "build_deck.py",
+      "corner_models.json",
+      "load_models.json",
+      "parse_measure.py",
+      "meas_request_truth.json",
+      "grade_spice_handoff.py",
+      "run_hidden.sh"
+    ],
+    "hash_mismatches": [],
+    "tcl_injection": [],
+    "hidden_shadows": []
+  },
+  "resource_usage": {
+    "wall_time_sec": 17.03
+  },
+  "metadata": {
+    "difficulty": "hard",
+    "data_type": "flow_synthetic",
+    "tool": [
+      "hspice"
+    ],
+    "version": "1.0.0",
+    "agent_cmd": "python3 \"/data1/tongsb/eda-agentbench-synthetic-phase0a/scripts/llm_agent_driver.py\" --model \"Qwen3.7-Max\" --models \"/data1/tongsb/eda-agentbench-synthetic-phase0a/configs/baseline_models.json\" --max-actions 60 --temperature 0.7 --elicit-confidence --stream-responses 1 --request-timeout-sec 120 --request-deadline-sec 300 --max-chat-retries 1 --log \"/data1/tongsb/eda-agentbench-synthetic-phase0a/runs/phase5d/p16_eval_0001_typedcontract_r2.agentlog.json\"",
+    "agent_exit_code": 0,
+    "agent_timed_out": false
+  },
+  "reliability": {
+    "confidence_decision": "",
+    "format_ok": null,
+    "protocol_status": "ok",
+    "overconfident_wrong": false,
+    "underconfident_correct": false,
+    "abstained": false
+  }
+}

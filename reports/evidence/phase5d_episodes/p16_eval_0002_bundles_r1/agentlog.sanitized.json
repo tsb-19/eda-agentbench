@@ -1,0 +1,377 @@
+{
+  "model": "Qwen3.7-Max",
+  "task_id": "p16_eval_0002",
+  "track": "p16_spice_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "ls -la",
+      "rc": 0,
+      "out": "total 1756\ndrwxrwxr-x    2 tongsb tongsb    4096 Aug  6 23:09 .\ndrwxrwxrwt 3809 root   root   1740800 Aug  7 00:28 ..\n-rw-rw-r--    1 tongsb tongsb      92 Aug  6 23:09 application_note.md\n-rw-rw-r--    1 tongsb tongsb     676 Aug  6 23:09 build_deck.py\n-rw-rw-r--    1 tongsb tongsb     146 Aug  6 23:09 char_spec.md\n-rw-rw-r--    1 tongsb tongsb     442 Aug  6 23:09 circuit_core.sp\n-rw-rw-r--    1 tongsb tongsb      96 Aug  6 23:09 corner_models.json\n-rw-rw-r--    1 tongsb tongsb     757 Aug  6 23:09 disclosure_bundles.md\n-rw-rw-r--    1 tongsb tongsb      83 Aug  6 23:09 load_models.json\n-rw-rw-r--    1 tongsb tongsb     201 Aug  6 23:09 meas_config.json\n-rw-rw-r--    1 tongsb tongsb     205 Aug  6 23:09 measurement.log\n-rw-rw-r--    1 tongsb tongsb     105 Aug  6 23:09 mission_profile.md\n-rw-rw-r--    1 tongsb tongsb    1046 Aug  6 23:09 parse_measure.py\n-rwxr-xr-x    1 tongsb tongsb     600 Aug  6 23:09 run_public.sh\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat char_spec.md",
+      "rc": 0,
+      "out": "# Characterization spec (authority: REQ, primary)\nRequested measurement (metric): **gbw**.\n (canonical typed roles: corner/load_condition/metric)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat mission_profile.md",
+      "rc": 0,
+      "out": "# PVT mission profile (authority: PVT, primary)\nSignoff corner for this characterization: **TT_1p2_25**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat application_note.md",
+      "rc": 0,
+      "out": "# Application / load note (authority: LOAD, primary)\nOperating load condition: **nominal**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat disclosure_bundles.md",
+      "rc": 0,
+      "out": "# Disclosure bundle (BundleS: C1+C2+C4+C7, non-answer-bearing)\n\n## C1 canonical labels + disjoint-axis declaration\nTyped roles: corner, load_condition, metric \u2014 DISJOINT typed axes.\n\n## C2 value-domain definitions\n- corner in ['SS_0p9_-40', 'TT_1p2_25', 'FF_1p3_125']\n- load_condition in ['light', 'nominal', 'heavy']\n- metric in ['gain', 'gbw', 'pm', 'slew', 'vdsat']\n\n## C4 glossary + references\n- metric: see char_spec.md\n- corner: see mission_profile.md\n- load_condition: see application_note.md\n\n## C7 procedural contract\nJoin the request to its authorities: metric from char_spec, corner from mission_profile, load_condition from application_note; the deck measures a plausible number for any tuple, so correctness is authority-joined, not numeric.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat meas_config.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"measurement binding (editable). Ships a plausible-but-wrong tuple; repair to the authority-joined binding.\",\n  \"corner\": \"SS_0p9_-40\",\n  \"load_condition\": \"heavy\",\n  \"metric\": \"gbw\"\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat corner_models.json load_models.json circuit_core.sp build_deck.py parse_measure.py run_public.sh measurement.log",
+      "rc": 0,
+      "out": "{\n  \"corner_av\": {\n    \"SS_0p9_-40\": 100.0,\n    \"TT_1p2_25\": 50.0,\n    \"FF_1p3_125\": 30.0\n  }\n}\n{\n  \"load_c\": {\n    \"light\": 1e-12,\n    \"nominal\": 5e-12,\n    \"heavy\": 2e-11\n  }\n}\n* Family B measurement-handoff circuit (IMMUTABLE CORE \u2014 do not edit; integrity-hashed).\n* The executable deck (circuit_built.sp) is REGENERATED from this core + meas_config.json by build_deck.py.\n.param av={av} cload={cload}\nvin in 0 dc 0 ac 1\nein outc 0 in 0 av\nr1 outc outa 1e3\nc1 outa 0 1.59e-9\nr2 outa out 1e3\nc2 out 0 cload\nrl out 0 1e12\n.ac dec 20 1 1g\n.measure ac gain_db max vdb(out)\n.measure ac gbw_hz when vdb(out)=0 fall=1\n.end\n# Public: regenerate the executable deck from the IMMUTABLE circuit core + meas_config.\n# The core (circuit_core.sp) is integrity-hashed and immutable; only meas_config.json is editable.\nimport json\ncfg = json.load(open(\"meas_config.json\"))\nCAV = json.load(open(\"corner_models.json\"))[\"corner_av\"]\nLDC = json.load(open(\"load_models.json\"))[\"load_c\"]\nav = CAV.get(cfg.get(\"corner\"), 50.0); cload = LDC.get(cfg.get(\"load_condition\"), 5e-12)\ncore = open(\"circuit_core.sp\").read()              # immutable template\ndeck = core.replace(\"{av}\", \"%g\" % av).replace(\"{cload}\", \"%g\" % cload)\nopen(\"circuit_built.sp\", \"w\").write(deck)          # derived artifact (regenerated each run)\n# Public parser: extract the requested metric's value from the HSPICE .lis (handles scale suffixes).\nimport re, sys, json\nSCALE = {'':1,'f':1e-15,'p':1e-12,'n':1e-9,'u':1e-6,'m':1e-3,'%':1e-2,'k':1e3,'x':1"
+    },
+    {
+      "type": "write",
+      "file": "meas_config.json",
+      "bytes": 202
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "Using: /EDA/soft2/synopsys/hspice/S-2021.09-SP1/hspice/linux64/hspice  -i 'circuit_built.sp' -o hspice_run\n\n>info:         ***** hspice job concluded\n=== measured value (no verdict) ===\n{\"metric\": \"gbw\", \"value\": 4.9335, \"measure_name\": \"gbw_hz\"}\n"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 18580,
+    "completion_tokens": 1467,
+    "reasoning_tokens": 1060
+  },
+  "finished": true,
+  "edited": [
+    "meas_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033716.167,
+          "end_ts": 1786033729.522,
+          "elapsed_s": 13.355,
+          "termination": "normal_exit",
+          "worker_pid": 688283,
+          "body_sha256": "1a65db3a1470",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.6094,
+      "stream_duration_s": 12.61,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033729.529,
+          "end_ts": 1786033732.084,
+          "elapsed_s": 2.555,
+          "termination": "normal_exit",
+          "worker_pid": 688405,
+          "body_sha256": "c271a5c84d06",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.2236,
+      "stream_duration_s": 0.3494,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033732.089,
+          "end_ts": 1786033738.131,
+          "elapsed_s": 6.042,
+          "termination": "normal_exit",
+          "worker_pid": 688413,
+          "body_sha256": "aa92443e25e6",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0002,
+      "time_to_first_answer_s": 0.3728,
+      "stream_duration_s": 0.426,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033738.136,
+          "end_ts": 1786033740.334,
+          "elapsed_s": 2.198,
+          "termination": "normal_exit",
+          "worker_pid": 688464,
+          "body_sha256": "cf4b4ae1ceec",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.3883,
+      "stream_duration_s": 1.4559,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033740.339,
+          "end_ts": 1786033742.306,
+          "elapsed_s": 1.967,
+          "termination": "normal_exit",
+          "worker_pid": 688475,
+          "body_sha256": "d1de32181fa9",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.0812,
+      "stream_duration_s": 1.2173,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033742.311,
+          "end_ts": 1786033756.829,
+          "elapsed_s": 14.518,
+          "termination": "normal_exit",
+          "worker_pid": 688488,
+          "body_sha256": "f369f2eb0223",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 13.4551,
+      "stream_duration_s": 13.4555,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 6,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033756.835,
+          "end_ts": 1786033761.229,
+          "elapsed_s": 4.394,
+          "termination": "normal_exit",
+          "worker_pid": 688647,
+          "body_sha256": "4baccfe6689d",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 3.1351,
+      "stream_duration_s": 3.5711,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 7,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033761.234,
+          "end_ts": 1786033772.866,
+          "elapsed_s": 11.632,
+          "termination": "normal_exit",
+          "worker_pid": 688676,
+          "body_sha256": "aef25916b2e5",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 2.7091,
+      "stream_duration_s": 5.1845,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 8,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033772.867,
+          "end_ts": 1786033774.141,
+          "elapsed_s": 1.274,
+          "termination": "normal_exit",
+          "worker_pid": 688745,
+          "body_sha256": "1f00da2d745a",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.3459,
+      "stream_duration_s": 0.3978,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    },
+    {
+      "request_index": 9,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1786033783.087,
+          "end_ts": 1786033790.884,
+          "elapsed_s": 7.797,
+          "termination": "normal_exit",
+          "worker_pid": 688894,
+          "body_sha256": "f4cbfed1a591",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 5.1055,
+      "stream_duration_s": 6.7985,
+      "finish_reason": "stop",
+      "served_model": "Qwen3.7-Max"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 10,
+    "total_physical_attempts": 10,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}
