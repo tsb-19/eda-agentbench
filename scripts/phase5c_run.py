@@ -22,15 +22,34 @@ from eda_agentbench.agentic.runner import run_single_agentic  # noqa: E402
 import episode_arbiter as ARB  # noqa: E402
 import canonical_integrity as cig  # noqa: E402
 
-SCHEDULE = Path(os.environ.get("PHASE5_SCHEDULE", str(REPO / "reports/evidence/phase5b_schedules/qwen24_core.json")))
+def _repo_path(env_var, default_rel):
+    """Resolve an env-configured path, asserting it stays within REPO (no traversal/escape)."""
+    val = os.environ.get(env_var, default_rel)
+    if os.path.isabs(val) and not val.startswith(str(REPO) + "/"):
+        raise SystemExit(f"phase5c_run: {env_var}={val!r} is absolute and outside REPO")
+    p = (REPO / val).resolve()
+    if not str(p).startswith(str(REPO) + "/") and p != REPO.resolve():
+        raise SystemExit(f"phase5c_run: {env_var}={val!r} resolves outside REPO (traversal)")
+    return p
+
+
+def _bounded_float(env_var, default, lo, hi):
+    import math
+    v = float(os.environ.get(env_var, str(default)))
+    if not math.isfinite(v) or not (lo <= v <= hi):
+        raise SystemExit(f"phase5c_run: {env_var}={v!r} out of range [{lo},{hi}] or non-finite")
+    return v
+
+
+SCHEDULE = _repo_path("PHASE5_SCHEDULE", "reports/evidence/phase5b_schedules/qwen24_core.json")
 MODELS = REPO / "configs" / "baseline_models.json"
 MODEL_NAME = "Qwen3.7-Max"
 DRIVER = REPO / "scripts" / "llm_agent_driver.py"
-RUNS_ROOT = REPO / os.environ.get("PHASE5_RUNS", "runs/phase5c")
-EVIDENCE = REPO / os.environ.get("PHASE5_EVIDENCE", "reports/evidence/phase5c_episodes")
-STATE = REPO / os.environ.get("PHASE5_STATE", "reports/evidence/phase5c_state.json")
-CEILING = float(os.environ.get("PHASE5_CEILING", "315"))
-PER_SLOT = float(os.environ.get("PHASE5_PER_SLOT", "12.04"))
+RUNS_ROOT = _repo_path("PHASE5_RUNS", "runs/phase5c")
+EVIDENCE = _repo_path("PHASE5_EVIDENCE", "reports/evidence/phase5c_episodes")
+STATE = _repo_path("PHASE5_STATE", "reports/evidence/phase5c_state.json")
+CEILING = _bounded_float("PHASE5_CEILING", 315.0, 0.0, 1000.0)
+PER_SLOT = _bounded_float("PHASE5_PER_SLOT", 12.04, 0.0, 100.0)
 MAX_REPLACEMENTS = 2
 MAX_ACTIONS = 60
 TIMEOUT = 1800
