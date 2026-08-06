@@ -44,8 +44,9 @@ def _w(path, text):
 
 
 # ---------------- deck + parser ----------------
-DECK_TMPL = """\
-* Family B measurement-handoff circuit (macro amplifier; real HSPICE computation)
+CIRCUIT_CORE = """\
+* Family B measurement-handoff circuit (IMMUTABLE CORE — do not edit; integrity-hashed).
+* The executable deck (circuit_built.sp) is REGENERATED from this core + meas_config.json by build_deck.py.
 .param av={av} cload={cload}
 vin in 0 dc 0 ac 1
 ein outc 0 in 0 av
@@ -61,27 +62,16 @@ rl out 0 1e12
 """
 
 BUILD_DECK_PY = """\
-# Public: translate meas_config.json into circuit_built.sp (deck params + analysis).
+# Public: regenerate the executable deck from the IMMUTABLE circuit core + meas_config.
+# The core (circuit_core.sp) is integrity-hashed and immutable; only meas_config.json is editable.
 import json
 cfg = json.load(open("meas_config.json"))
 CAV = json.load(open("corner_models.json"))["corner_av"]
 LDC = json.load(open("load_models.json"))["load_c"]
-corner = cfg.get("corner"); load = cfg.get("load_condition")
-av = CAV.get(corner, 50.0); cload = LDC.get(load, 5e-12)
-open("circuit_built.sp", "w").write(
- "* Family B measurement-handoff circuit (built from meas_config)\\n"
- ".param av=%g cload=%g\\n"
- "vin in 0 dc 0 ac 1\\n"
- "ein outc 0 in 0 av\\n"
- "r1 outc outa 1e3\\n"
- "c1 outa 0 1.59e-9\\n"
- "r2 outa out 1e3\\n"
- "c2 out 0 cload\\n"
- "rl out 0 1e12\\n"
- ".ac dec 20 1 1g\\n"
- ".measure ac gain_db max vdb(out)\\n"
- ".measure ac gbw_hz when vdb(out)=0 fall=1\\n"
- ".end\\n" % (av, cload))
+av = CAV.get(cfg.get("corner"), 50.0); cload = LDC.get(cfg.get("load_condition"), 5e-12)
+core = open("circuit_core.sp").read()              # immutable template
+deck = core.replace("{av}", "%g" % av).replace("{cload}", "%g" % cload)
+open("circuit_built.sp", "w").write(deck)          # derived artifact (regenerated each run)
 """
 
 PARSE_MEASURE_PY = """\
@@ -270,6 +260,11 @@ def gen_prompt(task_id, condition):
             f"The deck measures a PLAUSIBLE number for any tuple — simulation success and a plausible "
             f"numeric output are NOT sufficient. Correctness is authority-joined (char_spec / mission_profile / "
             f"application_note), not numeric; the stale measurement.log is a decoy.\n\n"
+            f"## Action surface (operational)\n"
+            f"The executable circuit deck (`circuit_built.sp`) is REGENERATED from an immutable, integrity-hashed "
+            f"core (`circuit_core.sp`) and your `meas_config.json` by `build_deck.py`. Only `meas_config.json` is "
+            f"editable. Do NOT modify `circuit_core.sp`, `build_deck.py`, or any generated deck — such modifications "
+            f"are rejected.\n\n"
             f"Edit `meas_config.json`, run `bash run_public.sh` for the measured value, iterate, then finalize.\n")
 
 
@@ -278,12 +273,13 @@ def gen_metadata(task_id, condition):
         "task_id": task_id, "track": TRACK, "tool": ["hspice"], "difficulty": "hard",
         "data_type": "flow_synthetic", "resource_preset": "standard", "timeout_sec": 300,
         "max_tool_calls": 30, "max_patch_attempts": 8, "max_output_tokens": 32000, "condition": condition,
-        "files": {"visible": ["circuit_built.sp", "meas_config.json", "corner_models.json", "load_models.json",
+        "files": {"visible": ["circuit_core.sp", "meas_config.json", "corner_models.json", "load_models.json",
                               "build_deck.py", "parse_measure.py", "run_public.sh", "char_spec.md",
                               "mission_profile.md", "application_note.md", "measurement.log"],
                   "editable": ["meas_config.json"],
                   "hidden": ["meas_request_truth.json", "grade_spice_handoff.py", "run_hidden.sh"],
-                  "forbidden": ["circuit_built.sp", "run_public.sh", "corner_models.json", "load_models.json",
+                  "forbidden": ["circuit_core.sp", "run_public.sh", "build_deck.py", "corner_models.json",
+                                "load_models.json", "parse_measure.py",
                                 "meas_request_truth.json", "grade_spice_handoff.py", "run_hidden.sh"]},
         "run_command": "bash run_public.sh",
         "scoring": {"weights": {"semantic_binding": 0.30, "evidence_provenance": 0.20, "simulation_success": 0.10,
@@ -306,8 +302,9 @@ def build_task_skeleton(out, task_id, seed, golden, wrong, condition, decoy_reci
     _w(files / "build_deck.py", BUILD_DECK_PY)
     _w(files / "parse_measure.py", PARSE_MEASURE_PY)
     _w(files / "run_public.sh", RUN_PUBLIC_SH); os.chmod(files / "run_public.sh", 0o755)
-    # initial deck from the shipped (wrong) tuple so run_public works out-of-the-box
-    _w(files / "circuit_built.sp", DECK_TMPL.format(av=CORNER_AV[wrong[0]], cload=LOAD_C[wrong[1]]))
+    # immutable, integrity-hashed circuit CORE (visible + forbidden). The executable deck
+    # (circuit_built.sp) is DERIVED by build_deck.py from this core + meas_config (not shipped).
+    _w(files / "circuit_core.sp", CIRCUIT_CORE)
     for name, text in gen_authority_artifacts(truth, condition).items():
         _w(files / name, text)
     for name, text in gen_disclosure(truth, condition).items():
