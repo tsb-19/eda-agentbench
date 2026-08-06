@@ -171,11 +171,12 @@ def _conclusion(st, fam_summary):
         return "cross_family_support"
     if a_state == "support" or b_state == "support":
         return "family_contingent"
-    if "ceiling" in (a_state, b_state):
-        return "ceiling"
-    if "excessive_difficulty" in (a_state, b_state):
-        return "excessive_difficulty"
-    return "null_no_transfer"
+    # no family shows BundleS support -> the supported composite is "cross-family transfer not
+    # established" (NOT a categorical "does not generalize" / "task-specific" claim). Per-family
+    # states (ceiling / excessive_difficulty / null) are retained in family_summary.
+    if st.get("status") == "incomplete_collection_budget_stop":
+        return "incomplete_collection"
+    return "cross_family_transfer_not_established"
 
 
 if __name__ == "__main__":

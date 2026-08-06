@@ -1,0 +1,201 @@
+{
+  "schema": "phase5c_spice_forensic_audit/v1",
+  "episodes_audited": 12,
+  "protocol_compromised_count": 0,
+  "hypothesis": "the anti-cheat 'circuit_built.sp modified' flag is a FALSE POSITIVE: run_public.sh calls build_deck.py, which regenerates the deck's .param av/cload from the agent's meas_config; the shipped deck carries the WRONG tuple's params, so a corrected meas_config regenerates a different deck -> hash mismatch. The change is the intended corner/model + load regeneration, not a manual edit.",
+  "verdict": "0 behaviorally-relevant deck edits; the modification is the intended build_deck .param regeneration from the agent's meas_config in all 12 episodes -> NOT protocol_compromised. semantic_binding is graded from meas_config (preserved), independent of the deck.",
+  "per_episode": [
+    {
+      "trial": "p16_eval_0001_base_r1",
+      "instance": "p16_eval_0001",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "SS_0p9_-40",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0001_base_r2",
+      "instance": "p16_eval_0001",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "SS_0p9_-40",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0001_bundles_r1",
+      "instance": "p16_eval_0001",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "SS_0p9_-40",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0001_bundles_r2",
+      "instance": "p16_eval_0001",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "SS_0p9_-40",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0002_base_r1",
+      "instance": "p16_eval_0002",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "TT_1p2_25",
+        "nominal"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0002_base_r2",
+      "instance": "p16_eval_0002",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "TT_1p2_25",
+        "nominal"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0002_bundles_r1",
+      "instance": "p16_eval_0002",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "TT_1p2_25",
+        "nominal"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0002_bundles_r2",
+      "instance": "p16_eval_0002",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "TT_1p2_25",
+        "nominal"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0003_base_r1",
+      "instance": "p16_eval_0003",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "FF_1p3_125",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0003_base_r2",
+      "instance": "p16_eval_0003",
+      "condition": "Base",
+      "submitted_corner_load": [
+        "FF_1p3_125",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0003_bundles_r1",
+      "instance": "p16_eval_0003",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "FF_1p3_125",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    },
+    {
+      "trial": "p16_eval_0003_bundles_r2",
+      "instance": "p16_eval_0003",
+      "condition": "BundleS",
+      "submitted_corner_load": [
+        "FF_1p3_125",
+        "light"
+      ],
+      "changed_categories": [
+        "comment_or_whitespace",
+        "corner_model_or_load_param"
+      ],
+      "manual_deck_edits": 0,
+      "behaviorally_relevant": false,
+      "protocol_compromised": false
+    }
+  ]
+}
