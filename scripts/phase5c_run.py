@@ -22,15 +22,15 @@ from eda_agentbench.agentic.runner import run_single_agentic  # noqa: E402
 import episode_arbiter as ARB  # noqa: E402
 import canonical_integrity as cig  # noqa: E402
 
-SCHEDULE = REPO / "reports" / "evidence" / "phase5b_schedules" / "qwen24_core.json"
+SCHEDULE = Path(os.environ.get("PHASE5_SCHEDULE", str(REPO / "reports/evidence/phase5b_schedules/qwen24_core.json")))
 MODELS = REPO / "configs" / "baseline_models.json"
 MODEL_NAME = "Qwen3.7-Max"
 DRIVER = REPO / "scripts" / "llm_agent_driver.py"
-RUNS_ROOT = REPO / "runs" / "phase5c"
-EVIDENCE = REPO / "reports" / "evidence" / "phase5c_episodes"
-STATE = REPO / "reports" / "evidence" / "phase5c_state.json"
-CEILING = 315.0
-PER_SLOT = 12.04
+RUNS_ROOT = REPO / os.environ.get("PHASE5_RUNS", "runs/phase5c")
+EVIDENCE = REPO / os.environ.get("PHASE5_EVIDENCE", "reports/evidence/phase5c_episodes")
+STATE = REPO / os.environ.get("PHASE5_STATE", "reports/evidence/phase5c_state.json")
+CEILING = float(os.environ.get("PHASE5_CEILING", "315"))
+PER_SLOT = float(os.environ.get("PHASE5_PER_SLOT", "12.04"))
 MAX_REPLACEMENTS = 2
 MAX_ACTIONS = 60
 TIMEOUT = 1800
