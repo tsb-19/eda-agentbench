@@ -1,0 +1,89 @@
+{
+  "task_id": "p15_eval_0015",
+  "track": "p15_sta_handoff",
+  "golden": [
+    "scan_override",
+    "scan",
+    "both"
+  ],
+  "wrong": [
+    "functional_close",
+    "scan",
+    "setup"
+  ],
+  "decoy_recipe": "wrong_domain",
+  "conflict_axis": "intent+view",
+  "signatures": {
+    "truth": "922abedde910a79d",
+    "authority": "4c32a37c10454b6b",
+    "decoy": "09fab29fe3ca0008",
+    "wrong_green": "930d1b75f75692ba",
+    "visible_tool_output_golden": "d787bf8cb4adde2a",
+    "visible_tool_output_wrong": "d787bf8cb4adde2a"
+  },
+  "hard_feasibility": {
+    "wrong_tool_syntax_accepted": true,
+    "wrong_executes_finds_nonzero_paths": true,
+    "wrong_plausible_signoff_green": true,
+    "wrong_remains_semantically_wrong": true,
+    "wrong_rejected_by_provenance_not_PT": true,
+    "PASS": true
+  },
+  "output_channel_audit": {
+    "n_visible_candidates_run": 2,
+    "n_plausible": 2,
+    "plausible_candidates": [
+      "golden_('scan_override', 'scan', 'both')",
+      "wrong_('functional_close', 'scan', 'setup')"
+    ],
+    "typed_space_size": 48,
+    "uniquely_determined_by_visible_surface": false,
+    "PASS": true
+  },
+  "semantic_diff_audit": {
+    "Base": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "BundleS": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "TypedContract": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    }
+  },
+  "info_equiv_audit": {
+    "roles_present_both": true,
+    "domain_values_present_both": true,
+    "same_role_presence": true,
+    "same_value_presence": true,
+    "same_semantic_facts": true,
+    "BundleS_forbidden_leak": [],
+    "TypedContract_forbidden_leak": [],
+    "both_omit_golden_answer_verifier": true,
+    "token_counts": {
+      "BundleS": 102,
+      "TypedContract": 78
+    },
+    "PASS": true
+  },
+  "custody_sha256": {
+    "Base": "f4f46053c40f8ad2feb74e7cc5ae42c5b6f2858b76a613e9bb41d9e2d1dc5cb7",
+    "BundleS": "fbbd1b9581f6d03597d496e05ae3bd5a603ce16821887ae85b1a173601fc0055",
+    "TypedContract": "c81f631fd32429cb4572216d5dc04cabab53b4f741690f4b6496617f23218cc8"
+  },
+  "golden_signoff_green": true,
+  "wrong_signoff_green": true,
+  "wrong_green_but_unattested": true
+}

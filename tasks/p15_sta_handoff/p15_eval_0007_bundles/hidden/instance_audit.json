@@ -1,0 +1,89 @@
+{
+  "task_id": "p15_eval_0007",
+  "track": "p15_sta_handoff",
+  "golden": [
+    "cdc_isolate",
+    "core",
+    "setup"
+  ],
+  "wrong": [
+    "cdc_isolate",
+    "cdc",
+    "setup"
+  ],
+  "decoy_recipe": "mis_scope",
+  "conflict_axis": "partition",
+  "signatures": {
+    "truth": "fa61ec0309040c75",
+    "authority": "ac0a11aa145a3420",
+    "decoy": "2dc1161306a0f639",
+    "wrong_green": "a13c6969e7499dff",
+    "visible_tool_output_golden": "d787bf8cb4adde2a",
+    "visible_tool_output_wrong": "d787bf8cb4adde2a"
+  },
+  "hard_feasibility": {
+    "wrong_tool_syntax_accepted": true,
+    "wrong_executes_finds_nonzero_paths": true,
+    "wrong_plausible_signoff_green": true,
+    "wrong_remains_semantically_wrong": true,
+    "wrong_rejected_by_provenance_not_PT": true,
+    "PASS": true
+  },
+  "output_channel_audit": {
+    "n_visible_candidates_run": 2,
+    "n_plausible": 2,
+    "plausible_candidates": [
+      "golden_('cdc_isolate', 'core', 'setup')",
+      "wrong_('cdc_isolate', 'cdc', 'setup')"
+    ],
+    "typed_space_size": 48,
+    "uniquely_determined_by_visible_surface": false,
+    "PASS": true
+  },
+  "semantic_diff_audit": {
+    "Base": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "BundleS": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    },
+    "TypedContract": {
+      "consistent_tuples_public_count": 2,
+      "golden_in_public_set": true,
+      "uniquely_determined_by_public": false,
+      "bundle_discloses_golden": false,
+      "PASS": true
+    }
+  },
+  "info_equiv_audit": {
+    "roles_present_both": true,
+    "domain_values_present_both": true,
+    "same_role_presence": true,
+    "same_value_presence": true,
+    "same_semantic_facts": true,
+    "BundleS_forbidden_leak": [],
+    "TypedContract_forbidden_leak": [],
+    "both_omit_golden_answer_verifier": true,
+    "token_counts": {
+      "BundleS": 102,
+      "TypedContract": 78
+    },
+    "PASS": true
+  },
+  "custody_sha256": {
+    "Base": "aef34ba22715645d86db5f8d8a712362f5bdb9c790058e1c233326012d092561",
+    "BundleS": "9d5cddd402e0448353182dffc7a0189dc4e112cbb6947cb44464855b38b578c7",
+    "TypedContract": "b2ac0dc34efa4b985358377420686c925704289a8099be9526d4fe033fe06f18"
+  },
+  "golden_signoff_green": true,
+  "wrong_signoff_green": true,
+  "wrong_green_but_unattested": true
+}

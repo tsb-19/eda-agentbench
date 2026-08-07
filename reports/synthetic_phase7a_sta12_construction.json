@@ -1,0 +1,1094 @@
+{
+  "schema": "phase7a_sta12_construction/v1",
+  "n_instances": 12,
+  "conditions": [
+    "Base",
+    "BundleS",
+    "TypedContract"
+  ],
+  "hard_gate_criteria": [
+    "wrong_rejected_by_provenance_not_PT",
+    "wrong_remains_semantically_wrong",
+    "wrong_plausible_signoff_green",
+    "wrong_executes_finds_nonzero_paths",
+    "wrong_tool_syntax_accepted"
+  ],
+  "instances": [
+    {
+      "task_id": "p15_eval_0004",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "functional_close",
+        "core",
+        "setup"
+      ],
+      "wrong": [
+        "functional_close",
+        "cdc",
+        "setup"
+      ],
+      "decoy_recipe": "scope_drift",
+      "conflict_axis": "partition",
+      "signatures": {
+        "truth": "5520e002f5a00763",
+        "authority": "dabbbc0e4b356a9c",
+        "decoy": "1c4fcba59bb8a5a3",
+        "wrong_green": "48138a517d559ea7",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('functional_close', 'core', 'setup')",
+          "wrong_('functional_close', 'cdc', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "55f94b2062057f6307ea07e2faef4d6ae906b036aacc43742051d040d5843d66",
+        "BundleS": "3f18f16ba8f69abe6723d5affc0f72d15d99842e3e90e3f8cc62b82414946af2",
+        "TypedContract": "801f6d373efd8aab68f1565504f8f584c9c3ffc38b7ca597e2a9df6eb3c3c8b3"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0005",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "functional_close",
+        "cdc",
+        "setup"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "cdc",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "cf4e7e5a3a3fd7a3",
+        "authority": "77162637b759e859",
+        "decoy": "94d73468748fe352",
+        "wrong_green": "5604582d339cfae8",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('functional_close', 'cdc', 'setup')",
+          "wrong_('reset_exempt', 'cdc', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "ffa6f74bb9d5297d69aa442b889a41463e7defafaf8903cc20ec837d84fbd60a",
+        "BundleS": "b93d0711f950060a0dd667660e31ba42dfc11717b205f3278b6ec40a71e434c8",
+        "TypedContract": "0f938dd785184826ce4ec9da769860134cb9e62a0d88fbb14025e2585f676d5b"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0006",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "functional_close",
+        "reset",
+        "setup"
+      ],
+      "wrong": [
+        "scan_override",
+        "reset",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "63c502fdd1e978f2",
+        "authority": "2aaa4080a0abf974",
+        "decoy": "eb91413d863be5cf",
+        "wrong_green": "1f09165bfe9e3c53",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('functional_close', 'reset', 'setup')",
+          "wrong_('scan_override', 'reset', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "b19ac5c6a389f2c23cefd9ec1f3ceee19e1946fe101f1557d3fc7381f18b5135",
+        "BundleS": "121203e49ad06d25b38e8ffea87ec5e35a3b577582125d92285ffad3e9ef514a",
+        "TypedContract": "2180b4c1b09b81add99b70db43047fb3751b03adc2c7bf6ddb9e5e68e5c08169"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0007",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "cdc_isolate",
+        "core",
+        "setup"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "cdc",
+        "setup"
+      ],
+      "decoy_recipe": "mis_scope",
+      "conflict_axis": "partition",
+      "signatures": {
+        "truth": "fa61ec0309040c75",
+        "authority": "ac0a11aa145a3420",
+        "decoy": "2dc1161306a0f639",
+        "wrong_green": "a13c6969e7499dff",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('cdc_isolate', 'core', 'setup')",
+          "wrong_('cdc_isolate', 'cdc', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "aef34ba22715645d86db5f8d8a712362f5bdb9c790058e1c233326012d092561",
+        "BundleS": "9d5cddd402e0448353182dffc7a0189dc4e112cbb6947cb44464855b38b578c7",
+        "TypedContract": "b2ac0dc34efa4b985358377420686c925704289a8099be9526d4fe033fe06f18"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0008",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "cdc_isolate",
+        "cdc",
+        "setup"
+      ],
+      "wrong": [
+        "scan_override",
+        "cdc",
+        "both"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "215c6f2e9f5c34a0",
+        "authority": "65a4986a8a785517",
+        "decoy": "3e76bda723436482",
+        "wrong_green": "17c156f7c8b6670c",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('cdc_isolate', 'cdc', 'setup')",
+          "wrong_('scan_override', 'cdc', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "9909907158c3df42f484f3d57d0c1ef2d236ea9523c2deb2b0ab461ca4ab0d19",
+        "BundleS": "672fefcce716eb5cc55163a830bd7a59aad38fd025fd1366e7b0dd3564adbfae",
+        "TypedContract": "4e82f2ae2eacaf80371ca252c2ed831bd0709e50bd09b07831327b237614ec12"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0009",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "cdc_isolate",
+        "scan",
+        "setup"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "scan",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "bfbd4859f7f9036f",
+        "authority": "e47cf30594acb8de",
+        "decoy": "89f92dc7a661f2c6",
+        "wrong_green": "a19fd101f63675e6",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('cdc_isolate', 'scan', 'setup')",
+          "wrong_('reset_exempt', 'scan', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "5b98576baea91414b3b1feecf4fb5b2343f59efcb809b280c3c7c27901a30611",
+        "BundleS": "d4e3e87d755cc328889244b81e0c59c590d7ef1ba45d71764b40d76b2c504c71",
+        "TypedContract": "400a694d916decc96b7cc6ee6d1249013d0d0d518dfb8e8fde295dc0cb9526a1"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0010",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "reset_exempt",
+        "cdc",
+        "both"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "reset",
+        "both"
+      ],
+      "decoy_recipe": "stale_intent",
+      "conflict_axis": "partition",
+      "signatures": {
+        "truth": "f9137b7a01d0c07a",
+        "authority": "43b37006a20d1820",
+        "decoy": "c690e1acef357367",
+        "wrong_green": "3dc3cd60256b86e8",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('reset_exempt', 'cdc', 'both')",
+          "wrong_('reset_exempt', 'reset', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "118ac0c93a8fef8a55e3342165cc4893d785c3c852d4b6ba2941eba59e7e16de",
+        "BundleS": "c546c28685948e9a920a4398277e2b9dcb21df3995299db9d609e45100893442",
+        "TypedContract": "76c3c8b1ac827e097d9f36eb296bf88f2e36cf1115aa9e8d5ae19ca2e1a5908c"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0011",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "reset_exempt",
+        "reset",
+        "both"
+      ],
+      "wrong": [
+        "functional_close",
+        "reset",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "30c7675e8ce75839",
+        "authority": "d0391f57ff133a2e",
+        "decoy": "03417fb01fc61d4e",
+        "wrong_green": "dad97250de54c9fb",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('reset_exempt', 'reset', 'both')",
+          "wrong_('functional_close', 'reset', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "8309419eff015242840f91773bb0f13bcdeac4cd130f90719e86669e9ca2c918",
+        "BundleS": "ec2854d5a98d6c78c647e8bdaf75968b8a49b6fead6f25d116b332ee0e820efb",
+        "TypedContract": "21ef2d330f593aa0d2d242d2ade246ff6ad132100b1a7a4136480e87b3b9455d"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0012",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "reset_exempt",
+        "scan",
+        "both"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "scan",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "b90cc9fdf5f6f6c6",
+        "authority": "df29060db11b31e1",
+        "decoy": "71e2f6e0db714741",
+        "wrong_green": "a510d469db4d4c93",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('reset_exempt', 'scan', 'both')",
+          "wrong_('cdc_isolate', 'scan', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "d80185622f2d4a382cce10fabcc6bc8dec97db4a47f61b93cb563389fe99c6af",
+        "BundleS": "3727da53993a0a5a81c540a96dfe8229675af5588dfc12665f551a05557ae786",
+        "TypedContract": "47de99adeada20cefa61a0dd3e41a7e90891b315fb2145df06fdaea7691c7824"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0013",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "scan_override",
+        "core",
+        "both"
+      ],
+      "wrong": [
+        "scan_override",
+        "scan",
+        "both"
+      ],
+      "decoy_recipe": "mis_scope",
+      "conflict_axis": "partition",
+      "signatures": {
+        "truth": "729732a843b36023",
+        "authority": "d05f21eb7ee4761c",
+        "decoy": "ce3a1ae63fcd6230",
+        "wrong_green": "e4e3166a1c55bdb8",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('scan_override', 'core', 'both')",
+          "wrong_('scan_override', 'scan', 'both')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "242bd763e57ad09be1fec6317b8efd9b004e81852c23894441a94d236d1f577f",
+        "BundleS": "82aaacc2b1459be29ee417f2ba0e0bdfa524a6a1971caa1cd54c6315258b6c0c",
+        "TypedContract": "d412a33ef96f1776e2fab811560c907ea7d810b1defa825e6b8ad730ba3dd60c"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0014",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "scan_override",
+        "reset",
+        "both"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "reset",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "9e564a26ddc15fa8",
+        "authority": "c709fece9627ca0e",
+        "decoy": "b60759778ec1f7f5",
+        "wrong_green": "05843efcbc1e3401",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('scan_override', 'reset', 'both')",
+          "wrong_('cdc_isolate', 'reset', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "fb81b38a1ab10cbc130f001222d216488043d57396f9f77c5a2f1ca488845e90",
+        "BundleS": "8c6e71e90931ec0edc38c884478572c1007e6fa36b5e639383911b3c9eafda15",
+        "TypedContract": "0189f00686a8eb823ad45a39df4b5ec4076953b32c8410abf3e2135efacbb7d4"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    },
+    {
+      "task_id": "p15_eval_0015",
+      "track": "p15_sta_handoff",
+      "golden": [
+        "scan_override",
+        "scan",
+        "both"
+      ],
+      "wrong": [
+        "functional_close",
+        "scan",
+        "setup"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "signatures": {
+        "truth": "922abedde910a79d",
+        "authority": "4c32a37c10454b6b",
+        "decoy": "09fab29fe3ca0008",
+        "wrong_green": "930d1b75f75692ba",
+        "visible_tool_output_golden": "d787bf8cb4adde2a",
+        "visible_tool_output_wrong": "d787bf8cb4adde2a"
+      },
+      "hard_feasibility": {
+        "wrong_tool_syntax_accepted": true,
+        "wrong_executes_finds_nonzero_paths": true,
+        "wrong_plausible_signoff_green": true,
+        "wrong_remains_semantically_wrong": true,
+        "wrong_rejected_by_provenance_not_PT": true,
+        "PASS": true
+      },
+      "output_channel_audit": {
+        "n_visible_candidates_run": 2,
+        "n_plausible": 2,
+        "plausible_candidates": [
+          "golden_('scan_override', 'scan', 'both')",
+          "wrong_('functional_close', 'scan', 'setup')"
+        ],
+        "typed_space_size": 48,
+        "uniquely_determined_by_visible_surface": false,
+        "PASS": true
+      },
+      "semantic_diff_audit": {
+        "Base": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "BundleS": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        },
+        "TypedContract": {
+          "consistent_tuples_public_count": 2,
+          "golden_in_public_set": true,
+          "uniquely_determined_by_public": false,
+          "bundle_discloses_golden": false,
+          "PASS": true
+        }
+      },
+      "info_equiv_audit": {
+        "roles_present_both": true,
+        "domain_values_present_both": true,
+        "same_role_presence": true,
+        "same_value_presence": true,
+        "same_semantic_facts": true,
+        "BundleS_forbidden_leak": [],
+        "TypedContract_forbidden_leak": [],
+        "both_omit_golden_answer_verifier": true,
+        "token_counts": {
+          "BundleS": 102,
+          "TypedContract": 78
+        },
+        "PASS": true
+      },
+      "custody_sha256": {
+        "Base": "f4f46053c40f8ad2feb74e7cc5ae42c5b6f2858b76a613e9bb41d9e2d1dc5cb7",
+        "BundleS": "fbbd1b9581f6d03597d496e05ae3bd5a603ce16821887ae85b1a173601fc0055",
+        "TypedContract": "c81f631fd32429cb4572216d5dc04cabab53b4f741690f4b6496617f23218cc8"
+      },
+      "golden_signoff_green": true,
+      "wrong_signoff_green": true,
+      "wrong_green_but_unattested": true
+    }
+  ],
+  "signatures_distinct": {
+    "truth": true,
+    "authority": true,
+    "decoy": true,
+    "wrong_green": true
+  },
+  "all_instances_pass_hard_gate_and_audits": true,
+  "note": "prospective confirmatory batch; pilot instances 0001-0003 excluded; 72 model episodes NOT executed"
+}

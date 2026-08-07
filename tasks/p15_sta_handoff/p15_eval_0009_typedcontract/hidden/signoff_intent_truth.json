@@ -1,0 +1,154 @@
+{
+  "schema": "p15_signoff_intent_truth/v1",
+  "task_id": "p15_eval_0009",
+  "typed_axes": {
+    "intent_class": [
+      "functional_close",
+      "cdc_isolate",
+      "reset_exempt",
+      "scan_override"
+    ],
+    "target_partition": [
+      "cdc",
+      "reset",
+      "scan",
+      "core"
+    ],
+    "check_mode": [
+      "setup",
+      "hold",
+      "both"
+    ]
+  },
+  "authority_nodes": [
+    {
+      "id": "INT",
+      "artifact": "intent.md",
+      "clause": "timing-intent",
+      "trust": "primary"
+    },
+    {
+      "id": "CDC",
+      "artifact": "cdc_report.rpt",
+      "clause": "crossing",
+      "trust": "primary"
+    },
+    {
+      "id": "RST",
+      "artifact": "reset_report.rpt",
+      "clause": "reset-domain",
+      "trust": "primary"
+    },
+    {
+      "id": "SCN",
+      "artifact": "scan_section.md",
+      "clause": "scan-mode",
+      "trust": "primary"
+    },
+    {
+      "id": "COV",
+      "artifact": "coverage_matrix",
+      "clause": "requires_exception",
+      "trust": "derived"
+    },
+    {
+      "id": "PRIOR",
+      "artifact": "signoff.log",
+      "clause": "prior-attest",
+      "trust": "none"
+    }
+  ],
+  "derivation_edges": [
+    {
+      "from": [
+        "INT"
+      ],
+      "to": {
+        "intent_class": "cdc_isolate"
+      },
+      "rule": "primary intent"
+    },
+    {
+      "from": [
+        "CDC"
+      ],
+      "to": {
+        "target_partition": "scan"
+      },
+      "rule": "crossing/reset/scan pin"
+    },
+    {
+      "from": [
+        "COV"
+      ],
+      "to": {
+        "check_mode": "setup"
+      },
+      "rule": "requires_exception cell"
+    }
+  ],
+  "coverage_matrix": {
+    "scan": {
+      "setup": {
+        "cdc_isolate": "requires_exception"
+      }
+    }
+  },
+  "golden_binding": {
+    "intent_class": "cdc_isolate",
+    "target_partition": "scan",
+    "check_mode": "setup"
+  },
+  "wrong_binding_green": {
+    "intent_class": "reset_exempt",
+    "target_partition": "scan",
+    "check_mode": "both"
+  },
+  "legal_views_for_intent": {
+    "cdc_isolate": "setup",
+    "reset_exempt": "both",
+    "scan_override": "both",
+    "functional_close": "setup"
+  },
+  "intent_exception": {
+    "cdc_isolate": {
+      "type": "false_path"
+    },
+    "reset_exempt": {
+      "type": "false_path"
+    },
+    "scan_override": {
+      "type": "multicycle",
+      "cycles": 2
+    },
+    "functional_close": {
+      "type": "none"
+    }
+  },
+  "partition_pins": {
+    "cdc": {
+      "from": "cdc_src/Q",
+      "to": "cdc_dst/D"
+    },
+    "reset": {
+      "from": "reset_src/Q",
+      "to": "reset_dst/D"
+    },
+    "scan": {
+      "from": "scan_src/Q",
+      "to": "scan_dst/D"
+    },
+    "core": {
+      "from": "core_src/Q",
+      "to": "core_dst/D"
+    }
+  },
+  "decoy_sources": [
+    "PRIOR"
+  ],
+  "decoy_recipe": "wrong_domain",
+  "masking_keywords": [
+    "set_false_path",
+    "set_multicycle_path"
+  ]
+}

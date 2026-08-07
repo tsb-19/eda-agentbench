@@ -1,0 +1,44 @@
+{
+  "schema": "p15_typed_contract/v1",
+  "typed_axes": {
+    "intent_class": {
+      "type": "enum",
+      "domain": [
+        "functional_close",
+        "cdc_isolate",
+        "reset_exempt",
+        "scan_override"
+      ]
+    },
+    "target_partition": {
+      "type": "enum",
+      "domain": [
+        "cdc",
+        "reset",
+        "scan",
+        "core"
+      ]
+    },
+    "check_mode": {
+      "type": "enum",
+      "domain": [
+        "setup",
+        "hold",
+        "both"
+      ]
+    }
+  },
+  "disjoint_axes": true,
+  "authority_sources": {
+    "intent_class": "intent.md",
+    "target_partition": "cdc_report|reset_report|scan_section",
+    "check_mode": "coverage matrix"
+  },
+  "provenance_precedence": [
+    "INT(primary)",
+    "CDC/RST/SCN(primary)",
+    "COV(derived)",
+    "PRIOR(none/decoy)"
+  ],
+  "procedure": "Bind each role from its attesting primary/derived authority; tool signs green regardless, so correctness is provenance-attested."
+}
