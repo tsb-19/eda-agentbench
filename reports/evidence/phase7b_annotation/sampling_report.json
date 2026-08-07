@@ -1,0 +1,41 @@
+{
+  "schema": "phase7b_annotation_sampling/v1",
+  "n_packets": 72,
+  "target": 72,
+  "strata_tally": {
+    "SPICE|Base|correct": 6,
+    "SPICE|Base|other_fail": 6,
+    "SPICE|BundleS|correct": 6,
+    "SPICE|BundleS|other_fail": 6,
+    "SPICE|TypedContract|correct": 6,
+    "STA|Base|correct": 10,
+    "STA|Base|provenance_fail": 2,
+    "STA|BundleS|correct": 10,
+    "STA|TypedContract|correct": 6,
+    "workflow|mixed|correct": 10,
+    "workflow|mixed|provenance_fail": 4
+  },
+  "families": [
+    "SPICE",
+    "STA",
+    "workflow"
+  ],
+  "conditions": [
+    "Base",
+    "BundleS",
+    "TypedContract",
+    "mixed"
+  ],
+  "models": [
+    "DeepSeek-V4-Pro",
+    "Qwen3.7-Max"
+  ],
+  "outcomes": [
+    "correct",
+    "other_fail",
+    "provenance_fail"
+  ],
+  "blinding": "model/condition/grader-verdict/score/task-id/filename stripped; authority rendered canonical; decoy retained",
+  "labels_collected": false,
+  "note": "Phase-7A: packets generated, labels NOT collected (await human annotators; never LLM)"
+}

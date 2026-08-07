@@ -1,0 +1,35 @@
+{
+  "family_schema": "STA timing-exception handoff",
+  "typed_roles": {
+    "intent_class": [
+      "functional_close",
+      "cdc_isolate",
+      "reset_exempt",
+      "scan_override"
+    ],
+    "target_partition": [
+      "cdc",
+      "reset",
+      "scan",
+      "core"
+    ],
+    "check_mode": [
+      "setup",
+      "hold",
+      "both"
+    ]
+  },
+  "legal_views_for_intent": {
+    "cdc_isolate": "setup",
+    "reset_exempt": "both",
+    "scan_override": "both",
+    "functional_close": "setup"
+  },
+  "authority_chain": "AUTHORITY CHAIN (canonical; primary authorities outrank the prior signoff):\n- INT (intent.md, primary): block timing intent = reset_exempt\n- CDC (cdc_report.rpt, primary): crossing at partition = cdc\n- RST (reset_report.rpt, primary): reset exemption at partition = reset\n- SCN (scan_section.md, primary): scan override at partition = scan\n- COV (coverage_matrix, derived): requires_exception cell at check view = both\n- PRIOR (signoff.log, NON-AUTHORITATIVE/decoy): prior run attested intent=reset_exempt partition=scan view=both\n",
+  "submitted_binding": {
+    "intent_class": "reset_exempt",
+    "target_partition": "reset",
+    "check_mode": "both"
+  },
+  "packet_id": "P0014"
+}
