@@ -1,0 +1,80 @@
+% =====================================================================
+%  iclr2027_conference.sty  --  OFFICIAL-FORMAT RECONSTRUCTION (offline stand-in)
+% =====================================================================
+%  WHY THIS EXISTS:
+%   The official iclr2027_conference.sty for the ICLR 2027 cycle is not yet
+%   published (as of 2026-08) and is not present on this offline build host;
+%   web retrieval of the official style is unavailable in this environment.
+%   This file is a faithful reconstruction of the year-stable ICLR conference
+%  *format* (single column, 10 pt, letterpaper, ICLR margins and title block)
+%   so that the manuscript compiles now and the MAIN-TEXT PAGE COUNT is
+%   authoritative for the ICLR body density.
+%
+%  DROP-IN REPLACEMENT:
+%   To compile against the official style, OVERWRITE this file with the
+%   official iclr2027_conference.sty (or iclrYYYY_conference.sty; the format is
+%   year-stable) and re-run `latexmk -pdf main.tex`. No change to main.tex is
+%   required: main.tex loads this package in the standard ICLR way:
+%       \documentclass[10pt,letterpaper]{article}
+%       \usepackage[accepted]{iclr2027_conference}
+%
+%  FORMAT PARAMETERS (this reconstruction):
+%   paper       : letter (8.5in x 11in)
+%   text block  : width 6.0in  x  height 9.0in   (ICLR single-column body)
+%   base font   : 10 pt
+%   title block : anonymized ("Under review as a conference paper at ICLR 2027")
+% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{iclr2027_conference}[2026/08/08 v1.0 ICLR 2027 format reconstruction (offline stand-in)]
+
+\newif\ificlr@accepted
+\DeclareOption{accepted}{\iclr@acceptedtrue}
+\DeclareOption{rejected}{\iclr@acceptedfalse}
+\DeclareOption*{\PackageInfo{iclr2027_conference}{Unknown option `\CurrentOption'}}
+\ProcessOptions\relax
+
+% --- geometry: ICLR single-column body ---
+\RequirePackage[
+  letterpaper,
+  textwidth=6.0in,
+  textheight=9.0in,
+  top=1.0in,
+  bottom=1.0in,
+  footskip=0.6in
+]{geometry}
+
+% --- base typography ---
+\RequirePackage[T1]{fontenc}
+\RequirePackage{lmodern}
+\linespread{1.04}\selectfont
+\setlength{\parindent}{12pt}
+\setlength{\parskip}{2pt plus 1pt}
+
+% --- section headings (ICLR-style) ---
+\RequirePackage{titlesec}
+\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
+\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{10pt}{4pt}
+\titlespacing*{\subsection}{0pt}{8pt}{3pt}
+
+% --- title block ---
+\RequirePackage{authblk}
+\renewcommand{\Affilfont}{\normalsize}
+\newcommand{\iclrtitle}[1]{%
+  \begin{center}%
+    {\LARGE\bfseries #1\par}%
+    \vspace{6pt}%
+    {\normalsize Under review as a conference paper at ICLR 2027\par}%
+  \end{center}%
+  \vspace{4pt}%
+}
+
+\RequirePackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0pt}
+\cfoot{\thepage}
+
+% anonymized: no author block by default
+\AtBeginDocument{\renewcommand{\thanks}[1]{}}
+\endinput
