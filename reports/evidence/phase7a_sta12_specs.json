@@ -1,0 +1,246 @@
+{
+  "schema": "phase7a_sta12_specs/v1",
+  "frozen_before": "any Phase-7 model result",
+  "pilot_instances_excluded": [
+    "p15_eval_0001",
+    "p15_eval_0002",
+    "p15_eval_0003"
+  ],
+  "specs": [
+    {
+      "task_id": "p15_eval_0004",
+      "golden": [
+        "functional_close",
+        "core",
+        "setup"
+      ],
+      "wrong": [
+        "functional_close",
+        "cdc",
+        "setup"
+      ],
+      "decoy_recipe": "scope_drift",
+      "conflict_axis": "partition",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0005",
+      "golden": [
+        "functional_close",
+        "cdc",
+        "setup"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "cdc",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0006",
+      "golden": [
+        "functional_close",
+        "reset",
+        "setup"
+      ],
+      "wrong": [
+        "scan_override",
+        "reset",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0007",
+      "golden": [
+        "cdc_isolate",
+        "core",
+        "setup"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "cdc",
+        "setup"
+      ],
+      "decoy_recipe": "mis_scope",
+      "conflict_axis": "partition",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0008",
+      "golden": [
+        "cdc_isolate",
+        "cdc",
+        "setup"
+      ],
+      "wrong": [
+        "scan_override",
+        "cdc",
+        "both"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0009",
+      "golden": [
+        "cdc_isolate",
+        "scan",
+        "setup"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "scan",
+        "both"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "setup"
+    },
+    {
+      "task_id": "p15_eval_0010",
+      "golden": [
+        "reset_exempt",
+        "cdc",
+        "both"
+      ],
+      "wrong": [
+        "reset_exempt",
+        "reset",
+        "both"
+      ],
+      "decoy_recipe": "stale_intent",
+      "conflict_axis": "partition",
+      "legal_golden_view": "both"
+    },
+    {
+      "task_id": "p15_eval_0011",
+      "golden": [
+        "reset_exempt",
+        "reset",
+        "both"
+      ],
+      "wrong": [
+        "functional_close",
+        "reset",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "both"
+    },
+    {
+      "task_id": "p15_eval_0012",
+      "golden": [
+        "reset_exempt",
+        "scan",
+        "both"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "scan",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "both"
+    },
+    {
+      "task_id": "p15_eval_0013",
+      "golden": [
+        "scan_override",
+        "core",
+        "both"
+      ],
+      "wrong": [
+        "scan_override",
+        "scan",
+        "both"
+      ],
+      "decoy_recipe": "mis_scope",
+      "conflict_axis": "partition",
+      "legal_golden_view": "both"
+    },
+    {
+      "task_id": "p15_eval_0014",
+      "golden": [
+        "scan_override",
+        "reset",
+        "both"
+      ],
+      "wrong": [
+        "cdc_isolate",
+        "reset",
+        "setup"
+      ],
+      "decoy_recipe": "intent_swap",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "both"
+    },
+    {
+      "task_id": "p15_eval_0015",
+      "golden": [
+        "scan_override",
+        "scan",
+        "both"
+      ],
+      "wrong": [
+        "functional_close",
+        "scan",
+        "setup"
+      ],
+      "decoy_recipe": "wrong_domain",
+      "conflict_axis": "intent+view",
+      "legal_golden_view": "both"
+    }
+  ],
+  "coverage": {
+    "golden_intent": [
+      "cdc_isolate",
+      "functional_close",
+      "reset_exempt",
+      "scan_override"
+    ],
+    "golden_partition": [
+      "cdc",
+      "core",
+      "reset",
+      "scan"
+    ],
+    "golden_view": [
+      "both",
+      "setup"
+    ],
+    "conflict_axis": [
+      "intent+view",
+      "partition"
+    ],
+    "decoy_recipe": [
+      "intent_swap",
+      "mis_scope",
+      "scope_drift",
+      "stale_intent",
+      "wrong_domain"
+    ],
+    "n_per_intent": {
+      "functional_close": 3,
+      "cdc_isolate": 3,
+      "reset_exempt": 3,
+      "scan_override": 3
+    },
+    "n_per_partition": {
+      "cdc": 3,
+      "reset": 3,
+      "scan": 3,
+      "core": 3
+    }
+  },
+  "validation_problems": [],
+  "PASS": true
+}
