@@ -1,0 +1,39 @@
+{
+  "schema": "phase7c_terminalbench_rubric/v1",
+  "frozen_before": "inspection of any Terminal-Bench 2.0->2.1 modification",
+  "rubric": {
+    "L1_capability_validity": {
+      "definition": "Does the issue concern whether the task measures the intended capability (vs a tool-green/shortcut/rubric-correctable wrong answer; semantic correctness; failure taxonomy)?",
+      "detect_prevent": "would our protocol's L1 (tool-green alternatives + provenance/authority oracle + failure taxonomy) detect or prevent this?"
+    },
+    "L2_sampling_validity": {
+      "definition": "Does the issue concern sampling (repeated trajectories, blocking/counterbalancing, sample-membership)?",
+      "detect_prevent": "would our protocol's L2 (reps + counterbalancing + membership arbiter) detect or prevent this?"
+    },
+    "L3_execution_validity": {
+      "definition": "Does the issue concern execution (transport/timeout, terminal-vs-recovered, tool health, protocol completion)?",
+      "detect_prevent": "would our protocol's L3 (streaming transport + terminal-vs-recovered + tool-health bookends + protocol completion) detect or prevent this?"
+    },
+    "L4_artifact_integrity": {
+      "definition": "Does the issue concern artifact integrity (action-surface tampering, reward hacking via file edits, canonical-source integrity)?",
+      "detect_prevent": "would our protocol's L4 (action-surface isolation + canonical-hash guard + custody) detect or prevent this?"
+    },
+    "Other_not_covered": {
+      "definition": "The issue lies outside the four layers (e.g., task-content correctness unrelated to evaluation validity, licensing, dataset curation).",
+      "detect_prevent": "not covered by our protocol; record explicitly."
+    }
+  },
+  "coding_fields": {
+    "task_id": "Terminal-Bench task identifier",
+    "nature_of_repair": "free-text: what 2.0->2.1 changed (bug / timeout-resource / reward-hacking-robustness / other)",
+    "affected_layer": "exactly one of the 5 rubric keys; choose 'Other_not_covered' if it does not fit L1-L4",
+    "our_protocol_would_detect_or_prevent": "yes / no / partial (one sentence)",
+    "abc_or_protocol_validity_prior_covers": "yes / no / unknown (prior work on benchmark setup / shortcut / reward validity)",
+    "outside_our_protocol": "true if affected_layer == Other_not_covered",
+    "notes": "optional"
+  },
+  "claim_scope": "external audit of our protocol against an independent benchmark; NOT a claim that our protocol caused/predicted Terminal-Bench fixes",
+  "n_modifications_expected": 26,
+  "retrieval_plan": "obtain the Terminal-Bench 2.0->2.1 changelog (26 tasks modified for bugs/timeout-resource/reward-hacking robustness); place at reports/evidence/phase7c_terminalbench/tb21_modifications.json then re-run --code",
+  "retrieval_blocked_in_phase7a": "web tools rate-limited (reset 2026-08-14); retrieval deferred"
+}
