@@ -13,7 +13,7 @@ SIGN_OUT="$("$PT_CMD" -f run_signoff.tcl 2>&1)"
 SIGN_LINE=$(echo "$SIGN_OUT" | grep -E '^SIGNOFF_OK|^SIGNOFF_FAIL' || echo 'SIGNOFF_FAIL worst_slack=NONE no_marker')
 SLACK=$(echo "$SIGN_LINE" | sed -E 's/.*worst_slack=([-0-9.]+|NONE).*/\1/')
 GREEN=$(echo "$SIGN_LINE" | grep -q '^SIGNOFF_OK' && echo true || echo false)
-AEX=$(grep -cE 'set_false_path|set_multicycle_path' applied_hidden.sdc 2>/dev/null || echo 0)
+AEX=$(grep -cE 'set_false_path|set_multicycle_path' applied_hidden.sdc 2>/dev/null || true)
 cat > signoff_result.json <<JSON
 {"signoff_green": $GREEN, "worst_slack": "$SLACK", "applied_exception_lines": $AEX, "expected_exception_lines": 1, "signoff_line": "$SIGN_LINE"}
 JSON

@@ -108,7 +108,7 @@ def validate_metadata(meta: dict) -> list[str]:
 
     # task_id format
     import re
-    if not re.match(r"^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6}|dc_constraint_[0-9]{4}|sg_lint_[0-9]{4}|pt_sta_debug_[0-9]{4}|pnr_report_qa_[0-9]{4}|pt_exc_debug_[0-9]{4}|syn_proj_[0-9]{4}|fhandoff_[0-9]{4}|mf_handoff_[0-9]{4}|traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4})$", meta["task_id"]):
+    if not re.match(r"^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6}|dc_constraint_[0-9]{4}|sg_lint_[0-9]{4}|pt_sta_debug_[0-9]{4}|pnr_report_qa_[0-9]{4}|pt_exc_debug_[0-9]{4}|syn_proj_[0-9]{4}|fhandoff_[0-9]{4}|mf_handoff_[0-9]{4}|traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4}|p15_[a-z]+_[0-9]{4}|p16_[a-z]+_[0-9]{4})$", meta["task_id"]):
         errors.append(f"Invalid task_id format: {meta['task_id']!r}")
 
     # weights sum to 1.0
