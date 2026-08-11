@@ -1,6 +1,6 @@
-# ICLR 2027 Final Submission Package (Phase-7B / manuscript v3.1)
+# ICLR 2027 Final Submission Package (Phase-7C / manuscript v4)
 
-**Title:** When Do Agent Harness Improvements Generalize? Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents
+**Title:** Auditing Generalization Claims for LLM Agent Harnesses Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
 
 ## Build
@@ -9,11 +9,11 @@ cd submission && make
 ```
 
 ## Page boundaries
-- **Main text: 7 pp** (p1-p7; <=9 limit)
-- References: p8
-- Appendix A-E: p8-p10
-- Ethics/AI-use/Reproducibility: p10
-- **Total PDF: 10 pp**
+- **Main text: 5 pp** (p1-p7; <=9 limit)
+- References: p6
+- Appendix A-E: p6-p8
+- Ethics/AI-use/Reproducibility: p8
+- **Total PDF: 8 pp**
 
 ## Contents
 | File | Purpose |
