@@ -1,109 +1,66 @@
 % =========================================================================
-%  When Do Agent Harness Improvements Generalize?
-%  Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents
+%  When Do Agent Harness Improvements Generalize? (Phase-7 / manuscript v3)
 %  -- ICLR 2027 submission (anonymized, double-blind) --
-% =========================================================================
-%  COMPILE:  latexmk -pdf main.tex     (or: pdflatex main && bibtex main && pdflatex main && pdflatex main)
-%
-%  FORMAT: This file loads the ICLR 2027 format via \usepackage{iclr2027_conference}.
-%    The file iclr2027_conference.sty shipped here is an OFFLINE STAND-IN that
-%    faithfully reconstructs the year-stable ICLR single-column 10pt format.
-%    To compile against the official style, overwrite iclr2027_conference.sty
-%    with the official release and re-run latexmk. No edit to this file is needed.
+%  Loads the ICLR 2027 format via \usepackage{iclr2027_conference}. The shipped
+%  iclr2027_conference.sty is an OFFLINE STAND-IN reconstruction (the official
+%  2027 style was not yet posted as of 2026-08-11; drop-in replaceable).
 % =========================================================================
 \documentclass[10pt,letterpaper]{article}
 \usepackage[accepted]{iclr2027_conference}
-
 \usepackage[utf8]{inputenc}
 \usepackage{microtype}
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{tabularx}
-\usepackage{graphicx}
 \usepackage{xcolor}
 \usepackage{enumitem}
 \setlist{nosep,leftmargin=1.3em,topsep=2pt,parsep=0pt,itemsep=1pt}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf,skip=4pt}
-\usepackage{amsmath}
-\usepackage{amssymb}
-\usepackage{pifont}
+\usepackage{amsmath}\usepackage{amssymb}\usepackage{pifont}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black,citecolor=black}
-\usepackage{tikz}
-\usetikzlibrary{shapes.geometric,arrows.meta,positioning,fit}
-
-\title{When Do Agent Harness Improvements Generalize?\\Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents}
+\usepackage{tikz}\usetikzlibrary{shapes.geometric,arrows.meta,positioning}
 \date{}
 
 \begin{document}
 \iclrtitle{When Do Agent Harness Improvements Generalize? Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents}
 
 \begin{abstract}
-A harness intervention---the way a task presents its evidence and disambiguating context to an agent---can survive repeated development experiments and a pre-frozen within-family held-out test, yet disappear under a new model or a new semantic task family. We study this on tool-grounded EDA workflows. On a controlled \emph{semantic-handoff} task, a non-answer-bearing ``clarity bundle'' (BundleS: canonical role labels, value-domain definitions, a glossary, a procedural contract; no golden values) suppresses a specific semantic-axis binding failure for one frontier model, and this replicates on a pre-frozen held-out instance. Under exact counterbalancing the benefit is \emph{not established} for a second model; on two structurally independent task families it is a clean null in one family and non-discriminative at ceiling in the other; a machine-readable typed representation of the same information adds no measurable advantage. The central finding is that \textbf{within-family held-out confirmation did not imply cross-model or cross-family transfer.} With three primary instances per external family, our design is diagnostic rather than population-estimating: it tests existence, recurrence, ceiling/null behavior, and transfer direction; it cannot resolve small effect sizes or support population-level success-rate estimates. Because each conclusion could be manufactured or masked by an evaluation artifact, we additionally contribute a reusable \emph{Harness Effect Audit Protocol}---four layers (capability validity, sampling validity, execution validity, artifact integrity) operationalized as nine controls---each shown catching a real threat. The contribution is an evaluation study of harness effects, not a proposal of an improved harness.
+A Harness intervention can survive controlled development and a pre-frozen within-family held-out evaluation without establishing transfer across models or semantic task families. On a controlled tool-grounded \emph{semantic-handoff} task, a non-answer-bearing ``clarity bundle'' (BundleS) suppresses a specific tool-green semantic-binding failure for one model, confirmed on a pre-frozen held-out instance (Study~I). But the effect does not transfer: under exact counterbalancing it is not established for a second model, and on two structurally independent task families it is a clean null or a non-discriminative ceiling (Study~II). Expanding an external STA evaluation prospectively from three to twelve independently frozen task instances reversed the apparent direction of the comparison while still failing to establish a stable Harness benefit. We contribute a \emph{Harness Effect Audit Protocol}---four layers (capability, sampling, execution, artifact integrity) instantiated and stress-tested in this study---each shown catching a real threat; an independent benchmark-repair audit (Terminal-Bench 2.0$\to$2.1) shows broad but predominantly partial correspondence (22 of 26 repairs had at least partial correspondence, only one directly captured). Our controlled task instances test existence, recurrence, and transfer direction rather than estimate population-level pass rates. A preregistered blinded human construct-validity study is reported as unexecuted. The contribution is an evaluation study, not a proposed improved harness.
 \end{abstract}
 
 % ========================================================================
 \section{Introduction}
 % ========================================================================
+A harness intervention can survive controlled development and a pre-frozen within-family held-out evaluation without establishing transfer across models or semantic task families. This is the result that motivates the paper: an effect that looks robust under repeated within-condition replication and a frozen held-out instance can still fail the first strict external-validity test---and, as we show, can even reverse direction when an external family is expanded prospectively. If the community treats a single within-family replication as evidence that a harness improvement ``works,'' it will over-credit interventions that are model- or family-specific.
 
-A harness intervention can survive repeated development experiments and a pre-frozen within-family held-out test, yet disappear under a new model or a new semantic task family. This is the result that motivates the paper. It is uncomfortable for agent evaluation: an effect that looks robust under repeated within-condition replication and even under a frozen held-out instance can still fail the first strict external-validity test. If the community takes a single within-family replication as evidence that a harness improvement ``works,'' it will systematically over-credit interventions that are model- or family-specific.
+We study this on tool-grounded EDA workflows, where an LLM agent binds quantities to canonical typed roles and submits an artifact to a real commercial tool. On a \emph{semantic-handoff} task the agent must assign a tuple to canonical typed roles from heterogeneous, role-misleading evidence; a wrong binding is not a syntax error---it produces a \emph{plausible green signoff}---so only a typed provenance/authority grader distinguishes correct from wrong. We ask: \textbf{RQ1} can harness information structure change semantic-binding behavior (controlled setting)? \textbf{RQ2} does it transfer across models and task families? \textbf{RQ3} which evaluation controls make these conclusions valid?
 
-We study this on tool-grounded EDA workflows, where an LLM agent reads heterogeneous task evidence, binds quantities to canonical typed roles, and submits an artifact to a real commercial tool for signoff. We focus on a \emph{semantic-handoff} task: the agent must assign a tuple of values to canonical typed roles (e.g.\ place a PVT descriptor on the correct typed axis) where the visible evidence uses misleading role vocabulary. A wrong binding is not a syntax error---it produces a \emph{plausible green signoff or plausible numeric output} on the real tool. Only a typed provenance/authority grader distinguishes a correct from a wrong binding, making the task a clean instrument for whether harness information structure changes \emph{semantic execution behavior} as opposed to mere tool success. We ask:
-\begin{itemize}
-\item \textbf{RQ1.} Can harness information structure change semantic execution behavior?
-\item \textbf{RQ2.} Does an observed harness effect transfer across models and task families?
-\item \textbf{RQ3.} Which evaluation controls are required for those conclusions to be valid?
-\end{itemize}
-In brief: (RQ1) yes---within a family a non-answer-bearing clarity bundle suppresses a specific axis-binding failure for one model, confirmed on a pre-frozen held-out instance; (RQ2) this does not imply transfer---it is not established for a second model under counterbalancing, and is a clean null or a ceiling on two independent families; (RQ3) the conclusions depend on transport, tool health, sample-membership arbitration, protocol completion, action-surface, and canonical-source integrity, each able to manufacture or mask a result.
-
-\paragraph{Contributions.} (1) A controlled \emph{semantic-binding} mechanism with a typed failure taxonomy, isolated from analog-design difficulty: the failure (placing a value on the wrong typed axis) stays tool-green and is rejected only by a typed provenance/authority grader. (2) The \emph{external-validity-failure-after-held-out-confirmation} finding: a within-family effect confirmed on a pre-frozen held-out instance did not transfer across model or across two structurally independent families; a typed representation added no advantage. (3) A reusable \textbf{Harness Effect Audit Protocol}---four layers, nine controls---each shown catching a real threat to the headline interpretation. The paper is organized as three studies mapped to the three questions; the repository chronology is an appendix provenance record. Figure~\ref{fig:pipeline} previews the study pipeline.
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-  every node/.style={font=\scriptsize},
-  b/.style={draw,rounded corners=2pt,inner sep=2.5pt,align=center,fill=gray!6},
-  arr/.style={-{Stealth},thick}]
-\node[b] (d) {Discovery:\\value-swap axis failure};
-\node[b, right=4mm of d] (t) {Transport repair:\\SSE streaming};
-\node[b, right=4mm of t] (cp) {Controlled pair:\\bundle suppresses\\axis binding};
-\node[b, below=6mm of cp] (ab) {Ablation + frozen\\held-out (Model A)};
-\node[b, left=4mm of ab] (cm) {Cross-model:\\not est.\ (Model B)};
-\node[b, below=5mm of ab] (cf) {Cross-family:\\STA null, SPICE ceiling};
-\node[b, right=4mm of cf] (tc) {TypedContract:\\no advantage};
-\node[b, right=4mm of tc] (fr) {\textbf{Result: transfer}\\\textbf{not established}};
-\draw[arr] (d)--(t); \draw[arr] (t)--(cp);
-\draw[arr] (cp)--(ab); \draw[arr] (cp)--(cm);
-\draw[arr] (ab)--(cf); \draw[arr] (cf)--(tc); \draw[arr] (tc)--(fr);
-\end{tikzpicture}
-\caption{Study/evidence pipeline: three studies, the registration of each step, and where the central finding crystallizes.}
-\label{fig:pipeline}
-\end{figure}
+\paragraph{Contributions.} (1) A controlled semantic-binding mechanism + typed failure taxonomy, isolated from analog-design difficulty (Study~I). (2) The transfer-failure-after-held-out-confirmation finding, including a prospective 12-instance STA expansion that reversed the apparent direction of the original three-instance pilot while still not establishing a stable benefit (Study~II). (3) The Harness Effect Audit Protocol, instantiated and stress-tested here, plus an independent benchmark-repair audit as external taxonomy application (Study~III).
 
 % ========================================================================
 \section{Related Work and Problem Formulation}
 % ========================================================================
+\paragraph{Harnesses and harness effects.} A \emph{harness} is the task-level information structure visible to the agent (prompt, visible files, disclosure bundle, public tool feedback, action surface). A \emph{harness effect} is a change in semantic-binding correctness attributable to harness information content, holding the hidden truth, grader, and tool fixed.
 
-\paragraph{Harnesses and harness effects.} A \emph{harness} is the task-level information structure visible to the agent: the prompt, visible task files, disclosure bundle, public tool feedback, and the action surface (files the agent may edit). A \emph{harness effect} is a change in agent behavior---specifically, semantic-binding correctness---attributable to a change in harness \emph{information content}, holding the hidden truth, the grader, and the tool fixed.
+\paragraph{Problem formulation.} Each task is a \emph{semantic handoff}: bind a tuple to canonical typed roles from role-misleading evidence. The workflow family binds PVT descriptors to typed axes; Family~A (STA/PrimeTime) binds (intent\_class, target\_partition, check\_mode) from an authority provenance DAG; Family~B (SPICE/HSPICE) binds (corner, load\_condition, metric) from a request--authority join. Families~A/B are structurally independent from the workflow family (verified under five pre-registered criteria; operational, not a proof).
 
-\paragraph{Problem formulation.} Each task presents a \emph{semantic handoff}: the agent binds a tuple of values to canonical typed roles drawn from heterogeneous, role-misleading evidence. Formally, the agent recovers a binding $\beta = (r_1{=}v_1,\dots,r_m{=}v_m)$ over canonical roles $\{r_j\}$ from evidence whose surface role vocabulary is deliberately inconsistent with the canonical roles. Three families instantiate this: the \emph{workflow-handoff} family binds PVT descriptors to typed axes; Family~A (STA/PrimeTime) binds (intent\_class, target\_partition, check\_mode) from an authority provenance DAG; Family~B (SPICE/HSPICE) binds (corner, load\_condition, metric) from a request--authority relational join. The external families share none of the workflow family's signature structures (independent templates, role vocabularies, hidden-truth representations, graders, decoy logic); operational independence was verified under five pre-registered structural criteria (Appendix~D), which we treat as operational independence, not a proof.
-
-\paragraph{Positioning.} Prior work establishes that harness configurations affect agent performance~\cite{harnessbench,harnesseval,harnesso,abc,protocolval}. We instead study \emph{when} a measured harness effect is scientifically attributable, \emph{whether} it survives increasingly strict external-validity tests, and \emph{which} execution-layer controls are required to support that conclusion. Table~\ref{tab:novelty} sharpens this across five lines of related work.
+\paragraph{Positioning.} Prior work establishes that harness configurations affect agent performance. We instead study \emph{when} a measured effect is scientifically attributable, \emph{whether} it survives external-validity tests, and \emph{which} controls are required (Table~\ref{tab:novelty}). Two further distinctions: \textbf{TAB (No More, No Less: Task Alignment in Terminal Agents)}~\cite{tab} studies the selective use of necessary environmental cues in the presence of plausible distractors; our construct is role-conditioned semantic binding and provenance/authority attribution, including cases where the evidence is available but values are bound to the wrong semantic role while the tool stays green---a different failure construct. \textbf{LongHorizon-Harness}~\cite{longhorizon} reports cross-benchmark Harness gains; rather than contradicting us, this sharpens our claim: \emph{some} Harness interventions do transfer across benchmarks, so transfer is an empirical property that must be demonstrated rather than inferred from within-family confirmation.
 
 \begin{table}[h]
 \centering\small
-\caption{Positioning relative to five lines of related work (paraphrased).}
+\caption{Positioning relative to five lines of related work (paraphrased; citations are VERIFICATION-REQUIRED placeholders).}
 \label{tab:novelty}
 \begin{tabularx}{\linewidth}{@{}lXX@{}}
 \toprule
 Prior work & What it establishes & What this paper additionally does \\
 \midrule
-Harness-Bench & Broad model$\times$harness characterization & Controlled semantic-mechanism isolation + typed taxonomy; claim-validity (transport, membership, integrity) \\
-Rethinking Harness Evaluation & Leaderboard conflation; search/overfitting & Even a \emph{manually controlled} effect surviving pre-frozen within-family held-out may fail \emph{cross-family} transfer \\
-HarnessOpt-Bench & Optimizer \emph{capability} & Studies the \emph{validity} of harness-effect claims, not optimization \\
-ABC / Best-Practices & Setup; shortcut/reward validity & Additionally audits transport, recovered degradation, sample membership, tool health, action surfaces, canonical-source integrity during execution \\
-Protocol-validity work & Protocol design; reward-hacking surface & Treats measurement validity as the contribution; reports each control that \emph{manufactured or masked} a result \\
+Harness-Bench & Broad model$\times$harness characterization & Controlled semantic-mechanism isolation + typed taxonomy; claim-validity analysis \\
+Rethinking Harness Evaluation & Leaderboard conflation; search/overfitting & Held-out confirmation still need not transfer cross-family \\
+HarnessOpt-Bench & Optimizer capability & Studies validity of harness-effect claims, not optimization \\
+ABC / Best-Practices & Setup; shortcut/reward validity & Additionally audits transport, membership, tool health, action surfaces, canonical integrity \\
+Protocol-validity work & Protocol design; reward-hacking surface & Measurement validity as the contribution; per-control threat log \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -111,142 +68,15 @@ Protocol-validity work & Protocol design; reward-hacking surface & Treats measur
 % ========================================================================
 \section{Harness Effect Audit Methodology}
 % ========================================================================
+\paragraph{Tasks and tool grounding.} All families run on real commercial tools (PrimeTime; HSPICE) through a transparent remote shim---not tool simulations. A wrong binding produces a plausible green signoff/number, so tool success is necessary but not sufficient; only the typed provenance/authority grader rejects a wrong binding.
 
-\paragraph{Tasks and tool grounding.} All three families run on real commercial tools (PrimeTime for the workflow and STA families; HSPICE for SPICE) through a transparent remote execution shim to a compute server hosting the tools---not simulations of tools. A wrong binding produces a plausible green signoff (STA) or plausible numeric measurement (SPICE), so tool success is necessary but not sufficient; only the typed provenance/authority grader rejects a wrong binding.
+\paragraph{Conditions.} \textbf{Base} (ambiguous handoff; no answer-bearing disclosure); \textbf{BundleS} (canonical labels C1, value-domain definitions C2, glossary C4, procedural contract C7; no answer-bearing C6; no golden values); \textbf{TypedContract} (same information as BundleS as a JSON Schema). Hidden truth and grader are identical across conditions.
 
-\paragraph{Conditions.} Three conditions differ only in disclosure representation; hidden truth and grader are identical across conditions. \textbf{Base}: ambiguous natural-language handoff; no answer-bearing disclosure. \textbf{BundleS}: canonical role labels (C1), disjoint-axis value-domain definitions (C2), a glossary with references (C4), and a procedural contract (C7)---mapped mechanically from a frozen treatment specification; \emph{no} answer-bearing assertion (no C6); \emph{no} golden values. \textbf{TypedContract}: the same information content as BundleS as a machine-readable JSON Schema; no golden values; matched budgets.
+\paragraph{Design.} Seeded exact-counterbalanced blocked randomization, frozen before any paid call. Task instance is the primary unit; stochastic repetitions are nested. We report paired directions and raw counts per instance and do not pool trajectories into a single significance headline.
 
-\paragraph{Design.} Seeded exact-counterbalanced blocked randomization, frozen before any paid call. Instance is the primary experimental unit; stochastic repetitions are nested observations; we report paired directions and raw counts per instance and do not pool trajectories into a single significance headline. Predeclared interpretation tables govern each contrast (Appendix~B).
+\paragraph{Detectability.} With small instance counts our design is diagnostic rather than population-estimating: it tests existence, recurrence, ceiling/null behavior, and transfer direction; it cannot resolve small effect sizes. We do not use small-$n$ bootstrap significance or a trajectory-pooled $p$-value to compensate.
 
-\paragraph{Detectability and the role of repetitions.} With three primary instances per external family, our design is diagnostic rather than population-estimating. It is intended to test existence, recurrence, ceiling/null behavior, and transfer direction; it cannot resolve small effect sizes or support precise population-level success-rate estimates. We therefore do not present conventional powered population inference from three external task instances, and we do not use small-$n$ bootstrap significance or a trajectory-pooled $p$-value to compensate for the limited instance count. The descriptive trajectory-stability analysis below reports what the data do support.
-
-\paragraph{Trajectory stability (descriptive).} Table~\ref{tab:traj} reports, for every main condition, the per-instance per-repetition semantic-binding outcome and within-instance agreement. The pattern is informative: across the twelve external condition-cells only one cell disagrees within its two repetitions (STA instance~0001 under Base); all SPICE cells and the remaining STA cells agree within instance. Run-to-run variance is thus low \emph{within} instance---between-instance spread, not sampling noise, drives the family means. This is stability of direction at fixed instance, not a population estimate.
-
-\begin{table}[h]
-\centering\footnotesize
-\caption{Descriptive trajectory stability per main condition (\checkmark=correct typed binding; \ding{55}=semantic-binding failure). Reps are nested observations within instance. Agreement is within-instance across reps.}
-\label{tab:traj}
-\begin{tabularx}{\linewidth}{@{}l c X l r@{}}
-\toprule
-Condition & inst$\times$rep & per-instance per-rep outcome & within-inst agree & raw \\
-\midrule
-Workflow dev pair, Base (0009) & 1$\times$3 & [\ding{55}\checkmark\ding{55}] & disagree & 1/3 \\
-Workflow dev pair, clear (0010) & 1$\times$3 & [\checkmark\checkmark\checkmark] & agree & 3/3 \\
-Workflow held-out, Base (0011) & 1$\times$3 & [\ding{55}\checkmark\ding{55}] & disagree & 1/3 \\
-Workflow held-out, BundleS (0017) & 1$\times$3 & [\checkmark\checkmark\checkmark] & agree & 3/3 \\
-Workflow, Model B, Base & 1$\times$4 & [\checkmark\checkmark\ding{55}\checkmark] & disagree & 3/4 \\
-Workflow, Model B, BundleS & 1$\times$4 & [\ding{55}\checkmark\checkmark\checkmark] & disagree & 3/4 \\
-\midrule
-Family A (STA), Base & 3$\times$2 & [\ding{55}\checkmark]\,[\checkmark\checkmark]\,[\ding{55}\ding{55}] & dis./ag./ag. & 3/6 \\
-Family A (STA), BundleS & 3$\times$2 & [\ding{55}\ding{55}]\,[\checkmark\checkmark]\,[\ding{55}\ding{55}] & agree & 2/6 \\
-Family B (SPICE), Base & 3$\times$2 & [\checkmark\checkmark]\,[\checkmark\checkmark]\,[\checkmark\checkmark] & agree & 6/6 \\
-Family B (SPICE), BundleS & 3$\times$2 & [\checkmark\checkmark]\,[\checkmark\checkmark]\,[\checkmark\checkmark] & agree & 6/6 \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\paragraph{Study registration.} Sequential adaptation is a central concern for multi-stage agent research. Table~\ref{tab:reg} records the registration type of each result; only the predeclared, frozen-held-out, exact-counterbalanced, and cross-family-confirmatory results are headline.
-
-\begin{table}[h]
-\centering\small
-\caption{Study registration. Headline claims rest on predeclared / frozen-held-out / exact-counterbalanced / cross-family-confirmatory evidence; exploratory localization is not a headline.}
-\label{tab:reg}
-\begin{tabularx}{\linewidth}{@{}l X c@{}}
-\toprule
-Registration type & Result (used in) & Headline? \\
-\midrule
-Predeclared (controlled pair) & Workflow family: clarity bundle suppresses axis binding (Study~I) & Yes \\
-Frozen-held-out confirmatory & Workflow family: BundleS on a pre-frozen held-out truth (Study~I) & Yes \\
-Exact-counterbalanced & Cross-model: BundleS vs Base under balanced blocking (Study~II) & Yes \\
-Cross-family confirmatory & STA null + SPICE ceiling on pre-registered families (Study~II) & Yes \\
-Secondary extension (pre-frozen) & TypedContract, separately frozen budget (Study~II) & Yes (scoped) \\
-Exploratory (sequential) & Component localization C1/C2/C4/C7/C24 (Appendix~A) & No \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-% ========================================================================
-\section{Study I --- Controlled Semantic-Binding Effects (RQ1)}
-% ========================================================================
-
-\paragraph{Discovery (predeclared controlled pair).} We construct a controlled pair with identical hidden truth and grader differing only in the disclosure bundle: an \emph{ambiguous} handoff versus a \emph{clear} handoff that adds the full clarity bundle. Both versions accept a green signoff regardless of binding correctness. The full clarity bundle suppresses the axis-binding failure for both models: Model~A moves 1/3 (2 axis) $\to$ 3/3 (0 axis); Model~B moves 0/3 (3 axis) $\to$ 3/3 (0 axis). The disclosure---not the tool, not the hidden truth---is the operative variable (RQ1: \emph{established}).
-
-\paragraph{The failure the bundle suppresses (Figure~\ref{fig:taxonomy}).} Across the workflow-family ledger (54 primary episodes) the typed grader partitions outcomes into 29 correct typed bindings, 20 \emph{axis-binding} failures (a value on the wrong typed axis, e.g.\ \texttt{scenario=func} instead of \texttt{corner=func}), and 5 \emph{role-conditioned value-selection} failures (type-valid, wrong value). The axis-binding subtype is exactly the failure the bundle targets: syntactically legal, tool-green, semantically wrong. Family-specific subtypes (coverage-cell mismatch / authority-unattested binding for STA; corner/load/metric authority misbind for SPICE) extend the taxonomy.
-
-\begin{figure}[h]
-\centering
-\begin{tikzpicture}[
-  every node/.style={font=\footnotesize},
-  box/.style={draw,rounded corners=2pt,inner sep=3pt,align=left,fill=gray!6}]
-\node[box] (root) {\textbf{semantic\_binding\_failure}\\ \scriptsize(green signoff / plausible number; typed-rejected)};
-\node[box, below left=5pt and -10pt of root] (a) {axis\_binding\_failure\\ \scriptsize(value on wrong axis) --- 20/54};
-\node[box, below right=5pt and -10pt of root] (v) {role\_conditioned\_value\_selection\\ \scriptsize(type-valid, wrong value) --- 5/54};
-\node[below=6pt of v, font=\scriptsize, align=left] {STA: coverage\_cell\_mismatch, authority\_unattested\_binding\\ SPICE: corner / load / metric authority\_misbind};
-\node[below=6pt of a, font=\scriptsize] {correct typed binding: 29/54};
-\draw[-{Stealth}] (root.south west) -- (a.north);
-\draw[-{Stealth}] (root.south east) -- (v.north);
-\end{tikzpicture}
-\caption{Semantic-binding failure taxonomy. All failures are tool-green and rejected only by the typed grader.}
-\label{fig:taxonomy}
-\end{figure}
-
-\paragraph{Non-answer localization.} The full bundle includes an answer-bearing assertion (C6). Excluding C6, the schema/contract subset \textbf{BundleS} (C1+C2+C4+C7) suffices on the development pair for Model~A (BundleS 3/3 vs the decoy-disambiguation bundle \textbf{BundleD}~=~C3+C5, which scores 1/3 and reproduces two wrong-axis bindings). The effect is attributable to the non-answer-bearing schema/contract disclosure---neither to leaking the answer (C6) nor to disambiguating decoys (C3/C5).
-
-\paragraph{Pre-frozen held-out confirmation.} Generalization within the family is tested on a held-out instance whose hidden truth was frozen \emph{before} the disclosure mapping was selected: BundleS on the held-out truth yields 3/3 vs Base 1/3 on the matched Base instance. This is the strongest within-family evidence and the stepping-off point for external validity.
-
-\paragraph{Model contingency.} Under exact counterbalancing on Model~B, BundleS is \emph{not established}: Base 3/4 (1 axis) equals BundleS 3/4 (1 axis). The within-family benefit is model-contingent.
-
-\paragraph{Component decomposition (exploratory; not headline).} A sequential decomposition tested whether a stable minimal component underlies BundleS; no stable minimal component was identified (Appendix~A, including a predeclared in-window C24 bridge that failed its replication threshold). The bundle-level effect is real within the family for Model~A while a stable sub-component was not isolated.
-
-The within-family story (Table~\ref{tab:main}, workflow rows): a non-answer-bearing disclosure suppresses a specific tool-green semantic failure, replicates on a pre-frozen held-out instance, but is already model-contingent under counterbalancing.
-
-% ========================================================================
-\section{Study II --- Model and Cross-Family External Validity (RQ2)}
-% ========================================================================
-
-This study is where the central finding lives. We test transfer along two axes---\emph{model} (a second model under exact counterbalancing) and \emph{family} (two structurally independent families)---both evaluated with the model for which the within-family effect \emph{was} established. The result is visible immediately in Table~\ref{tab:main}.
-
-\begin{table}[h]
-\centering\small
-\caption{Main result matrix. Cells are semantic-binding correct rate; instance is the unit and repetitions are nested. ``---'' = not run.}
-\label{tab:main}
-\begin{tabular}{@{}l c c c c l@{}}
-\toprule
-Family & Model & Base & BundleS & TypedContract & Registration \\
-\midrule
-Workflow (dev pair) & A & 1/3 (2 axis) & 3/3 (0 axis) & --- & Predeclared \\
-Workflow (frozen held-out) & A & 1/3 & 3/3 & --- & Frozen held-out \\
-Workflow (exact-counterbalanced) & B & 3/4 (1 axis) & 3/4 (1 axis) & --- & Counterbalanced \\
-Family A --- STA / PrimeTime & A & 0.50 & 0.33 & 0.33 & Cross-family \\
-Family B --- SPICE / HSPICE & A & 1.00 & 1.00 & 1.00 & Cross-family \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Cross-model (within family).} Under exact counterbalancing, the within-family BundleS benefit is not established for Model~B (tie 3/4~=~3/4): the effect that replicated on the frozen held-out instance for Model~A does not reproduce under balanced blocking.
-
-\paragraph{Cross-family --- two distinct nulls, kept separate.}
-\emph{Family~A (STA) --- a clean null.} Across three instances BundleS does not improve over Base (0/3 improve; one declines 0.50$\to$0.00, one ties at ceiling 1.00, one ties at floor 0.00). Family means: Base 0.50, BundleS 0.33, TypedContract 0.33. This is primary evidence of non-transfer on a family for which the measurement is discriminating.
-\emph{Family~B (SPICE) --- non-discriminative at ceiling.} Base already solves the binding on all three instances (1.00), so BundleS and TypedContract also sit at 1.00. This is not a refutation; the effect is \emph{unmeasurable} because Base leaves no room to improve. We do not merge the STA null and the SPICE ceiling into one ``no transfer'' claim.
-
-\paragraph{Typed representation adds nothing.} TypedContract renders the same non-answer-bearing information as BundleS in a machine-readable JSON Schema. Across the six external instances it produces no advantage over Base (0 improve, 1 decline, 5 tie) or BundleS (0/0/6 tie). We do not claim typed contracts are generally ineffective---only that, on the tested model and families, the representation does not restore transfer.
-
-\paragraph{Central finding.} \emph{Within-family held-out confirmation did not imply cross-model or cross-family transfer.} The effect that replicated on a pre-frozen held-out instance was already model-contingent under counterbalancing and did not transfer to either external family in a way we could measure. Our instances test existence, recurrence, and transfer direction, not population-level pass rates; the STA null is consistent with ``no effect'' but, at three instances, cannot rule out a small effect; SPICE is a ceiling, not a refutation.
-
-\paragraph{SPICE repair chronology (explicit).} The SPICE result reflects a clean, audited chronology, not a post-hoc rewrite:
-\begin{enumerate}
-\item \textbf{Frozen Phase-5C primary collection} (Model~A, 24 episodes, pre-frozen schedule/budget/conditions) produced the cross-family Base/BundleS data.
-\item A SPICE action-surface integrity rule flagged a deck file as forbidden-edit on all 12 SPICE episodes, zeroing them.
-\item A \textbf{no-call forensic audit} (no model calls) re-derived each deck from its submitted measurement configuration and diffed it against the shipped deck, establishing that the flagged change was the \textbf{intended regeneration of derived \texttt{.param} values}---0/12 protocol-compromised.
-\item A subsequent \textbf{action-surface repair} (an immutable, integrity-hashed circuit core plus a derived deck) eliminated the false positive in a separately-frozen secondary collection.
-\item A \textbf{separately-labeled Phase-5D secondary} three-condition replication (Base/BundleS/TypedContract, 36 episodes, Latin-balanced) ran under the repaired action surface (0 trips). Phase-5C results were \textbf{not rewritten or selectively replaced} after the repair; the Phase-5C primary remains frozen, and the repair is reported as an action-surface correction that made SPICE measurable (it was already at ceiling, so the semantic-binding rates are unchanged).
-\end{enumerate}
-
-% ========================================================================
-\section{Study III --- Evaluation and Measurement Validity (RQ3)}
-% ========================================================================
-
-Each headline conclusion---positive (RQ1) and null (RQ2)---could have been manufactured or masked by an evaluation artifact. Study~III abstracts our infrastructure into the \textbf{Harness Effect Audit Protocol}: an auditable evaluation protocol instantiated and stress-tested in this study, comprising four layers (Figure~\ref{fig:protocol}) operationalized as nine controls (Appendix~C). We describe it as instantiated and stress-tested here; we do not claim broad external reusability or validation on unrelated benchmarks. For each layer we give the control and one concrete episode in which it caught a real threat that would otherwise have altered interpretation.
+\paragraph{Audit protocol (preview; Figure~\ref{fig:protocol}).} Four layers, each reported independently: (1) capability validity, (2) sampling validity, (3) execution validity, (4) artifact integrity. We describe the protocol as instantiated and stress-tested in this study---not broadly validated or universally reusable.
 
 \begin{figure}[h]
 \centering\footnotesize
@@ -258,35 +88,107 @@ Each headline conclusion---positive (RQ1) and null (RQ2)---could have been manuf
 \textbf{L4 Artifact} & action-surface isolation; exact-commit worktree + frozen hashes; custody + sanitized logs \\
 \bottomrule
 \end{tabular}
-\caption{The Harness Effect Audit Protocol (four layers, nine controls). Each layer is reported independently; none is collapsed into a single score.}
+\caption{The Harness Effect Audit Protocol (four layers, nine controls).}
 \label{fig:protocol}
 \end{figure}
 
-\paragraph{L1 --- Capability validity.} Tool-green semantic alternatives, a provenance/authority oracle, and a typed failure taxonomy define \emph{what is measured}. \emph{Episode:} a Model~A trajectory placed the descriptor on the wrong typed axis yet obtained a green PrimeTime signoff; the typed grader rejected it as \texttt{axis\_binding\_failure}. Without L1 this---and the 20 axis-binding failures in the ledger---would have been scored correct, erasing the very failure the bundle suppresses.
+\paragraph{Experimental status.} Table~\ref{tab:status} records the registration type of each result; only predeclared, frozen-held-out, exact-counterbalanced, and prospective-confirmatory results are headline. This directly answers the sequential-adaptation concern.
 
-\paragraph{L2 --- Sampling validity.} Repeated trajectories, blocking/counterbalancing, and a committed sample-membership arbiter. \emph{Episode:} the same controlled-pair instance is non-deterministic across stochastic trajectories (a wrong-axis outcome recurs in a minority of reps); the repeated-trajectory design with exact counterbalancing is what makes the directional claim defensible, and the arbiter (sole membership authority; \texttt{measurement\_valid = terminal\_transport\_valid AND workspace\_gradeable}) prevents a transport-invalid episode from being scored as a capability failure.
+\begin{table}[h]
+\centering\small
+\caption{Experimental-status registration.}
+\label{tab:status}
+\begin{tabularx}{\linewidth}{@{}l X c@{}}
+\toprule
+Registration type & Result (used in) & Headline? \\
+\midrule
+Predeclared (controlled pair) & Workflow family: clarity bundle suppresses axis binding (Study~I) & Yes \\
+Pre-frozen held-out & Workflow family: BundleS on a pre-frozen held-out truth (Study~I) & Yes \\
+Exact-counterbalanced & Cross-model: BundleS vs Base, balanced blocking (Study~II) & Yes \\
+Prospective confirmatory & STA external family: 12 pre-frozen new instances (Study~II) & Yes \\
+Secondary extension (pre-frozen) & TypedContract; SPICE ceiling (Study~II) & Yes (scoped) \\
+Exploratory (sequential) & Component localization C1/C2/C4/C7/C24 (Appendix) & No \\
+Preregistered but unexecuted & Blinded human construct-validity study (Study~B) & n/a \\
+\bottomrule
+\end{tabularx}
+\end{table}
 
-\paragraph{L3 --- Execution validity.} Streaming transport (terminal transport validity), terminal-validity-vs-recovered-degradation, tool-health bookends, protocol-completion tracking. \emph{Episode:} during development Model~A appeared to \emph{fail} the controlled pair; the cause was transport, not capability---a non-streaming HTTP client censored the model's long reasoning mid-generation, yielding an empty response misclassified as a capability failure. SSE streaming recovered the real behavior. This is why terminal transport validity is a measurement prerequisite, and why a gradeable episode that reached its answer only after recovered failed attempts is \emph{kept}, not replaced. Tool-health bookends (a real-tool sentinel and a full golden-through-grader measurement control) gate each block so a tool-server outage is not misread as a model failure.
+% ========================================================================
+\section{Study I --- Controlled Semantic-Binding Effects (RQ1)}
+% ========================================================================
+\textit{Question:} can harness information structure change semantic-binding behavior, holding truth and grader fixed? On the workflow controlled pair (identical truth/grader; ambiguous vs.\ clear handoff), the full clarity bundle suppresses the axis-binding failure for Model~A: Base 1/3 (2 axis-binding) $\to$ BundleS 3/3 (0 axis-binding). The schema/contract subset BundleS (excluding the answer-bearing C6) suffices on the development pair, and generalizes to a \emph{pre-frozen held-out} instance: BundleS 3/3 vs Base 1/3. The failure the bundle suppresses (Figure~\ref{fig:taxonomy}) partitions the workflow ledger into 29 correct, 20 \emph{axis-binding} failures, and 5 \emph{role-conditioned value-selection} failures. \textbf{RQ1 is supported within the controlled workflow family for Model~A; we make no universal improvement claim.}
 
-\paragraph{L4 --- Artifact integrity.} Action-surface isolation, exact-commit isolated worktrees with frozen canonical hashes, custody hashes with sanitized logs. \emph{Episode:} a canonical golden configuration file was silently rewritten to an empty object by an unidentified external process, which a frozen-hash check misreported as a tool outage for roughly a day; the canonical-tree guard plus a git-status cross-check disambiguated the true cause. The SPICE action-surface false positive (Study~II) was likewise an L4 threat, corrected by the immutable-core/derived-deck repair and a forensic audit.
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[every node/.style={font=\footnotesize},
+  box/.style={draw,rounded corners=2pt,inner sep=3pt,align=left,fill=gray!6}]
+\node[box] (root) {\textbf{semantic\_binding\_failure} \scriptsize(tool-green; typed-rejected)};
+\node[box, below left=5pt and -5pt of root] (a) {axis\_binding\_failure \scriptsize(20/54)};
+\node[box, below right=5pt and -5pt of root] (v) {role\_conditioned\_value\_selection \scriptsize(5/54)};
+\node[below=5pt of v, font=\scriptsize] {STA: coverage\_cell\_mismatch, authority\_unattested; SPICE: corner/load/metric misbind};
+\node[below=5pt of a, font=\scriptsize] {correct typed binding: 29/54};
+\draw[-{Stealth}] (root.south west) -- (a.north); \draw[-{Stealth}] (root.south east) -- (v.north);
+\end{tikzpicture}
+\caption{Semantic-binding failure taxonomy.}
+\label{fig:taxonomy}
+\end{figure}
 
-\paragraph{What the protocol buys.} Each layer is reported independently. The positive Study~I conclusion required L1 (to see the failure), L3 (streaming, to not censor the model), and L2 (to not be misled by a single draw); the null Study~II conclusion required L4 (so the SPICE ceiling was not a zeroing false positive) and L2 (so transport-invalid episodes did not pass and erase the STA null). The stack is the set of controls without which neither claim is credible.
+% ========================================================================
+\section{Study II --- Model and Task-Family Transfer (RQ2)}
+% ========================================================================
+\textit{Question:} does the within-family effect transfer across models and families? Table~\ref{tab:main} is the main result. The RQ2 headline separates three outcomes: \emph{null/unestablished transfer} (STA, discriminating; Model~B cross-model), \emph{ceiling} (SPICE, non-discriminative), and \emph{direction reversal under prospective expansion} (STA pilot vs.\ prospective).
+
+\begin{table}[h]
+\centering\small
+\caption{Main result matrix (semantic-binding correct rate; instance is the unit).}
+\label{tab:main}
+\begin{tabular}{@{}l c c c c l@{}}
+\toprule
+Family / model & Base & BundleS & TypedContract & $n$ & verdict \\
+\midrule
+Workflow / Model A (development) & 1/3 & 3/3 & --- & 1 & controlled effect \\
+Workflow / Model A (frozen held-out) & 1/3 & 3/3 & --- & 1 & held-out confirmed \\
+Workflow / Model B (exact-counterbalanced) & 3/4 & 3/4 & --- & 1 & no benefit \\
+\textbf{STA / Model A (prospective)} & \textbf{0.208} & \textbf{0.333} & \textbf{0.458} & \textbf{12} & \textbf{transfer not established} \\
+SPICE / Model A & 1.00 & 1.00 & 1.00 & 3 & ceiling (non-discriminative) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{STA---prospective confirmatory batch (authoritative).} Across 12 pre-registered new instances, BundleS vs Base produced 3 improving, 2 declining, and 7 tied instances; the exact sign-test $p=1.0$ and the pre-registered instance-level permutation sensitivity $p=0.31$. \emph{Prospective STA confirmation did not establish a transferable BundleS benefit. The descriptive direction reversed relative to the original three-instance pilot, illustrating the instability of conclusions drawn from very small task samples.} We do not claim a significant BundleS (or TypedContract) improvement, nor a stable STA negative. TypedContract is descriptively highest but not established. The historical three-instance STA pilot (Base 0.50 / BundleS 0.33 / TypedContract 0.33) is reported separately as descriptive pilot evidence and is \textbf{not pooled} with the prospective $n=12$.
+
+\paragraph{Why the direction reversal matters.} The pilot (Base 0.50 $\ge$ BundleS 0.33) and the prospective batch (Base 0.208, BundleS 0.333) disagree on the \emph{sign} of the comparison: under the pilot one would have written ``BundleS slightly hurts STA''; under the prospective batch one would write ``BundleS slightly helps STA.'' Neither is statistically distinguishable from no effect. The reversal is therefore not evidence of a real change in mechanism---it is a direct demonstration that three task instances cannot pin even the direction of a harness comparison on this family. Per-instance, the prospective task is hard: many instances sit at the floor across all three conditions, and the condition differences are concentrated in a handful of discriminating instances; within-instance two-repetition agreement is high (only one of twelve Base cells disagrees with itself across repetitions), so between-instance spread, not run-to-run noise, drives the family means.
+
+\paragraph{Cross-model + SPICE.} Under exact counterbalancing the within-family BundleS benefit is not established for Model~B (3/4 = 3/4). Family~B (SPICE) is at ceiling (1.00 across conditions)---non-discriminative, not a refutation.
+
+\paragraph{RQ2.} \emph{Within-family held-out confirmation did not establish cross-model or cross-family transfer.}
+
+% ========================================================================
+\section{Study III --- Evaluation Validity and Independent Benchmark Repair Audit (RQ3)}
+% ========================================================================
+Each headline conclusion could have been manufactured or masked by an evaluation artifact. The four-layer protocol is instantiated and stress-tested in this study; each control family caught a concrete threat (full episode log in the Appendix):
+\begin{itemize}
+\item \textbf{L1 (capability):} a wrong-axis binding that scored tool-green, visible only to the typed grader---without L1 the very failure the bundle suppresses would have been scored correct.
+\item \textbf{L2 (sampling):} the same controlled-pair instance is non-deterministic across trajectories; repetition + exact counterbalancing + a committed membership arbiter make the directional claim defensible and prevent a transport-invalid episode from being scored as a capability failure.
+\item \textbf{L3 (execution):} a non-streaming HTTP transport censored a thinking model's long reasoning and was misread as a capability failure; SSE streaming recovered the real behavior. (Pre-flight it also caught a grading-path bug---a malformed signoff-status JSON that would have forced a component false for every STA episode---which was fixed before the prospective run.)
+\item \textbf{L4 (artifact integrity):} a silently-rewritten canonical golden was misreported as a tool outage, and a SPICE action-surface rule manufactured false zero-scores; both were caught and the latter repaired before the prospective run.
+\end{itemize}
+
+\paragraph{Independent Benchmark Repair Audit (Terminal-Bench 2.0$\to$2.1).} As external taxonomy application, we coded the 26 officially documented repairs (PR~\#53 ``Terminal-Bench 2.1'' in the Terminal-Bench 2 repository) under the four-layer-plus-Other rubric, \emph{frozen before inspecting the repairs}. This is a retrospective application of a pre-registered taxonomy to validity repairs made independently by another benchmark team. Result: \textbf{direct 1 / partial 21 / not-covered(Other) 4} of 26; layers capability 17, sampling 0, execution 10, artifact 1; 6 multi-layer. \emph{The taxonomy showed broad but predominantly partial correspondence with independently documented benchmark repairs: 22 of 26 repairs had at least partial correspondence, but only one was directly captured and four lay outside the taxonomy.} This is \textbf{not} runtime validation; it does not show our protocol predicted or would necessarily have prevented the repairs; and the absence of sampling-layer repairs means the external audit does not validate every protocol layer. The full 26-task coding + source evidence is in the Appendix.
 
 % ========================================================================
 \section{Limitations and Discussion}
 % ========================================================================
+\emph{Controlled executable tasks, not sampled production incidents}---the tasks isolate the semantic-binding mechanism. \emph{EDA-heavy environments}---the transfer result is established only within EDA. \emph{Small instance counts}---the design is diagnostic, not population-estimating; the STA prospective null cannot rule out a small effect (sign $p=1.0$, permutation $p=0.31$), and the direction reversal between the $n=3$ pilot and $n=12$ prospective batch illustrates small-sample instability rather than estimating a rate. \emph{Construct validity}---our semantic-binding labels rest on \textbf{executable provenance/authority oracles rather than independent blinded human judgment}: the preregistered human construct-validity study (Study~B) is \textbf{preregistered but unexecuted because qualified independent human annotators were unavailable}; no LLM annotator was substituted, and we do not claim independent human validation of the taxonomy. \emph{Model scope}---the within-family effect is established for one model; cross-family evaluation used that model. \emph{Audit protocol}---instantiated and stress-tested here, not broadly validated; the Terminal-Bench audit is retrospective taxonomy application, not prediction/prevention. \emph{No mechanism isolated}---the bundle-level effect is real within-family for Model~A but no stable minimal component was identified (Appendix).
 
-We are explicit about scope. \emph{Controlled executable tasks, not sampled production incidents:} the tasks isolate the semantic-binding mechanism and are not a random sample of real chip-design incidents. \emph{EDA-heavy environments:} all families are EDA tool-grounded; the failure mode is cognitive and tool-agnostic, but the external-validity result is established only within EDA. \emph{Three external instances per family:} our design is diagnostic, not population-estimating; at three instances the STA null cannot rule out a small effect---we state ``transfer not established,'' not ``refuted.'' \emph{Model-centered positive evidence:} the within-family effect is established for one model and not established for a second under counterbalancing; cross-family evaluation used the responsive model only. \emph{Sequential exploratory localization:} the component decomposition was sequential and is not a headline. \emph{Uncontrolled provider sampling seeds:} we mitigate with repeated trajectories and counterbalancing and report raw counts. \emph{SPICE ceiling:} one external family is non-discriminative at ceiling. \emph{No stable minimal bundle component.} \emph{TypedContract scoped} to the tested model and families. Separately, the external families were deliberately constructed to be structurally independent, so cross-family non-transfer is partly the expected behavior of the construction; the cleaner transfer evidence is the same-family, cross-model tie.
+\paragraph{Discussion.} The result is a caution and a method. The caution: a single within-family replication---even a frozen held-out one, and even a small external pilot---is weak evidence of generalization for harness effects. The method: the audit protocol makes the positive and null conclusions independently checkable. Some Harness interventions do transfer across benchmarks; transfer is therefore an empirical property that must be demonstrated rather than inferred from within-family confirmation.
 
-\paragraph{Discussion.} The result is a caution and a method. The caution: a single within-family replication---even a frozen held-out one---is weak evidence of generalization for harness effects, which can be model- and family-specific. The method: the audit protocol makes the positive and null conclusions independently checkable. We do not claim harness effects never generalize---only that \emph{this} effect did not generalize across the tested model and families, and that generalization deserves the same audit as the effect itself.
-
-\paragraph{Reproducibility.} Every result is reproducible from frozen manifests: deterministic generators with fixed seeds; independent graders per family; an exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification (canonical-tree integrity guard); committed sample-membership arbitration; validity-only replacement; per-episode custody byte-matching; and sanitized custody evidence. Frozen manifests, the pre-registered treatment mapping, analysis schedules, and phase provenance are in the supplementary material (anonymized). Program totals: 58 (workflow) + 24 (cross-family core) + 36 (cross-family secondary) = 118 primary paid episodes; committed-ledger cost \textyen701.72.
+\paragraph{Reproducibility.} Deterministic generators (fixed seeds); independent per-family graders; exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification; committed sample-membership arbitration; validity-only replacement; per-episode custody byte-matching; sanitized custody evidence. Frozen manifests, the treatment mapping, schedules, and provenance are in anonymized supplementary material. Program totals: 58 (workflow) + 24 (cross-family core) + 36 (cross-family secondary) + 72 (prospective STA) paid primary episodes; committed-ledger cost \textyen{}745.29.
 
 % ========================================================================
 \section{Conclusion}
 % ========================================================================
-
-A harness intervention can survive repeated development experiments and a pre-frozen within-family held-out test, yet disappear under a new model or task family. We showed this concretely: a non-answer-bearing clarity bundle suppresses a specific tool-green semantic-binding failure within a family (confirmed on a pre-frozen held-out instance), is model-contingent under exact counterbalancing, and does not transfer to two independent families in a way we could measure; a typed representation adds no advantage. Because each conclusion could be manufactured or masked by an artifact, we contributed the Harness Effect Audit Protocol (four layers, nine controls). The contribution is an evaluation study---of \emph{when} an effect is attributable, \emph{whether} it generalizes, and \emph{which} controls make either claim credible---not a proposal of an improved harness.
+A harness intervention can survive controlled development and a pre-frozen within-family held-out evaluation without establishing transfer across models or semantic task families; prospectively expanding an external family from three to twelve instances reversed the apparent comparison direction while still not establishing a stable benefit. We contributed the Harness Effect Audit Protocol (four layers, stress-tested) and applied it retrospectively to 26 independent benchmark repairs (broad but predominantly partial correspondence). The contribution is an evaluation study---of \emph{when} an effect is attributable, \emph{whether} it transfers, and \emph{which} controls make either claim credible---not a proposal of an improved harness.
 
 % ========================================================================
 \bibliographystyle{plain}
@@ -294,26 +196,14 @@ A harness intervention can survive repeated development experiments and a pre-fr
 
 % ========================================================================
 \appendix
-\section{Component decomposition (exploratory)}
-The C1/C2/C4/C7/C24 sequential localization, including a predeclared in-window C24 bridge that failed its $\geq$3/4-with-0-axis replication threshold (\texttt{not\_established}); corrected Stage-3 causal-scope wording (directional evidence for a candidate joint effect; not a formally identified interaction). Headline: no stable minimal component isolated.
-
-\section{Per-episode tables and predeclared interpretation rules}
-Instance-level paired directions and raw counts for the workflow family (54 ledger episodes: 29 correct / 20 axis / 5 role-conditioned-value), the cross-model exact-counterbalanced block, and the three-by-two STA/SPICE external instances (Phase-5D three-condition rows included); the frozen interpretation thresholds for each contrast. A clearly-labeled instance-level bootstrap sensitivity (over the three external instances) appears here only as a sensitivity check and does not drive any headline claim or $p$-value.
-
-\section{Nine-control operationalization and infrastructure}
-The four-layer$\to$nine-control mapping; the canonical-tree integrity guard (\texttt{freeze}/\texttt{verify}/\texttt{enforce}, \texttt{FAILED\_INTEGRITY} stop, regression tests); the episode arbiter and validity-only replacement rule; the streaming transport control; tool-health sentinel and full-path measurement bookends; the immutable-core/derived-deck action-surface repair with regressions; custody hashing and log-sanitization rules.
-
-\section{Operational independence and phase provenance}
-The five operational-independence criteria for the external families; the internally-gated development-stage history as a provenance record, including episode counts (workflow 58; cross-family core 24; cross-family secondary 36) and committed-ledger costs (workflow \textyen682.25; cross-family core \textyen7.72; cross-family secondary \textyen11.75; total \textyen701.72). Exact commit hashes and custody manifests are provided in anonymized supplementary material.
-
-\section{Threats caught by each layer (episode log)}
-The concrete episodes referenced in Study~III, each with the control that caught it and the interpretation that would otherwise have changed.
+\section*{Appendix outline (full content in the anonymous supplement)}
+A. Study~I per-instance + failure-subtype tables; minimal-component (C1/C2/C4/C7/C24) exploratory decomposition. B. Study~II per-instance prospective STA table (12 instances $\times$ 2 reps $\times$ 3 conditions; within-instance agreement); historical pilot (n=3) kept separate. C. Study~III four-layer$\to$nine-control operationalization; concrete caught threats; the full 26-task Terminal-Bench repair audit with exact source evidence. D. Operational independence criteria; historical repository phase chronology. E. Infrastructure implementation + custody hashes. (The committed supplement contains all episode evidence; this PDF's appendix is finalized in the supplement.)
 
 \vspace{6pt}\hrule\vspace{4pt}
-\noindent\textbf{AI-use statement (outside the main-text page limit).} During preparation, an LLM-based coding and writing assistant was used for experiment orchestration code, deterministic task generators, evaluation infrastructure, report scripts, and prose drafting. All experimental results are produced by committed, deterministic pipelines and reproduced from frozen manifests; no scientific claim was authored or validated by an LLM acting as an oracle. All numerical results were generated by committed code and re-extracted from committed ledgers.
+\noindent\textbf{Ethics statement.} The preregistered blinded human construct-validity study (Study~B) is \emph{preregistered but unexecuted because qualified independent human annotators were unavailable}; no LLM annotator was substituted. The manuscript does not claim independent human validation of the semantic-binding taxonomy; construct validity rests on executable provenance/authority oracles.
 
-\noindent\textbf{Reproducibility statement.} Deterministic generators (fixed seeds), independent per-family graders, exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification, committed sample-membership arbitration, validity-only replacement, per-episode custody byte-matching, and sanitized custody evidence are provided. Frozen manifests, the treatment mapping, schedules, and provenance are in anonymized supplementary material.
+\noindent\textbf{AI-use statement (outside the page limit).} An LLM-based coding/writing assistant was used for orchestration code, generators, infrastructure, report scripts, and prose drafting. All scientific results are produced by committed deterministic pipelines reproduced from frozen manifests; no claim was authored or validated by an LLM as an oracle; all numbers were generated by committed code and re-extracted from committed ledgers.
 
-\noindent\textbf{Anonymous code/artifact instructions.} Code, frozen manifests, deterministic generators, evaluators, and sanitized custody evidence are provided as anonymized supplementary material. Models are public and are referred to as Model~A / Model~B; compute-host and shim details are generalized. The artifact does not require any non-public resource to reproduce the reported numbers.
+\noindent\textbf{Reproducibility statement.} See above; frozen manifests, generators, graders, schedules, custody hashes, and sanitized episode evidence are in the anonymized supplement. Exact submission HEAD and custody hashes are recorded at freeze.
 
 \end{document}
