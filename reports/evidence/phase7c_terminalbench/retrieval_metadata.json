@@ -1,0 +1,12 @@
+{
+ "schema": "phase7c_tb_retrieval/v1",
+ "acquired_via": "GitHub REST API over HTTP proxy http://192.168.0.111:7890 (github.com/git blocked; api.github.com + raw CDN reachable)",
+ "source_resolution": "authoritative TB 2.x lineage = harbor-framework/terminal-bench-2 (2.0) and harbor-framework/terminal-bench-2-1 (2.1); the legacy laude-institute/terminal-bench (=harbor-framework/terminal-bench-1) PR #53 is UNRELATED and excluded",
+ "inputs": {
+   "A_2_0": {"repo": "harbor-framework/terminal-bench-2", "ref": "main", "n_tasks": 89, "tasklist_sha256": "5c7ed05c61e6768b", "file": "snap_2_0_tasklist.txt"},
+   "B_2_1": {"repo": "harbor-framework/terminal-bench-2-1", "ref": "main", "n_tasks": 89, "tasklist_sha256": "5c7ed05c61e6768b", "file": "snap_2_1_tasklist.txt", "note": "same 89 task names as 2.0; 26 content-modified per manifest"},
+   "C_manifest": {"repo": "harbor-framework/terminal-bench-2", "pr": 53, "title": "Terminal-Bench 2.1", "state": "open", "head_sha": "56fc6147c7426e7588cc8e089c6f791da0aad0e9", "body_sha256": "c7172fc6be5339bd", "changed_files": 57, "files_list_sha256": "fccf2d61d8423b77", "files": ["pr53_body.md", "pr53_files_list.txt"]}
+ },
+ "audit_universe": "the 26 tasks enumerated in PR #53 (fixed; no later maintenance PRs added)",
+ "coding_rubric": "frozen 4-layer + Other (phase7a_terminalbench_audit.py); not changed after inspecting repairs"
+}

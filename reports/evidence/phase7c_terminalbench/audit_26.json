@@ -1,0 +1,390 @@
+{
+  "schema": "phase7c_terminalbench_audit/v1",
+  "framing": "Retrospective application of a preregistered audit taxonomy to the 26 officially documented repairs between Terminal-Bench 2.0 and 2.1.",
+  "disclaimers": [
+    "does NOT claim our protocol predicted the repairs",
+    "does NOT claim it would necessarily have prevented all repairs",
+    "does NOT claim Terminal-Bench validates the full runtime implementation of our protocol"
+  ],
+  "frozen_inputs": {
+    "A_2_0_snapshot": "harbor-framework/terminal-bench-2 @main; 89 tasks; tasklist sha256 5c7ed05c",
+    "B_2_1_snapshot": "harbor-framework/terminal-bench-2-1 @main; 89 tasks (same names; 26 content-modified)",
+    "C_manifest": "PR #53 'Terminal-Bench 2.1' in harbor-framework/terminal-bench-2; body sha256 c7172fc6; 57 changed files sha256 fccf2d61",
+    "audit_universe": "the 26 tasks enumerated in PR #53 (fixed; no later maintenance PRs added)"
+  },
+  "source_resolution_discrepancy": "An earlier PR #53 inspected in the legacy laude-institute/terminal-bench (= harbor-framework/terminal-bench-1) repo is 'Share envs across instances' (a harness refactor, 0 task files) and is NOT the Study-C manifest; recorded here, not used as data. The authoritative manifest is PR #53 in harbor-framework/terminal-bench-2.",
+  "n_repairs": 26,
+  "coverage_distribution": {
+    "partial": 21,
+    "direct": 1,
+    "not_covered": 4
+  },
+  "validity_threat_layer_distribution": {
+    "L1_capability": 17,
+    "L3_execution": 10,
+    "L4_artifact_integrity": 1,
+    "Other": 4
+  },
+  "repair_mechanism_distribution": {
+    "instruction_clarification": 10,
+    "verifier_test_tightening": 5,
+    "timeout_change": 1,
+    "verifier_test_broadening": 4,
+    "environment_dependency_repair": 10,
+    "resource_increase": 5,
+    "oracle_repair": 4,
+    "external_dependency_removal": 1,
+    "hidden_artifact_removal": 1
+  },
+  "multi_layer_cases": [
+    "caffe-cifar-10",
+    "filter-js-from-html",
+    "mteb-leaderboard",
+    "mteb-retrieve",
+    "torch-tensor-parallelism",
+    "train-fasttext"
+  ],
+  "ambiguous_or_disagreement_cases": [
+    "build-pov-ray",
+    "financial-document-processor",
+    "mcmc-sampling-stan",
+    "overfull-hbox",
+    "protein-assembly (L1 oracle-correctness vs L3 external-API dependency)",
+    "train-fasttext (L3 verifier-reliability vs L1 capability)"
+  ],
+  "repairs": [
+    {
+      "task": "adaptive-rejection-sampler",
+      "exact_source_evidence": "Update task description to specify the signature of the function the agent needs to implement (test code and oracle solution require a specific signature).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification"
+      ],
+      "coverage": "partial",
+      "rationale": "Verifier enforced an unspecified signature (a correct solution could fail) = capability-validity; our L1 (tool-green/provenance) is semantic-handoff-specific, not generic verifier-over-specification."
+    },
+    {
+      "task": "build-pmars",
+      "exact_source_evidence": "Update task description and test: remove ambiguity in build destination.",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification",
+        "verifier_test_tightening"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction/test misalignment (build destination) = capability-validity; partial overlap with L1 verifier-correctness."
+    },
+    {
+      "task": "caffe-cifar-10",
+      "exact_source_evidence": "Increase timeout to accommodate oracle; accept make and cmake builds (test hardcoded make); specify solvers in instructions; add nproc wrapper (container CPU count); increase cpus to 4 and memory to 8GB.",
+      "validity_threat": [
+        "L3_execution",
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "timeout_change",
+        "verifier_test_broadening",
+        "instruction_clarification",
+        "environment_dependency_repair",
+        "resource_increase"
+      ],
+      "coverage": "partial",
+      "rationale": "Mixed: resource/timeout/nproc = execution validity (L3); instruction/test = capability (L1). Our L3 tool-health/timeout conceptually relates but is PT/HSPICE-specific."
+    },
+    {
+      "task": "compile-compcert",
+      "exact_source_evidence": "Add nproc wrapper. Workaround given that nproc inside a Docker container returns the host CPU count, not the container's limit.",
+      "validity_threat": [
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair"
+      ],
+      "coverage": "partial",
+      "rationale": "Container resource accounting (CPU) = execution reliability (L3); our L3 is agent-eval tool-health, not container resource caps."
+    },
+    {
+      "task": "configure-git-webserver",
+      "exact_source_evidence": "Fix oracle solution: Task description promised to handle auth, but tests assumed a specific format (updated tests so it's now as promised).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "oracle_repair",
+        "verifier_test_tightening"
+      ],
+      "coverage": "partial",
+      "rationale": "Oracle/test assumed format not in description = capability-validity (verifier mis-measures); partial L1 overlap."
+    },
+    {
+      "task": "extract-moves-from-video",
+      "exact_source_evidence": "Replace remote video fetch with local copy in environment. Removes runtime dependency on external video hosting, which users reported as unreliable.",
+      "validity_threat": [
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "external_dependency_removal"
+      ],
+      "coverage": "partial",
+      "rationale": "Unreliable external runtime dependency = execution validity (L3); our L3 tool-health/transport partially relates."
+    },
+    {
+      "task": "filter-js-from-html",
+      "exact_source_evidence": "Updated task description to mention normalization; Increased memory from 4GB to 8GB (agents that self-verify run Chrome alongside working state).",
+      "validity_threat": [
+        "L1_capability",
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification",
+        "resource_increase"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction (normalization) = L1; memory = L3. Partial overlap on both."
+    },
+    {
+      "task": "fix-git",
+      "exact_source_evidence": "Delete the installation files after container is setup. Previously, they were left and agents could technically access them to cheat. Update tests with hardcoded md5 file hashes to account for the previous change.",
+      "validity_threat": [
+        "L4_artifact_integrity"
+      ],
+      "repair_mechanism": [
+        "hidden_artifact_removal",
+        "verifier_test_tightening"
+      ],
+      "coverage": "direct",
+      "rationale": "Install files left accessible for cheating = action-surface/reward-hacking threat; our L4 (action-surface isolation + forbidden files + canonical integrity) DIRECTLY addresses this."
+    },
+    {
+      "task": "hf-model-inference",
+      "exact_source_evidence": "Change the tests to allow using either save_pretrained format or HuggingFace cache format for the model weights.",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "verifier_test_broadening"
+      ],
+      "coverage": "partial",
+      "rationale": "Test over-specified to one format (legitimate solutions failed) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "install-windows-3.11",
+      "exact_source_evidence": "Update task description to explicitly specify that a QEMU monitor socket needs to be created at the path hardcoded in tests; Update tests to use pathlib.Path.is_socket() rather than hardcoded VGA flags.",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification",
+        "verifier_test_tightening"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction/test misalignment (socket path) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "make-doom-for-mips",
+      "exact_source_evidence": "Fixed oracle.sh: The package index inside the container was stale, so apt returned 404s and clang never installed.",
+      "validity_threat": [
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "oracle_repair",
+        "environment_dependency_repair"
+      ],
+      "coverage": "partial",
+      "rationale": "Oracle could not run (stale apt index) = verifier execution reliability (L3); partial overlap."
+    },
+    {
+      "task": "mteb-leaderboard",
+      "exact_source_evidence": "Add Pillow dependency (mteb==1.38.41 dropped it); Update task description (only models with results for all 28 tasks); Update memory from 4B to 8GB.",
+      "validity_threat": [
+        "L3_execution",
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair",
+        "instruction_clarification",
+        "resource_increase"
+      ],
+      "coverage": "partial",
+      "rationale": "Dependency + resource = L3; instruction = L1. Partial overlap."
+    },
+    {
+      "task": "mteb-retrieve",
+      "exact_source_evidence": "Pin transformers==4.48.3 (rebuild pulls incompatible transformers 5.x); Update task description to say agents must use the installed mteb package.",
+      "validity_threat": [
+        "L3_execution",
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair",
+        "instruction_clarification"
+      ],
+      "coverage": "partial",
+      "rationale": "Dependency pin = L3; instruction = L1. Partial overlap."
+    },
+    {
+      "task": "polyglot-c-py",
+      "exact_source_evidence": "Update tests to replace os.listdir == ['main.c'] with os.path.exists check (allows byproducts of compilation to exist in the target dir, allowed by the description).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "verifier_test_broadening"
+      ],
+      "coverage": "partial",
+      "rationale": "Test over-specified (rejected legitimate compilation byproducts) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "polyglot-rust-c",
+      "exact_source_evidence": "Update tests to replace os.listdir == ['main.rs'] with os.path.isfile check (allows byproducts of compilation).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "verifier_test_broadening"
+      ],
+      "coverage": "partial",
+      "rationale": "Test over-specified = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "protein-assembly",
+      "exact_source_evidence": "Updated the oracle given that the API the verifier depended on had changed (rcsb.org fasta endpoint).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "oracle_repair"
+      ],
+      "coverage": "partial",
+      "rationale": "Oracle returned wrong results (external API changed) = capability-validity (verifier mis-measures); our provenance/authority oracle is static, not a live external API -> partial."
+    },
+    {
+      "task": "rstan-to-pystan",
+      "exact_source_evidence": "Fix oracle: The oracle created Python 3.10 venv at /opt/py310 but then called python3 which resolved to system python (3.13).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "oracle_repair"
+      ],
+      "coverage": "partial",
+      "rationale": "Oracle used wrong interpreter (wrong results) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "sam-cell-seg",
+      "exact_source_evidence": "Update task description with -- prefixes for argument names (weights_path -> --weights_path); tests need them as required optional arguments.",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction/test misalignment (positional vs --optional) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "torch-tensor-parallelism",
+      "exact_source_evidence": "Update task description to clarify RowParallelLinear.forward() receives a pre-scattered input slice; Increase memory from 4GB to 8GB.",
+      "validity_threat": [
+        "L1_capability",
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification",
+        "resource_increase"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction (shape semantics) = L1; memory = L3. Partial overlap."
+    },
+    {
+      "task": "torch-pipeline-parallelism",
+      "exact_source_evidence": "Increase memory from 4GB to 8GB to avoid failures due to agent and verifier installation overhead.",
+      "validity_threat": [
+        "L3_execution"
+      ],
+      "repair_mechanism": [
+        "resource_increase"
+      ],
+      "coverage": "partial",
+      "rationale": "Memory cap caused spurious failures = execution validity (L3); partial overlap."
+    },
+    {
+      "task": "query-optimize",
+      "exact_source_evidence": "Update task description to include 'Do not modify the database file in any way' (agents that touch and revert leave a file logically identical but not bit-identical; test checks SHA256 hash).",
+      "validity_threat": [
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "instruction_clarification"
+      ],
+      "coverage": "partial",
+      "rationale": "Instruction/test misalignment (SHA256 check undisclosed) = capability-validity; partial L1 overlap."
+    },
+    {
+      "task": "train-fasttext",
+      "exact_source_evidence": "Changed tests to evaluate from Python fasttext.load_model() to CLI fasttext test (more reliable); Made test.sh self-contained (builds fasttext from source to /usr/local/bin; removed dead deps).",
+      "validity_threat": [
+        "L3_execution",
+        "L1_capability"
+      ],
+      "repair_mechanism": [
+        "verifier_test_tightening",
+        "environment_dependency_repair"
+      ],
+      "coverage": "partial",
+      "rationale": "Verifier reliability (CLI vs bindings) + self-contained verifier = execution (L3) + capability (L1); partial overlap."
+    },
+    {
+      "task": "build-pov-ray",
+      "exact_source_evidence": "Removed apt or package pin.",
+      "validity_threat": [
+        "Other"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair"
+      ],
+      "coverage": "not_covered",
+      "rationale": "Package-pin removal is benchmark-environment maintenance; not an evaluation-validity layer our protocol addresses."
+    },
+    {
+      "task": "financial-document-processor",
+      "exact_source_evidence": "Removed apt or package pin.",
+      "validity_threat": [
+        "Other"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair"
+      ],
+      "coverage": "not_covered",
+      "rationale": "Package-pin removal = environment maintenance; outside our four-layer protocol."
+    },
+    {
+      "task": "mcmc-sampling-stan",
+      "exact_source_evidence": "Removed apt or package pin.",
+      "validity_threat": [
+        "Other"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair"
+      ],
+      "coverage": "not_covered",
+      "rationale": "Package-pin removal = environment maintenance; outside our four-layer protocol."
+    },
+    {
+      "task": "overfull-hbox",
+      "exact_source_evidence": "Removed apt or package pin.",
+      "validity_threat": [
+        "Other"
+      ],
+      "repair_mechanism": [
+        "environment_dependency_repair"
+      ],
+      "coverage": "not_covered",
+      "rationale": "Package-pin removal = environment maintenance; outside our four-layer protocol."
+    }
+  ]
+}
