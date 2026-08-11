@@ -11,9 +11,9 @@ The benchmark must evaluate both:
 
 The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA engineering ability.
 
-## Current Status (2026-07 — branch synthetic-phase0a: p14 workflow-handoff research)
+## Current Status (2026-08 — branch `master`; ICLR 2027 manuscript frozen and submitted-pending)
 
-2912 total tasks across 16 track dirs = the released benchmark **2892 / 11 tracks (P1–P9)** plus **20 research-probe tasks (P10–P14, synthetic project/handoff families on this branch — probe-gated, not released)**:
+2985 total tasks across 18 track dirs = the released benchmark **2892 / 11 tracks (P1–P9)** plus **93 research-probe tasks (P10–P16, synthetic project/handoff families — probe-gated, not released)**:
 
 | Track | Count | Tool(s) | Source |
 |-------|-------|---------|--------|
@@ -28,10 +28,13 @@ The primary goal is not EDA trivia QA. The primary goal is tool-grounded EDA eng
 | P7 PrimeTime STA Debug | 53 | pt | 1 smoke + 52 generated (4 bug types × 13 templates) |
 | P8 PnR Report QA | 101 | icc2/innovus (synthetic) | 1 smoke + 100 generated (9 question types) |
 | P9 PT Exception Debug | 17 | pt | timing-exception (false_path/multicycle) debug — frontier-saturated, retired as difficulty |
-| P10–P14 synthetic (research) | 20 | pt | multi-artifact project/handoff probe families (p10 6, p11 2, p12 1, p13 1, p14 10) — this branch only |
+| P10–P13 synthetic (research) | 10 | pt | multi-artifact project/handoff probe families (p10 6, p11 2, p12 1, p13 1) |
+| P14 Workflow Handoff (research) | 27 | pt | semantic-handoff controlled pairs + clarity-bundle ablation (Phase-4W→4Y) |
+| P15 STA Handoff (research) | 46 | pt | Family A cross-family handoff (provenance/authority DAG); 12 prospective instances × 3 conditions + pilot |
+| P16 SPICE Handoff (research) | 10 | HSPICE | Family B cross-family handoff (request–authority join) |
 
 Key results:
-- pytest: all pass
+- `scripts/check` (the local gate): PASSES — tool-free pytest + structural validation 2985/2985. EDA-tool tests are marked `requires_tools` and excluded there; they need the b04 shim to run.
 - Solution mode (golden pass): local QA/parser tracks = 1.00 across the full 2825; commercial-tool tracks verified through the real Synopsys/Cadence path on a 250-task stratified cross-track sample = 1.00 (seed 7, 2026-06-17), after grounding P4 settling acceptance windows in real sims (those 97 settling tasks re-validated). The earlier blanket "2828/2828 = 1.00" predated that grounding and masked 5 broken settling tasks (fixed/dropped, 302→299); full real-tool re-validation is now automated + hash-cached via `scripts/validate_dataset.py`. The P4 SPICE total later grew 299→309 with the 10 damping-design tasks (hard residual track), which carry their own real-Spectre calibration gate + agentic fairness gate (2026-06-18) rather than the 250-sample gate; dataset total 2825→2835, then →2855 when damping scaled 10→30 (#92).
 - Buggy mode: all < 1.0, and per-task `golden − buggy` objective margin ≥ 0.15 enforced (an unfixed input must not score like a fix).
 - P6 DC Constraint accepts equivalent non-identical fixes (execution-based, no exact diff)
@@ -46,11 +49,19 @@ Key results:
 P2 naming was cleaned up in Phase 4E: track is now `p2_tb_sva_gen`, evaluator is `tb_sva_gen.TBSVAGenEvaluator`.
 P2 scaled to 101 tasks (10 templates, 20 mutant variants) in Phase 5B.
 
-### Research line on this branch (p14 workflow_handoff, 2026-07)
+### Research line: semantic handoff → ICLR 2027 submission (Phase-4 through Phase-7C, complete)
 
-- p14 semantic-role controlled pair `workflow_handoff_0009` (ambiguous) / `0010` (clear control): identical hidden truth + grader, differ only in the visible clarity bundle. DeepSeek 0/3 vs 3/3 (Phase-4U, k=3); Qwen anchor at k=3 over SSE streaming (Phase-4V0/4V1). Reports in `reports/synthetic_p14_*`, evidence in `reports/evidence/`, designs in `docs/synthetic_*.md`.
-- Reliability/calibration layer rides on agentic runs: `--elicit-confidence`, pass^k, `overconfident_wrong`, protocol-vs-capability failure classification.
-- Measurement-validity rule: an infrastructure timeout / gateway error / worker failure is measurement-invalid — never counted as a capability failure. Non-streaming transport censors thinking models (see driver controls below).
+**All experimental model calls are permanently closed.** The experiment freeze HEAD is `a89e084` (immutable). Do not reopen experiments, re-run paid episodes, or alter frozen task semantics.
+
+- **The object of study.** A *semantic handoff*: the agent must bind a tuple to canonical typed roles from role-misleading evidence. A wrong binding still produces a green tool signoff (*tool-green*), so only a typed provenance/authority oracle rejects it. Three independent families: p14 workflow (PVT axes), p15 Family A (STA/PrimeTime, provenance DAG), p16 Family B (SPICE/HSPICE, request–authority join).
+- **Main result (Phase-4W→4Y).** A non-answer-bearing clarity bundle (BundleS) suppresses the axis-binding failure for Qwen3.7-Max locally and on a pre-frozen held-out instance; it is **not established** cross-model (DeepSeek-V4-Pro) or cross-family. No stable minimal sub-component was isolated (C1, C2-only, C4-only, C24 bridge all failed their thresholds).
+- **Phase-7A prospective STA (n=12, 72 episodes, ¥43.56).** Base .208 / BundleS .333 / TypedContract .458; instance-level 3 improve / 2 decline / 7 tie; sign-test p=1.0, permutation p=0.31 → **no established effect**. The 3-instance pilot and the frozen 12-instance batch disagreed even in descriptive direction — the paper's small-panel-instability finding. Report: `reports/synthetic_phase7a_sta72_report.json`.
+- **Manuscript.** v5 is final: `submission/` (official ICLR 2027 style, 8 pp, anonymous, 9 arXiv-verified citations). Freeze + compliance audit in `submission/FREEZE_HASHES.md`. **Stopped pending human OpenReview upload** (abstract Sept 18 / paper Sept 25 2026 AOE).
+- **Reliability/calibration layer** rides on agentic runs: `--elicit-confidence`, pass^k, `overconfident_wrong`, protocol-vs-capability failure classification.
+- **Measurement-validity rule:** an infrastructure timeout / gateway error / worker failure is measurement-invalid — never counted as a capability failure. Non-streaming transport censors thinking models (see driver controls below).
+- **Integrity infrastructure** (built because each caught a real threat): `scripts/canonical_integrity.py` + exact-commit isolated worktree execution with pre/post-episode hash verification; `scripts/episode_arbiter.py`; SSE streaming; b04/PT health sentinel; per-episode custody byte-matching.
+
+> **Known hazard:** `tasks/p14_workflow_handoff/workflow_handoff_0009/solution/flow_config.json` is intermittently rewritten to `{}` by an unidentified external process. Check `git status -- tasks/` before committing; restore with `git checkout --` and never commit the corruption. An L2 `healthy=False` from `fullpath_check` is also tripped by this — read `config_fingerprint_ok` before blaming a b04 outage.
 
 ### P3 Diversity (Phase 5A)
 
@@ -98,6 +109,8 @@ different prefix can set the `EDA_TOOL_ROOT` environment variable, which replace
 leading `/EDA` in every probe root (e.g. `EDA_TOOL_ROOT=/opt/eda`).
 
 ## Benchmark Priority
+
+> **Naming caution:** the phase numbers in this section are *benchmark-construction* phases (e.g. "Phase 7C: Agentic Runner MVP"). They are unrelated to the *research/manuscript* phases of the same name in the research-line section above (where "Phase-7C" is the final manuscript revision). Check which sense is meant before acting on a phase reference.
 
 ### Completed
 
