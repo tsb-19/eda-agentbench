@@ -272,8 +272,8 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 - [Agentic Runner](docs/agentic_runner.md) — Agentic evaluation mode
 - [Benchmark Tracks](docs/benchmark_tracks.md) — Detailed track descriptions and scoring
 - [Dataset Card](docs/datacard.md) — Dataset composition and validation results
-- [Current Status](docs/current_status.md) — Current benchmark status (Phase 8A) and known limitations
-- [v0 Status (frozen)](docs/current_v0_status.md) — Frozen v0 milestone snapshot (1113 tasks)
+- [Benchmark Status](docs/status.md) — Task inventory, validation, known limitations, phase history, next phases
+- [v0 Status (frozen)](docs/phases/current_v0_status.md) — Frozen v0 milestone snapshot (1113 tasks)
 - [Reproducibility](docs/reproducibility.md) — Deterministic generation and evaluation
 - [Public Release Policy](docs/public_release_policy.md) — Release checklist and exclusions
 - [Commercial Tool Policy](docs/commercial_tool_policy.md) — Supported tools and licensing
@@ -281,7 +281,6 @@ The `runs/` directory is not committed to git. All evaluation artifacts (score.j
 - [Task Schema](docs/task_schema.md) — metadata.json field reference
 - [Scoring Rules](docs/scoring.md) — How tasks are scored
 - [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
-- [Roadmap](docs/roadmap.md) — Future phases
 - [Dataset Factory (datagen/)](datagen/README.md) — In-repo module that generates and validates the P5 SPICE-deck-debug track
 
 ## License

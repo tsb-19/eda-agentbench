@@ -4,7 +4,7 @@
 
 > **⚠️ Frozen historical snapshot.** This documents the v0 milestone (1113 tasks,
 > commit `960677c`) and is kept for reference only. For the live benchmark status
-> (Phase 8A, 2828 tasks) see [current_status.md](current_status.md).
+> see [status.md](../status.md).
 
 **Checkpoint commit:** `960677c`
 

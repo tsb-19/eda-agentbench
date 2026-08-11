@@ -272,8 +272,8 @@ spice_deck_debug_NNNN/
 - [智能体运行器](docs/agentic_runner.md) — 智能体评估模式
 - [基准路道](docs/benchmark_tracks.md) — 路道详细描述和评分规则
 - [数据集卡片](docs/datacard.md) — 数据集组成和验证结果
-- [当前状态](docs/current_status.md) — 当前基准测试状态（Phase 8A）和已知限制
-- [v0 状态（已冻结）](docs/current_v0_status.md) — 冻结的 v0 里程碑快照（1113 个任务）
+- [基准测试状态](docs/status.md) — 任务清单、验证、已知限制、阶段历史与后续阶段
+- [v0 状态（已冻结）](docs/phases/current_v0_status.md) — 冻结的 v0 里程碑快照（1113 个任务）
 - [可复现性](docs/reproducibility.md) — 确定性生成和评估
 - [公开发布策略](docs/public_release_policy.md) — 发布检查清单和排除项
 - [商用工具策略](docs/commercial_tool_policy.md) — 支持的工具和许可证
@@ -281,7 +281,6 @@ spice_deck_debug_NNNN/
 - [任务模式](docs/task_schema.md) — metadata.json 字段参考
 - [评分规则](docs/scoring.md) — 任务评分方式
 - [添加任务](docs/adding_tasks.md) — 如何创建新任务
-- [路线图](docs/roadmap.md) — 未来阶段
 - [数据工厂 (datagen/)](datagen/README.md) — 生成并验证 P5 SPICE 网表调试赛道的仓库内模块
 
 ## 许可证
