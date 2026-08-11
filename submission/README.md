@@ -1,40 +1,35 @@
-# ICLR 2027 Submission Package (Phase-7 / manuscript v3)
+# ICLR 2027 Final Submission Package (Phase-7B / manuscript v3.1)
 
 **Title:** When Do Agent Harness Improvements Generalize? Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents
-**Status:** anonymized, double-blind. All experimental + benchmark-runtime work permanently closed. Experimentally frozen earlier; this package is the Phase-7 synthesis + manuscript v3.
+**Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
 
 ## Build
 ```
-cd submission && make      # pdflatex + bibtex + 2x pdflatex
+cd submission && make
 ```
 
-## Page boundaries (compiled)
-- **Main text (§1–8) ends: page 6**
-- **References begin: page 6**
-- **Appendix begins: page 6 (A–E through page 8)**
-- **Ethics/AI-use/Reproducibility: pages 8–9**
-- **Total PDF: 9 pages** — main text 6 pp (≤ 9-page ICLR limit).
-
-## Format caveat
-`iclr2027_conference.sty` is an offline stand-in reconstruction (the official 2027 style was not yet posted as of 2026-08-11; `iclr.cc/Conferences/2027/Styles` returns 404). Drop-in replaceable: overwrite with the official release and re-run `make`. ICLR 2027 deadlines verified from the official site: **abstract 2026-09-19, full paper 2026-09-26 (11:59 UTC)**.
+## Page boundaries
+- **Main text: 7 pp** (p1-p7; <=9 limit)
+- References: p8
+- Appendix A-E: p8-p10
+- Ethics/AI-use/Reproducibility: p10
+- **Total PDF: 10 pp**
 
 ## Contents
 | File | Purpose |
 |---|---|
-| `main.tex` | v3 source: 3-study/RQ structure; Phase-7 evidence hierarchy. |
-| `iclr2027_conference.sty` | ICLR 2027 format (offline reconstruction; drop-in). |
-| `references.bib` | Bibliography (7 entries; 2 new = TAB, LongHorizon; all VERIFICATION-REQUIRED placeholders). |
-| `main.pdf` | Compiled, anonymized (0 identifying strings). |
-| `Makefile` | One-command build. |
-| `ANONYMITY_AUDIT.md` | Double-blind audit (PASS). |
+| main.tex | v3.1 source (official style; 3-study/RQ; expanded main text) |
+| main.pdf | Compiled PDF (anonymous; 0 leaks) |
+| references.bib | 7 REAL verified citations (arXiv primary source; no placeholders) |
+| iclr2027_conference.sty/.bst | Official ICLR 2027 style |
+| natbib.sty / fancyhdr.sty | Bundled (from official style package) |
+| math_commands.tex | Optional math macros (from official package) |
+| Makefile | One-command build |
+| FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
+| ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
 
-## Key Phase-7 content (vs v2)
-- **Main result table:** prospective STA n=12 batch is the authoritative STA row (Base 0.208 / BundleS 0.333 / TypedContract 0.458; transfer not established); historical n=3 pilot reported separately, not pooled.
-- **Experimental-status table** (7 registration types incl. "preregistered but unexecuted").
-- **Study III** adds the Independent Benchmark Repair Audit (Terminal-Bench 2.0→2.1): direct 1 / partial 21 / not-covered 4 of 26.
-- **Related work:** TAB (distinct construct) + LongHorizon-Harness (transfer is empirical).
-- **Ethics statement:** Study B = preregistered but unexecuted; construct validity rests on executable provenance/authority oracles.
-- **Appendix:** Study-A 12-instance table, Study-C full 26-task audit + source evidence, minimal-component ablation, phase chronology, infrastructure + custody.
-
-## Reproducibility / supplement
-Frozen manifests, deterministic generators, per-family graders, schedules, custody hashes, and sanitized episode evidence are in the anonymized supplement. Exact submission HEAD is recorded at freeze (Phase-7 manuscript-freeze commit).
+## Phase-7B content
+- Model names restored: Qwen3.7-Max, DeepSeek-V4-Pro (public; not author-identifying).
+- All 7 citations real + verified against arXiv.
+- Deadlines corrected to Sept 18/25 AOE.
+- Main text expanded with: construct worked example, mechanism isolation, three-outcome framework, prospective STA per-instance table (in main), audit-incidents table, TB examples + L2=0 implication, per-work gaps, broader implications, ablation summary.

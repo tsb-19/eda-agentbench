@@ -1,22 +1,15 @@
-# Anonymity Audit — manuscript v3 (double-blind / ICLR 2027)
+# Anonymity Audit — manuscript v3.1 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Compiled PDF and all sources are free of author-identifying content. Models are Model A / Model B throughout.
+**Result: PASS.**
 
-## Checks (v3)
+## Checks
 | Surface | Result |
 |---|---|
-| PDF metadata (`pdfinfo`) | Author/Title/Subject/Keywords empty; Creator/Producer generic. PASS |
-| PDF text leak scan (`qwen|deepseek|kimi|minimax|glm-|tongsb|/data1|/home/|b04|eda-agentbench|harbor-framework|laude-institute`) | **0 matches.** PASS |
-| LaTeX source (`main.tex`, `.sty`, `.bib`) | 0 identifying strings. PASS |
-| Bibliography | 7 placeholder entries (`{... authors}`), flagged VERIFICATION-REQUIRED; no real names/affiliations. PASS (finalize before camera-ready) |
-| Figures | TikZ/tabular, inline; no metadata/paths. PASS |
-| Acknowledgements / funding | none (anonymous). PASS |
-| Terminal-Bench references | named as "Terminal-Bench 2 / 2.1" + "PR #53" (public benchmark); no org/repo identity exposed in main text. PASS |
-
-## Fixes applied during the audit
-- v3 Study II intro initially named the real model ("DeepSeek"); corrected to "Model B" (re-scan: 0).
-
-## Pre-submission checklist
-- Replace the 7 VERIFICATION-REQUIRED bibliography entries with verified canonical citations.
-- Drop in the official `iclr2027_conference.sty` when released and re-run the leak scan.
-- Confirm the official style adds no identifying metadata.
+| PDF metadata (pdfinfo) | Title/Author/Subject/Keywords empty; Creator/Producer generic. PASS |
+| PDF text: infra leaks (tongsb, /data1, /home, b04, eda-agentbench, harbor-framework, laude-institute, 192.168) | **0 matches.** PASS |
+| PDF text: model names (Qwen3.7-Max, DeepSeek-V4-Pro) | 14 + 5 occurrences — **intentionally restored** (public models do not reveal author identity per ICLR double-blind policy). PASS |
+| LaTeX source | 0 identifying strings. PASS |
+| Bibliography | 7 REAL verified citations (arXiv); no author-identifying info. PASS |
+| Figures | TikZ/tabular, inline; no metadata. PASS |
+| Acknowledgements | none (anonymous). PASS |
+| Ethics statement | Study B = preregistered but unexecuted; no author identity. PASS |
