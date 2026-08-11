@@ -13,21 +13,23 @@ computed from the submitted tuple + hidden provenance (independent of `signoff_r
 are intact. Fixed before the prospective run; 18 Phase-7A `functional_close` submissions all
 graded `pt_signoff_green=1.0`. **The prospective 12-instance Study A is authoritative.**
 
-## (ii) Study B — materials frozen; labels PENDING human annotators
-Packets/rubric/consent/IRB frozen (commit `12671d9`). **Securing qualified HUMAN annotators is
-a human-organizational action outside the automated agent's capability** — it requires the
-research team to recruit ≥2 (preferably 3) annotators, ≥2 of whom did not participate in
-generator/grader design, under the frozen IRB determination. The agent cannot collect labels
-and will not substitute an LLM annotator. Status: **awaiting human recruitment; not yet
-executed.**
+## (ii) Study B — CLOSED: preregistered but unexecuted
+Packets/rubric/consent/IRB frozen (commit `12671d9`). **Securing qualified independent HUMAN
+annotators is a human-organizational action outside the automated agent's capability.** Per the
+directive, Study B is closed as: **"preregistered but unexecuted because qualified independent
+human annotators were unavailable."** No labels were collected; no LLM annotator was substituted.
+The frozen materials remain available for future execution by the research team. Study B does
+not block submission.
 
-## (iii) Study C — rubric frozen; static audit BLOCKED on web access
-Web tools are unavailable in this environment (WebFetch domain-blocked for github.com /
-raw.githubusercontent.com; the alternate web tools are rate-limited to 2026-08-14). The official
-Terminal-Bench 2.1 repository cannot be fetched, so the 26 changed tasks cannot be pinned,
-hashed, or coded. No TB data is fabricated. Status: **awaiting web access**; when restored,
-pin exact 2.0 + 2.1 revisions, hash snapshots, and run the frozen 4-layer + Other audit with
-source-diff evidence. Runtime remains unauthorized.
+## (iii) Study C — COMPLETE (commit `338a486`)
+Static audit of the 26 officially documented Terminal-Bench 2.0→2.1 repairs (PR #53
+"Terminal-Bench 2.1" in `harbor-framework/terminal-bench-2`), with the 2.0/2.1 snapshots and
+manifest frozen + hashed before coding. Result (retrospective taxonomy application — NOT a claim
+of prediction/prevention/runtime-validation): **direct 1 / partial 21 / not-covered 4** of 26;
+layers L1 capability 17, L3 execution 10, L4 artifact integrity 1, Other 4; L2 sampling 0;
+6 multi-layer. Honest outcome: partial conceptual overlap, limited direct coverage. Source-
+resolution discrepancy logged (legacy `terminal-bench-1` PR #53 is unrelated; excluded). TB
+runtime permanently cancelled. See `reports/synthetic_phase7c_terminalbench_audit.md`.
 
 ---
 
