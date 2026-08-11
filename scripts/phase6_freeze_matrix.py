@@ -2,7 +2,7 @@
 """Phase-6 final submission freeze manifest + RQ-based claim-evidence matrix (NO model calls).
 All numbers read from reports/evidence/phase6_data.json (programmatic). Emits:
   reports/synthetic_phase6_freeze_manifest.{md,json}
-  docs/synthetic_phase6_claim_matrix.{md,json}
+  docs/phases/synthetic_phase6_claim_matrix.{md,json}
 """
 from __future__ import annotations
 import json, subprocess, hashlib
@@ -133,7 +133,7 @@ def main():
     fm = freeze_manifest()
     (REPO / "reports/synthetic_phase6_freeze_manifest.json").write_text(json.dumps(fm, indent=2) + "\n")
     cm = claim_matrix()
-    (REPO / "docs/synthetic_phase6_claim_matrix.json").write_text(json.dumps(cm, indent=2) + "\n")
+    (REPO / "docs/phases/synthetic_phase6_claim_matrix.json").write_text(json.dumps(cm, indent=2) + "\n")
     # markdown
     fmm = [f"# Phase-6 Final Submission Freeze\n", f"**Final experiment HEAD:** `{fm['final_experiment_head_short']}` (`{fm['final_experiment_head']}`)\n",
            f"> {fm['declaration']}\n", "## Load-bearing commit chain\n"]
@@ -153,7 +153,7 @@ def main():
     cmm += ["\n## Prohibited stronger wording (per row)\n"]
     for r in cm["rows"]:
         cmm.append(f"- {r['id']}: {r['prohibited_wording']}")
-    (REPO / "docs/synthetic_phase6_claim_matrix.md").write_text("\n".join(cmm) + "\n")
+    (REPO / "docs/phases/synthetic_phase6_claim_matrix.md").write_text("\n".join(cmm) + "\n")
     print(json.dumps({"freeze_head": fm["final_experiment_head_short"], "claim_rows": len(cm["rows"]),
                       "episodes": fm["episode_counts"], "costs": fm["costs_cny"]}, indent=2))
 

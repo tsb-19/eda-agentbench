@@ -216,7 +216,7 @@ class TestGenerator:
         """The prompt must name the exact oracle key for every question, so a
         competent reader cannot lose points to a synonym key. This locks the fix
         for the 8 fields that scored 0/N in the first baseline (validity artifact,
-        docs/benchmark_hardening_plan.md §8.2)."""
+        docs/phases/benchmark_hardening_plan.md §8.2)."""
         from generators.p8_pnr_report_qa_gen import (
             QUESTION_PROMPTS, QUESTION_TYPES, generate_prompt,
         )

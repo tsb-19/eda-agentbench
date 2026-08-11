@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Phase-6 figures/tables generator (NO model calls). Every number from phase6_data.json.
-Emits docs/synthetic_phase6_figures_tables.md with: (1) study pipeline, (2) main result matrix,
+Emits docs/phases/synthetic_phase6_figures_tables.md with: (1) study pipeline, (2) main result matrix,
 (3) failure taxonomy, (4) evaluation-validity stack, (5) external-validity table."""
 from __future__ import annotations
 import json
@@ -79,7 +79,7 @@ def main():
     L.append(f"| Composite | — | 0 improve | 0 improve | 0 improve | **Transfer not established** |\n")
     L += [f"\n*Costs: p14 ¥{COSTS.get('p14_program')} + Phase-5C ¥{COSTS.get('phase5c')} + Phase-5D ¥{COSTS.get('phase5d')} = total ¥{round((COSTS.get('p14_program',0) or 0)+(COSTS.get('phase5c',0) or 0)+(COSTS.get('phase5d',0) or 0),2)}*\n"]
 
-    out = REPO / "docs/synthetic_phase6_figures_tables.md"
+    out = REPO / "docs/phases/synthetic_phase6_figures_tables.md"
     out.write_text("\n".join(L) + "\n")
     print(f"figures/tables written to {out} ({len(L)} lines)")
 

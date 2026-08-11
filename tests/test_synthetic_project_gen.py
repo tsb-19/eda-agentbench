@@ -4,7 +4,7 @@ Proves the generator emits fair, oracle-checkable, byte-deterministic constraint
 variants WITHOUT commercial tools: determinism / seed diversity, no hidden-artifact
 references, runnable agent workspace, golden-vs-mutant score separation, masking resistance,
 schema/inventory validity, and no literal-answer leak. The real golden-pass / mutant-fail on
-PrimeTime is the b04 gate (validate_dataset.py); see docs/synthetic_phase0b_generator_design.md §8.
+PrimeTime is the b04 gate (validate_dataset.py); see docs/phases/synthetic_phase0b_generator_design.md §8.
 """
 from __future__ import annotations
 

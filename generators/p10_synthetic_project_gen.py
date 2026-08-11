@@ -6,7 +6,7 @@ emits ``acc_stage``-style timing-constraint tasks of ONE family and ONE mechanis
     golden project -> constraint-drift mutant -> PrimeTime oracle -> evaluator score
 
 This proves the GENERATOR contract (fair, oracle-checkable, byte-deterministic variants
-without answer/hidden leaks), not difficulty — see docs/synthetic_phase0b_generator_design.md.
+without answer/hidden leaks), not difficulty — see docs/phases/synthetic_phase0b_generator_design.md.
 
 Closed-form timing backbone (reused P9 scalar Liberty tiny.db: BUFX1 0.10, DFF clk->Q 0.08,
 setup 0.02), confirmed on b04 for syn_proj_0001 to 0.01 ns:

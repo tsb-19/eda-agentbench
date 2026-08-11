@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Phase-4Z paper figures & tables generator (no paid calls). Emits docs/synthetic_p14_phase4z_figures_tables.md:
+"""Phase-4Z paper figures & tables generator (no paid calls). Emits docs/phases/synthetic_p14_phase4z_figures_tables.md:
 (1) end-to-end study-design figure, (2) claim-evidence hierarchy table, (3) model x mechanism result
 matrix, (4) failure-taxonomy figure, (5) reliability-layer figure. Every numerical entry is read from
 the committed report JSON (controlled-pair matrix_2x2_k3) or re-derived from the preserved episode
@@ -11,7 +11,7 @@ import json
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-OUT = REPO / "docs/synthetic_p14_phase4z_figures_tables.md"
+OUT = REPO / "docs/phases/synthetic_p14_phase4z_figures_tables.md"
 SCEN, CORNER = {"slow", "typ", "fast"}, {"func", "test", "lowpower"}
 TASK_GOLDEN = {  # task_id -> (scenario, corner) golden
     "0011": ("typ", "test"), "0017": ("typ", "test"),

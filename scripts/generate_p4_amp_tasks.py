@@ -4,7 +4,7 @@
 These emit with NULL acceptance floors (calibrated:False); run
 scripts/calibrate_p4_amp.py (with the EDA shim sourced) afterwards to ground the
 specs in real Spectre AC sims. See generators/p4_amp_sizing_gen.py and
-docs/benchmark_hardening_plan.md §9 for the residual-recipe rationale.
+docs/phases/benchmark_hardening_plan.md §9 for the residual-recipe rationale.
 """
 
 import sys

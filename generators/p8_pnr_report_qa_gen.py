@@ -53,7 +53,7 @@ QUESTION_TYPES = {
 # prompt asked a prose question ("How many setup violating paths?") but the grader
 # demanded one exact key (`setup_violations`); every model answered the correct
 # value under a reasonable synonym key and scored 0 — a key-spec validity artifact,
-# not a comprehension gap (see docs/benchmark_hardening_plan.md §8.2). Stating the
+# not a comprehension gap (see docs/phases/benchmark_hardening_plan.md §8.2). Stating the
 # exact key per question removes the artifact at the source while keeping the task a
 # report-reading exercise (the value still has to be found and read correctly). The
 # evaluator's FIELD_ALIASES is a defensive backstop for older submissions.
@@ -488,7 +488,7 @@ def generate_prompt(question_types: list[str], tool_family: str) -> str:
     Each question explicitly names the exact JSON key to answer under (see
     QUESTION_PROMPTS), so the task measures report comprehension rather than
     guessing the grader's key. This removes the synonym-key validity artifact the
-    first baseline exposed (8 fields 0/N; docs/benchmark_hardening_plan.md §8.2).
+    first baseline exposed (8 fields 0/N; docs/phases/benchmark_hardening_plan.md §8.2).
     """
     lines = []
     for qt in question_types:

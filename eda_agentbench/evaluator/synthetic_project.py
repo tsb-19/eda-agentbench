@@ -1,6 +1,6 @@
 """Synthetic project evaluator (Phase-0A constraint-drift): execution-based grading.
 
-Grading model (see docs/synthetic_phase0a_design.md and the task's hidden/ scripts):
+Grading model (see docs/phases/synthetic_phase0a_design.md and the task's hidden/ scripts):
   - The hidden runner (run_hidden.sh) launders the agent SDC, signs it off in a FRESH
     pt_shell session, and grades spec-equivalence with grade_spec.py against the hidden
     spec_truth.json. It emits, at line start:

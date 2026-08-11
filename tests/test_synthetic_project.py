@@ -3,7 +3,7 @@
 Proves the project/oracle contract WITHOUT commercial tools, by feeding the evaluator the
 exact marker lines the hidden grader emits on b04 (golden / mutant / symptom-suppression),
 and by exercising the workspace provisioning + anti-cheat guards directly. The real b04
-golden-pass / mutant-fail gate is run separately (see docs/synthetic_phase0a_design.md §8).
+golden-pass / mutant-fail gate is run separately (see docs/phases/synthetic_phase0a_design.md §8).
 """
 from __future__ import annotations
 

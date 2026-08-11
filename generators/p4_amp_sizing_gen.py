@@ -1,6 +1,6 @@
 """P4 SPICE — HARD variant #2: op-amp SIZING for a multi-objective AC tradeoff.
 
-WHY THIS EXISTS (generalizing the residual recipe — see docs/benchmark_hardening_plan.md §9)
+WHY THIS EXISTS (generalizing the residual recipe — see docs/phases/benchmark_hardening_plan.md §9)
 -------------------------------------------------------------------------------------------
 P4 damping (p4_damping_gen.py) proved the recipe: make the agent tune a knob to satisfy
 COUPLED, COMPETING specs scored by continuous closeness, calibrated on real sims. This
