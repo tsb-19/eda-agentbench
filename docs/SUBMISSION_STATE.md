@@ -55,3 +55,10 @@ git rev-parse HEAD            # submission HEAD (Phase-6C tip)
 git rev-parse a89e084         # experiment freeze HEAD
 git log --oneline a89e084..HEAD   # Phase-6C commits (docs/submission only)
 ```
+
+# Phase-7 update (manuscript v3; all experiments permanently closed)
+
+- **Experiment freeze HEAD (immutable):** `a89e084` — unchanged; no new experiments/consumed assets in Phase-7.
+- **Phase-7 manuscript-freeze HEAD (the submission package):** `06434c0` — manuscript v3 source/PDF + appendix + anonymous package (`submission/`).
+- **Phase-7 tip:** the final-review-packet commit (internal review; not part of the submitted package).
+- Study A prospective n=12 authoritative; historical STA bug audit = pilot unaffected (no erratum); Study B = preregistered but unexecuted; Study C = Terminal-Bench 2.0->2.1 static audit complete (direct 1/partial 21/Other 4). ICLR 2027 deadlines verified: abstract 2026-09-19, paper 2026-09-26 (11:59 UTC). Anonymous (0 leaks). Not pushed.
