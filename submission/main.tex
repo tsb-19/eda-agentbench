@@ -17,7 +17,7 @@
 \setlist{nosep,leftmargin=1.3em,topsep=2pt,parsep=0pt,itemsep=1pt}
 \usepackage{caption}
 \captionsetup{font=small,labelfont=bf,skip=4pt}
-\usepackage{amsmath}\usepackage{amssymb}\usepackage{pifont}
+\usepackage{amsmath}\usepackage{amssymb}\usepackage{pifont}\usepackage{longtable}
 \usepackage{hyperref}
 \hypersetup{colorlinks=true,linkcolor=black,urlcolor=black,citecolor=black}
 \usepackage{tikz}\usetikzlibrary{shapes.geometric,arrows.meta,positioning}
@@ -196,8 +196,75 @@ A harness intervention can survive controlled development and a pre-frozen withi
 
 % ========================================================================
 \appendix
-\section*{Appendix outline (full content in the anonymous supplement)}
-A. Study~I per-instance + failure-subtype tables; minimal-component (C1/C2/C4/C7/C24) exploratory decomposition. B. Study~II per-instance prospective STA table (12 instances $\times$ 2 reps $\times$ 3 conditions; within-instance agreement); historical pilot (n=3) kept separate. C. Study~III four-layer$\to$nine-control operationalization; concrete caught threats; the full 26-task Terminal-Bench repair audit with exact source evidence. D. Operational independence criteria; historical repository phase chronology. E. Infrastructure implementation + custody hashes. (The committed supplement contains all episode evidence; this PDF's appendix is finalized in the supplement.)
+\section{Study I --- per-instance ledger and minimal-component ablation}
+\paragraph{Workflow ledger (54 primary episodes).} The typed grader partitions outcomes into 29 correct typed bindings, 20 \emph{axis-binding} failures, and 5 \emph{role-conditioned value-selection} failures. Family-specific subtypes: STA (coverage\_cell\_mismatch, authority\_unattested\_binding); SPICE (corner/load/metric authority misbind).
+\paragraph{Minimal-component ablation (exploratory; not headline).} A sequential decomposition tested whether a stable minimal component underlies BundleS (C1+C2+C4+C7). No stable minimal component was isolated: C1 alone did not eliminate axis errors; neither C2-only nor C4-only reproduced the bundle pattern; a predeclared in-window C24 bridge failed its $\geq$3/4-with-0-axis replication threshold (2/4, 1 axis) $\to$ \texttt{not\_established}. The bundle-level effect is real within-family for Model~A; the C2$\times$C4 joint-effect hypothesis remains unresolved, not refuted.
+
+\section{Study II --- prospective STA per-instance table (n=12; authoritative)}
+Two nested repetitions per (instance, condition); Y=correct, n=wrong. The historical three-instance pilot (Base 0.50 / BundleS 0.33 / TypedContract 0.33) is descriptive and is \textbf{not pooled} with this batch. Family means: Base 0.208, BundleS 0.333, TypedContract 0.458; BundleS$-$Base: 3 improve / 2 decline / 7 tie; exact sign-test $p=1.0$; instance-level permutation sensitivity $p=0.31$.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}l ccc ccc@{}}
+\toprule & \multicolumn{3}{c}{2-rep outcome (rate)} & \multicolumn{3}{c}{paired diff} \\
+\cmidrule(lr){2-4}\cmidrule(lr){5-7} instance & Base & BundleS & TypedContract & S$-$Base & TC$-$Base & TC$-$S \\ \midrule
+p15\_eval\_0004 & nY (.5) & nn (.0) & nn (.0) & $-$.5 & $-$.5 & .0 \\
+p15\_eval\_0005 & nn (.0) & nn (.0) & nn (.0) & .0 & .0 & .0 \\
+p15\_eval\_0006 & nn (.0) & nn (.0) & nn (.0) & .0 & .0 & .0 \\
+p15\_eval\_0007 & Yn (.5) & nn (.0) & nn (.0) & $-$.5 & $-$.5 & .0 \\
+p15\_eval\_0008 & nn (.0) & nn (.0) & nn (.0) & .0 & .0 & .0 \\
+p15\_eval\_0009 & nn (.0) & nn (.0) & nn (.0) & .0 & .0 & .0 \\
+p15\_eval\_0010 & nY (.5) & YY (1) & YY (1) & .5 & .5 & .0 \\
+p15\_eval\_0011 & nn (.0) & YY (1) & YY (1) & 1.0 & 1.0 & .0 \\
+p15\_eval\_0012 & nn (.0) & YY (1) & YY (1) & 1.0 & 1.0 & .0 \\
+p15\_eval\_0013 & YY (1) & YY (1) & YY (1) & .0 & .0 & .0 \\
+p15\_eval\_0014 & nn (.0) & nn (.0) & Yn (.5) & .0 & .5 & .5 \\
+p15\_eval\_0015 & nn (.0) & nn (.0) & YY (1) & .0 & 1.0 & 1.0 \\
+\bottomrule
+\end{tabular}
+\end{center}
+Within-instance two-repetition agreement is high: only one Base cell (instance 0004) disagrees with itself; between-instance spread, not run-to-run noise, drives the family means.
+
+\section{Study III --- Independent Benchmark Repair Audit (full 26-task coding)}
+Rubric frozen before coding; exact source evidence is PR~\#53 ``Terminal-Bench 2.1'' in the Terminal-Bench~2 repository (body sha256 \texttt{c7172fc6}; 57 changed files sha256 \texttt{fccf2d61}); 2.0/2.1 task snapshots frozen (89 tasks each; tasklist sha256 \texttt{5c7ed05c}). ``L1 cap''=capability, ``L3 exec''=execution, ``L4 art''=artifact integrity.
+
+\begin{longtable}{@{}p{0.27\linewidth} p{0.18\linewidth} p{0.32\linewidth} p{0.11\linewidth}@{}}
+\toprule Task & validity\_threat & repair\_mechanism & coverage \\ \midrule
+adaptive-rejection-sampler & L1 cap & instruction clarification & partial \\
+build-pmars & L1 cap & instruction clarification; verifier/test tightening & partial \\
+caffe-cifar-10 & L3 exec; L1 cap & timeout change; verifier/test broadening; instruction; env/dep; resource increase & partial \\
+compile-compcert & L3 exec & environment/dependency repair & partial \\
+configure-git-webserver & L1 cap & oracle repair; verifier/test tightening & partial \\
+extract-moves-from-video & L3 exec & external-dependency removal & partial \\
+filter-js-from-html & L1 cap; L3 exec & instruction clarification; resource increase & partial \\
+fix-git & L4 art & hidden-artifact removal; verifier/test tightening & direct \\
+hf-model-inference & L1 cap & verifier/test broadening & partial \\
+install-windows-3.11 & L1 cap & instruction clarification; verifier/test tightening & partial \\
+make-doom-for-mips & L3 exec & oracle repair; environment/dependency repair & partial \\
+mteb-leaderboard & L3 exec; L1 cap & env/dep repair; instruction; resource increase & partial \\
+mteb-retrieve & L3 exec; L1 cap & env/dep repair; instruction clarification & partial \\
+polyglot-c-py & L1 cap & verifier/test broadening & partial \\
+polyglot-rust-c & L1 cap & verifier/test broadening & partial \\
+protein-assembly & L1 cap & oracle repair & partial \\
+rstan-to-pystan & L1 cap & oracle repair & partial \\
+sam-cell-seg & L1 cap & instruction clarification & partial \\
+torch-tensor-parallelism & L1 cap; L3 exec & instruction clarification; resource increase & partial \\
+torch-pipeline-parallelism & L3 exec & resource increase & partial \\
+query-optimize & L1 cap & instruction clarification & partial \\
+train-fasttext & L3 exec; L1 cap & verifier/test tightening; env/dep repair & partial \\
+build-pov-ray & Other & environment/dependency repair & not-covered \\
+financial-document-processor & Other & environment/dependency repair & not-covered \\
+mcmc-sampling-stan & Other & environment/dependency repair & not-covered \\
+overfull-hbox & Other & environment/dependency repair & not-covered \\
+\bottomrule
+\end{longtable}
+\textbf{Aggregate:} direct 1 / partial 21 / not-covered 4; layers L1 capability 17, L3 execution 10, L4 artifact 1, Other 4; L2 sampling 0; 6 multi-layer. Framed as retrospective taxonomy application; not prediction/prevention/runtime-validation.
+
+\section{Operational independence and historical phase chronology}
+\paragraph{Operational independence (Families A/B vs.\ workflow).} Five pre-registered structural criteria: independent text templates, role vocabularies, hidden-truth representations, grader implementations, and decoy-generation logic. Treated as operational independence, not a proof.
+\paragraph{Historical phase chronology (provenance; does not structure the main paper).} The work proceeded through internally-gated development stages: discovery $\to$ transport repair (SSE streaming) $\to$ controlled pair $\to$ non-answer localization (BundleS) $\to$ frozen held-out $\to$ cross-model (exact-counterbalanced) $\to$ cross-family (STA/SPICE) $\to$ TypedContract $\to$ prospective STA expansion (n=12). The load-bearing commit chain, episode counts (58 / 24 / 36 / 72), and committed-ledger costs (\textyen{}682.25 / \textyen{}7.72 / \textyen{}11.75 / \textyen{}43.56) are in the anonymized supplement.
+
+\section{Infrastructure, custody, and submission HEAD}
+Deterministic generators (fixed seeds); independent per-family graders; exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification (canonical-tree integrity guard: \texttt{freeze}/\texttt{verify}/\texttt{enforce}, \texttt{FAILED\_INTEGRITY} stop); committed sample-membership arbitration (\texttt{measurement\_valid = terminal\_transport\_valid AND workspace\_gradeable}); validity-only replacement; SSE streaming transport; tool-health sentinel + full-path bookends; immutable-core/derived-deck action-surface repair; per-episode custody byte-matching; sanitized logs. The exact submission HEAD and per-episode custody hashes are recorded in the anonymized supplement. A pre-flight caught and fixed a grading-path bug (malformed signoff-status JSON that would have forced a component false for every STA episode) before the prospective run; the historical pilot was unaffected (0/30 triggers).
 
 \vspace{6pt}\hrule\vspace{4pt}
 \noindent\textbf{Ethics statement.} The preregistered blinded human construct-validity study (Study~B) is \emph{preregistered but unexecuted because qualified independent human annotators were unavailable}; no LLM annotator was substituted. The manuscript does not claim independent human validation of the semantic-binding taxonomy; construct validity rests on executable provenance/authority oracles.

@@ -1,56 +1,40 @@
-# ICLR 2027 Submission Package
+# ICLR 2027 Submission Package (Phase-7 / manuscript v3)
 
 **Title:** When Do Agent Harness Improvements Generalize? Semantic Binding, External Validity, and Evaluation Reliability in LLM Agents
-
-**Status:** anonymized, double-blind. Evaluation study (no new method proposed). Experimentally frozen at commit `a89e084`; this package is repository-hardening only (no new experiments, no model calls).
-
-## Contents
-
-| File | Purpose |
-|---|---|
-| `main.tex` | Manuscript source (official ICLR entry point). |
-| `iclr2027_conference.sty` | ICLR 2027 format package — **offline stand-in reconstruction** (see header). Drop-in replaceable with the official release. |
-| `references.bib` | Bibliography (5 related-work entries; metadata flagged VERIFICATION-REQUIRED — see file header). |
-| `main.pdf` | Compiled, anonymized PDF. |
-| `Makefile` | One-command build. |
-| `ANONYMITY_AUDIT.md` | Double-blind anonymity audit result. |
+**Status:** anonymized, double-blind. All experimental + benchmark-runtime work permanently closed. Experimentally frozen earlier; this package is the Phase-7 synthesis + manuscript v3.
 
 ## Build
-
 ```
-make            # = latexmk -pdf main.tex  (handles bibtex + repeats)
-# or manually:
-pdflatex main && bibtex main && pdflatex main && pdflatex main
+cd submission && make      # pdflatex + bibtex + 2x pdflatex
 ```
 
 ## Page boundaries (compiled)
+- **Main text (§1–8) ends: page 6**
+- **References begin: page 6**
+- **Appendix begins: page 6 (A–E through page 8)**
+- **Ethics/AI-use/Reproducibility: pages 8–9**
+- **Total PDF: 9 pages** — main text 6 pp (≤ 9-page ICLR limit).
 
-- **Main text ends:** page 8
-- **References begin:** page 8
-- **Appendix begins:** page 9
-- **Total PDF:** 10 pages
-- **Main-text length:** 8 pages (<= 9-page ICLR limit; target ~8.5).
+## Format caveat
+`iclr2027_conference.sty` is an offline stand-in reconstruction (the official 2027 style was not yet posted as of 2026-08-11; `iclr.cc/Conferences/2027/Styles` returns 404). Drop-in replaceable: overwrite with the official release and re-run `make`. ICLR 2027 deadlines verified from the official site: **abstract 2026-09-19, full paper 2026-09-26 (11:59 UTC)**.
 
-## Format caveat (IMPORTANT)
+## Contents
+| File | Purpose |
+|---|---|
+| `main.tex` | v3 source: 3-study/RQ structure; Phase-7 evidence hierarchy. |
+| `iclr2027_conference.sty` | ICLR 2027 format (offline reconstruction; drop-in). |
+| `references.bib` | Bibliography (7 entries; 2 new = TAB, LongHorizon; all VERIFICATION-REQUIRED placeholders). |
+| `main.pdf` | Compiled, anonymized (0 identifying strings). |
+| `Makefile` | One-command build. |
+| `ANONYMITY_AUDIT.md` | Double-blind audit (PASS). |
 
-`iclr2027_conference.sty` shipped here is a **faithful offline reconstruction** of
-the year-stable ICLR single-column 10pt format (letterpaper, 6.0in x 9.0in text
-block, ICLR title block, anonymized). The official `iclr2027_conference.sty` for
-the 2027 cycle was not yet published at preparation time and the build host is
-offline (web retrieval unavailable). To compile against the official style,
-**overwrite this file with the official release and re-run `make`** — no edit to
-`main.tex` is required (it loads the package in the standard ICLR way). Because
-the ICLR body density is year-stable, the main-text page count is expected to be
-unchanged.
+## Key Phase-7 content (vs v2)
+- **Main result table:** prospective STA n=12 batch is the authoritative STA row (Base 0.208 / BundleS 0.333 / TypedContract 0.458; transfer not established); historical n=3 pilot reported separately, not pooled.
+- **Experimental-status table** (7 registration types incl. "preregistered but unexecuted").
+- **Study III** adds the Independent Benchmark Repair Audit (Terminal-Bench 2.0→2.1): direct 1 / partial 21 / not-covered 4 of 26.
+- **Related work:** TAB (distinct construct) + LongHorizon-Harness (transfer is empirical).
+- **Ethics statement:** Study B = preregistered but unexecuted; construct validity rests on executable provenance/authority oracles.
+- **Appendix:** Study-A 12-instance table, Study-C full 26-task audit + source evidence, minimal-component ablation, phase chronology, infrastructure + custody.
 
-## Figures and tables
-
-All data tables are generated from committed ledgers:
-- Table 1 (main result) <- `reports/evidence/phase6_data.json`
-- Table (trajectory stability) <- per-episode re-grading of `reports/evidence/phase5c_episodes/`, `phase5d_episodes/`, and the p14 stage episode dirs (semantic_binding = submitted==golden on typed axes).
-- Figure 2 (taxonomy) counts <- workflow ledger (54 episodes: 29 correct / 20 axis / 5 role-conditioned-value).
-Figures 1 and 3 are conceptual (TikZ / tabular).
-
-## Reproducibility
-
-Deterministic generators (fixed seeds), independent per-family graders, exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification, committed sample-membership arbitration, validity-only replacement, per-episode custody byte-matching, sanitized custody evidence. Frozen manifests, treatment mapping, schedules, and provenance in anonymized supplementary material.
+## Reproducibility / supplement
+Frozen manifests, deterministic generators, per-family graders, schedules, custody hashes, and sanitized episode evidence are in the anonymized supplement. Exact submission HEAD is recorded at freeze (Phase-7 manuscript-freeze commit).
