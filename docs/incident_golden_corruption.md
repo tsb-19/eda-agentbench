@@ -79,8 +79,20 @@ frozen manifests:
 Editing even a comment would invalidate all four attestations. A frozen artifact records what was
 believed at freeze time; this document is the correction of record.
 
-The same wording also appears in `docs/phases/synthetic_phase6_manuscript_v2.md`, a historical
-manuscript draft, and is likewise left unchanged as a historical record.
+Two further sites keep the superseded attribution, for the same reason or as history:
+
+- `reports/synthetic_p14_phase4z_synthesis.md` §7 item 8 ("Unresolved external writer … not
+  root-caused"). Also **hash-pinned**: its sha256 `92ed19d26e8ca62d…` is recorded in
+  `reports/synthetic_p14_phase4z_freeze_manifest.json`. Unchanged; superseded by this document.
+- `docs/phases/synthetic_phase6_manuscript_v2.md`, a historical manuscript draft — left as-is as a
+  record of what that draft said.
+
+**The submitted manuscript needs no change.** It never relied on the external-process explanation:
+the audit table rows read *"Canonical-source mutation (Art)"* and *"Golden rewrite read as tool
+outage"*, and §6 says *"a silent golden rewrite would have masqueraded as a day-long tool outage"*.
+Those statements are attribution-free and remain true — only the writer's identity changed, and the
+control that caught it is the same one described. Verified by text-extracting `submission/main.pdf`:
+zero occurrences of "unidentified" or "external process".
 
 **The integrity guard itself remains fully warranted.** Its purpose was never limited to this
 writer: it defends the canonical tree against *any* writer, including an agent `RUN` using an
@@ -94,6 +106,37 @@ worktrees and branches removed earlier in the program), no corruption or missing
 expected and is *not* evidence about this incident: an external write to an already-checked-out
 file leaves the object database perfectly healthy. `git fsck` checks object connectivity and
 validity; the working-tree fingerprint guard checks something entirely different. Both are needed.
+
+## Generalizable lessons
+
+**1. A health check is only as trustworthy as the isolation of its reference standard.**
+The tool-health sentinel behaved exactly as designed: it compared the reference artifact against a
+frozen fingerprint, found a mismatch, and reported `healthy=False`. It was *correct* and still
+produced a wrong diagnosis, because the artifact it measured against had been mutated by the test
+harness it was supposed to be independent of. The failure was not in the monitor's logic but in the
+custody of its reference. Stated generally:
+
+> A monitor that validates a system against a reference standard can only be trusted if that
+> reference standard is itself isolated from the test harness. Otherwise the monitor faithfully
+> reports a real mismatch and attributes it to the wrong subsystem — here, ~21 h of investigation
+> pointed at a remote tool server that was healthy the whole time.
+
+This is a stronger and more general claim than "an external process wrote a file", and it is the
+part worth carrying into any future extension of this benchmark's measurement-validity apparatus:
+*reference-standard custody is a first-class validity layer, not an implementation detail.*
+
+**2. When the corrupted content is a distinctive literal, search for the literal first.**
+`{}` is a near-unique fingerprint. Grepping for `write_text("{}")` / `json.dump({}` found the cause
+in about two minutes and beat an entire host-level forensic plan (`inotify` timing, `/proc/*/fd`
+snapshots, targeted `strace`) that would have taken hours and — on this host, with no passwordless
+`sudo` and no `inotifywait`/`auditctl`/`fatrace` — could not have attributed the write to a process
+at all. Content-first, then process-level.
+
+**3. "Previously ruled out" is not evidence.** The earlier investigation explicitly excluded the
+true cause on the strength of a generalization: *"all tests use `tmp_path`; `scripts/check` is
+innocent."* That generalization was never checked against this one file. Ask what was actually
+verified, on which specific artifact and code path — a conclusion supports only the scope it was
+tested at, which is the same discipline the accompanying paper argues for in its claim-scope ladder.
 
 ## Standing guidance
 
