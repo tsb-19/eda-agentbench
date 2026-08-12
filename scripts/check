@@ -4,7 +4,8 @@
 # run the tool-free subset and would give false confidence).
 #
 # Runs ONLY tool-free checks (no b04, no EDA tools, no LLM gateway):
-#   [1] pytest unit suite          — EDA-tool tests auto-skip when the shim isn't sourced
+#   [1] pytest unit suite          — EDA-tool tests excluded here by marker; tests/conftest.py
+#                                     also auto-skips them when no tool is on PATH
 #   [2] structural dataset check    — schema + required files + golden present (every task)
 #   [3] Tier-2 discrimination scan  — optional, only if --results <tree> is given
 #
