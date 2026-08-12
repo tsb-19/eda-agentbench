@@ -7,11 +7,21 @@ frozen program manifest.
 
 INCLUSION RULE
 --------------
-The ledger universe is every paid, gradeable **primary** episode of the workflow-handoff
-clarity-bundle program, as declared by the frozen phase manifests. Episodes that a frozen
-manifest marks ``excluded``, ``invalid`` or ``aborted`` are the only omissions. A cell is keyed
-by (stage, condition, model, task) — repeat measurements of the same condition in different run
-windows stay distinct rows and are **never** deduplicated.
+The ledger universe is every paid, gradeable workflow episode in two declared parts:
+
+  1. the **program-primary** episodes of the workflow-handoff clarity-bundle ablation program
+     (Phases 4W / 4X / 4Y and the C24 bridge) as declared by the frozen phase manifests --- 58
+     episodes, whose only omissions are the ones a frozen manifest marks ``excluded``,
+     ``invalid`` or ``aborted`` (3 / 0 / 1);
+  2. the **12 earlier controlled-pair** episodes (Phase-4U/4V1/4V2), which are paid and gradeable
+     but predate the phase-matrix accounting and are counted in no row of it --- neither in its
+     58-episode primary total nor in its 682.25 CNY cost ledger.
+
+This descriptive ledger (70) is therefore deliberately broader than the 58-episode program-primary
+accounting the manuscript reports in its reproducibility statement; the two numbers are different
+quantities and both are stated as such. A cell is keyed by (stage, condition, model, task) ---
+repeat measurements of the same condition in different run windows stay distinct rows and are
+**never** deduplicated.
 
 Two consequences worth stating, because both differ from the earlier Phase-4Z aggregation:
   * Phase-4X Stage-1 (the position-confounded cross-model arm) is *included*. Its treatment

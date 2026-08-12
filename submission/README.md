@@ -9,7 +9,7 @@ cd submission && make
 ```
 
 ## Page boundaries
-- **Main text: 8 pp** (p1–p8; <=9 limit — 1 page of headroom kept for the rebuttal phase, where the limit rises to 10)
+- **Main text: 8 pp** (p1–p8; limit is 9 at submission → 1 page of headroom, and 10 at rebuttal/camera-ready → 2 pages)
 - References: p9 (outside page limit)
 - Appendix A–E: p9–p11 (outside page limit)
 - Ethics/AI-use/Reproducibility: p11 (outside page limit)
@@ -30,7 +30,8 @@ cd submission && make
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
 
 ## v7 (review fixes; no paid calls, no experimental record altered)
-Review of the v6 PDF found one accounting defect and three wording defects.
+Review of the v6 PDF found one accounting defect and three wording defects; a second review pass
+found one accounting-terminology gap. All are fixed.
 - **Study I ledger recomputed under an enforced inclusion rule (Table 3).** The v6 ledger's 54
   episodes were not a declared sampling frame: the generator keyed cells by `(condition, model)` in
   a dict, so a condition measured in two run windows silently overwrote itself. New
@@ -39,9 +40,16 @@ Review of the v6 PDF found one accounting defect and three wording defects.
   mismatch. Totals change **54 → 70 episodes, 29 → 41 correct, 20 → 24 axis-binding, 5 → 5 value**
   (70 = 58 program primary + 12 controlled pair). No verdict depends on these descriptive totals,
   and each recovered cell independently reproduces its own frozen phase report's headline.
+- **Episode accounting closed (Table 3 caption / Appendix A / Appendix D / reproducibility).** The
+  frozen manifest's `program_totals.primary = 58` is exactly the sum of its ten ablation-phase rows
+  and contains no 4U/4V row, so the 12 controlled-pair episodes are paid and gradeable but not
+  program-primary. The `58+24+36+72` totals and the ¥745.29 cost ledger are therefore unchanged;
+  instead every place that carries a count now states that the 70-episode descriptive Study I
+  ledger is deliberately broader than the 58-episode program-primary accounting. No derived number
+  moved (generated table and ledger JSON are byte-identical).
 - **Over-claim removed (§4):** "*exactly* the conditions that carry value-domain information" was
   contradicted by C2-only and C4-only in the same table; restated as non-sufficiency of either
-  ingredient.
+  ingredient. The "three repeat pairs" sentence now names all three (BundleS/DeepSeek 1/3 → 3/4).
 - **Limitation corrected (§6):** Level 1 is also $n$=1; now "Levels 0–2".
 - **Two softenings:** custody principle ("reachable"/"will" → "can be mutated"/"can"); falsifiability
   ("overturned" → "weakened or revised"; Level 3 no longer implies a cross-family effect size).

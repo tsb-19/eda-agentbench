@@ -20,7 +20,8 @@ v6 = 0e82e59; v5 = 3d3e77b, tagged `iclr2027-submission-v1`).
 | Addition | Anonymity assessment |
 |---|---|
 | Recomputed Study I ledger (Table 3, `\input` from `tables/study1_ledger.tex`) | The 5 added rows introduce only frozen synthetic task identifiers (`0013`–`0023`) and stage labels (`C6 ablation`, `cross-model 1C`, `decomp. 3`). No paths, hosts, users, run directories, dates or repository names. The generated `.tex` was scanned directly as well as through the PDF. PASS |
-| Ledger caption (inclusion rule) | Names the frozen manifest by role, not by repository path; states counts only. PASS |
+| Ledger caption (inclusion rule) | Names the frozen manifest by role, not by repository path; states counts only. Re-scanned after the accounting patch, which added phase-family words ("ablation phases", "controlled pair") and counts only. PASS |
+| Episode-accounting sentences (Table 3 caption, Appendix A, Appendix D, reproducibility statement) | Counts and phase-family names only; no host, path, ledger file name, account or date. PASS |
 | Three wording fixes (§4 over-claim, §6 limitation, §5/§7 softenings) | Methodological prose only; the custody paragraph continues to attribute the write to "a component of our own test harness" without naming file, host or repository. PASS |
 
 ## v6 additions (still present, re-audited on the v7 PDF)

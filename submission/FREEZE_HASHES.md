@@ -21,11 +21,13 @@ therefore wrong twice over: the mechanism was dict overwrite, not principled exc
 was not even a subset of the 58 — 12 of it came from the controlled pair, which is not part of the 58.
 
 **Fix.** New `scripts/phase7c_study1_ledger.py` re-derives every cell from the same frozen
-per-episode records under a stated rule:
+per-episode records under a stated rule with two declared parts:
 
-> Every paid, gradeable **primary** episode of the workflow-handoff clarity-bundle program as
-> declared by the frozen phase manifests. The only omissions are episodes those manifests mark
-> `excluded`, `invalid` or `aborted` (3, 0 and 1 respectively). Cells are keyed by
+> **(1)** the **program-primary** episodes of the workflow ablation program (Phases 4W / 4X / 4Y and
+> the C24 bridge) as declared by the frozen phase manifests — 58 episodes, whose only omissions are
+> the ones a manifest marks `excluded`, `invalid` or `aborted` (3, 0 and 1 respectively); plus
+> **(2)** the **12 earlier controlled-pair episodes** (Phases 4U / 4V1 / 4V2), which are paid and
+> gradeable but predate the phase-matrix accounting. Cells are keyed by
 > (stage, condition, model, task); repeat measurements of the same condition in different run
 > windows are distinct rows and are **never** deduplicated.
 
@@ -56,7 +58,38 @@ remains consistent with the recomputed ledger. Table 3 is now typeset by `\input
 output, so transcription drift is structurally impossible, and it carries a totals row so a reader
 can check the arithmetic without the script.
 
-### 2. Three wording fixes
+### 2. Episode-accounting terminology closed across the paper (v7 second pass)
+
+The recomputed ledger (70) and the program totals reported in Appendix D and the reproducibility
+statement (`58+24+36+72`) are **different quantities**, and the first v7 pass stated both without
+reconciling them — a reader checking the arithmetic would have asked whether Study I has 58 or 70
+paid primary episodes, and what the 12 controlled-pair episodes are in that accounting.
+
+Resolved from the frozen manifest rather than by assumption. `program_totals.primary = 58` is
+exactly the sum of the ten `phase_matrix` rows (4W-Run1/Run2/Held, 4X-S1/S1B/S1C, 4Y-S1/S2/S3,
+4Y-Bridge), and `cost_cny = 682.25` is exactly the sum of those same rows' costs. **No 4U/4V row
+exists in that matrix**, so the 12 controlled-pair episodes are paid and gradeable but are *not*
+program-primary under this manifest, and their cost is not in ¥682.25 either. The program totals
+are therefore correct as printed and were left unchanged; the terminology was made precise instead,
+in all three places that carry a count:
+
+- **Table 3 caption** — inclusion rule restated as the two-part universe, with the explicit sentence
+  that the 70-episode descriptive ledger is *deliberately broader* than the 58-episode
+  program-primary accounting.
+- **Appendix D (chronology)** — one sentence stating that the 58 is the program-primary accounting
+  of the ablation phases and the 70-episode ledger additionally includes the 12 controlled-pair
+  episodes, which predate that accounting and its cost ledger.
+- **Reproducibility statement** — parenthetical reconciling `58+24+36+72` with the ledger's 70.
+- **Appendix A** and the generator docstring carry the same two-part phrasing.
+
+Costs were **not** recomputed: the committed cost ledger remains authoritative (¥745.29).
+The generated table and ledger JSON are byte-identical before and after this pass
+(`fdf6c50c…` / `ca8104ac…`) — it changed wording only, not a single derived number.
+
+Also closed in this pass: §4 said three condition–model pairs disagree with themselves but named
+only two; BundleS/DeepSeek (1/3 → 3/4) is now named, so the count matches the enumeration.
+
+### 3. Three wording fixes
 
 - **Over-claim removed (§4).** "the conditions that suppress axis errors ... are **exactly** the
   conditions that carry value-domain information" was contradicted by the same table: C2-only and
@@ -80,10 +113,10 @@ can check the arithmetic without the script.
 ## SHA-256 hashes (frozen artifacts, v7)
 | Artifact | SHA-256 |
 |---|---|
-| Source (main.tex) | 9d2bf92fe14d1628dae4a420759fc955abe14dafe18a8b00a80405406cf87080 |
-| Final PDF (main.pdf, 11 pp: 8 main + refs + appendix) | 402ffe92c14c43880c2684f5c10bf7a43e60a4dd8ad676845339239e1dd51855 |
+| Source (main.tex) | f7fc16bde746061b1fdaa17449a7715ebc4331837c2d8caf4a85e162307def82 |
+| Final PDF (main.pdf, 11 pp: 8 main + refs + appendix) | f867c1bf8e02822eba5722eb0fb6ce3bbb332dcc29a26147850464a510fe8631 |
 | Generated ledger table (tables/study1_ledger.tex) | fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6 |
-| Ledger generator (scripts/phase7c_study1_ledger.py) | 14cb1611e1b210efd229a18084a30881842a50daf944d172c42f1d6d2f0436c7 |
+| Ledger generator (scripts/phase7c_study1_ledger.py) | 1623fbf346fbf2dc7ce0472ca1f8e0e62584e7d95c5062fe4d4783c8a43135e8 |
 | Ledger data (reports/synthetic_p14_study1_ledger.json) | ca8104ac6ab9ddf8944978ee31894bbe73b9ddb410289026258b05b37ff574d9 |
 | Bibliography (references.bib, 9 entries) | 867562f4be4a6c576bdfd3752e8e7e20ad50885a58214f3cd2dda330b99c9670 |
 | Style (iclr2027_conference.sty) | 797deef41724e93761426ac0cbcca46279a91cc650dd1f0ce76a4f08d2098ea6 |
@@ -109,9 +142,28 @@ Source-archive and supplement-archive tarball hashes are recomputed at final Ope
   the remaining 4 are all pre-existing and unchanged. Underfull \vbox 1 → 4 (page-fill slack from
   the larger float; cosmetic). Underfull hbox unchanged at 27.
 
+## Change verification (v7 first pass → v7 accounting patch)
+- **Sentence-level PDF diff**: the only deltas are the four accounting sentences (Table 3 caption
+  inclusion rule, Appendix A parenthetical, Appendix D sentence, reproducibility parenthetical) and
+  the named third repeat pair in §4. No other sentence changed.
+- **No derived number moved**: `tables/study1_ledger.tex` and `reports/synthetic_p14_study1_ledger.json`
+  are byte-identical to the first v7 pass; `phase7c_study1_ledger.py --check` reproduces the
+  committed JSON exactly (70 / 41 / 24 / 5, 21 cells, 58 + 12).
+- **Manifest arithmetic re-verified independently**: sum of `phase_matrix[].primary` = 58 =
+  `program_totals.primary`; sum of `phase_matrix[].cost_cny` = 682.25 = `program_totals.cost_cny`;
+  `[p for p in phase_matrix if p.phase startswith 4V/4U]` is empty — the basis for keeping
+  58/24/36/72 unchanged.
+- **Ledger arithmetic re-derived from the rendered PDF again**: 21 body rows sum to 41/70 with 24
+  axis and 5 value, matching the printed totals row; every row satisfies correct+axis+value=$k$.
+- **Page boundaries unchanged**: main text p1–p8 (Conclusion ends at the foot of p8), references
+  begin at the top of p9, appendix p9–p11; 11 pp total. Table 3 remains on p5 as reviewed.
+- **Build and gates re-run**: 0 errors, 0 undefined refs, bibtex 0 warnings, overfull hboxes 4
+  (unchanged); anonymity 0 hits in PDF text and in the generated `.tex`; PDF metadata empty;
+  `scripts/check` 2985/2985; `git status --porcelain -- tasks/` empty.
+
 ## ICLR 2027 compliance audit
 - Main text <=9 pages: **PASS** (8 pp, p1–p8; Conclusion ends at the foot of p8; 1 page of headroom
-  retained for the rebuttal phase, where the limit rises to 10).
+  at submission, and 2 at rebuttal/camera-ready, where the limit rises to 10).
 - References outside page limit: **PASS** (begin p9, after the Conclusion).
 - Appendix after references: **PASS** (p9–p11).
 - Double-blind anonymity: **PASS** (0 infra/path/user/credential/repository leaks in PDF text,
