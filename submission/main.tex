@@ -101,6 +101,30 @@ ABC~\citep{abc} / Protocol validity~\citep{protocolval} & Setup; shortcut/reward
 \paragraph{Construct: what semantic correctness means.}
 Semantic correctness is \emph{not} inferred from tool success, a hidden numeric answer, or the artifact score. It is decided solely by whether the submitted tuple matches the binding attested by the independent provenance/authority oracle. \emph{Worked example (Family~A):} visible evidence attests intent=\emph{functional\_close}, partition=\emph{core}, check\_mode=\emph{setup}; the agent submits (functional\_close, core, \emph{both})---PrimeTime returns green, the value is type-valid, but the coverage authority attests \emph{setup}, not \emph{both}; the oracle rejects it as a role-conditioned value-selection failure. This construct is instantiated independently in the workflow family (PVT axes), Family~A (intent/partition/check\_mode), and Family~B (corner/load/metric), each with its own grader. We do \emph{not} claim human validation (Study~B was preregistered but unexecuted).
 
+\paragraph{A worked instance (workflow family, ambiguous variant).} The agent receives an out-of-date timing sign-off handoff and must repair \texttt{flow\_config.json} to the unique package (netlist, clock, scenario, corner), then regenerate a two-stage evidence chain. The difficulty is deliberately \emph{not} retrieval: the shipped reports label their two axis fields \texttt{op\_point} and \texttt{mode}, and in this variant no glossary, summary or axis declaration is shipped, so which logical axis each label denotes must itself be recovered from the intersection of the sources. Five constraints are recoverable from the specification---C1 netlist family, C2 clock identity (the only clock with non-zero intended-clock coverage), C3 scenario-typed, C4 corner-typed, C5 the sign-off pair. Exhaustive enumeration over the declared domains yields 294 candidate assignments, of which \textbf{exactly one} satisfies C1--C5: (\texttt{netlist\_v2.v}, \texttt{clk\_main}, \texttt{slow}, \texttt{func}).
+
+Four evidence artifacts are shipped, each \emph{pairwise plausible} and each violating a different constraint (Table~\ref{tab:worked}). Source~A is the critical one: it carries the right netlist \emph{and} the right clock, and \textbf{PrimeTime signs it off green}---but its two role fields are swapped, so a corner value occupies the scenario role and a scenario value the corner role. Every shipped source signs off green. No tool signal separates A from the truth; only the typed oracle does. This is what \emph{tool-green} means throughout the paper, and it is why a benchmark that scores this task by tool exit status would score a wrong binding as a pass.
+
+\begin{table}[h]
+\centering\footnotesize
+\caption{The four shipped evidence sources of the worked instance. Each is pairwise plausible, each signs off green under PrimeTime, and each violates a different typed constraint: A and D swap the two role fields, B is out of the netlist family, C puts a PVT descriptor in the corner role and a generic alias in the clock role. The hidden role mapping is \texttt{op\_point}$\to$scenario, \texttt{mode}$\to$corner; it is not disclosed in this variant.}
+\label{tab:worked}
+\begin{tabular}{l l l l l c c}
+\toprule
+source & netlist & clock & \texttt{op\_point} & \texttt{mode} & violates & tool \\
+\midrule
+A role swap & \texttt{v2} \ding{51} & \texttt{clk\_main} \ding{51} & \texttt{func} & \texttt{typ} & C3, C4 & green \\
+B stale & \texttt{v1} \ding{55} & \texttt{clk\_main} \ding{51} & \texttt{slow} & \texttt{func} & C1 & green \\
+C PVT label & \texttt{v2} \ding{51} & \texttt{clk} \ding{55} & \texttt{slow} & \texttt{slow\_1.0V\_125C} & C2, C4 & green \\
+D JSON chain & \texttt{v2} \ding{51} & \texttt{clk\_main} \ding{51} & \texttt{func} & \texttt{typ} & C3, C4 & green \\
+\midrule
+\textbf{unique truth} & \texttt{v2} & \texttt{clk\_main} & \texttt{slow} & \texttt{func} & --- & green \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{How the oracle adjudicates.} The grader never consults tool exit status when deciding semantic correctness. It applies typed-membership predicates to the submitted package: the scenario field must belong to the scenario axis, the corner field to the corner axis, neither may be a PVT descriptor (a descriptor denotes a scenario--corner \emph{pair} and is never itself a value of either axis), and the clock must match by exact identity, so a generic alias is rejected. These predicates are folded into the master evidence gate, so a sign-off-green but mis-typed package cannot pass. A failure is then classified into exactly one of two subtypes, which we never collapse: an \textbf{axis-binding failure}, where a value occupies the wrong typed axis (e.g.\ \texttt{func}/\texttt{slow}), and a \textbf{role-conditioned value-selection failure}, where the value is axis- and type-valid but the wrong member is selected for the role (e.g.\ \texttt{typ}/\texttt{func}). Uniqueness of the intended assignment is verified by exhaustive enumeration before an instance is admitted, so ``correct'' is fixed by the instance's constraint system rather than by grader judgment.
+
 \paragraph{Conditions.} \textbf{Base} (ambiguous handoff; no answer-bearing disclosure); \textbf{BundleS} (canonical labels, value-domain definitions, glossary, procedural contract; no answer-bearing C6; no golden values); \textbf{TypedContract} (same information as BundleS as a JSON Schema). Hidden truth and grader are identical across conditions.
 
 \paragraph{Design and models.} Seeded exact-counterbalanced blocked randomization, frozen before any paid call. Instance is the primary unit; repetitions nested. We evaluate Qwen3.7-Max and DeepSeek-V4-Pro; these are not representative of the frontier-model population. The design is diagnostic, not population-estimating: it tests existence, recurrence, ceiling/null behavior, and transfer direction; it cannot resolve small effect sizes.
@@ -110,7 +134,37 @@ Semantic correctness is \emph{not} inferred from tool success, a hidden numeric 
 % ========================================================================
 On the workflow controlled pair (identical truth/grader; ambiguous vs.\ clear handoff), BundleS suppresses the axis-binding failure for Qwen3.7-Max: Base 1/3 (2 axis-binding) $\to$ BundleS 3/3 (0 axis-binding). The schema/contract subset (excluding answer-bearing C6) suffices on the development pair, and generalizes to a \emph{pre-frozen held-out} instance: BundleS 3/3 vs Base 1/3. The failure taxonomy (Figure~\ref{fig:taxonomy}) partitions the workflow ledger (54 episodes) into 29 correct, 20 \emph{axis-binding}, and 5 \emph{role-conditioned value-selection}---all tool-green, rejected only by the typed oracle.
 
-A sequential decomposition tested whether a stable minimal component underlies BundleS. None was isolated: C1 alone, C2-only, C4-only, and a C24 bridge all failed their thresholds. The bundle-level effect is real within-family; the operative sub-component is not identified.
+A sequential decomposition tested whether a stable minimal component underlies BundleS. None was isolated: C1 alone, C2-only, C4-only, and a C24 bridge all failed their thresholds. The bundle-level effect is real within-family; the operative sub-component is not identified. Table~\ref{tab:ledger} gives the full per-condition ledger behind both statements.
+
+\begin{table}[h]
+\centering\footnotesize
+\caption{Study I per-condition ledger: correct$/k$ with (axis-binding, value-selection) failure counts. Every cell is re-derived from the preserved per-episode records by a committed script; the rows sum to the 54 classified episodes (29 correct, 20 axis-binding, 5 value-selection). \emph{Cell provenance:} the two pair rows are the original $k$=3 controlled-pair probe; the DeepSeek BundleS cell is the exact-counterbalanced re-run whose Base arm (3/4) is the Level-2 contrast in Table~\ref{tab:main}. The superseded, position-confounded first cross-model arm is excluded from the classified ledger, which is why 58 paid primary episodes yield 54 classified ones.}
+\label{tab:ledger}
+\begin{tabular}{l l c c}
+\toprule
+condition & what it isolates & Qwen3.7-Max & DeepSeek-V4-Pro \\
+\midrule
+Base (0009) & ambiguous handoff & 1/3 (2,\,0) & 0/3 (3,\,0) \\
+Full bundle (0010) & C1--C7, incl.\ answer-bearing C6 & 3/3 (0,\,0) & 3/3 (0,\,0) \\
+\midrule
+BundleS & C1+C2+C4+C7 (no answer-bearing C6) & 3/3 (0,\,0) & 3/4 (1,\,0) \\
+BundleD & C3+C5 (decoy disambiguation) & 1/3 (2,\,0) & --- \\
+\midrule
+Base (0011) & held-out instance, different truth & 1/3 (1,\,1) & --- \\
+Held (0017) & held-out instance $+$ BundleS & 3/3 (0,\,0) & --- \\
+\midrule
+Schema & C1+C2+C4 jointly & 2/3 (0,\,1) & --- \\
+Contract & C7 alone & 1/3 (2,\,0) & --- \\
+C1 & axis-schema alone & 2/4 (2,\,0) & --- \\
+C24 (cross-run) & C2+C4 value-schema & 3/4 (0,\,1) & --- \\
+C24 (in-window bridge) & same, remeasured in one window & 2/4 (1,\,1) & --- \\
+C2 only & PVT definitions alone & 1/4 (3,\,0) & --- \\
+C4 only & glossary alone & 0/4 (3,\,1) & --- \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Three things in Table~\ref{tab:ledger} are worth reading directly. First, the \emph{full} bundle---which does include the answer-bearing component C6---moves both models from failure to 3/3; the scope limitation we report at Level~2 is specifically about the non-answer-bearing subset, not about the phenomenon. Second, the axis-binding column is where the mechanism lives: the conditions that suppress axis errors (Full bundle, BundleS, Held, Schema, C24 cross-run) are exactly the conditions that carry value-domain information, and the C1-alone row refutes the pre-declared hypothesis that canonical labels alone eliminate axis errors. Third, the two C24 rows are the same condition measured in different run windows and they disagree (3/4 with no axis error vs 2/4 with one); this is the direct evidence for our claim that a component result at $k$=4 is not stable enough to name a mechanism.
 
 \textbf{Level~0 and Level~1 are established for Qwen3.7-Max.} We make no universal improvement claim. Failure at Level~2 or Level~3 does not refute this local/within-family effect.
 
@@ -205,6 +259,8 @@ Canonical-source mutation (Art) & Exact-commit worktree + hash guard & Golden re
 
 \paragraph{Why the controls materially affected interpretation.} Without SSE streaming, Qwen3.7-Max would have been recorded as failing the controlled pair---inverting RQ1. Without the SPICE action-surface repair, all twelve SPICE episodes would have been spuriously zeroed, creating an apparent score floor that obscured the true semantic-binding ceiling. Without the canonical-hash guard, a silent golden rewrite would have masqueraded as a day-long tool outage. Each would have altered the headline interpretation.
 
+\paragraph{A monitor is only as trustworthy as the custody of its reference standard.} The canonical-source incident deserves a second reading, because its most useful lesson is not that a file was mutated. Our tool-health monitor compares a reference artifact against a frozen fingerprint and reports the tool environment unhealthy on mismatch. During development that monitor fired for roughly a day and the outage was attributed to the remote tool server. The monitor's logic was correct and its mismatch was real; the attribution was wrong, because the artifact it measured against had itself been rewritten---not by the remote server, but by a component of our own test harness that wrote into the canonical tree. A monitor that validates a system against a reference standard therefore inherits the custody of that standard: if the standard is reachable by the test harness, the monitor will faithfully report a genuine mismatch and assign it to the wrong subsystem. We state this as a general condition on measurement-validity apparatus rather than as an incident report, and we treat it as a fourth requirement on Layer~4 alongside action-surface isolation, canonical-source integrity and custody: \emph{the reference standards of health checks must be isolated from the harness whose health they certify.} The affected artifact was in the development workspace, which the study already treats as non-authoritative; no reported measurement derives from it. The generalizable point is that this class of error is silent by construction---it presents as a confident, correct-looking alarm about the wrong component.
+
 \paragraph{External taxonomy scope probe (Terminal-Bench 2.0$\to$2.1).} As an external scope probe (not validation), we coded the 26 officially documented repairs under the four-layer-plus-Other rubric, \emph{frozen before coding}: \textbf{1 direct, 21 partial, 4 outside} (of 26); layers: capability 17, sampling 0, execution 10, artifact 1; 6 multi-layer. We interpret this as evidence that the taxonomy has \emph{external relevance but incomplete coverage}. This is static retrospective taxonomy application; it does \emph{not} validate runtime portability and does \emph{not} validate every audit layer (the sampling layer received no external support). The full 26-task coding is in the Appendix.
 
 % ========================================================================
@@ -212,9 +268,20 @@ Canonical-source mutation (Art) & Exact-commit worktree + hash guard & Golden re
 % ========================================================================
 \emph{Controlled executable tasks, not sampled production incidents.} \emph{EDA-heavy environments}---transfer results are scoped to EDA. \emph{Small instance counts}---Level~0 and Level~2 rest on $n$=1; the design is diagnostic, not population-estimating. \emph{Construct validity}---rests on executable provenance/authority oracles; the preregistered human construct-validity study (Study~B) is preregistered but unexecuted; we do not claim human validation. \emph{Model scope}---two models, not representative of the frontier population. \emph{Audit protocol}---instantiated and stress-tested here, not broadly validated; the external probe shows relevance but incomplete coverage. \emph{No mechanism isolated}---the bundle-level effect is real within-family but no stable minimal component was identified.
 
-\paragraph{Discussion.} The claim-scope ladder makes generalization claims auditable: a reader can locate any harness-effect claim at a specific level and ask whether the evidence supports it. The measurement-validity axis makes the measurement independently checkable. Together they answer: \emph{what scope does the evidence support, and was the measurement itself valid?} Some harness interventions do transfer~\citep{longhorizon}; transfer is therefore an empirical property that must be demonstrated, not assumed.
+\paragraph{What would change these conclusions.} Because the framework's whole purpose is to make a claim's scope contestable, we state in advance what evidence would move each verdict; none of it requires trusting our interpretation.
 
-\paragraph{Reproducibility.} Deterministic generators (fixed seeds); independent per-family graders; exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification; committed sample-membership arbitration; validity-only replacement; per-episode custody byte-matching. Program totals: 58+24+36+72 paid primary episodes; committed-ledger cost \textyen{}745.29.
+\begin{itemize}
+\item \emph{Level~0--1 (established here) would be overturned} by a counterbalanced replication on the same frozen instances in which Base and BundleS tie for Qwen3.7-Max, or by a demonstration that the BundleS text leaks the answer---i.e.\ that a solver could recover the unique assignment from the bundle without consulting the evidence. The bundle was constructed to exclude the answer-bearing component precisely so this is checkable: the frozen condition files are released, and C6 is separable.
+\item \emph{Level~2 (not established) would be resolved either way} by raising $k$ on DeepSeek-V4-Pro under the same exact counterbalancing. Our 3/4 = 3/4 cannot distinguish a genuinely absent effect from an effect too small for $k$=4; we claim only the former is unestablished, not that it is absent.
+\item \emph{Level~3 (not established on STA) would be overturned} by a prospective panel, frozen before collection, that is large enough to detect the effect size the Level~0--1 result implies. Our $n$=12 with 7 ties has little power; the honest reading is a wide interval around zero, not a demonstrated null.
+\item \emph{The ceiling result (SPICE) would become informative} under a harder instance generator for the same family---one where Base does not already solve the binding. A ceiling is a property of our instances, not of the family.
+\item \emph{The mechanism claim (none isolated) would be overturned} by any single component reproducing the axis-suppression pattern across two independently collected run windows. The two C24 rows of Table~\ref{tab:ledger} are exactly this test, and they disagree.
+\item \emph{The audit protocol's coverage claim would be strengthened or refuted} by applying the frozen rubric to a second external repair corpus. Our single probe found the sampling layer entirely unsupported, which is evidence of incomplete coverage that a second corpus could confirm or overturn.
+\end{itemize}
+
+Two results are, by contrast, not contestable by re-analysis alone, because they are properties of the measurement rather than of the models: the transport-censoring incident and the action-surface false positive would have produced confident wrong numbers in any analysis of the uncorrected logs. That asymmetry is the argument for reporting the audit layer alongside the result.
+
+\paragraph{Discussion.} The claim-scope ladder makes generalization claims auditable: a reader can locate any harness-effect claim at a specific level and ask whether the evidence supports it. The measurement-validity axis makes the measurement independently checkable. Together they answer: \emph{what scope does the evidence support, and was the measurement itself valid?} Some harness interventions do transfer~\citep{longhorizon}; transfer is therefore an empirical property that must be demonstrated, not assumed.
 
 % ========================================================================
 \section{Conclusion}
@@ -227,7 +294,7 @@ We introduced a claim-scope framework for harness-effect generalization claims a
 % ========================================================================
 \appendix
 \section{Study I --- per-instance ledger and minimal-component ablation}
-Workflow ledger (54 episodes): 29 correct, 20 axis-binding, 5 role-conditioned value-selection. Minimal-component ablation (exploratory): no stable sub-component isolated (C1 alone, C2-only, C4-only, C24 bridge all failed thresholds).
+The full per-condition ledger (Table~\ref{tab:ledger}) now appears in the main text. Every cell is re-derived from the preserved per-episode records (\texttt{flow\_config.submitted.json}, \texttt{result.json}, sanitized agent log) by a committed script rather than transcribed, and the script reproduces the committed table byte-for-byte. Program-wide: 54 classified episodes, 29 correct, 20 axis-binding, 5 role-conditioned value-selection. Minimal-component ablation (exploratory): no stable sub-component isolated---C1 alone, C2-only, C4-only and the C24 bridge all failed their pre-declared thresholds.
 
 \section{Study II --- prospective STA detail}
 The per-instance table (Table~\ref{tab:sta12}) appears in the main text. Historical pilot ($n$=3) not pooled.
@@ -282,6 +349,6 @@ Exact-commit worktree; canonical-hash guard (\texttt{FAILED\_INTEGRITY} stop); e
 
 \noindent\textbf{AI-use statement (outside the page limit).} Generative-AI assistants were used to support experimental design and critique, orchestration and infrastructure code, task generators, analysis and report scripts, literature search, result-interpretation checks, and manuscript drafting and editing. All experimental decisions, task definitions, acceptance criteria, statistical analyses, and scientific claims were reviewed and approved by the authors. Experimental results were produced by frozen executable pipelines and independently checkable graders reproduced from frozen manifests; generative-AI systems were not used as ground-truth judges or scientific oracles. The authors take responsibility for all content and conclusions.
 
-\noindent\textbf{Reproducibility statement.} Deterministic generators, independent graders, frozen manifests, schedules, custody hashes, and sanitized episode evidence are in the anonymized supplement. ICLR 2027 deadlines: abstract September 18, 2026 AOE; full paper September 25, 2026 AOE.
+\noindent\textbf{Reproducibility statement.} Deterministic generators (fixed seeds); independent per-family graders; exact-commit isolated-worktree execution with pre/post-episode canonical-hash verification; committed sample-membership arbitration; validity-only replacement; per-episode custody byte-matching. Program totals: 58+24+36+72 paid primary episodes; committed-ledger cost \textyen{}745.29. Frozen manifests, randomization schedules, custody hashes, per-episode sanitized evidence, and the scripts that re-derive every table from the preserved records are in the anonymized supplement. ICLR 2027 deadlines: abstract September 18, 2026 AOE; full paper September 25, 2026 AOE.
 
 \end{document}
