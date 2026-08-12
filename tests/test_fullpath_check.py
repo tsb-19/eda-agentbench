@@ -2,10 +2,22 @@
 
 Covers: (1) score-independence -- the check takes no candidate/score argument and never inspects a
 candidate result; (2) healthy path; (3) signoff-RED corruption -> unhealthy; (4) broken digest chain
--> unhealthy; (5) truncated/missing report -> unhealthy. regen_evidence + artifacts are mocked."""
+-> unhealthy; (5) truncated/missing report -> unhealthy. regen_evidence + artifacts are mocked.
+
+NOTE: these tests must never write into the real `tasks/` tree. Earlier revisions created
+`G.TRACK/<reference task>/solution/flow_config.json` with the literal text "{}" directly in the
+canonical dataset and never restored it, so every `pytest` run silently truncated the
+workflow_handoff_0009 golden -- which also made the L2 config fingerprint mismatch and was
+misread as a day-long b04 outage. `check()` only needs that file to exist and parse; the
+fingerprint comparison is stubbed. So redirect G.TRACK to a throwaway tree instead
+(`fake_track`), and guard the canonical file with `test_canonical_golden_fingerprint_intact`.
+"""
+import hashlib
 import inspect
 import sys
 from pathlib import Path
+
+import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import fullpath_check as L2  # noqa: E402
@@ -25,6 +37,28 @@ def _seed_workspace(work, hdr, signoff="OK", digest_match=True, complete=True):
         {"signoff": signoff, "upstream_evidence_digest": upstream}))
     if not complete:
         (work / "timing_report.rpt").write_text(hdr)  # no REPORT_TIMING body
+
+
+@pytest.fixture
+def fake_track(monkeypatch, tmp_path):
+    """Point G.TRACK at a throwaway tree holding a stand-in solution/flow_config.json.
+
+    check() reads that file and hashes it; the hash comparison is stubbed by `stub_fingerprint`,
+    so the contents are irrelevant -- it only has to exist and parse as JSON.
+    """
+    track = tmp_path / "tasks" / "p14_workflow_handoff"
+    (track / L2.REFERENCE_TASK / "solution").mkdir(parents=True)
+    (track / L2.REFERENCE_TASK / "solution" / "flow_config.json").write_text("{}")
+    monkeypatch.setattr(L2.G, "TRACK", track)
+    return track
+
+
+@pytest.fixture
+def stub_fingerprint(monkeypatch):
+    """Make the config-fingerprint check pass regardless of the stand-in file's contents."""
+    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", "x")
+    monkeypatch.setattr(L2.hashlib, "sha256",
+                        lambda b: type("H", (), {"hexdigest": lambda self: "x"})())
 
 
 def test_check_is_score_independent_signature():
@@ -49,67 +83,65 @@ def test_check_source_does_not_inspect_scores():
         assert forbidden not in code, f"check() body must not reference '{forbidden}' (score-dependent)"
 
 
-def test_healthy_path(monkeypatch, tmp_path):
-    work_holder = {}
+def test_canonical_golden_fingerprint_intact():
+    """Regression guard: the canonical reference golden must match the frozen L2 fingerprint.
 
+    This is the tripwire for the class of bug this module used to cause -- any test or tool that
+    writes into the real tasks/<reference task>/solution/ tree fails here immediately instead of
+    silently corrupting the dataset and surfacing later as an L2 "unhealthy" / fake tool outage.
+    Uses the real G.TRACK and the real hashlib on purpose (no fixtures).
+    """
+    fc = L2.G.TRACK / L2.REFERENCE_TASK / "solution" / "flow_config.json"
+    assert fc.is_file(), f"canonical golden is missing: {fc}"
+    got = hashlib.sha256(fc.read_bytes()).hexdigest()
+    assert got == L2.REFERENCE_FC_HASH, (
+        f"canonical golden {fc} does not match the frozen fingerprint\n"
+        f"  expected {L2.REFERENCE_FC_HASH}\n  got      {got}\n"
+        f"Something wrote into the canonical dataset. Restore with:\n"
+        f"  git checkout -- {fc}"
+    )
+
+
+def test_healthy_path(monkeypatch, fake_track, stub_fingerprint):
     def fake_regen(work, env, timeout):
-        work_holder["w"] = work
         _seed_workspace(work, REPORT_OK_HDR)
 
     def fake_copytree(src, dst, **kw):
         # minimal staging so flow_config + solution exist
         Path(dst).mkdir(parents=True, exist_ok=True)
         return None
-    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", None, raising=False)  # bypass fingerprint for unit test
     monkeypatch.setattr(L2.shutil, "copytree", fake_copytree)
     monkeypatch.setattr(L2.G, "regen_evidence", fake_regen)
-    # make the fingerprint check pass: patch sha256 of the solution flow_config
-    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", "x")
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution").mkdir(parents=True, exist_ok=True)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution" / "flow_config.json").write_text("{}")
-    monkeypatch.setattr(L2.hashlib, "sha256", lambda b: type("H", (), {"hexdigest": lambda self: "x"})())
     rec = L2.check({})
     assert rec["healthy"] is True
     assert rec["signoff_ok"] and rec["slack_ok"] and rec["freshness_ok"]
 
 
-def test_signoff_red_corruption_is_unhealthy(monkeypatch):
+def test_signoff_red_corruption_is_unhealthy(monkeypatch, fake_track, stub_fingerprint):
     def fake_regen(work, env, timeout):
         _seed_workspace(work, REPORT_BAD_HDR, signoff="FAIL")
     monkeypatch.setattr(L2.G, "regen_evidence", fake_regen)
     monkeypatch.setattr(L2.shutil, "copytree", lambda *a, **k: None)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution").mkdir(parents=True, exist_ok=True)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution" / "flow_config.json").write_text("{}")
-    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", "x")
-    monkeypatch.setattr(L2.hashlib, "sha256", lambda b: type("H", (), {"hexdigest": lambda self: "x"})())
     rec = L2.check({})
     assert rec["healthy"] is False
     assert rec["signoff_ok"] is False
 
 
-def test_broken_digest_chain_is_unhealthy(monkeypatch):
+def test_broken_digest_chain_is_unhealthy(monkeypatch, fake_track, stub_fingerprint):
     def fake_regen(work, env, timeout):
         _seed_workspace(work, REPORT_OK_HDR, digest_match=False)
     monkeypatch.setattr(L2.G, "regen_evidence", fake_regen)
     monkeypatch.setattr(L2.shutil, "copytree", lambda *a, **k: None)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution").mkdir(parents=True, exist_ok=True)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution" / "flow_config.json").write_text("{}")
-    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", "x")
-    monkeypatch.setattr(L2.hashlib, "sha256", lambda b: type("H", (), {"hexdigest": lambda self: "x"})())
     rec = L2.check({})
     assert rec["healthy"] is False
     assert rec["freshness_ok"] is False
 
 
-def test_truncated_report_is_unhealthy(monkeypatch):
+def test_truncated_report_is_unhealthy(monkeypatch, fake_track, stub_fingerprint):
     def fake_regen(work, env, timeout):
         _seed_workspace(work, REPORT_OK_HDR, complete=False)
     monkeypatch.setattr(L2.G, "regen_evidence", fake_regen)
     monkeypatch.setattr(L2.shutil, "copytree", lambda *a, **k: None)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution").mkdir(parents=True, exist_ok=True)
-    (L2.G.TRACK / L2.REFERENCE_TASK / "solution" / "flow_config.json").write_text("{}")
-    monkeypatch.setattr(L2, "REFERENCE_FC_HASH", "x")
-    monkeypatch.setattr(L2.hashlib, "sha256", lambda b: type("H", (), {"hexdigest": lambda self: "x"})())
     rec = L2.check({})
     assert rec["healthy"] is False
     assert rec["report_complete"] is False
