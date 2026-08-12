@@ -3,8 +3,14 @@
 This directory preserves the artifact of the **one replaced episode** in the Phase-7A
 prospective STA run (`reports/evidence/phase7a_state.json`: `replaced: 1`, `invalid: 0`,
 `aborted: 0`). The manuscript discloses that replacement; until now the discarded artifact
-itself existed **only** under the gitignored `runs/` tree and had no backup in version
-control. `runs/` has since been deleted to reclaim disk, so this is the surviving record.
+itself existed **only** under the gitignored `runs/` tree, with no backup in version control —
+so it would not have survived a fresh clone, and a disk cleanup would have destroyed the only
+record of the one replacement the paper reports.
+
+The regenerable bulk of `runs/` has since been deleted to reclaim disk. `runs/phase7a` was
+retained locally because paid episodes cannot be regenerated (the experimental program is
+permanently closed), so the original directory may still be present in this working tree — but
+it is gitignored and therefore not part of the record. This tracked copy is.
 
 Nothing frozen was modified to add this. This directory is purely additive.
 
@@ -14,7 +20,7 @@ Nothing frozen was modified to add this. This directory is purely additive.
 |---|---|
 | Trial | `p15_eval_0004_base_r2` (task instance `p15_eval_0004`, condition **Base**, rep 2) |
 | Block | `A_sta:p15_eval_0004:Qwen3.7-Max`, position 4 of 6 |
-| Original run path | `runs/phase7a/p15_eval_0004/20260808_225705/` (deleted) |
+| Original run path | `runs/phase7a/p15_eval_0004/20260808_225705/` (gitignored; not part of the record) |
 | Artifact | `exception_config.discarded.json` — sha256 `9dadc5f253cab8f24a29fee3ddfc1eb8883e331a878f935f23afeebed4654666` |
 
 **Attempt 1 (discarded, this artifact):** `total_score` 0.5, `measurement_valid: false`,
