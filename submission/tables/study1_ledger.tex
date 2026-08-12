@@ -1,0 +1,38 @@
+\begin{tabular}{l l l c c c}
+\toprule
+stage & condition (task) & model & correct$/k$ & axis & value \\
+\midrule
+controlled pair & Base(0009) & DeepSeek & 0/3 & 3 & 0 \\
+ & Full bundle(0010) & DeepSeek & 3/3 & 0 & 0 \\
+ & Base(0009) & Qwen & 1/3 & 2 & 0 \\
+ & Full bundle(0010) & Qwen & 3/3 & 0 & 0 \\
+\midrule
+C6 ablation & V1 (0013) & Qwen & 3/3 & 0 & 0 \\
+ & V9 (0014) & Qwen & 3/3 & 0 & 0 \\
+\midrule
+screening & BundleD (0016) & Qwen & 1/3 & 2 & 0 \\
+ & BundleS (0015) & Qwen & 3/3 & 0 & 0 \\
+\midrule
+held-out & Base(0011) & Qwen & 1/3 & 1 & 1 \\
+ & Held(0017) & Qwen & 3/3 & 0 & 0 \\
+\midrule
+cross-model 1 & Base(0009) & DeepSeek & 2/3 & 1 & 0 \\
+ & BundleS (0015) & DeepSeek & 1/3 & 2 & 0 \\
+\midrule
+cross-model 1C & Base(0009) & DeepSeek & 3/4 & 1 & 0 \\
+ & BundleS (0015) & DeepSeek & 3/4 & 1 & 0 \\
+\midrule
+decomp.\ 1 & Contract (0019) & Qwen & 1/3 & 2 & 0 \\
+ & Schema (0018) & Qwen & 2/3 & 0 & 1 \\
+\midrule
+decomp.\ 2 & C1 (0020) & Qwen & 2/4 & 2 & 0 \\
+ & C24 (0021) & Qwen & 3/4 & 0 & 1 \\
+\midrule
+decomp.\ 3 & C2 (0022) & Qwen & 1/4 & 3 & 0 \\
+ & C4 (0023) & Qwen & 0/4 & 3 & 1 \\
+\midrule
+C24 bridge & C24 (0021) & Qwen & 2/4 & 1 & 1 \\
+\midrule
+\textbf{total} & & & \textbf{41/70} & \textbf{24} & \textbf{5} \\
+\bottomrule
+\end{tabular}

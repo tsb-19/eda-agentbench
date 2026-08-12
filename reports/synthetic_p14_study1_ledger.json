@@ -1,0 +1,228 @@
+{
+ "schema": "p14_study1_ledger/v1",
+ "inclusion_rule": "Every paid, gradeable primary episode of the workflow-handoff clarity-bundle program as declared by the frozen phase manifests; only manifest-declared excluded/invalid/aborted episodes are omitted. Cells are keyed by (stage, condition, model, task); repeat measurements of the same condition in different run windows are distinct rows and are never deduplicated.",
+ "frozen_manifest": "reports/synthetic_p14_phase4z_freeze_manifest.json",
+ "supersedes": "Table 2 of scripts/phase4z_figures_tables.py, whose (label, model) dict key silently collapsed repeat measurements",
+ "totals": {
+  "episodes": 70,
+  "correct": 41,
+  "axis_binding_failure": 24,
+  "role_conditioned_value_selection_failure": 5,
+  "cells": 21,
+  "program_primary": 58,
+  "controlled_pair": 12,
+  "total": 70
+ },
+ "cells": [
+  {
+   "stage": "4V-pair",
+   "condition": "Base(0009)",
+   "model": "DeepSeek",
+   "task": "0009",
+   "k": 3,
+   "correct": 0,
+   "axis": 3,
+   "value": 0
+  },
+  {
+   "stage": "4V-pair",
+   "condition": "Full bundle(0010)",
+   "model": "DeepSeek",
+   "task": "0010",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4V-pair",
+   "condition": "Base(0009)",
+   "model": "Qwen",
+   "task": "0009",
+   "k": 3,
+   "correct": 1,
+   "axis": 2,
+   "value": 0
+  },
+  {
+   "stage": "4V-pair",
+   "condition": "Full bundle(0010)",
+   "model": "Qwen",
+   "task": "0010",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4W-Run1",
+   "condition": "V1",
+   "model": "Qwen",
+   "task": "0013",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4W-Run1",
+   "condition": "V9",
+   "model": "Qwen",
+   "task": "0014",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4W-Run2",
+   "condition": "BundleD",
+   "model": "Qwen",
+   "task": "0016",
+   "k": 3,
+   "correct": 1,
+   "axis": 2,
+   "value": 0
+  },
+  {
+   "stage": "4W-Run2",
+   "condition": "BundleS",
+   "model": "Qwen",
+   "task": "0015",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4W-Held",
+   "condition": "Base(0011)",
+   "model": "Qwen",
+   "task": "0011",
+   "k": 3,
+   "correct": 1,
+   "axis": 1,
+   "value": 1
+  },
+  {
+   "stage": "4W-Held",
+   "condition": "Held(0017)",
+   "model": "Qwen",
+   "task": "0017",
+   "k": 3,
+   "correct": 3,
+   "axis": 0,
+   "value": 0
+  },
+  {
+   "stage": "4X-S1",
+   "condition": "Base(0009)",
+   "model": "DeepSeek",
+   "task": "0009",
+   "k": 3,
+   "correct": 2,
+   "axis": 1,
+   "value": 0
+  },
+  {
+   "stage": "4X-S1",
+   "condition": "BundleS",
+   "model": "DeepSeek",
+   "task": "0015",
+   "k": 3,
+   "correct": 1,
+   "axis": 2,
+   "value": 0
+  },
+  {
+   "stage": "4X-S1C",
+   "condition": "Base(0009)",
+   "model": "DeepSeek",
+   "task": "0009",
+   "k": 4,
+   "correct": 3,
+   "axis": 1,
+   "value": 0
+  },
+  {
+   "stage": "4X-S1C",
+   "condition": "BundleS",
+   "model": "DeepSeek",
+   "task": "0015",
+   "k": 4,
+   "correct": 3,
+   "axis": 1,
+   "value": 0
+  },
+  {
+   "stage": "4Y-S1",
+   "condition": "Contract",
+   "model": "Qwen",
+   "task": "0019",
+   "k": 3,
+   "correct": 1,
+   "axis": 2,
+   "value": 0
+  },
+  {
+   "stage": "4Y-S1",
+   "condition": "Schema",
+   "model": "Qwen",
+   "task": "0018",
+   "k": 3,
+   "correct": 2,
+   "axis": 0,
+   "value": 1
+  },
+  {
+   "stage": "4Y-S2",
+   "condition": "C1",
+   "model": "Qwen",
+   "task": "0020",
+   "k": 4,
+   "correct": 2,
+   "axis": 2,
+   "value": 0
+  },
+  {
+   "stage": "4Y-S2",
+   "condition": "C24",
+   "model": "Qwen",
+   "task": "0021",
+   "k": 4,
+   "correct": 3,
+   "axis": 0,
+   "value": 1
+  },
+  {
+   "stage": "4Y-S3",
+   "condition": "C2",
+   "model": "Qwen",
+   "task": "0022",
+   "k": 4,
+   "correct": 1,
+   "axis": 3,
+   "value": 0
+  },
+  {
+   "stage": "4Y-S3",
+   "condition": "C4",
+   "model": "Qwen",
+   "task": "0023",
+   "k": 4,
+   "correct": 0,
+   "axis": 3,
+   "value": 1
+  },
+  {
+   "stage": "4Y-Bridge",
+   "condition": "C24",
+   "model": "Qwen",
+   "task": "0021",
+   "k": 4,
+   "correct": 2,
+   "axis": 1,
+   "value": 1
+  }
+ ]
+}

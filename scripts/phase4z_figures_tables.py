@@ -116,7 +116,8 @@ def main():
                 prog[key] += v
 
     L = ["# Phase-4Z — Paper Figures & Tables (generated, no paid calls)\n",
-         "**Source:** every numerical entry is read from the committed report JSON (`reports/synthetic_p14_balanced_controlled_pair.json` → `matrix_2x2_k3`) or re-derived from the preserved episode ledgers (`reports/evidence/p14_phase4*_episodes/<trial>/flow_config.submitted.json` + `result.json` + `agentlog.sanitized.json`) by `scripts/phase4z_figures_tables.py`. No number is hand-copied.\n"]
+         "**Source:** every numerical entry is read from the committed report JSON (`reports/synthetic_p14_balanced_controlled_pair.json` → `matrix_2x2_k3`) or re-derived from the preserved episode ledgers (`reports/evidence/p14_phase4*_episodes/<trial>/flow_config.submitted.json` + `result.json` + `agentlog.sanitized.json`) by `scripts/phase4z_figures_tables.py`. No number is hand-copied.\n",
+         "> **Superseded for aggregate counts (2026-08-12).** Table 2 and Figures 2–3 below key cells by `(label, model)` in a dict, so a condition measured in more than one run window silently overwrites itself and its episodes drop out of the program totals. The surviving cell set is an artifact of insertion order, not a declared sampling frame. This document is kept as the historical Phase-4Z deliverable; for the manuscript's Study I ledger use `scripts/phase7c_study1_ledger.py` / `reports/synthetic_p14_study1_ledger.json`, which never deduplicates repeat measurements and asserts each stage's episode count against the frozen program manifest. Per-cell values here are unaffected; only the aggregates and the set of surviving cells are.\n"]
 
     # 1. study-design figure
     L.append("## Figure 1 — End-to-end study design\n")
