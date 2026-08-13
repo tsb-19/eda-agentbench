@@ -1,8 +1,8 @@
-# Anonymity Audit — manuscript v10 (official ICLR 2027 style; double-blind)
+# Anonymity Audit — manuscript v11 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Re-scanned on the v10 PDF (configuration-support scope lattice + statistical
-wording + one concurrent citation, over v9 = `7c2f9c4f`; v8 = `83379da4`; v7 = `5858d843`, tagged
-`iclr2027-submission-v2`; v5 = `3d3e77b`, tagged `iclr2027-submission-v1`).
+**Result: PASS.** Re-scanned on the v11 PDF (evidence-support/claim-target notation + two
+claim-strength downgrades, over v10 = `ff9b6b44`; v9 = `7c2f9c4f`; v8 = `83379da4`; v7 = `5858d843`,
+tagged `iclr2027-submission-v2`; v5 = `3d3e77b`, tagged `iclr2027-submission-v1`).
 
 ## Checks
 | Surface | Result |
@@ -32,7 +32,17 @@ wording + one concurrent citation, over v9 = `7c2f9c4f`; v8 = `83379da4`; v7 = `
 | Positioning table relocated to Appendix G (+1 row for AFTER) | Content unchanged from the v9 audit apart from the added row, which names only a public preprint and a framework property. Re-scanned in its new position. PASS |
 | `\tabcolsep` set to 4pt in three tables | Typesetting only; no textual content. PASS |
 
-## Carried over from v6–v9 (re-audited on the v10 PDF)
+## v11 additions specifically audited
+| Addition | Anonymity assessment |
+|---|---|
+| Evidence-support / claim-target notation (`E ⊆ 𝒞`, `T`, `T = E`, `T ⊋ E`) | Abstract set-theoretic notation; renames a symbol already present in v10 and adds one more. No external referent, no path, no identity. PASS |
+| §3.1 tier annotations carrying the `E`/`T` relation | Methodological prose over the existing standard. PASS |
+| BundleS downgrade: "contains no explicitly instance-specific assignment field" (+ the "schema and generator structure jointly" clause) | Describes the condition's own construction, already disclosed; names no generator source file, seed or path. PASS |
+| BundleS downgrade: "not attributable to **explicit C6 disclosure**" | Uses the component label `C6`, already used throughout since v5. PASS |
+| §6 compressions (controls paragraph, monitor-custody merge, dropped closer) | Deletions only; nothing added. Re-scanned the surviving text. PASS |
+| §7 paragraph merge | Text preserved verbatim, paragraph break removed. PASS |
+
+## Carried over from v6–v10 (re-audited on the v11 PDF)
 | Item | Anonymity assessment |
 |---|---|
 | Worked instance + evidence table (Appendix A) | Generic design/module names (`acc_stage`, `netlist_v2.v`, `clk_main`), axis values and a PVT descriptor. **No paths, hosts, users, licence servers or tool-install prefixes.** The tool is named generically ("PrimeTime"). PASS |

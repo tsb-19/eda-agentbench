@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7C / manuscript v10)
+# ICLR 2027 Submission Package (Phase-7C / manuscript v11)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -24,7 +24,7 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v10 source (official style; 3-study/RQ; **configuration-support** claim lattice + 2D framework) |
+| main.tex | v11 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
@@ -36,6 +36,30 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v11 (fourth reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**, **`main.tex` is the only artifact changed**)
+The configuration-support formalization held and the scope-lattice line of objection closed. Two
+wording-level items remained; no new citation was added (the review advised against spending
+main-text space on concurrent arXiv work, and ICLR policy does not require it).
+- **Evidence support `E` separated from claim target `T`.** v10 said a claim *is indexed by* the
+  measured set, while the top tier (*Generalized*) is inference to a **population** — two different
+  objects, since a generalized claim has `E ⊊ T`. The lattice orders `E`, the measured set that
+  *audits* a claim; a claim may name a wider target support `T`, and `E = T` only when nothing is
+  generalized. §3.1's four tiers now carry their `E`/`T` relation, so *Estimated on a fixed panel* is
+  `T = E` and *Generalized* is the one tier asserting `T ⊋ E`.
+- **Two BundleS leakage sentences downgraded** to what the design actually shows, since the
+  bundle-only leakage control is acknowledged as unrun: "cannot encode any one instance's
+  assignment" → "contains no explicitly instance-specific assignment field"; "not attributable to
+  disclosing the assignment" → "not attributable to **explicit C6 disclosure** of the assignment".
+  No experiment was run — this aligns the claim with the limitation §7 already states.
+- **Page cost paid by deleting duplication, not content:** §6's "Why the controls materially
+  affected interpretation" was reciting Table 4's own third column in prose; the monitor-custody
+  paragraph's closing sentence duplicated the clause before it; a rhetorical closer and a paragraph
+  break were removed. §3.1 untouched. Main text stays 9 pp.
+- **A v10 miscount corrected:** the v10 record claimed 25 `establish*` occurrences. Hyphenated
+  line-breaks in `pdftotext` output hid four of them; the true count is **29**, and the same method
+  on the committed v10 PDF also gives 29 — the text did not change, the earlier measurement was low.
+  All 29 re-audited: 0 positive uses about our own results.
 
 ## v10 (third reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**)
 The v9 statistical fix held and the estimand objection was withdrawn. One structural issue remained,
