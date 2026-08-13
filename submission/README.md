@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7C / manuscript v9)
+# ICLR 2027 Submission Package (Phase-7C / manuscript v10)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -12,28 +12,79 @@ Regenerate derived tables first if the frozen records change:
 python3 scripts/phase7c_study1_ledger.py       # appendix ledger
 python3 scripts/phase7c_claim_statistics.py    # stat macros + pilot table
 ```
+**Note:** `make clean` does *not* remove `main.pdf`; use `make distclean` before any build
+you intend to measure (a v9 log measurement was taken off a stale PDF — see below).
 
 ## Page boundaries
 - **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
 - References: p10 (outside page limit)
-- Appendix A–F: p10–p15 (outside page limit)
+- Appendix A–G: p10–p15 (outside page limit)
 - **Total PDF: 15 pp**
 
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v9 source (official style; 3-study/RQ; claim-scope **lattice** + 2D framework) |
+| main.tex | v10 source (official style; 3-study/RQ; **configuration-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
 | tables/sta_pilot.tex | Generated three-instance pilot table |
-| references.bib | 11 REAL verified citations (arXiv primary source; no placeholders) |
+| references.bib | 12 REAL verified citations (arXiv primary source; no placeholders) |
 | iclr2027_conference.sty/.bst | Official ICLR 2027 style |
 | natbib.sty / fancyhdr.sty | Bundled (from official style package) |
 | math_commands.tex | Optional math macros (from official package) |
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v10 (third reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**)
+The v9 statistical fix held and the estimand objection was withdrawn. One structural issue remained,
+plus four smaller items.
+- **Scope is now a configuration support, not a product of marginals.** v9 wrote a claim as a triple
+  `S=(s_I,s_M,s_F)` under the product order, which silently asserts that instance scope and family
+  scope are *independent* coordinates. They are not: **instances are family-specific**, so a
+  family-widening probe necessarily introduces new instance identities and cannot be a pure move in
+  `s_F`. A claim is now indexed by the set of **configurations** `C ⊆ {(f,i,m)}` ordered by
+  inclusion, with `s_I = π_I(C)`, `s_M = π_M(C)`, `s_F = π_F(C)` as **projections**. This also makes
+  the study's central omission a fact about the support rather than a caveat in prose, because
+  `π_F(C) × π_I(C) × π_M(C) ≠ C` in general — a support is *sparse* in the product of its own
+  projections, so having widened every projection somewhere is **not** having measured every
+  configuration. That is exactly why S3 is unmeasured even though `s_M` and `s_F` were each widened.
+  §3.1 now says outright that a cross-family replication is never a replication in `s_F` alone.
+- **"Five points" vs "coordinate class" reconciled.** The Introduction claimed the evidence occupied
+  *five points* while the main-result caption said S2-F is a *class*, not a point. Both statements
+  cannot hold. The Introduction now reads "four of the five named scope regions … across five
+  distinct supports", and S2-F is described as a class of two incomparable family-widening supports.
+- **The 95% band says what kind of 95% it is.** First occurrence is now spelled out as *the central
+  95% of the with-replacement instance-resampling distribution*, then abbreviated "95% sensitivity
+  band", with the note that with-replacement draws duplicate some instances and omit others — so
+  what is perturbed is the panel's **empirical weighting**, and the 95% is a quantile range of that
+  perturbation distribution, **not a coverage probability**.
+- **A limitation the band does not cover is now stated.** It does not quantify trajectory-level
+  Monte-Carlo uncertainty; at two repetitions per instance–condition cell the latent per-cell success
+  probabilities are poorly resolved. We deliberately do **not** add a third interval or a
+  hierarchical model for it — that would blur the preregistered/post-hoc boundary — and say so.
+- **"The only basis on which anything is decided" → "the sole basis for the confirmatory verdict."**
+  The descriptive estimate and the sensitivity band do inform how a reader reads the data; only the
+  confirmatory verdict rests solely on the preregistered analysis.
+- **The pilot reversal is now in the main text with its number** (`−16.7pp` pilot vs `+12.5pp`
+  prospective panel, both from generated macros). Reviewers are not required to read the appendix,
+  and the reversal is load-bearing in the abstract, contributions and discussion. The replacement
+  sentence is shorter than the one it replaced.
+- **AFTER added; novelty repositioned.** arXiv:2606.23127 (Belikova et al., verified 2026-06-22)
+  evaluates procedural-skill transfer under separate local / cross-task / cross-role / cross-model
+  settings. Reporting several transfer dimensions is therefore **not** claimed as new; the
+  contribution is stated as the *indexing* — a claim located by the set of configurations its
+  evidence occupies, separating *measured and unestablished* from *never measured*.
+- **Page cost paid by moving the positioning table (Table 1) to Appendix G.** Its third column was
+  verbatim-equivalent to the §2 prose beside it. Main text stays at 9 pp; §3.1 preserved intact.
+  Total stays 15 pp.
+- **Correction to the v9 record: v9 did not have 0 overfull hboxes.** The v9 "0" was measured from a
+  log produced by a build that never ran (`make clean` leaves `main.pdf` in place, so `make` was a
+  no-op). A `make distclean` rebuild of commit `7c2f9c4f` shows **3** overfull hboxes — the same
+  three tables and the same magnitudes (4.2 / 10.3 / 4.2 pt) reported for v8. They are fixed here by
+  setting `\tabcolsep` to 4pt in those three tables; v10 is **genuinely 0**, verified on a
+  distclean build.
 
 ## v9 (second reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**)
 The v8 fixes held. One statistical objection and three definitional gaps remained; all are fixed.
@@ -48,8 +99,9 @@ The v8 fixes held. One statistical objection and three definitional gaps remaine
   `instance_resampling_band95`).
 - **Lattice coordinates are now literally nested sets.** v8 asserted coordinatewise containment but
   wrote each coordinate as a progression; a held-out instance does not *contain* a development
-  instance. Each coordinate is now a **set of support points**, widening = adding points, and the
-  product order is stated: `S ≤ S'` iff `s_I ⊆ s_I'`, `s_M ⊆ s_M'`, `s_F ⊆ s_F'`.
+  instance. Each coordinate became a **set of support points**, widening = adding points.
+  *(Superseded in v10: sets of support points per coordinate still over-claimed independence
+  between instance and family scope; see the v10 section.)*
 - **"Replicated" no longer counts a new run window.** Re-running the *same* support point is
   **repeated measurement** (stability), not scope replication; replication requires a newly frozen
   support point of the coordinate being claimed. Table 2 gains a row making this operational. Our
@@ -61,16 +113,16 @@ The v8 fixes held. One statistical objection and three definitional gaps remaine
 - **S2-F labelled a coordinate class**, not a point: STA and SPICE widen `s_F` to two incomparable
   support sets.
 - **Two concurrent references added** (arXiv 2607.28802 *Model or Harness?*; arXiv 2608.00794
-  *Measurement Without Validity*), each fetched and verified before citing. This is the first change
+  *Measurement Without Validity*), each fetched and verified before citing. This was the first change
   to `references.bib` since v5 — **additions only**, all 9 prior entries byte-identical.
-- **Page cost paid by moving the 12-instance STA table to Appendix C.** Main text stays at 9 pp;
-  §3.1 (Claim qualification) preserved intact. Total 14 → 15 pp. Overfull hboxes 3 → **0**.
+- **Page cost paid by moving the 12-instance STA table to Appendix C.** Main text stayed at 9 pp;
+  §3.1 (Claim qualification) preserved intact. Total 14 → 15 pp.
 
 ## v8 (reviewer-standard read; no paid calls, no experimental record altered)
 Two structural defects were found in v7 and verified against the source. Both are fixed.
 - **The "claim-scope ladder" was not a valid order → now a lattice.** v7 asserted that passing a
   lower level is *necessary* for a higher one, but cross-model and cross-family widen **incomparable**
-  coordinates — and v7's own Level-3 test held the model fixed at the Level-2 failure. A claim is now
+  coordinates — and v7's own Level-3 test held the model fixed at the Level-2 failure. A claim became
   a point `S=(s_I,s_M,s_F)` under a **partial order**: S0, S1, S2-M, S2-F, and **S3 (joint), which
   this study never measured** and now reports as an empty cell in the main result table and Figure 1
   rather than as a failed level.
