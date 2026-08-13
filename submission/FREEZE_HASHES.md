@@ -1,76 +1,67 @@
-# Phase-7C Submission Freeze (v11 — evidence support vs claim target)
+# Phase-7C Submission Freeze (v12 — notation cleanup; framework frozen)
 
 **Submission HEAD:** the commit that adds this file.
-**Experiment freeze HEAD:** a89e084 (immutable). **v11 ran no model calls and altered no experimental record.**
-**Previous freezes:** v10 = `ff9b6b44` (committed, never tagged). v9 = `7c2f9c4f` (committed, never tagged). v8 = `83379da4` (committed, never tagged). v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither tag moves.**
+**Experiment freeze HEAD:** a89e084 (immutable). **v12 ran no model calls and altered no experimental record.**
+**Previous freezes:** v11 = `95128e11` (committed, never tagged). v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither tag moves.**
 
-## Why v11 exists
+## Why v12 exists
 
-A fourth reviewer-standard read confirmed the v10 configuration-support formalization and closed the
-scope-lattice line of objection. It left **two wording-level items**, both conceptual rather than
-numeric, and both fixed here. **v11 touches `main.tex` only.** Every other frozen artifact —
-all three generated tables, both generators, both data reports, `references.bib`, both style files,
-the claim-evidence matrix — is byte-identical to v10, verified by `git diff`. **No derived number
-moved.** No citation was added: the review explicitly advised against spending main-text space on
-HarnessCompass / Evo-Bench / AI4AI, and ICLR 2027 policy does not require comparison against
-arXiv-only concurrent work.
+The fifth reviewer-standard read closed the structural line entirely: **no conceptual, statistical or
+evidence-to-claim objection remains at reject level**, and the reviewer stopped hunting for defects.
+What remained was **three wording items, all non-decision-critical**, plus an explicit instruction to
+freeze afterwards. Two were applied; the third was a deliberate *non*-edit.
 
-### 1. Evidence support $E$ separated from claim target $T$ (the load-bearing fix)
+**v12 touches `main.tex` only.** Every other frozen artifact — all three generated tables, both
+generators, both data reports, `references.bib`, the `Makefile`, both style files, the claim-evidence
+matrix — is byte-identical to v11, verified by `git diff --quiet`. **No derived number moved:** a
+numeric-token diff of the v11 and v12 rendered PDFs gives 830 tokens on both sides, **identical**.
 
-**Defect.** v10 wrote that a claim *is indexed by* the set of configurations $C$ at which it was
-measured, while the top qualification tier (*Generalized*) is inference to a **population**. Those
-are two different objects. If a claim genuinely generalizes then $E\subsetneq T$, and the lattice
-orders $E$, not $T$ — two studies with the same measured support can assert different target
-populations. The distinction is standard in the external-validity / transportability literature and
-was being elided by a single symbol.
+### 1. `claim` / `evidence-for-a-claim` shorthand made consistent with the v11 E/T split
 
-**Fix.** Notation hygiene only; no restructuring.
+**Defect.** v11 introduced the evidence support $E$ and the target support $T$, and made the point
+that $E$ is what *audits* a claim rather than what the claim asserts. But five sentences elsewhere
+still carried the pre-v11 shorthand "indexes **a claim** by the set of configurations **its evidence**
+occupies" — which names the claim as the indexed object, exactly the conflation §1 now separates.
+Not a new conceptual problem; an inconsistency that the E/T distinction made conspicuous.
 
-- §1 now names the measured set the **evidence support** $E\subseteq\mathcal{C}$, with
-  $s_I=\pi_I(E)$, $s_M=\pi_M(E)$, $s_F=\pi_F(E)$.
-- §1 adds the separation explicitly: *"$E$ is what **audits** a claim, not what the claim asserts:
-  a claim may name a wider **target support** $T$, and $E=T$ only when nothing is generalized. The
-  lattice orders $E$; the standard of §3.1 governs which relations between $E$ and $T$ a design
-  licenses."*
-- §3 restates the lattice paragraph as *"The evidence auditing a harness-effect claim is indexed by
-  the support $E$…"*
-- §3.1's four tiers now carry their $E$/$T$ relation, which gives the standard a formal reading:
-  *Observed* — *"no target beyond $E$"*; *Replicated* — $E$ enlarged; *Estimated on a fixed panel* —
-  *"Inference is to the realized panel and no further ($T=E$)"*; *Generalized* — *"the one tier
-  asserting $T\supsetneq E$"*.
-
-### 2. Two BundleS leakage sentences downgraded to what the design shows
-
-**Defect.** Both sentences asserted an absolute negative that the **unrun bundle-only leakage
-control** cannot support. That a schema is shared across instances shows there is no explicit
-instance-indexed answer field; it does not show that schema and generator structure *jointly* cannot
-permit recovering an assignment. §7 already flags the bundle-only solve as the single most
-informative experiment not run, so the two claims were in tension with our own limitation.
-
-| location | v10 | v11 |
+| location | v11 | v12 |
 |---|---|---|
-| §4 Conditions | "so it **cannot encode any one instance's assignment**" | "so it **contains no explicitly instance-specific assignment field**; whether schema and generator structure *jointly* permit recovering an assignment is a separate question, and §7 gives the leakage check that would settle it" |
-| §5 Study I | "the effect is **not attributable to disclosing the assignment**" | "the effect is **not attributable to explicit C6 disclosure** of the assignment" |
+| Abstract | "index **a harness-effect claim** by the set of (family, instance, model) configurations **its evidence** occupies" | "index **the *evidence* for** a harness-effect claim by the set of (family, instance, model) configurations **it** occupies" |
+| §1 Contribution (1) | "indexes **a harness-effect claim** by the set of configurations **its evidence** occupies" | "indexes **the *evidence* for** a harness-effect claim by the set of configurations **it** occupies" |
+| §2 Positioning (prior work) | "None of the three indexes **a harness-effect claim** by the scope **its evidence supports**." | "None of the three indexes **the evidence for** a harness-effect claim by the **support it occupies**." |
+| §2 Positioning (our contribution) | "locating **a claim** by the set of configurations **its evidence** occupies" | "locating **the *evidence* for a claim** by the set of configurations **it** occupies" |
+| §8 Conclusion | "indexes **a claim** by the set of configurations **its evidence** occupies" | "indexes **the evidence supporting a claim** by its **measured configuration support**" |
 
-**0 occurrences** of "cannot encode" or "not attributable to disclosing" remain in the PDF.
-No experiment was run for this; it is a claim-strength correction.
+The reviewer named the Contribution (1) and Conclusion occurrences. The Abstract and the two §2
+occurrences are the *same* shorthand and were fixed for the stated reason — full-text notation
+consistency — rather than left to read against §1. **0 occurrences of "its evidence occupies" remain.**
 
-### 3. Page cost, paid by removing duplication
+### 2. The sensitivity band now says what the resampling actually perturbs
 
-The additions cost ~6 lines and pushed the main text to 10 pp. Recovered without touching §3.1
-(claim qualification) or any result, by deleting text that restated other text:
+**Defect.** §5 described the band as measuring "how strongly the estimate depends on **which**
+instances the panel happens to contain", while Appendix C states the stricter and correct thing: a
+with-replacement draw duplicates some instances and omits others, so what is perturbed is the panel's
+**empirical weighting**, not its membership list.
 
-- §6 *"Why the controls materially affected interpretation"* recited, in prose, the same three
-  entries already printed in Table 4's *"Conclusion that would have been wrong"* column. Replaced by
-  one sentence asserting the claim without the recitation.
-- §6 monitor-custody: the closing *"silent by construction"* sentence duplicated the preceding
-  clause's content; merged into it.
-- §6 model-custody: dropped the rhetorical closer *"Artifact custody without model custody secures
-  only half of what reproducibility requires."*
-- §7: *"Two results are not contestable by re-analysis at all…"* folded into the Discussion
-  paragraph as its opening (saves a paragraph break; text preserved).
+| location | v11 | v12 |
+|---|---|---|
+| §5 S2-F | "how strongly the estimate depends on *which* instances the panel happens to contain" | "how strongly the estimate depends on the panel's *empirical composition*" |
 
-| | v10 | v11 |
+More accurate and two words shorter. **0 occurrences of "happens to contain" remain.**
+
+### 3. A deliberate non-edit, recorded so it is not re-litigated
+
+Appendix C's *"We deliberately do not add a third interval or a hierarchical model to absorb it…"*
+was flagged as **correct but the first line to cut** if a future revision needs space — the factual
+limitation is fully carried by the two sentences before it. It is **kept in v12** and is hereby the
+head of the page-cost queue for any camera-ready trimming. No other reserved cut exists.
+
+### 4. Page budget
+
+The two applied edits are net +5 words across the whole document (8762 → 8767) and cost no line:
+main text stays 9 pp, Conclusion still ends on p9, References still begin on p10.
+
+| | v11 | v12 |
 |---|---|---|
 | main text | 9 pp (p1–p9) | **9 pp (p1–p9)** |
 | submission headroom (limit 9) | 0 pp | **0 pp** |
@@ -79,20 +70,11 @@ The additions cost ~6 lines and pushed the main text to 10 pp. Recovered without
 | appendix | A–G, p10–p15 | A–G, p10–p15 |
 | total | 15 pp | 15 pp |
 
-### 4. A miscount in the v10 record, corrected
-
-The v10 record stated **"25 `establish*` occurrences, all audited"**. The audit verdict was right but
-the count was wrong: the grep ran on `pdftotext` output in which hyphenated line-breaks split the
-word, so occurrences rendered as `estab-\nlished` were missed. Counting on newline-flattened text
-gives **29**, and the identical method applied to the committed v10 PDF *also* gives 29 — so nothing
-changed between versions; only the earlier measurement was low. All 29 were re-audited individually
-in v11 (list below) and **0 are positive uses about our own results**.
-
-## SHA-256 hashes (frozen artifacts, v11)
+## SHA-256 hashes (frozen artifacts, v12)
 | Artifact | SHA-256 |
 |---|---|
-| Source (main.tex) | 22d6b4437f1c8eab7b0e2b087ffffc48e3fa1c8e4361b7b6b6c3dbe3ef4a0082 |
-| Final PDF (main.pdf, 15 pp: 9 main + refs + appendix) | a11470806dbafaa229fdaf35eea71f196dc399fdfe798a9fef28731bb909c42e |
+| Source (main.tex) | 82cb22da00f74fa751f008060abebc419de29f599a560fc0d49fa07c2c95b473 |
+| Final PDF (main.pdf, 15 pp: 9 main + refs + appendix) | bbf948bfc533e3162eef4a299a1215b2664b0d3189bccc51ed65d257aba7a2e1 |
 | Generated ledger table (tables/study1_ledger.tex) | fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6 |
 | Generated stat macros (tables/claim_stats.tex) | 5c0b2577d7fb06be9992cf228767e2d5c317065d8dc51f6d679d6de5e5f36615 |
 | Generated pilot table (tables/sta_pilot.tex) | 95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b |
@@ -105,40 +87,47 @@ in v11 (list below) and **0 are positive uses about our own results**.
 | Bibstyle (iclr2027_conference.bst) | 2d67552db7ed38ccfccb5957b52f95656e25c249724761d3cf5f7922ad1844c5 |
 | Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | 9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b |
 
-Byte-identical to v10 (and to v5–v9 where applicable): **every artifact above except `main.tex` and
-`main.pdf`**. **No derived experimental number changed in v11.** `references.bib` unchanged —
-12 entries, no addition.
+Byte-identical to v11 (and to v5–v10 where applicable): **every artifact above except `main.tex` and
+`main.pdf`**. **No derived experimental number changed in v12.** `references.bib` unchanged — 12
+entries, no addition, per the reviewer's explicit advice and ICLR 2027 policy (comparison against
+arXiv-only concurrent work is not required and its absence is not a rejection basis).
 
-## Change verification (v10 → v11)
+## Change verification (v11 → v12)
 - **No experimental record touched.** No paid call; `git status --porcelain -- tasks/` empty; the
   frozen manifests and evidence tree were read, never written.
-- **No derived number moved.** `git diff HEAD -- submission/tables submission/references.bib
-  submission/*.sty submission/*.bst scripts/ reports/` is empty. Both generators reproduce their
-  committed outputs under `--check`
+- **Change scope proved, not asserted.** `git status --porcelain` lists exactly
+  `submission/main.tex` and `submission/main.pdf`. `git diff --quiet HEAD -- submission/tables
+  submission/references.bib submission/*.sty submission/*.bst submission/Makefile scripts/ reports/
+  docs/` returns clean.
+- **Word-level diff of the rendered text** (hyphenated line-breaks rejoined, ICLR margin numbers and
+  page headers stripped) yields **18 change regions: 13 belong to the six intended edits and 5 are
+  pure reflow** (a hyphenation point or an em-dash line break moving). **No unintended text change.**
+- **Numeric-token diff: 830 vs 830, identical.** No number, interval, p-value, count or date moved.
+- **Ledger arithmetic re-derived from the rendered PDF** (not from the script): 21 body rows sum to
+  41/70 with 24 axis and 5 value, matching the printed totals row exactly; **0** rows violate
+  correct+axis+value=$k$.
+- **Generator self-checks** reproduce their committed outputs under `--check`
   (`{"ok": true, "sta_delta_pp": 12.5, "sta_band_pp": [-12.5, 41.7], "pilot_delta_pp": -16.7,
   "fisher": {"S0": 0.4, "S1": 0.4, "S2-M": 1.0}, "resolved_snapshot_retained": false}` and
   `{"ok": true, "episodes": 70, "correct": 41, "axis_binding_failure": 24,
   "role_conditioned_value_selection_failure": 5, "cells": 21, "total": 70}`).
-- **Ledger arithmetic re-derived from the rendered PDF** (not from the script): 21 body rows sum to
-  41/70 with 24 axis and 5 value, matching the printed totals row exactly; **0** rows violate
-  correct+axis+value=$k$.
-- **Citation integrity:** 12 entries, 12 cited, 0 uncited, 0 undefined, 12 rendered. No entry added
-  or changed in v11.
-- **Claim audit:** 0 occurrences of "cannot encode", "not attributable to disclosing", "five points",
-  "coordinate class", "effect is real", "suppresses the axis", "generalizes to", "necessary but not
-  sufficient", "claim-scope ladder", "bootstrap interval", "unidentified", "external process", or
-  any stray `Level~N`. Both "confidence interval" occurrences are explicit denials. All **29**
-  `establish*` occurrences (see §4 above for why 29 and not the 25 recorded in v10) are a negation,
-  an explicit denial, the definition of the standard, the *not-licensed* column of Table 1, a cited
-  work's title, or the *"What it establishes"* header of the prior-work table — **0 positive uses
-  about our own results**.
+- **Citation integrity:** 12 entries, 12 cited, 0 uncited, 0 undefined, 12 rendered.
+- **Claim audit:** 0 occurrences of "its evidence occupies", "happens to contain", "cannot encode",
+  "not attributable to disclosing", "five points", "coordinate class", "effect is real",
+  "unidentified", "external process", or any stray `Level~N`. Both "confidence interval"
+  occurrences are explicit denials. All **29** `establish*` occurrences (counted on
+  newline-flattened text — see the v11 record for why 29 and not 25) are a negation, an explicit
+  denial, the definition of the standard, the *not-licensed* column of Table 1, a cited work's
+  title, or the *"What it establishes"* header of the prior-work table — **0 positive uses about our
+  own results**.
 - **Build:** 0 errors, 0 undefined references, 0 undefined citations, 0 real bibtex warnings
-  (`Warning--` count 0). **Overfull hboxes 0**, on a distclean build (log confirmed to contain 3
-  `This is pdfTeX` banners, i.e. the build actually ran). Underfull 34 (cosmetic page-fill slack).
+  (`Warning--` count 0). **Overfull hboxes 0**; underfull 34 (cosmetic page-fill slack). Counts read
+  from the **final pass only** of a `distclean` build whose log was confirmed to contain 3
+  `This is pdfTeX` banners, i.e. the build actually ran.
 - **PDF reproducibility:** two consecutive `make distclean && make` runs produce byte-identical PDFs
-  (`a1147080…`).
-- **Anonymity:** 0 hits in PDF text and 0 in every generated `.tex` for infra/path/user/credential/
-  repository patterns. PDF metadata Title/Author/Subject/Keywords all empty.
+  (`bbf948bf…`).
+- **Anonymity:** 0 hits in PDF text for infra/path/user/credential/repository patterns; PDF metadata
+  Title/Author/Subject/Keywords all empty.
 - **Repository gate:** `scripts/check` **PASSED 2985/2985**.
 - **Tags unmoved:** `iclr2027-submission-v1` → `3d3e77b7…`, `iclr2027-submission-v2` → `5858d843…`.
 
@@ -146,32 +135,41 @@ Byte-identical to v10 (and to v5–v9 where applicable): **every artifact above 
 - Main text ≤9 pages: **PASS** (9 pp, p1–p9; Conclusion ends on p9). **0 pages of headroom at
   submission**, 1 at rebuttal/camera-ready where the limit rises to 10.
 - References outside page limit: **PASS** (begin on p10).
-- Appendix after references: **PASS** (A–G, p10–p15).
+- Appendix after references: **PASS** (A–G, p10–p15). Reviewers are not required to read it, which is
+  why every load-bearing claim, the E/T distinction, §3.1, the main results, the pilot reversal, the
+  measurement incidents and the limitations all sit in p1–p9.
 - Double-blind anonymity: **PASS** (0 leaks in PDF text and generated tables).
 - PDF metadata anonymous: **PASS**.
 - AI-use statement / Ethics statement / Reproducibility statement: **PASS** (all present, outside the
   page limit).
-- Citations: **PASS** (12 entries, arXiv-verified, 0 placeholders).
+- Citations: **PASS** (12 entries, arXiv-verified, 0 placeholders). No comparison against arXiv-only
+  concurrent work is required by ICLR 2027 policy, and its absence cannot be a rejection basis.
 - Build: **PASS**. Repository gate: **PASS** (2985/2985).
 - Generator self-checks: **PASS** (both `--check` modes reproduce their committed outputs).
 - OpenReview upload: **HUMAN STEP** — abstract Sept 18, 2026 AOE; full paper Sept 25, 2026 AOE.
 
 ## Known gaps this revision deliberately does not close
-Unchanged from v8–v10; each is stated in the manuscript as a limitation rather than silently omitted:
+Unchanged from v8–v11; each is stated in the manuscript as a limitation rather than silently omitted:
 - **Human construct validity (Study B)** — preregistered, unexecuted; no LLM annotator substituted.
 - **Bundle-only leakage control** — flagged in §7 as the single most informative experiment not run.
-  v11 aligns the two BundleS sentences with this gap rather than closing it.
+  v11 aligned the two BundleS sentences with this gap; v12 changes nothing here.
 - **Backend snapshot provenance** — unrecoverable for episodes already collected.
 - **Second independent coder for the Terminal-Bench probe** — single-coder, no agreement statistic.
 - **S3 (joint model × family)** — never measured; reported as an empty cell.
 - **Trajectory-level Monte-Carlo uncertainty** — not quantified anywhere; stated as a limit on what
   the sensitivity band may be read to mean.
 
+## Freeze status
+**The manuscript is frozen at v12.** The review that produced v12 explicitly ended the structural
+audit, and recorded that the dominant risk has shifted from *unfound defects* to *over-optimization
+reintroducing inconsistency*. Further edits should be made only for a concrete external reason
+(OpenReview formatting, a reviewer request during rebuttal), not for further polish.
+
 ## Provenance of the frozen points
 - `iclr2027-submission-v1` → `3d3e77b` — v5. **Not moved.**
 - `iclr2027-submission-v2` → `5858d843` — v7. **Not moved.**
-- `0e82e59` → v6. `83379da4` → v8, untagged. `7c2f9c4f` → v9, untagged. `ff9b6b44` → v10, untagged.
-  This commit → **v11, untagged pending review.**
+- `0e82e59` → v6. `83379da4` → v8. `7c2f9c4f` → v9. `ff9b6b44` → v10. `95128e11` → v11. All untagged.
+  This commit → **v12, untagged pending review.**
 
 ## Deadlines (official ICLR 2027 site)
 - Abstract: September 18, 2026 AOE. Full paper: September 25, 2026 AOE.

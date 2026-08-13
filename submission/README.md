@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7C / manuscript v11)
+# ICLR 2027 Submission Package (Phase-7C / manuscript v12 — **frozen**)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -24,7 +24,7 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v11 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
+| main.tex | v12 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
@@ -36,6 +36,30 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v12 (fifth reviewer-standard read — **structural audit closed; manuscript frozen**)
+No conceptual, statistical or evidence-to-claim objection remains at reject level; the review ended
+the defect hunt and recorded that the dominant risk is now over-optimization, not unfound defects.
+Three non-decision-critical wording items remained. **`main.tex` is the only artifact changed; a
+numeric-token diff of the v11 and v12 PDFs is identical (830 = 830), so no number moved.**
+- **`claim` vs `evidence-for-a-claim` shorthand made consistent with v11's E/T split.** Five
+  sentences still read "indexes *a claim* by the set of configurations *its evidence* occupies",
+  naming the claim as the indexed object — the exact conflation §1 now separates. Abstract, §1
+  Contribution (1) and both §2 Positioning occurrences now index **the evidence for** a claim; the
+  Conclusion reads "indexes the evidence supporting a claim by its measured configuration support".
+  Not a new defect — an inherited shorthand the E/T distinction made conspicuous.
+- **The sensitivity band now names what the resampling perturbs.** §5's "how strongly the estimate
+  depends on *which* instances the panel happens to contain" → "on the panel's *empirical
+  composition*", matching Appendix C's stricter statement that with-replacement draws duplicate and
+  omit instances, so what moves is the panel's empirical **weighting**. Two words shorter.
+- **One deliberate non-edit, recorded.** Appendix C's "We deliberately do not add a third interval or
+  a hierarchical model…" is correct and is **kept**, but is now recorded in `FREEZE_HASHES.md` as the
+  head of the page-cost queue for any camera-ready trim, since the factual limitation is fully carried
+  by the two preceding sentences.
+- **No page cost:** +5 words document-wide (8762 → 8767), no line added. Main text 9 pp, total 15 pp.
+- **No citation added** (still 12): ICLR 2027 policy does not require comparison against arXiv-only
+  concurrent work and its absence is not a rejection basis, so the newly-surfaced concurrent
+  preprints (Harness-IF 2608.11727, ACM 2608.11166, and the five from the v11 round) are not cited.
 
 ## v11 (fourth reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**, **`main.tex` is the only artifact changed**)
 The configuration-support formalization held and the scope-lattice line of objection closed. Two

@@ -1,7 +1,7 @@
-# Anonymity Audit — manuscript v11 (official ICLR 2027 style; double-blind)
+# Anonymity Audit — manuscript v12 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Re-scanned on the v11 PDF (evidence-support/claim-target notation + two
-claim-strength downgrades, over v10 = `ff9b6b44`; v9 = `7c2f9c4f`; v8 = `83379da4`; v7 = `5858d843`,
+**Result: PASS.** Re-scanned on the v12 PDF (notation-consistency cleanup over v11 = `95128e11`;
+v10 = `ff9b6b44`; v9 = `7c2f9c4f`; v8 = `83379da4`; v7 = `5858d843`,
 tagged `iclr2027-submission-v2`; v5 = `3d3e77b`, tagged `iclr2027-submission-v1`).
 
 ## Checks
@@ -32,6 +32,14 @@ tagged `iclr2027-submission-v2`; v5 = `3d3e77b`, tagged `iclr2027-submission-v1`
 | Positioning table relocated to Appendix G (+1 row for AFTER) | Content unchanged from the v9 audit apart from the added row, which names only a public preprint and a framework property. Re-scanned in its new position. PASS |
 | `\tabcolsep` set to 4pt in three tables | Typesetting only; no textual content. PASS |
 
+## v12 additions specifically audited
+| Addition | Anonymity assessment |
+|---|---|
+| Five "evidence for a claim" rewordings (Abstract, §1 Contribution (1), two §2 Positioning sentences, §8 Conclusion) | Grammatical subject change over notation already present in v11. Adds no proper noun, path, host, account or number. PASS |
+| §5 band wording: "the panel's *empirical composition*" | Statistical prose over already-published numbers; strictly fewer words than the phrase it replaces. PASS |
+| Appendix C non-edit (hierarchical-model sentence retained) | No change to the PDF. PASS |
+| Reflow consequences (five hyphenation / em-dash line-break shifts) | Typesetting only; word-level diff confirms no text moved beyond the six intended edits. PASS |
+
 ## v11 additions specifically audited
 | Addition | Anonymity assessment |
 |---|---|
@@ -42,7 +50,7 @@ tagged `iclr2027-submission-v2`; v5 = `3d3e77b`, tagged `iclr2027-submission-v1`
 | §6 compressions (controls paragraph, monitor-custody merge, dropped closer) | Deletions only; nothing added. Re-scanned the surviving text. PASS |
 | §7 paragraph merge | Text preserved verbatim, paragraph break removed. PASS |
 
-## Carried over from v6–v10 (re-audited on the v11 PDF)
+## Carried over from v6–v11 (re-audited on the v12 PDF)
 | Item | Anonymity assessment |
 |---|---|
 | Worked instance + evidence table (Appendix A) | Generic design/module names (`acc_stage`, `netlist_v2.v`, `clk_main`), axis values and a PVT descriptor. **No paths, hosts, users, licence servers or tool-install prefixes.** The tool is named generically ("PrimeTime"). PASS |
