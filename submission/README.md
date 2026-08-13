@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7C / manuscript v8)
+# ICLR 2027 Submission Package (Phase-7C / manuscript v9)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -9,25 +9,25 @@ cd submission && make
 ```
 Regenerate derived tables first if the frozen records change:
 ```
-python3 scripts/phase7c_study1_ledger.py       # Table 3 (appendix ledger)
+python3 scripts/phase7c_study1_ledger.py       # appendix ledger
 python3 scripts/phase7c_claim_statistics.py    # stat macros + pilot table
 ```
 
 ## Page boundaries
 - **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
-- References: p9, after the Conclusion (outside page limit)
-- Appendix A–F: p10–p14 (outside page limit)
-- **Total PDF: 14 pp**
+- References: p10 (outside page limit)
+- Appendix A–F: p10–p15 (outside page limit)
+- **Total PDF: 15 pp**
 
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v8 source (official style; 3-study/RQ; claim-scope **lattice** + 2D framework) |
+| main.tex | v9 source (official style; 3-study/RQ; claim-scope **lattice** + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
-| tables/claim_stats.tex | Generated `\newcommand` macros for every interval/p-value in the prose |
+| tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
 | tables/sta_pilot.tex | Generated three-instance pilot table |
-| references.bib | 9 REAL verified citations (arXiv primary source; no placeholders) |
+| references.bib | 11 REAL verified citations (arXiv primary source; no placeholders) |
 | iclr2027_conference.sty/.bst | Official ICLR 2027 style |
 | natbib.sty / fancyhdr.sty | Bundled (from official style package) |
 | math_commands.tex | Optional math macros (from official package) |
@@ -35,37 +35,68 @@ python3 scripts/phase7c_claim_statistics.py    # stat macros + pilot table
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
 
+## v9 (second reviewer-standard read; no paid calls, no experimental record altered, **no derived number moved**)
+The v8 fixes held. One statistical objection and three definitional gaps remained; all are fixed.
+- **The fixed-panel estimand and the bootstrap disagreed → reframed as a sensitivity band.** v8
+  declared the estimand to be the *realized* 12-instance panel while attaching an interval produced
+  by **resampling instances** — which changes the panel rather than quantifying uncertainty about
+  it. The quantity (unchanged: +12.5pp, −12.5 to +41.7) is now an **instance-resampling sensitivity
+  band**, stated as measuring how far the estimate moves under perturbation of panel membership,
+  used for no test and no decision. The defensive claim that it "introduces no second inferential
+  channel, since no p-value is re-derived" is **deleted** — an interval is an inferential output
+  either way. Macros and the shipped JSON key were renamed to match (`bootstrap_ci95` →
+  `instance_resampling_band95`).
+- **Lattice coordinates are now literally nested sets.** v8 asserted coordinatewise containment but
+  wrote each coordinate as a progression; a held-out instance does not *contain* a development
+  instance. Each coordinate is now a **set of support points**, widening = adding points, and the
+  product order is stated: `S ≤ S'` iff `s_I ⊆ s_I'`, `s_M ⊆ s_M'`, `s_F ⊆ s_F'`.
+- **"Replicated" no longer counts a new run window.** Re-running the *same* support point is
+  **repeated measurement** (stability), not scope replication; replication requires a newly frozen
+  support point of the coordinate being claimed. Table 2 gains a row making this operational. Our
+  own S1 claim is unaffected — S1 adds an instance, so it replicates in `s_I`.
+- **Model-custody counts stated exactly.** Not "66 of 70 … but never a snapshot", which implied the
+  other 4 might have one: **0 of 70** retained a provider-resolved snapshot (the field does not
+  exist in the record), **66 of 70** retained even the alias and run date, **4** carry no transport
+  record at all. The generator now asserts the 0 and fails the build if that ever changes.
+- **S2-F labelled a coordinate class**, not a point: STA and SPICE widen `s_F` to two incomparable
+  support sets.
+- **Two concurrent references added** (arXiv 2607.28802 *Model or Harness?*; arXiv 2608.00794
+  *Measurement Without Validity*), each fetched and verified before citing. This is the first change
+  to `references.bib` since v5 — **additions only**, all 9 prior entries byte-identical.
+- **Page cost paid by moving the 12-instance STA table to Appendix C.** Main text stays at 9 pp;
+  §3.1 (Claim qualification) preserved intact. Total 14 → 15 pp. Overfull hboxes 3 → **0**.
+
 ## v8 (reviewer-standard read; no paid calls, no experimental record altered)
 Two structural defects were found in v7 and verified against the source. Both are fixed.
 - **The "claim-scope ladder" was not a valid order → now a lattice.** v7 asserted that passing a
   lower level is *necessary* for a higher one, but cross-model and cross-family widen **incomparable**
   coordinates — and v7's own Level-3 test held the model fixed at the Level-2 failure. A claim is now
   a point `S=(s_I,s_M,s_F)` under a **partial order**: S0, S1, S2-M, S2-F, and **S3 (joint), which
-  this study never measured** and now reports as an empty cell in Table 4 and Figure 1 rather than as
-  a failed level.
+  this study never measured** and now reports as an empty cell in the main result table and Figure 1
+  rather than as a failed level.
 - **Positive results were held to a looser bar than negative ones → now symmetric.** v7 said the
   effect "is real" and that "Level 0 and Level 1 are established" while the same paragraph conceded
   each rests on one instance (Fisher `p=0.40`). A stated four-tier standard (observed / replicated /
   estimated on a fixed panel / generalized) is now applied to our own results: BundleS is *observed*
   at S0, *replicated* once at S1, and nothing more. **Zero positive uses of "established" remain.**
-  New Table 2 maps evidence shapes to licensed and unlicensed wordings.
+  Table 2 maps evidence shapes to licensed and unlicensed wordings.
 - **Offline statistics (no new data).** Exact Clopper-Pearson intervals and exact-rational Fisher for
-  every headline cell; the STA panel now leads with **+12.5pp (interval −12.5 to +41.7)** instead of
-  `p=1.0`, which non-specialists misread as a demonstrated zero. The preregistered test is unchanged
-  and still reported.
+  every headline cell; the STA panel now leads with **+12.5pp** instead of `p=1.0`, which
+  non-specialists misread as a demonstrated zero. The preregistered test is unchanged and still
+  reported.
 - **Three-instance pilot published** (−16.7pp vs the prospective +12.5pp), so the claimed direction
   reversal is auditable; the generator asserts the signs differ.
 - **Model custody added as a fifth Layer-4 requirement, stated as our own gap:** run windows span 22
-  days and no provider-resolved snapshot was retained for any of the 70 episodes, so backend drift
-  cannot be excluded from the across-window variation the paper interprets.
-- **Table 6 gained its missing Capability row**; "non-answer-bearing" → "instance-answer-independent";
-  "independent validity layers" → distinct, interacting dimensions; Study B, family-scope and
-  audit-protocol-provenance limitations strengthened; explicit exploratory/confirmatory chronology
-  with freeze points (Appendix E).
+  days and no provider-resolved snapshot was retained, so backend drift cannot be excluded from the
+  across-window variation the paper interprets.
+- **Incident table gained its missing Capability row**; "non-answer-bearing" →
+  "instance-answer-independent"; "independent validity layers" → distinct, interacting dimensions;
+  Study B, family-scope and audit-protocol-provenance limitations strengthened; explicit
+  exploratory/confirmatory chronology with freeze points (Appendix E).
 - **Ledger JSON rule string corrected** — it still carried the one-part rule left over from the v7
   accounting patch. No derived number moved (`study1_ledger.tex` byte-identical).
-- **Page cost:** main text 8 pp → 9 pp (at the limit). Figure 2 deleted; the 21-row ledger and the
-  worked-instance table moved to the appendix.
+- **Page cost:** main text 8 pp → 9 pp (at the limit). The taxonomy figure was deleted; the 21-row
+  ledger and the worked-instance table moved to the appendix.
 
 ## v7 (accounting + review fixes)
 - **Study I ledger recomputed under an enforced inclusion rule.** The v6 ledger's 54 episodes were a

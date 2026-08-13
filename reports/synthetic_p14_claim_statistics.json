@@ -7,8 +7,11 @@
       "resolved_snapshot_present": 0,
       "span_days": 22
     },
+    "episodes_with_alias_and_date": 66,
+    "episodes_with_resolved_snapshot": 0,
+    "episodes_without_any_transport_record": 4,
     "ledger_episodes": 70,
-    "note": "retained records carry the requested model alias and a date only; no provider-resolved snapshot, response id or system fingerprint was captured, so backend version drift cannot be excluded as a contributor to across-window variation",
+    "note": "two distinct counts: NO episode retained a provider-resolved snapshot, response id or system fingerprint (the per-episode record has no such field), and only a subset retained even the requested alias and run date; the remainder have no per-episode transport record at all. Backend version drift therefore cannot be excluded as a contributor to across-window variation",
     "resolved_snapshot_retained": false,
     "run_windows": {
       "p14_phase4w_heldout_episodes": {
@@ -189,8 +192,8 @@
   "method": {
     "contrast_test": "Fisher exact, two-sided, exact rational arithmetic",
     "interval": "Clopper-Pearson exact, two-sided 95%",
-    "panel_interval": "percentile bootstrap over the 12 instances (100000 replicates, seed 20260813); descriptive over the fixed panel, not a population interval",
-    "preregistered_analysis_unchanged": "the frozen exact paired sign test (p=1.0) and permutation sensitivity (p=0.31) remain the reported inferential result; nothing here replaces them"
+    "panel_sensitivity_band": "percentile bootstrap resampling the 12 instances (100000 replicates, seed 20260813); reported as an instance-resampling sensitivity band over panel composition, NOT a confidence interval and NOT a finite-population design-based interval",
+    "preregistered_analysis_unchanged": "the frozen exact paired sign test (p=1.0) and permutation sensitivity (p=0.31) remain the reported inferential result; the band is descriptive and is used for no hypothesis test and no decision"
   },
   "post_hoc_pooled_two_instances": {
     "fisher_two_sided_p": 0.06060606060606061,
@@ -203,13 +206,15 @@
     "study1_ledger": "reports/synthetic_p14_study1_ledger.json"
   },
   "sta_finite_panel": {
-    "bootstrap_ci95": [
+    "band_interpretation": "how far the point estimate moves when panel membership is resampled; not a confidence interval for a parameter, since the realized panel's composition carries no sampling uncertainty",
+    "delta_hat_BundleS_minus_Base": 0.125,
+    "estimand": "the realized 12-instance panel; inference goes no further",
+    "frozen_permutation_two_sided_p": 0.3133,
+    "frozen_sign_test_two_sided_p": 1.0,
+    "instance_resampling_band95": [
       -0.125,
       0.4166666666666667
     ],
-    "delta_hat_BundleS_minus_Base": 0.125,
-    "frozen_permutation_two_sided_p": 0.3133,
-    "frozen_sign_test_two_sided_p": 1.0,
     "n_instances": 12
   },
   "sta_pilot": {

@@ -14,23 +14,29 @@ Three things are computed, each from a frozen source:
    Source: ``reports/synthetic_p14_study1_ledger.json`` (itself re-derived from the
    preserved per-episode submissions).
 
-2. **STA finite-panel effect estimate.** The point estimate of the panel mean difference
-   Delta_hat = mean_i(BundleS_i - Base_i) with a percentile bootstrap interval resampling
-   the 12 **instances** (the declared independent unit -- never the 72 trajectories).
-   Source: ``reports/synthetic_phase7a_sta72_report.json``.
+2. **STA panel estimate and its sensitivity to panel composition.** The point estimate of
+   the panel mean difference Delta_hat = mean_i(BundleS_i - Base_i), together with a
+   percentile bootstrap that resamples the 12 **instances** (the declared independent unit
+   -- never the 72 trajectories). Source: ``reports/synthetic_phase7a_sta72_report.json``.
 
-   This is *post hoc uncertainty quantification of the preregistered contrast*, not a new
-   test. The frozen primary analysis (exact paired sign test) and its permutation
-   sensitivity are unchanged and remain the reported inferential result; the bootstrap
-   interval is descriptive over the fixed 12-instance panel and is labelled as such in the
-   manuscript. No p-value is re-derived here, so there is no second inferential channel.
+   What that band is and is not. The declared estimand is the *realized* panel: inference
+   is to these twelve instances and no further. A realized panel's composition carries no
+   sampling uncertainty, so resampling instances does not estimate uncertainty *about* the
+   estimand -- it changes the panel. We therefore report the result as an
+   **instance-resampling sensitivity band**: how far the point estimate moves when the
+   panel's membership is perturbed. It is not a confidence interval, it is not a
+   finite-population design-based interval, and it is used for no hypothesis test and no
+   decision. The frozen primary analysis (exact paired sign test) and its permutation
+   sensitivity are unchanged and remain the reported inferential result.
 
 3. **Backend run-window provenance.** Per stage, the set of dates retained in the
    preserved ``stream_diagnostics.json`` records, and the resolved-snapshot coverage.
-   This exists to support an honest limitation rather than a result: the retained records
-   carry the *requested* model alias and a date, but no provider-resolved model snapshot,
-   response id or system fingerprint, so backend version drift cannot be excluded as a
-   contributor to the across-window variation the manuscript reports.
+   This exists to support an honest limitation rather than a result. Two distinct counts
+   matter and the manuscript states both: *no* episode retained a provider-resolved model
+   snapshot, response id or system fingerprint (the per-episode diagnostic record has no
+   such field, which the assertion below enforces), and only a subset of ledger episodes
+   retained even the requested alias and run date. Backend version drift therefore cannot
+   be excluded as a contributor to the across-window variation the manuscript reports.
 
 Every derived quantity is asserted against the frozen report's own declared values, so a
 changed input fails the build instead of silently changing a printed number.
@@ -133,10 +139,16 @@ def fisher_exact_two_sided(a: int, b: int, c: int, d: int) -> float:
     return float(p)
 
 
-def bootstrap_mean_ci(
+def instance_resampling_band(
     values: list[float], replicates: int, seed: int, alpha: float = ALPHA
 ) -> tuple[float, float]:
-    """Percentile bootstrap interval for the mean, resampling the units in `values`."""
+    """Percentile bootstrap of the mean, resampling the units in `values`.
+
+    Deliberately *not* named `..._ci`. The mechanism is a percentile bootstrap, but the
+    quantity reported is a sensitivity band over panel composition, not a confidence
+    interval: the manuscript's estimand is the realized panel, whose membership has no
+    sampling distribution to be uncertain about. See the module docstring.
+    """
     rng = random.Random(seed)
     n = len(values)
     means = []
@@ -301,7 +313,7 @@ def compute() -> dict:
     diffs = [inst["BundleS_rate"] - inst["Base_rate"] for inst in sta["instances"]]
     n_inst = len(diffs)
     delta_hat = sum(diffs) / n_inst
-    d_lo, d_hi = bootstrap_mean_ci(diffs, BOOTSTRAP_REPLICATES, BOOTSTRAP_SEED)
+    d_lo, d_hi = instance_resampling_band(diffs, BOOTSTRAP_REPLICATES, BOOTSTRAP_SEED)
 
     # Mechanical agreement with the frozen report (fail loudly rather than drift).
     declared = sta["condition_mean_rates_over_instances_descriptive"]
@@ -317,6 +329,19 @@ def compute() -> dict:
 
     windows = scan_run_windows()
     envelope = summarize_run_windows(windows)
+    ledger_episodes = json.loads(LEDGER.read_text())["totals"]["episodes"]
+
+    # The manuscript states, as its own limitation, that *no* episode retained a
+    # provider-resolved model identity. Enforce it here so the sentence cannot go stale if
+    # the evidence tree ever gains such a field.
+    assert envelope["resolved_snapshot_present"] == 0, (
+        "the manuscript states that no episode retained a provider-resolved snapshot, "
+        "but the evidence tree now contains one"
+    )
+    episodes_without_record = ledger_episodes - envelope["episodes_with_diagnostics"]
+    assert episodes_without_record >= 0, (
+        "more per-episode diagnostic records than ledger episodes; the two are misaligned"
+    )
 
     # ---- three-instance pilot ----------------------------------------------------------
     # The manuscript claims the prospective expansion *reversed* the pilot's descriptive
@@ -345,14 +370,16 @@ def compute() -> dict:
         "method": {
             "interval": "Clopper-Pearson exact, two-sided 95%",
             "contrast_test": "Fisher exact, two-sided, exact rational arithmetic",
-            "panel_interval": (
-                f"percentile bootstrap over the {12} instances "
-                f"({BOOTSTRAP_REPLICATES} replicates, seed {BOOTSTRAP_SEED}); "
-                "descriptive over the fixed panel, not a population interval"
+            "panel_sensitivity_band": (
+                f"percentile bootstrap resampling the {12} instances "
+                f"({BOOTSTRAP_REPLICATES} replicates, seed {BOOTSTRAP_SEED}); reported as "
+                "an instance-resampling sensitivity band over panel composition, NOT a "
+                "confidence interval and NOT a finite-population design-based interval"
             ),
             "preregistered_analysis_unchanged": (
                 "the frozen exact paired sign test (p=1.0) and permutation sensitivity "
-                "(p=0.31) remain the reported inferential result; nothing here replaces them"
+                "(p=0.31) remain the reported inferential result; the band is descriptive "
+                "and is used for no hypothesis test and no decision"
             ),
         },
         "contrasts": contrasts,
@@ -362,8 +389,14 @@ def compute() -> dict:
         },
         "sta_finite_panel": {
             "n_instances": n_inst,
+            "estimand": "the realized 12-instance panel; inference goes no further",
             "delta_hat_BundleS_minus_Base": delta_hat,
-            "bootstrap_ci95": [d_lo, d_hi],
+            "instance_resampling_band95": [d_lo, d_hi],
+            "band_interpretation": (
+                "how far the point estimate moves when panel membership is resampled; "
+                "not a confidence interval for a parameter, since the realized panel's "
+                "composition carries no sampling uncertainty"
+            ),
             "frozen_sign_test_two_sided_p": sta["primary_sign_test"]["two_sided_exact_p"],
             "frozen_permutation_two_sided_p": sta["primary_permutation_sensitivity"]["two_sided_permutation_p"],
         },
@@ -385,12 +418,17 @@ def compute() -> dict:
         "backend_provenance": {
             "run_windows": windows,
             "envelope": envelope,
-            "ledger_episodes": json.loads(LEDGER.read_text())["totals"]["episodes"],
+            "ledger_episodes": ledger_episodes,
+            "episodes_with_resolved_snapshot": envelope["resolved_snapshot_present"],
+            "episodes_with_alias_and_date": envelope["episodes_with_diagnostics"],
+            "episodes_without_any_transport_record": episodes_without_record,
             "resolved_snapshot_retained": envelope["resolved_snapshot_present"] > 0,
             "note": (
-                "retained records carry the requested model alias and a date only; no "
-                "provider-resolved snapshot, response id or system fingerprint was captured, "
-                "so backend version drift cannot be excluded as a contributor to "
+                "two distinct counts: NO episode retained a provider-resolved snapshot, "
+                "response id or system fingerprint (the per-episode record has no such "
+                "field), and only a subset retained even the requested alias and run date; "
+                "the remainder have no per-episode transport record at all. Backend "
+                "version drift therefore cannot be excluded as a contributor to "
                 "across-window variation"
             ),
         },
@@ -422,13 +460,17 @@ def render_tex(stats: dict) -> str:
         macro(f"Stat{tag}Fisher", f"{x['fisher_two_sided_p']:.2f}")
     macro("StatPooledFisher", f"{stats['post_hoc_pooled_two_instances']['fisher_two_sided_p']:.2f}")
     macro("StatStaDelta", f"{100 * sta['delta_hat_BundleS_minus_Base']:+.1f}")
-    macro("StatStaCIlo", f"{100 * sta['bootstrap_ci95'][0]:+.1f}")
-    macro("StatStaCIhi", f"{100 * sta['bootstrap_ci95'][1]:+.1f}")
+    macro("StatStaBandLo", f"{100 * sta['instance_resampling_band95'][0]:+.1f}")
+    macro("StatStaBandHi", f"{100 * sta['instance_resampling_band95'][1]:+.1f}")
     env = stats["backend_provenance"]["envelope"]
     macro("StatRunFirst", env["earliest"])
     macro("StatRunLast", env["latest"])
     macro("StatRunSpanDays", str(env["span_days"]))
     macro("StatDiagEpisodes", str(env["episodes_with_diagnostics"]))
+    macro("StatNoDiagEpisodes",
+          str(stats["backend_provenance"]["episodes_without_any_transport_record"]))
+    macro("StatSnapshotEpisodes",
+          str(stats["backend_provenance"]["episodes_with_resolved_snapshot"]))
     macro("StatLedgerEpisodes", str(stats["backend_provenance"]["ledger_episodes"]))
     pilot = stats["sta_pilot"]
     macro("StatPilotDelta", f"{100 * pilot['delta_hat_BundleS_minus_Base']:+.1f}")
@@ -492,7 +534,8 @@ def main() -> int:
         summary = {
             "ok": ok,
             "sta_delta_pp": round(100 * stats["sta_finite_panel"]["delta_hat_BundleS_minus_Base"], 1),
-            "sta_ci95_pp": [round(100 * v, 1) for v in stats["sta_finite_panel"]["bootstrap_ci95"]],
+            "sta_band_pp": [round(100 * v, 1)
+                            for v in stats["sta_finite_panel"]["instance_resampling_band95"]],
             "pilot_delta_pp": round(100 * stats["sta_pilot"]["delta_hat_BundleS_minus_Base"], 1),
             "fisher": {x["scope"]: round(x["fisher_two_sided_p"], 3) for x in stats["contrasts"]},
             "resolved_snapshot_retained": stats["backend_provenance"]["resolved_snapshot_retained"],
