@@ -2,7 +2,7 @@
 
 **Submission HEAD:** the commit that adds this file.
 **Experiment freeze HEAD:** a89e084 (immutable). **v12 ran no model calls and altered no experimental record.**
-**Previous freezes:** v11 = `95128e11` (committed, never tagged). v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither tag moves.**
+**Previous freezes:** v11 = `95128e11` (committed, never tagged). v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither of those two tags moves.**
 
 ## Why v12 exists
 
@@ -163,13 +163,17 @@ Unchanged from v8–v11; each is stated in the manuscript as a limitation rather
 **The manuscript is frozen at v12.** The review that produced v12 explicitly ended the structural
 audit, and recorded that the dominant risk has shifted from *unfound defects* to *over-optimization
 reintroducing inconsistency*. Further edits should be made only for a concrete external reason
-(OpenReview formatting, a reviewer request during rebuttal), not for further polish.
+(OpenReview formatting, a reviewer request during rebuttal), not for further polish. The freeze point
+is published: branch `master` and tag `iclr2027-submission-v3` are pushed to the origin remote.
 
 ## Provenance of the frozen points
 - `iclr2027-submission-v1` → `3d3e77b` — v5. **Not moved.**
 - `iclr2027-submission-v2` → `5858d843` — v7. **Not moved.**
 - `0e82e59` → v6. `83379da4` → v8. `7c2f9c4f` → v9. `ff9b6b44` → v10. `95128e11` → v11. All untagged.
-  This commit → **v12, untagged pending review.**
+  `ef1a8d49` → **v12, the freeze point**, tagged **`iclr2027-submission-v3`** (lightweight, like its
+  two predecessors: the repository is public and an annotated tag would write tagger identity into a
+  double-blind submission). This commit records that tag; the manuscript artifacts are unchanged from
+  `ef1a8d49` and their hashes above still hold.
 
 ## Deadlines (official ICLR 2027 site)
 - Abstract: September 18, 2026 AOE. Full paper: September 25, 2026 AOE.
