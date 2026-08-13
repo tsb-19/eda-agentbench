@@ -227,9 +227,13 @@ def main():
     payload = {
         "schema": "p14_study1_ledger/v1",
         "inclusion_rule": (
-            "Every paid, gradeable primary episode of the workflow-handoff clarity-bundle "
-            "program as declared by the frozen phase manifests; only manifest-declared "
-            "excluded/invalid/aborted episodes are omitted. Cells are keyed by "
+            "Every paid, gradeable workflow episode in two declared parts: (1) the "
+            "program-primary episodes of the clarity-bundle ablation program as declared by "
+            "the frozen phase manifests (58), omitting only what those manifests mark "
+            "excluded/invalid/aborted (3/0/1); plus (2) the 12 earlier controlled-pair "
+            "episodes (Phase-4U/4V1/4V2), which are paid and gradeable but predate the "
+            "phase-matrix accounting and appear in neither its 58-episode primary total nor "
+            "its 682.25 CNY cost ledger. Total 70. Cells are keyed by "
             "(stage, condition, model, task); repeat measurements of the same condition in "
             "different run windows are distinct rows and are never deduplicated."
         ),

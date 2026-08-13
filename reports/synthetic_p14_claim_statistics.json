@@ -1,0 +1,247 @@
+{
+  "backend_provenance": {
+    "envelope": {
+      "earliest": "2026-07-12",
+      "episodes_with_diagnostics": 66,
+      "latest": "2026-08-03",
+      "resolved_snapshot_present": 0,
+      "span_days": 22
+    },
+    "ledger_episodes": 70,
+    "note": "retained records carry the requested model alias and a date only; no provider-resolved snapshot, response id or system fingerprint was captured, so backend version drift cannot be excluded as a contributor to across-window variation",
+    "resolved_snapshot_retained": false,
+    "run_windows": {
+      "p14_phase4w_heldout_episodes": {
+        "dates": [
+          "2026-07-19"
+        ],
+        "episodes_with_diagnostics": 6,
+        "requested_aliases": [],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4w_run1": {
+        "dates": [
+          "2026-07-16"
+        ],
+        "episodes_with_diagnostics": 6,
+        "requested_aliases": [],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4w_run2_episodes": {
+        "dates": [
+          "2026-07-17"
+        ],
+        "episodes_with_diagnostics": 6,
+        "requested_aliases": [],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4x_dev_episodes": {
+        "dates": [
+          "2026-07-20"
+        ],
+        "episodes_with_diagnostics": 7,
+        "requested_aliases": [
+          "DeepSeek-V4-Pro"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4x_stage1c_episodes": {
+        "dates": [
+          "2026-07-21"
+        ],
+        "episodes_with_diagnostics": 8,
+        "requested_aliases": [
+          "DeepSeek-V4-Pro"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4y2_episodes": {
+        "dates": [
+          "2026-07-28"
+        ],
+        "episodes_with_diagnostics": 8,
+        "requested_aliases": [
+          "Qwen3.7-Max"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4y3_c24_bridge_episodes": {
+        "dates": [
+          "2026-08-03"
+        ],
+        "episodes_with_diagnostics": 4,
+        "requested_aliases": [
+          "Qwen3.7-Max"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4y3_episodes": {
+        "dates": [
+          "2026-07-31"
+        ],
+        "episodes_with_diagnostics": 8,
+        "requested_aliases": [
+          "Qwen3.7-Max"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_phase4y_episodes": {
+        "dates": [
+          "2026-07-24"
+        ],
+        "episodes_with_diagnostics": 6,
+        "requested_aliases": [
+          "Qwen3.7-Max"
+        ],
+        "resolved_snapshot_present": 0
+      },
+      "p14_qwen_0009_stream_anchor": {
+        "dates": [
+          "2026-07-12",
+          "2026-07-13"
+        ],
+        "episodes_with_diagnostics": 3,
+        "requested_aliases": [],
+        "resolved_snapshot_present": 0
+      },
+      "p14_qwen_0010_stream_anchor": {
+        "dates": [
+          "2026-07-12",
+          "2026-07-14/15"
+        ],
+        "episodes_with_diagnostics": 4,
+        "requested_aliases": [],
+        "resolved_snapshot_present": 0
+      }
+    }
+  },
+  "contrasts": [
+    {
+      "base": {
+        "axis_binding_failure": 2,
+        "ci95": [
+          0.008403758659824234,
+          0.9057006759499018
+        ],
+        "correct": 1,
+        "k": 3
+      },
+      "fisher_two_sided_p": 0.4,
+      "label": "workflow development instance, Qwen3.7-Max",
+      "scope": "S0",
+      "treat": {
+        "axis_binding_failure": 0,
+        "ci95": [
+          0.2924017738209841,
+          1.0
+        ],
+        "correct": 3,
+        "k": 3
+      }
+    },
+    {
+      "base": {
+        "axis_binding_failure": 1,
+        "ci95": [
+          0.008403758659824234,
+          0.9057006759499018
+        ],
+        "correct": 1,
+        "k": 3
+      },
+      "fisher_two_sided_p": 0.4,
+      "label": "workflow pre-frozen held-out instance, Qwen3.7-Max",
+      "scope": "S1",
+      "treat": {
+        "axis_binding_failure": 0,
+        "ci95": [
+          0.2924017738209841,
+          1.0
+        ],
+        "correct": 3,
+        "k": 3
+      }
+    },
+    {
+      "base": {
+        "axis_binding_failure": 1,
+        "ci95": [
+          0.1941204496829414,
+          0.9936905367899271
+        ],
+        "correct": 3,
+        "k": 4
+      },
+      "fisher_two_sided_p": 1.0,
+      "label": "workflow, DeepSeek-V4-Pro (cross-model)",
+      "scope": "S2-M",
+      "treat": {
+        "axis_binding_failure": 1,
+        "ci95": [
+          0.1941204496829414,
+          0.9936905367899271
+        ],
+        "correct": 3,
+        "k": 4
+      }
+    }
+  ],
+  "method": {
+    "contrast_test": "Fisher exact, two-sided, exact rational arithmetic",
+    "interval": "Clopper-Pearson exact, two-sided 95%",
+    "panel_interval": "percentile bootstrap over the 12 instances (100000 replicates, seed 20260813); descriptive over the fixed panel, not a population interval",
+    "preregistered_analysis_unchanged": "the frozen exact paired sign test (p=1.0) and permutation sensitivity (p=0.31) remain the reported inferential result; nothing here replaces them"
+  },
+  "post_hoc_pooled_two_instances": {
+    "fisher_two_sided_p": 0.06060606060606061,
+    "note": "NOT licensed by the design (instance is the declared unit); reported for transparency only"
+  },
+  "purpose": "uncertainty quantification of already-reported frozen results; no new data",
+  "schema": "p14_claim_statistics/v1",
+  "sources": {
+    "sta_prospective": "reports/synthetic_phase7a_sta72_report.json",
+    "study1_ledger": "reports/synthetic_p14_study1_ledger.json"
+  },
+  "sta_finite_panel": {
+    "bootstrap_ci95": [
+      -0.125,
+      0.4166666666666667
+    ],
+    "delta_hat_BundleS_minus_Base": 0.125,
+    "frozen_permutation_two_sided_p": 0.3133,
+    "frozen_sign_test_two_sided_p": 1.0,
+    "n_instances": 12
+  },
+  "sta_pilot": {
+    "delta_hat_BundleS_minus_Base": -0.16666666666666669,
+    "direction_reversal_vs_prospective": true,
+    "mean_Base": 0.5,
+    "mean_BundleS": 0.3333333333333333,
+    "n_instances": 3,
+    "note": "not pooled with the prospective panel; published so the reversal is checkable",
+    "per_instance": [
+      {
+        "Base": 0.5,
+        "BundleS": 0.0,
+        "TypedContract": 0.0,
+        "instance": "p15_eval_0001",
+        "reps_per_condition": 2
+      },
+      {
+        "Base": 1.0,
+        "BundleS": 1.0,
+        "TypedContract": 1.0,
+        "instance": "p15_eval_0002",
+        "reps_per_condition": 2
+      },
+      {
+        "Base": 0.0,
+        "BundleS": 0.0,
+        "TypedContract": 0.0,
+        "instance": "p15_eval_0003",
+        "reps_per_condition": 2
+      }
+    ],
+    "source": "reports/synthetic_phase5d_collection_report.json"
+  }
+}

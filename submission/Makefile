@@ -3,7 +3,7 @@ TEX  = pdflatex -interaction=nonstopmode -halt-on-error
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex iclr2027_conference.sty references.bib tables/study1_ledger.tex
+$(MAIN).pdf: $(MAIN).tex iclr2027_conference.sty references.bib tables/study1_ledger.tex tables/claim_stats.tex tables/sta_pilot.tex
 	$(TEX) $(MAIN).tex
 	bibtex $(MAIN)
 	$(TEX) $(MAIN).tex

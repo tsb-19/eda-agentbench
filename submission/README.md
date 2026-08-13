@@ -1,4 +1,4 @@
-# ICLR 2027 Final Submission Package (Phase-7C / manuscript v7)
+# ICLR 2027 Submission Package (Phase-7C / manuscript v8)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -7,20 +7,26 @@
 ```
 cd submission && make
 ```
+Regenerate derived tables first if the frozen records change:
+```
+python3 scripts/phase7c_study1_ledger.py       # Table 3 (appendix ledger)
+python3 scripts/phase7c_claim_statistics.py    # stat macros + pilot table
+```
 
 ## Page boundaries
-- **Main text: 8 pp** (p1–p8; limit is 9 at submission → 1 page of headroom, and 10 at rebuttal/camera-ready → 2 pages)
-- References: p9 (outside page limit)
-- Appendix A–E: p9–p11 (outside page limit)
-- Ethics/AI-use/Reproducibility: p11 (outside page limit)
-- **Total PDF: 11 pp**
+- **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
+- References: p9, after the Conclusion (outside page limit)
+- Appendix A–F: p10–p14 (outside page limit)
+- **Total PDF: 14 pp**
 
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v7 source (official style; 3-study/RQ; claim-scope ladder + 2D framework) |
+| main.tex | v8 source (official style; 3-study/RQ; claim-scope **lattice** + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
-| tables/study1_ledger.tex | Table 3, generated — `\input` directly, never transcribed |
+| tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
+| tables/claim_stats.tex | Generated `\newcommand` macros for every interval/p-value in the prose |
+| tables/sta_pilot.tex | Generated three-instance pilot table |
 | references.bib | 9 REAL verified citations (arXiv primary source; no placeholders) |
 | iclr2027_conference.sty/.bst | Official ICLR 2027 style |
 | natbib.sty / fancyhdr.sty | Bundled (from official style package) |
@@ -29,30 +35,50 @@ cd submission && make
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
 
-## v7 (review fixes; no paid calls, no experimental record altered)
-Review of the v6 PDF found one accounting defect and three wording defects; a second review pass
-found one accounting-terminology gap. All are fixed.
-- **Study I ledger recomputed under an enforced inclusion rule (Table 3).** The v6 ledger's 54
-  episodes were not a declared sampling frame: the generator keyed cells by `(condition, model)` in
-  a dict, so a condition measured in two run windows silently overwrote itself. New
-  `scripts/phase7c_study1_ledger.py` re-derives every cell from the same frozen records under a
-  stated rule and **asserts each stage's count against the frozen program manifest**, aborting on
-  mismatch. Totals change **54 → 70 episodes, 29 → 41 correct, 20 → 24 axis-binding, 5 → 5 value**
-  (70 = 58 program primary + 12 controlled pair). No verdict depends on these descriptive totals,
-  and each recovered cell independently reproduces its own frozen phase report's headline.
-- **Episode accounting closed (Table 3 caption / Appendix A / Appendix D / reproducibility).** The
-  frozen manifest's `program_totals.primary = 58` is exactly the sum of its ten ablation-phase rows
-  and contains no 4U/4V row, so the 12 controlled-pair episodes are paid and gradeable but not
-  program-primary. The `58+24+36+72` totals and the ¥745.29 cost ledger are therefore unchanged;
-  instead every place that carries a count now states that the 70-episode descriptive Study I
-  ledger is deliberately broader than the 58-episode program-primary accounting. No derived number
-  moved (generated table and ledger JSON are byte-identical).
+## v8 (reviewer-standard read; no paid calls, no experimental record altered)
+Two structural defects were found in v7 and verified against the source. Both are fixed.
+- **The "claim-scope ladder" was not a valid order → now a lattice.** v7 asserted that passing a
+  lower level is *necessary* for a higher one, but cross-model and cross-family widen **incomparable**
+  coordinates — and v7's own Level-3 test held the model fixed at the Level-2 failure. A claim is now
+  a point `S=(s_I,s_M,s_F)` under a **partial order**: S0, S1, S2-M, S2-F, and **S3 (joint), which
+  this study never measured** and now reports as an empty cell in Table 4 and Figure 1 rather than as
+  a failed level.
+- **Positive results were held to a looser bar than negative ones → now symmetric.** v7 said the
+  effect "is real" and that "Level 0 and Level 1 are established" while the same paragraph conceded
+  each rests on one instance (Fisher `p=0.40`). A stated four-tier standard (observed / replicated /
+  estimated on a fixed panel / generalized) is now applied to our own results: BundleS is *observed*
+  at S0, *replicated* once at S1, and nothing more. **Zero positive uses of "established" remain.**
+  New Table 2 maps evidence shapes to licensed and unlicensed wordings.
+- **Offline statistics (no new data).** Exact Clopper-Pearson intervals and exact-rational Fisher for
+  every headline cell; the STA panel now leads with **+12.5pp (interval −12.5 to +41.7)** instead of
+  `p=1.0`, which non-specialists misread as a demonstrated zero. The preregistered test is unchanged
+  and still reported.
+- **Three-instance pilot published** (−16.7pp vs the prospective +12.5pp), so the claimed direction
+  reversal is auditable; the generator asserts the signs differ.
+- **Model custody added as a fifth Layer-4 requirement, stated as our own gap:** run windows span 22
+  days and no provider-resolved snapshot was retained for any of the 70 episodes, so backend drift
+  cannot be excluded from the across-window variation the paper interprets.
+- **Table 6 gained its missing Capability row**; "non-answer-bearing" → "instance-answer-independent";
+  "independent validity layers" → distinct, interacting dimensions; Study B, family-scope and
+  audit-protocol-provenance limitations strengthened; explicit exploratory/confirmatory chronology
+  with freeze points (Appendix E).
+- **Ledger JSON rule string corrected** — it still carried the one-part rule left over from the v7
+  accounting patch. No derived number moved (`study1_ledger.tex` byte-identical).
+- **Page cost:** main text 8 pp → 9 pp (at the limit). Figure 2 deleted; the 21-row ledger and the
+  worked-instance table moved to the appendix.
+
+## v7 (accounting + review fixes)
+- **Study I ledger recomputed under an enforced inclusion rule.** The v6 ledger's 54 episodes were a
+  dict-overwrite artifact, not a declared sampling frame; the generator now **asserts each stage's
+  count against the frozen program manifest**. Totals 54 → 70 episodes, 29 → 41 correct, 20 → 24
+  axis-binding (70 = 58 program primary + 12 controlled pair).
+- **Episode accounting closed.** The frozen manifest's `program_totals.primary = 58` is exactly the
+  sum of its ten ablation-phase rows and contains no 4U/4V row, so the 12 controlled-pair episodes are
+  paid and gradeable but not program-primary; the `58+24+36+72` totals and the ¥745.29 cost ledger
+  are unchanged.
 - **Over-claim removed (§4):** "*exactly* the conditions that carry value-domain information" was
-  contradicted by C2-only and C4-only in the same table; restated as non-sufficiency of either
-  ingredient. The "three repeat pairs" sentence now names all three (BundleS/DeepSeek 1/3 → 3/4).
-- **Limitation corrected (§6):** Level 1 is also $n$=1; now "Levels 0–2".
-- **Two softenings:** custody principle ("reachable"/"will" → "can be mutated"/"can"); falsifiability
-  ("overturned" → "weakened or revised"; Level 3 no longer implies a cross-family effect size).
+  contradicted by C2-only and C4-only in the same table.
+- **Limitation corrected; two softenings** (custody principle; falsifiability).
 
 ## v6 (main-text expansion; manuscript-only, no experiments reopened, no number changed)
 v5 used only 5 of the 9 permitted main-text pages while its load-bearing evidence sat in appendices
