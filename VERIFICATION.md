@@ -6,7 +6,7 @@ and no model call.
 
 中文版：[VERIFICATION.zh.md](VERIFICATION.zh.md)。
 
-Recorded at `93793d96` on `iclr2027-artifact`, branched from `master@cc797ffe`.
+Recorded at `dd867c84` on `iclr2027-artifact`, branched from `master@cc797ffe`.
 
 ## G1 — frozen membership (`scripts/frozen_membership_verify.py`)
 
@@ -105,8 +105,11 @@ no dangling repository references
 
 ```
 21577  files deleted
-15  files added
+18  files added
 35  files modified or renamed
+
+tracked files : 25722 -> 4164  (-83.8%)
+tracked bytes : 43.2 MB -> 18.5 MB
 ```
 
 The known-recurring corruption tripwire held throughout: 

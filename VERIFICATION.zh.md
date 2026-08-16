@@ -3,7 +3,7 @@
 下列每一道门禁在第一次删除**之前**于 `master@cc797ffe` 上就是绿的，现在依然是绿的。
 用所示命令即可全部重跑；每一项都是确定性的，不需要 EDA 工具、不联网、不调用模型。
 
-记录于 `93793d96`（分支 `iclr2027-artifact`），切自 `master@cc797ffe`。
+记录于 `dd867c84`（分支 `iclr2027-artifact`），切自 `master@cc797ffe`。
 
 英文版：[VERIFICATION.md](VERIFICATION.md)。
 
@@ -102,9 +102,12 @@ no dangling repository references
 ## G8 —— 差异只包含它应该包含的东西
 
 ```
-21577  files deleted
-15  files added
-35  files modified or renamed
+删除 21577 个文件
+新增 18 个文件
+修改或重命名 35 个文件
+
+跟踪文件：25722 -> 4164（-83.8%）
+跟踪字节：43.2 MB -> 18.5 MB
 ```
 
 那个已知会反复出现的污染触发线全程守住了：
