@@ -1,190 +1,141 @@
 **English | [中文](datacard.zh.md)**
 
-# EDA-AgentBench Dataset Card
+# Dataset card — the three semantic-handoff families
 
 ## Summary
 
-EDA-AgentBench is a benchmark for evaluating LLMs and coding agents on realistic EDA (Electronic Design Automation) workflows using commercial Synopsys and Cadence tools. It measures whether an agent can correctly modify RTL designs, SPICE netlists, and simulation decks to pass tool-based verification.
+84 task directories across three independently constructed families plus one retained asset
+substrate. They are **not** a benchmark leaderboard: each family instantiates one construct —
+*semantic binding* — and the design is diagnostic, testing existence, recurrence, ceiling
+behaviour and transfer direction. It cannot estimate population pass rates and does not try to.
 
-## Dataset Composition
+| Family | Directory | Task dirs | Tool | Bound tuple | Paper role |
+|---|---|---:|---|---|---|
+| workflow | `tasks/p14_workflow_handoff/` | 27 | PrimeTime | (netlist, clock, scenario, corner) — PVT axes | Study I: S0, S1, S2-M |
+| Family A — STA | `tasks/p15_sta_handoff/` | 46 | PrimeTime | (intent_class, target_partition, check_mode) from an authority provenance DAG | Study II: S2-F |
+| Family B — SPICE | `tasks/p16_spice_handoff/` | 10 | HSPICE | (corner, load_condition, metric) from a request–authority join | Study II: S2-F ceiling |
+| *substrate, not a family* | `tasks/p13_trajectory_handoff/` | 1 | — | — | read by the p14 generator; no claim rests on it |
 
-| Track | Count | Tool(s) | Data Type | Scoring Method |
-|-------|-------|---------|-----------|----------------|
-| P1 RTL Debug | 1001 | VCS | mutation_synthetic | compile + public test + hidden test + explanation |
-| P2 Testbench/SVA Gen | 101 | VCS | mutation_synthetic | compile + golden_pass + mutant_1 + mutant_2 |
-| P3 Timing Report QA | 1008 | pt (synthetic) | template_synthetic | answer_match |
-| P4 SPICE Sim | 302 | HSPICE, Spectre | template_synthetic | tool run + output + public metric + hidden metric + explanation |
-| P5 SPICE Deck Debug | 100 | HSPICE | flow_synthetic | execution-based (exit code + no fatal errors) + explanation |
-| P6 DC Synthesis QA | 51 | dc (synthetic) | template_synthetic | answer_match |
-| P6 DC Constraint Debug | 61 | dc | template_synthetic | execution-based (constraint + execution) |
-| P7 SpyGlass Lint Debug | 50 | spyglass | template_synthetic | execution-based (lint violations) |
-| P7 PrimeTime STA Debug | 53 | pt | template_synthetic | timing check + execution pass + explanation |
-| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | template_synthetic | answer_match + explanation |
-| **Total** | **2828** | | | |
+p15's 46 directories are 15 instances × 3 conditions plus one dev instance; p16's 10 are 3 × 3 plus
+one dev. The paper's prospective STA panel is instances 0004–0015 (*n*=12); 0001–0003 are the pilot
+and are **never pooled** with the panel.
 
-### P1 RTL Debug (1001 tasks)
+## The construct
 
-- 1 handcrafted smoke task
-- 1000 generated tasks: 10 bug types x 100 tasks each
-- Data type: `mutation_synthetic` (bugs injected into correct designs)
+Each task is a **semantic handoff**: bind a tuple to canonical typed roles from evidence that is
+*role-misleading*. The difficulty is deliberately not retrieval. In the worked instance the
+evidence files label their axis fields `op_point` and `mode`, and the ambiguous variant ships no
+glossary and no axis declaration, so which logical axis each label denotes must itself be recovered
+from the intersection of the sources.
 
-| Bug Type | Count | Description |
-|----------|-------|-------------|
-| sensitivity_list | 100 | Incomplete `always @(*)` sensitivity |
-| blocking_nonblocking | 100 | Wrong `=` vs `<=` usage |
-| reset_polarity | 100 | Active-high vs active-low mismatch |
-| width_truncation | 100 | Port width mismatch causing data loss |
-| comparison_boundary | 100 | Off-by-one in comparisons |
-| wrong_mux_select | 100 | Incorrect mux case/select signal |
-| priority_order | 100 | Wrong if-else priority |
-| fsm_transition_error | 100 | Incorrect state transition |
-| counter_off_by_one | 100 | Counter boundary error |
-| enable_condition | 100 | Missing or wrong enable guard |
+The property that makes the construct measurable is **tool-green**: a wrong binding still produces
+a green tool sign-off. In the worked instance all four shipped evidence sources sign off green under
+PrimeTime, including the one whose two role fields are swapped. No tool signal separates them from
+the truth — only the typed oracle does. A benchmark scoring this task by tool exit status would
+score a wrong binding as a pass.
 
-### P2 Testbench/SVA Generation (101 tasks)
+Correctness is decided by exhaustive enumeration at construction time, not by grader judgement: for
+the worked instance, 294 candidate assignments over the declared domains, of which exactly one
+satisfies the five recoverable constraints.
 
-- 1 smoke task + 100 generated tasks
-- 10 design templates: mux2, counter, fsm, handshake, priority_encoder, pulse_detector, arbiter, edge_detector, valid_ready_fsm, fifo_status
-- 20 mutant variants across 10 templates (polarity inversion, stuck-at, wrong transition, threshold errors, etc.)
-- Data type: `mutation_synthetic` (golden design + 2 mutants per task)
-- Agent writes a testbench that passes on golden design and catches both mutants
-- Scoring: compile (0.2) + golden_pass (0.4) + mutant_1 (0.2) + mutant_2 (0.2)
+## Conditions
 
-### P3 Timing Report QA (1008 tasks)
+The same hidden truth and the same grader across all three; only the visible information differs.
 
-- 1 smoke task + 999 generated tasks + 8 PT prototype tasks
-- Data type: `template_synthetic` (synthetic normalized timing reports)
-- Agent answers questions about timing report fields (WNS, TNS, slack, etc.)
-- 10 question types with round-robin distribution (99–100 each)
-- 30 unique clocks, 15 path groups, ~30% multi-clock reports
-- No real PrimeTime tool required (uses synthetic reports)
-- Scoring: answer_match (1.0)
+| Condition | What the agent sees |
+|---|---|
+| **Base** | the ambiguous handoff. No disclosure of the instance's assignment, no glossary, no axis declaration |
+| **BundleS** | canonical labels (C1), value-domain definitions (C2), glossary (C4), procedural contract (C7). **C6 withheld** — no golden values, no instance assignment |
+| **TypedContract** | the same information as BundleS, expressed as a JSON Schema |
 
-### P4 SPICE Sim (302 tasks)
+BundleS is **instance-answer-independent**, not "answer-free": it withholds the instance's target
+tuple but deliberately discloses *task-level role semantics* — which axis a label denotes and what
+values each axis admits. Calling it answer-free would understate it. Whether schema and generator
+structure *jointly* permit recovering an assignment is a separate, open question; the paper names
+the leakage check that would settle it and flags it as the single most informative experiment not
+yet run.
 
-- 2 smoke tasks (1 HSPICE, 1 Spectre)
-- 300 generated tasks across 3 circuit types (100 each: 50 HSPICE + 50 Spectre)
-- Circuit types: RC rise delay, RC fall delay, RLC response
-- Data type: `template_synthetic` (RC/RLC circuits with parameterized component values)
+Component definitions: [`synthetic_p14_phase4w_clarity_bundle_ablation_design.md`](synthetic_p14_phase4w_clarity_bundle_ablation_design.md).
 
-Each task fixes a circuit to meet rise/fall time specifications. The buggy version has a resistance value that is 4-20x too high (overdamped, for RLC), causing slow edges. The solution replaces it with the correct value.
+## Directory shape
 
-### P5 SPICE Deck Debug (100 tasks)
+```
+<instance>/
+  prompt.md          the handoff brief
+  metadata.json      machine-readable spec (see task_schema.md)
+  files/             visible; a named subset editable. The evidence sources live here
+  hidden/            never in the agent workspace: hidden truth, typed grader, trusted generators
+  solution/          the golden submission
+```
 
-- 100 imported tasks from external debug-contrast validated bundle
-- Data type: `flow_synthetic` (structural/syntax errors injected into valid decks, validated with real HSPICE)
+For the worked instance, `files/` carries 25 visible files of which 5 are editable, and `hidden/`
+carries 11 — including `handoff_truth.json` and `grade_workflow.py`. The agent workspace is built
+from visible+editable only; grading happens in a second workspace that overlays `hidden/`. See
+[`agentic_runner.md`](agentic_runner.md).
 
-| Error Category | Count | Description |
-|----------------|-------|-------------|
-| missing_model | 15 | References undefined MOSFET/diode model |
-| duplicate_element | 15 | Two elements share the same name |
-| missing_subckt | 14 | References undefined subcircuit |
-| wrong_pin_count | 14 | Subcircuit instance has wrong pin count |
-| missing_include | 14 | .include references nonexistent file |
-| unsupported_dialect | 14 | Model level not supported by HSPICE |
-| invalid_directive | 14 | Malformed .include (no filename) |
+## Family independence
 
-### P6 DC Synthesis QA (51 tasks, prototype)
+Independence is defined by five pre-registered structural criteria — independent templates,
+vocabularies, truths, graders, decoys — and checked mechanically rather than asserted:
+`scripts/phase5a_independence_check.py` → `reports/synthetic_phase5_independence_check.json`. It
+hashes each new generator/grader/evaluator and asserts that none imports the p14 grader or
+generator, that role vocabularies are disjoint, that the new truth files share none of p14's keys,
+that the grader module uses a distinct master-gate pattern, and that the decoy-recipe class
+differs. A structural-overlap finding blocks the freeze.
 
-- 1 smoke task + 50 generated tasks
-- Data type: `template_synthetic` (synthetic DC synthesis reports)
-- Agent answers questions about synthesis report fields (area, cell count, timing, etc.)
-- 10 question types with round-robin distribution (5 each)
-- 50 module names, 30 clock names
-- No real DC tool required (uses synthetic reports)
-- Scoring: answer_match (1.0)
+A pass means *no detected overlap under those criteria* — it does not prove independence. And the
+paper is explicit about the residual limitation: all three families are authored by us and all sit
+within EDA, so cross-family transfer here is better read as cross-generator transfer inside one
+designed universe than as domain transfer.
 
-### P6 DC Constraint Debug (61 tasks)
+Specifications: [`synthetic_phase5a_family_specs.md`](synthetic_phase5a_family_specs.md),
+[`synthetic_workflow_generator_spec.md`](synthetic_workflow_generator_spec.md).
 
-- 1 smoke + 60 generated, 6 bug categories × 10 RTL templates
-- Data type: `template_synthetic`; execution-based SDC repair (Design Compiler)
-- Scoring: constraint_pass (0.6) + execution_pass (0.3) + explanation (0.1)
+## Admission gates
 
-### P7 SpyGlass Lint Debug (50 tasks)
+An instance is only admitted if it passes both:
 
-- 1 smoke + 49 generated, 3 lint categories × design library
-- Execution-based with real SpyGlass (sg_shell)
-- Scoring: lint_pass (0.9) + explanation (0.1)
+- **uniqueness** — exhaustive enumeration yields exactly one assignment satisfying the constraints.
+- **hard feasibility** — the bake must produce a wrong-binding artifact that the tool accepts,
+  executes and signs off plausibly, that is nonetheless semantically wrong and *is* rejected by the
+  typed oracle. A trivially tool-red or unparsable wrong binding makes the instance ineligible, and
+  it is regenerated. Each instance records the five criteria and the grader's rejection in
+  `hard_feasibility.json`.
 
-### P7 PrimeTime STA Debug (53 tasks)
+## Scoring
 
-- 1 smoke + 52 generated, 4 bug types × 13 templates
-- Execution-based with real PrimeTime (pt_shell)
-- Scoring: timing_check (0.6) + execution_pass (0.3) + explanation (0.1)
+Weights are per family; the master evidence gate folds the typed-membership predicates in, so a
+sign-off-green but mis-typed package cannot pass regardless of the other components.
 
-### P8 PnR Report QA (101 tasks, prototype)
+| Family | Components |
+|---|---|
+| p14 workflow | `signoff` .10 · `final_state` .15 · `evidence_generation` .25 · `stage_chain` .10 · `provenance` .10 · `authority_consistency` .10 · `hazard_recovery` .10 · `explanation` .10 |
+| p15 STA | `provenance_attested` .30 · `coverage_cell_consistent` .20 · `check_view_legal` .10 · `pt_signoff_green` .10 · `not_masking` .15 · `explanation` .15 |
+| p16 SPICE | `semantic_binding` .30 · `evidence_provenance` .20 · `simulation_success` .10 · `numeric_validity` .10 · `artifact_completion` .15 · `protocol_completion` .15 |
 
-- 1 smoke + 100 generated, 9 question types
-- Parser-based QA on synthetic ICC2/Innovus reports (no real tool required)
-- Scoring: answer_match (0.9) + explanation (0.1)
+Note what `pt_signoff_green` is worth in p15: 0.10. Tool success is a component, never the verdict.
+The two never-collapsed failure subtypes and the oracle's predicates are in
+[`scoring.md`](scoring.md).
 
-## Evaluation Modes
+## Resource limits
 
-Each task supports two submission modes for validation:
+All three families use the **standard** preset, difficulty `hard`. Timeouts: 600 s for p14 (it
+regenerates a two-stage evidence chain), 300 s for p15 and p16.
 
-- **Solution mode**: the task's `solution/` directory is the submission. Expected: all tasks score 1.00.
-- **Buggy mode**: the task's visible/editable files (the buggy original) are the submission. Expected: all tasks score < 1.00.
+## Provenance and known limitations
 
-These modes validate that tasks are well-calibrated: correct answers always pass, buggy baselines always fail.
-
-## Current Validation Results
-
-| Mode | Tasks | Avg Score | Buggy Lower |
-|------|-------|-----------|-------------|
-| Solution | 2828/2828 | 1.00 | N/A |
-| Buggy | 2828/2828 | < 1.00 | 2828/2828 |
-
-## Test Suite
-
-- pytest: all passing
-- Smoke scripts per track (VCS, P2, P3, HSPICE, Spectre, P5, P6, P7 SpyGlass, P7 PrimeTime, P8)
-- Dataset evaluation smoke (all tracks)
-
-## File Visibility
-
-| Category | Agent Can Read? | Agent Can Edit? | Used in Scoring? |
-|----------|----------------|-----------------|-------------------|
-| visible | Yes | No (unless also editable) | Yes |
-| editable | Yes | Yes | Yes |
-| hidden | No | No | Yes |
-| forbidden | No | No | Checked for tampering |
-
-## Generated Artifacts
-
-Deterministic dataset artifacts are available under `reports/`:
-
-- `task_inventory.json` / `task_inventory.csv` — full task inventory with metadata
-- `benchmark_summary.md` — human-readable summary (regenerate after dataset changes)
-- Per-track distributions: `p1_bug_distribution.csv`, `p2_template_mutant_distribution.csv`, `p3_question_type_distribution.csv`, `p5_error_category_distribution.csv`, `p6_question_type_distribution.csv`
-- `leaderboard_template.csv` — empty template for recording model evaluation results
-
-Generate with: `python scripts/export_benchmark_summary.py`
-
-## Known Limitations
-
-1. Agentic runner MVP available (`run-agent`, `run-agent-dataset`); no interactive loop or per-tool-call transcript yet.
-2. P1 and P4 use exact solution matching; P5 / P6 Constraint / P7 debug tracks accept any functionally correct fix (execution-based).
-3. P4 covers RC and RLC topologies (no op-amp or digital SPICE).
-4. P6 DC Constraint / P7 SpyGlass / P7 PrimeTime debug tracks scaled to 50+ (validated on real tools); P6 DC Synthesis QA and P8 report QA remain prototypes.
-5. No LLM API integration for explanation scoring in submission mode.
-
-## Intended Use
-
-This benchmark is designed for:
-
-- Evaluating LLM/agent ability to perform EDA engineering tasks
-- Comparing models on tool-grounded code repair and optimization
-- Research on agentic workflows for hardware design
-
-This benchmark is NOT designed for:
-
-- Trivia-style EDA knowledge questions
-- Tasks that can be solved without running EDA tools
-- Training data (tasks are synthetic, not from real designs)
-
-## Ethical Considerations
-
-- All tasks use synthetic designs; no real IP is included.
-- Commercial EDA tool outputs are sanitized before storage.
-- Logs strip usernames, hostnames, absolute paths, and license server names.
-- No API keys or credentials are stored in task files.
+- **Frozen.** Every instance is at or before the experiment freeze HEAD; task semantics may not
+  change. See [`provenance.md`](provenance.md).
+- **Custody.** Per-episode byte-matching, canonical hash verification before and after each
+  episode, and 1065 `path → sha256` membership pins verified by
+  `scripts/frozen_membership_verify.py`.
+- **Two generators drifted after their freeze.** The reported numbers derive from the pinned
+  versions; the drift is reported rather than erased.
+- **Nine pinned build products are absent.** `circuit_built.sp` under nine p16 instances is a
+  gitignored HSPICE product; the manifests pinned it at run time.
+- **Small panels.** S0, S1 and S2-M each rest on a single-instance cell at *k*=3–4. No cell reaches
+  the paper's *generalized* tier.
+- **No human validation.** Correctness is decided by executable oracles that are internally
+  consistent and instance-unique, but have not been shown to agree with expert human judgement. The
+  blinded human study was preregistered and never executed.
+- **Not anonymised.** See [`REMOVED.md`](REMOVED.md).

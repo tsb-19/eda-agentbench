@@ -4,29 +4,16 @@
 
 ## 概述
 
-EDA-AgentBench 专为商业 EDA 工具设计。它不使用也不需要开源 EDA 替代方案。本政策记录了使用的工具、检测方式以及适用的许可约束。
+这些任务家族专为商业 EDA 工具设计。没有开源 EDA 替代方案可以顶替，理由是具体的而非偏好：被研究的构念是一个**能被真实工具签核为绿**的绑定。没有商业签核，类型化 oracle 就无从与之相左，论文所测量的那一整类失败也就不存在了。
 
-## 支持的工具
+## 这些家族需要的工具
 
-| 工具 | 供应商 | 使用者 | 用途 |
-|------|--------|---------|---------|
-| VCS | Synopsys | P1 RTL 调试 | RTL 编译和仿真 |
-| HSPICE | Synopsys | P4 SPICE 仿真、P5 SPICE 网表调试 | SPICE 网表仿真 |
-| Spectre | Cadence | P4 SPICE 仿真 | SPICE 网表仿真 |
+| 工具 | 供应商 | 使用者 | 在测量中的角色 |
+|------|--------|---------|-------------------------|
+| PrimeTime | Synopsys | p14 workflow、p15 STA（家族 A） | 对设计做时序分析并签核证据链；错绑定的包同样会签核为绿 |
+| HSPICE | Synopsys | p16 SPICE（家族 B） | 仿真 deck 并产出数值；错绑定同样能产出这些数值 |
 
-## 未来工具（规划中）
-
-| 工具 | 供应商 | 规划 Track |
-|------|--------|---------------|
-| Xcelium | Cadence | P2 测试平台/SVA 生成 |
-| Design Compiler | Synopsys | P3 时序报告 QA |
-| PrimeTime | Synopsys | P3 时序报告 QA（原型） |
-| SpyGlass | Synopsys | P6 Lint |
-| ICC2 | Synopsys | P7 物理设计 |
-| Innovus | Cadence | P7 物理设计 |
-| StarRC | Synopsys | P7 物理设计 |
-| Sentaurus | Synopsys | P7 物理设计 |
-| Verdi | Synopsys | 调试可视化 |
+除此之外别无所需。`master` 上另外还用 VCS、Spectre、Design Compiler、SpyGlass、ICC2、Innovus、StarRC、Sentaurus、Xcelium 与 Verdi 服务 P1–P9 基准 track，这些不在本分支上（见 [REMOVED.zh.md](REMOVED.zh.md)）。
 
 ## 工具检测
 

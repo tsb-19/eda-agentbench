@@ -94,20 +94,23 @@ Agent 命令接收以下环境变量：
 
 ### 示例
 
+三个家族都需要商业工具才能评分，因此下面的示例用空操作 agent 与复制解 agent 来演练
+runner 的工作区契约，而不是为了得到有意义的分数。
+
 **空操作 agent**（什么都不做）：
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke --agent-cmd "true"
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 --agent-cmd "true"
 ```
 
 **复制答案 agent**（从任务路径复制正确答案）：
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
-    --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --agent-cmd "cp \$EDA_TASK_PATH/solution/flow_config.json \$EDA_WORKSPACE/"
 ```
 
 **自定义 agent 脚本**：
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 \
     --agent-cmd "python3 my_agent.py --workspace \$EDA_WORKSPACE --task \$EDA_TASK_PATH"
 ```
 

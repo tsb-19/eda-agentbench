@@ -12,14 +12,18 @@ Each task is a directory containing `metadata.json`, `prompt.md`, and supporting
 - Pattern: `^task_[0-9]{6}$`
 - Example: `"task_000001"`
 
-Unique identifier for the task. Six digits, zero-padded.
+Unique identifier for the task. The surviving families use `workflow_handoff_NNNN`,
+`p15_<stage>_NNNN`, `p16_<stage>_NNNN` and `traj_handoff_NNNN`; the accepted patterns are
+enforced by `validate_metadata` in `eda_agentbench/schema.py`.
 
 ### track
 
 - Type: `string`
-- Allowed values: `p1_rtl_debug`, `p2_rtl_gen`, `p2_tb_sva_gen`, `p3_timing_report_qa`, `p4_spice_sim`, `p5_spice_deck_debug`, `p6_lint`, `p7_physical`
+- Allowed values: `p14_workflow_handoff`, `p15_sta_handoff`, `p16_spice_handoff`,
+  `p13_trajectory_handoff` (asset substrate only — see [REMOVED.md](REMOVED.md))
 
-The benchmark track this task belongs to.
+The task family this task belongs to. The enum was pruned with the tracks it named; on
+`master` it lists all eighteen.
 
 ### tool
 
@@ -157,10 +161,10 @@ Whether log sanitization is enabled for this task.
 
 ```json
 {
-  "script": "p1_rtl_debug_gen.py",
+  "script": "p14_workflow_handoff_gen.py",
   "seed": 42,
-  "config_index": 0,
-  "bug_type": "sensitivity_list"
+  "variant": "ambiguous",
+  "bundle_components": []
 }
 ```
 

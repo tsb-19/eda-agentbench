@@ -2,252 +2,142 @@
 
 # Reproducibility
 
-## Overview
+Two things can be reproduced here, and it matters which one you mean:
 
-Every task in EDA-AgentBench is designed to be reproducible. This document describes the mechanisms that ensure deterministic task generation, consistent evaluation, and verifiable results.
+1. **The paper's numbers** — every table, exact interval, sensitivity band and *p*-value.
+   Reproducible right now, with no commercial tool, no network and no model call. Do this first.
+2. **The paid episodes that produced those records** — not reproducible from this repository. The
+   experimental program is permanently closed at the frozen experiment HEAD, and re-running would
+   need PrimeTime, HSPICE and paid API access. See [`provenance.md`](provenance.md).
 
-## Deterministic Task Generation
+What *is* reproducible is the whole chain from the preserved per-episode records to the typeset
+table. No number in `submission/main.tex` is transcribed by hand: `main.tex` `\input`s what the
+scripts below emit.
 
-### Generators
-
-P1 and P4 tasks are produced by generator scripts:
-
-- `scripts/generate_p1_tasks.py` — generates P1 RTL Debug tasks
-- `scripts/generate_p4_spice_tasks.py` — generates P4 SPICE Sim tasks
-
-Both generators accept a `--seed` parameter for deterministic output:
-
-```bash
-python scripts/generate_p1_tasks.py --count 100 --seed 42
-python scripts/generate_p4_spice_tasks.py --count 10 --seed 42
-```
-
-Given the same seed, generators produce identical tasks. Each task's `metadata.json` records the generator script, seed, and parameters used:
-
-```json
-{
-  "generator": {
-    "script": "p1_rtl_debug_gen.py",
-    "seed": 42,
-    "config_index": 0,
-    "bug_type": "sensitivity_list"
-  }
-}
-```
-
-### P5 Import
-
-P5 tasks are imported from a generated bundle via `scripts/import_p5_tasks.py`. The import is a read-only copy from the in-repo data-generation module at `datagen/tasks_eval_private/`. The importer does not modify the bundle.
-
-## Evaluation Modes
-
-Each task supports two submission modes for validation and calibration:
-
-### Solution Mode
-
-The task's `solution/` directory is used as the agent's submission. This verifies that the correct answer always produces a perfect score:
-
-```
-eda-bench evaluate-dataset tasks --submission-mode solution
-```
-
-**Expected**: All tasks score exactly 1.00.
-
-### Buggy Mode
-
-The task's visible/editable files (the buggy original) are used as the submission. This verifies that the baseline bug always produces a sub-perfect score:
-
-```
-eda-bench evaluate-dataset tasks --submission-mode buggy
-```
-
-**Expected**: All tasks score strictly less than 1.00.
-
-### Calibration Property
-
-For a well-calibrated benchmark:
-
-- `solution_score == 1.0` for every task
-- `buggy_score < 1.0` for every task
-- `buggy_score < solution_score` for every task
-
-The dataset evaluation script tracks `buggy_lower_than_solution_count` to verify this property holds across all tasks.
-
-## Smoke Tests
-
-Smoke tests verify the end-to-end evaluation pipeline for each track:
-
-| Script | What It Tests |
-|--------|---------------|
-| `scripts/run_smoke.sh` | P1 RTL Debug: compile, public test, hidden test |
-| `scripts/run_spice_smoke.sh` | P4 HSPICE: tool run, metric extraction |
-| `scripts/run_spectre_smoke.sh` | P4 Spectre: tool run, metric extraction |
-| `scripts/run_pt_report_smoke.sh` | P3 PT Prototype: handcrafted task generation, validation, scoring (skips if PT unavailable) |
-| `scripts/evaluate_dataset_smoke.sh` | All tracks: solution and buggy mode on small subsets |
-
-Run all smoke tests:
+## Reproduce the paper (tool-free)
 
 ```bash
-bash scripts/run_smoke.sh
-bash scripts/run_spice_smoke.sh
-bash scripts/run_spectre_smoke.sh
-bash scripts/evaluate_dataset_smoke.sh
+pip install -e ".[test]"
+
+# 1. the repository is internally consistent
+scripts/check
+#    [1] pytest, tool-free subset      [2] task structure, 84/84
+#    [3] frozen membership: all 1065 path->sha256 pins re-hashed against the baseline
+
+# 2. the derived tables recompute from the frozen records
+python3 scripts/phase7c_study1_ledger.py    --check   # Study I ledger: 21 cells, 58 + 12 = 70 episodes
+python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -16.7; Fisher .4/.4/1.0
+
+# 3. no documentation points at anything that no longer exists
+python3 scripts/slim_link_check.py
+
+# 4. the manuscript builds, byte for byte
+cd submission && make distclean && make               # 15 pp, 268 459 bytes
 ```
 
-## Dataset Evaluation Scripts
+`--check` recomputes from `reports/evidence/` and diffs against the committed JSON, exiting
+non-zero on any drift. Drop `--check` to rewrite the outputs.
 
-| Script | Purpose |
-|--------|---------|
-| `scripts/evaluate_dataset_smoke.sh` | Quick smoke across all tracks (small subset) |
-| `scripts/evaluate_dataset_fast.sh` | Fast sampled evaluation (all tracks, ~2 min) |
-| `scripts/evaluate_p1_generated.sh` | Full P1 generated task evaluation |
-| `scripts/evaluate_p5_spice_deck_debug.sh` | Full P5 evaluation |
-| `scripts/evaluate_large_dataset.sh` | Full dataset evaluation (all tracks) |
+`make clean` deliberately keeps `main.pdf`, so plain `make` after `clean` is a no-op. Use
+`distclean` before any build whose log you intend to measure — a v9 page-count measurement was once
+taken off a stale PDF for exactly that reason. The PDF is byte-reproducible because
+`SOURCE_DATE_EPOCH` is pinned in the Makefile; its sha256 is in `submission/FREEZE_HASHES.md`.
 
-## Sampled Evaluation
+### Which script writes which table
 
-For fast integration checks, the CLI supports sampled evaluation:
+| Script | Reads | Writes |
+|---|---|---|
+| `scripts/phase7c_study1_ledger.py` | `reports/evidence/p14_phase4*_episodes/<trial>/{flow_config.submitted.json,result.json,agentlog.sanitized.json}`, the frozen program manifest | `reports/synthetic_p14_study1_ledger.json` → `submission/tables/study1_ledger.tex` |
+| `scripts/phase7c_claim_statistics.py` | that ledger, `synthetic_phase7a_sta72_report.json`, `synthetic_phase5d_collection_report.json`, `reports/evidence/` | `reports/synthetic_p14_claim_statistics.json` → `submission/tables/{claim_stats,sta_pilot}.tex` |
+| `scripts/phase4z_figures_tables.py` | the controlled-pair matrix and the preserved episode ledgers | `reports/synthetic_p14_phase4z_figures_tables.md` |
 
-```bash
-# Sample N tasks per track (deterministic with seed)
-eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
+Both `phase7c_*` scripts assert each stage's episode count against the frozen program manifest and
+abort on mismatch. That check exists because an earlier aggregation of these same records keyed
+cells by `(condition, model)` in a dictionary and silently dropped repeat measurements of a
+condition — collapsing 70 episodes to 54. A stated inclusion rule does not prevent that; an
+assertion in the code does.
 
-# Evaluate at most N tasks total
-eda-bench evaluate-dataset tasks --limit 10 --seed 42 --submission-mode solution
-```
+## Deterministic task generation
 
-Sampled evaluation is deterministic: the same seed and task tree always produce the same selection. The summary JSON includes `sampled: true`, `seed`, `total_candidates`, and `selected_task_ids` for transparency.
+Each family is produced by a seeded generator, and each task's `metadata.json` records the
+generator, seed and parameters that produced it.
 
-**Warning:** Sampled evaluation is not a substitute for full evaluation. Use it for fast iteration during development; run full evaluation before final validation.
+| Family | Generator | Notes |
+|---|---|---|
+| p14 workflow | `generators/p14_workflow_handoff_gen.py` (driver: `scripts/generate_workflow_handoff_tasks.py`) | reads its asset substrate from `tasks/p13_trajectory_handoff/traj_handoff_0001/` |
+| p15 STA (Family A) | `generators/p15_sta_handoff_gen.py` (12-instance panel: `scripts/phase7a_generate_sta12.py`) | substrate in `generators/p15_sta_handoff/substrate/` |
+| p16 SPICE (Family B) | `generators/p16_spice_handoff_gen.py` | grader and plausibility spec in `generators/p16_spice_handoff/` |
 
-## Anti-Cheat Verification
+Admission is gated, not merely seeded. Before an instance is accepted:
 
-The evaluator snapshots SHA-256 hashes of all forbidden files before execution and recomputes them after. If any hash differs, the evaluation fails. This ensures:
+- **uniqueness** — exhaustive enumeration over the declared domains must yield exactly one
+  assignment satisfying the instance's constraints (294 → 1 for the worked instance). "Correct" is
+  fixed by the constraint system, not by grader judgement.
+- **hard feasibility** — the bake must produce a wrong-binding artifact that the tool accepts,
+  executes, and signs off plausibly, that is nonetheless semantically wrong and *is* rejected by
+  the typed oracle. If the wrong binding is trivially tool-red or unparsable, the instance is
+  ineligible and regenerated.
 
-- Agents cannot modify testbenches to force pass
-- Agents cannot modify scoring scripts
-- Agents cannot modify hidden test infrastructure
+Two generators were edited after their pre-run freeze; `frozen_membership_verify.py` reports those
+2 mismatches, and the paper's numbers derive from the pinned versions. This is stated in
+[`provenance.md`](provenance.md) rather than erased.
 
-## Log Sanitization
+## Grading a family instance (needs the real tool)
 
-All EDA tool output is sanitized before storage. The sanitizer replaces:
-
-- Usernames → `<USER>`
-- Hostnames → `<HOST>`
-- Absolute paths → `<PROJECT_ROOT>`, `<EDA_ROOT>`
-- License servers → `<LICENSE_SERVER>`
-- Machine names → `<HOST>`
-
-This ensures evaluation logs can be shared without leaking environment details.
-
-## Environment Detection
-
-The benchmark probes the filesystem for EDA tools at runtime. No hardcoded paths are stored in task definitions. The `eda-bench detect-tools` command reports which tools are available:
+Semantic correctness is decided by the typed provenance/authority oracle, never by tool exit
+status — so grading needs the tool to run *and* the oracle to reject a green run. PrimeTime for
+p14/p15, HSPICE for p16.
 
 ```bash
 eda-bench detect-tools
+
+# golden must score 1.00
+eda-bench evaluate-task tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --submission tasks/p14_workflow_handoff/workflow_handoff_0009/solution
+
+# the shipped (mis-bound) visible files must score < 1.00 while the tool stays green
+eda-bench evaluate-task tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --submission tasks/p14_workflow_handoff/workflow_handoff_0009/files
 ```
 
-Expected paths (probed, not hardcoded):
-- Synopsys: `/EDA/soft2/synopsys/`
-- Cadence: `/EDA/soft2/cadence/`
+The golden-versus-buggy pair is the fairness gate: grade the known-correct solution through the
+same path first. If it does not score ~1.00, the grader or the environment is distorting the
+measurement, and no model score from that path can be trusted.
 
-## Reproducing a Specific Evaluation
-
-To reproduce an evaluation result:
-
-1. Install the benchmark: `pip install -e ".[test]"`
-2. Detect tools: `eda-bench detect-tools`
-3. Run smoke tests to verify tool availability
-4. Evaluate the specific task:
-   ```bash
-   eda-bench evaluate-task tasks/<track>/<task_id> \
-     --submission tasks/<track>/<task_id>/solution
-   ```
-5. Compare `score.json` output with the expected result
-
-## Versioning
-
-Each task's `metadata.json` includes a `version` field (currently `"1.0.0"`). The benchmark package version is in `pyproject.toml` (currently `0.1.0`).
-
-## Benchmark Inventory Export
-
-A deterministic inventory and summary can be generated from the task metadata:
+`scripts/validate_dataset.py` automates that gate across a family, with a content-hash cache so
+`--changed` re-grades only what moved while still reporting the cached verdict of everything else:
 
 ```bash
-python scripts/export_benchmark_summary.py
+python3 scripts/validate_dataset.py --structural --tasks-root tasks          # tool-free
+python3 scripts/validate_dataset.py --tasks-root tasks/p15_sta_handoff \
+    --glob 'p15_eval_*' --concurrency 4                                       # real PrimeTime
 ```
 
-This produces all report artifacts under `reports/` (task inventory, track/tool/scoring distributions, per-track breakdowns, leaderboard template, and markdown summary). The output is fully deterministic — running it twice on the same task tree produces identical files.
+## Reproducibility of the *measurement*, not just the score
 
-## Baseline Suite
+The paper's second axis is that a number can be wrong for reasons that have nothing to do with the
+model. The controls that make an episode's measurement trustworthy are part of the reproducible
+path, and each has a test:
 
-The baseline runner automates running solution and buggy baselines and producing
-leaderboard artifacts:
+| Control | Script | Test |
+|---|---|---|
+| exact-commit isolated worktree; canonical hash verified before and after every episode | `canonical_integrity.py`, `chain_executor.py`, `run_chain_guarded.py` | `test_canonical_integrity.py`, `test_chain_executor.py`, and the tripwire in `test_fullpath_check.py` |
+| terminal-valid versus recovered episode arbitration | `episode_arbiter.py` | `test_episode_arbiter.py`, `test_transport_telemetry.py` |
+| SSE streaming (a non-streaming transport censors long-reasoning models mid-generation) | `eda_agentbench/llm/openai_provider.py`, `llm_agent_driver.py` | `test_llm_streaming.py`, `test_llm_driver_{timeout,deadline}.py` |
+| tool-health sentinel with run bookends | `pt_health_sentinel.py`, `hspice_health_sentinel.py` | `test_pt_health_sentinel.py` |
+| infrastructure-only retry (a valid wrong score is a hard failure and is never retried) | `fairness_retry.py`, `measurement_control.py` | `test_fairness_retry.py`, `test_measurement_control.py` |
+| position-balanced blocked randomization, frozen before any paid call | `phase4w_randomize.py`, `phase5b_schedules.py`, `phase7a_sta72_schedule.py` | the schedules are committed artifacts |
 
-```bash
-# Sampled baseline (fast, ~2 min)
-python scripts/run_baseline_suite.py --sample-per-track 1 --seed 123
+An infrastructure timeout, gateway error or worker failure is **measurement-invalid** and is never
+counted as a capability failure. The converse also holds and matters more: a *valid* wrong score is
+a real result and may not be retried away.
 
-# Full baseline (requires all EDA tools)
-python scripts/run_baseline_suite.py
+## Environment
 
-# Single track, single mode
-python scripts/run_baseline_suite.py --track p3_timing_report_qa --modes solution --sample-per-track 5
-```
-
-### CLI Flags
-
-| Flag | Default | Description |
-|------|---------|-------------|
-| `--modes` | `solution,buggy` | Comma-separated modes to run |
-| `--track` | all | Filter to a single track |
-| `--sample-per-track` | full | Sample N tasks per track |
-| `--seed` | 42 | Deterministic sampling seed |
-| `--timeout` | task default | Override per-task timeout |
-| `--tasks-root` | `tasks/` | Override task directory |
-
-### Output Artifacts
-
-| File | Description |
-|------|-------------|
-| `reports/baseline_results_solution.csv` | Per-task scores for solution mode |
-| `reports/baseline_results_buggy.csv` | Per-task scores for buggy mode |
-| `reports/leaderboard_baseline_filled.csv` | Leaderboard template with baseline rows |
-| `reports/baseline_summary.md` | Human-readable summary with tables |
-
-### Baseline Interpretation
-
-| Mode | Expected Avg | Expected Pass Rate | Purpose |
-|------|-------------|-------------------|---------|
-| solution | 1.00 | 1.00 | Ceiling: validates eval pipeline |
-| buggy | < 1.00 | < 1.00 | Floor: validates discriminative power |
-
-Any real LLM submission should score between the buggy and solution baselines.
-No external model APIs are called — all evaluation is local and deterministic.
-
-## Agentic Run Reproducibility
-
-Agentic runs (`run-agent`, `run-agent-dataset`) are reproducible when the agent command is deterministic and the task tree is unchanged. The output includes:
-
-- `workspace_manifest.json`: SHA-256 of agent-visible files before and after the agent runs
-- `modified_files.json`: exact list of file changes
-- `transcript.jsonl`: full agent output (stdout, stderr, events)
-- `metadata.json`: agent command, timeout, task metadata
-
-### Security Model
-
-The agentic runner uses a two-phase workspace model:
-
-1. **Agent workspace**: visible+editable files only. No hidden/oracle/scoring files.
-2. **Evaluator workspace**: created after agent exits, merges agent edits + hidden files from task root.
-
-Hidden/oracle files are never readable by the agent process. The `workspace_manifest.json` contains only agent-visible files.
-
-To reproduce an agentic result:
-
-```bash
-eda-bench run-agent tasks/<track>/<task_id> --agent-cmd "YOUR_COMMAND"
-```
-
-The score depends on the agent's edits and the task's evaluator. For QA tasks (P3, P6 QA), no EDA tools are needed, so results are fully deterministic across machines. For tool-based tasks (P1, P2, P4, P5, P6 constraint), results depend on EDA tool availability and version.
+- Python ≥ 3.10; the installed package is dependency-free. `pip install -e ".[test]"` adds pytest.
+- Commercial Synopsys tools for the family graders; nothing else substitutes. Probes look under
+  `/EDA/soft2/synopsys/` and `/EDA/soft2/cadence/`; set `EDA_TOOL_ROOT` to replace the leading
+  `/EDA`. See [`commercial_tool_policy.md`](commercial_tool_policy.md).
+- Model access is needed only to run *new* episodes, which the freeze forbids. Driver controls are
+  documented in [`agentic_runner.md`](agentic_runner.md).
+- `runs/` and `workspaces/` are local output and are never committed.

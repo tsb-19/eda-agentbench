@@ -1,112 +1,74 @@
 **[English](scoring.md) | 中文**
 
-# 评分规则
+# 评分 —— 正确性如何判定
 
-## 分数结构
+唯一要紧的规则：**语义正确性绝不从工具是否成功推断出来。** 不看退出码，不看隐藏的数值答案，也不看产物总分。它只由一件事判定：提交的元组是否与独立的溯源/权威 oracle 所证实的绑定一致。
 
-每次评估生成一个 `score.json`：
+这不是风格偏好。在工作实例中，随附的*每一份*证据源在 PrimeTime 下都签核为绿 —— 包括那份两个角色字段被互换的。一个读工具退出码的评分器会把错误绑定判为通过，而论文的整个失败类别都将不可见。
 
-```json
-{
-  "schema_version": "1.0.0",
-  "task_id": "task_000001",
-  "track": "p1_rtl_debug",
-  "mode": "submission",
-  "total_score": 0.78,
-  "max_possible": 1.0,
-  "objective_score": 0.69,
-  "explanation_score": 0.09,
-  "passed": true,
-  "passing_threshold": 0.5,
-  "components": [...],
-  "anti_cheat": {...},
-  "resource_usage": {...}
-}
-```
+## 主证据门禁
 
-## 分数组件
+每个家族的评分器都有一个主门禁 —— workflow 家族里是 `EVIDENCE_OK` —— 而类型化判定谓词是**折进它里面**的，而不是与它并列计分。因此，一个签核为绿但类型错误的包，无法靠在别处攒分而通过。
 
-### total_score
+workflow 的门禁要求每个必需阶段都与一次隐藏重跑一致，*并且*下列类型化谓词成立：
 
-所有加权组件分数之和。范围：[0.0, 1.0]。
+- scenario 字段必须属于 scenario 轴，corner 字段必须属于 corner 轴；
+- 两者都不得是 **PVT 描述符** —— 描述符指的是一个 scenario–corner *对*，永远不是任一轴的取值；
+- 时钟必须**按精确身份**匹配，因此泛化的别名会被拒绝；
+- 网表必须属于声明的家族。
 
-### objective_score
+下游标记（`TYPED_BINDING_OK`、`AXIS_SCHEMA_OK`、`PVT_LABEL_OK`，以及约束图命名）只是用不同名字重新报告已经被门禁裁定的结论。它们是诊断量，不是额外的通过机会：错误的 scenario 或 corner 早已让 `EVIDENCE_OK` 崩掉。
 
-所有非解释组件分数之和。这是主要指标。
+## 两种绝不合并的失败子类型
 
-### explanation_score
+一次失败恰好被归入两类之一。论文全程把它们分开，因为它们是不同的认知错误，且干预对它们的作用不同：
 
-来自 `explanation` 组件的分数。仅在使用 LLM 评估的智能体模式下有意义。在提交模式下默认为 1.0。
+| 子类型 | 定义 | 例子 |
+|---|---|---|
+| **错轴绑定失败** | 某个取值占据了**错误的类型化轴** | `func`/`slow` —— corner 的取值落在 scenario 角色上，反之亦然 |
+| **角色条件取值选择失败** | 取值的轴与类型都合法，但填进角色的是**错误的成员** | `typ`/`func` —— 貌似合理、类型正确，但被权威否证 |
 
-### 通过阈值
+在 70 个 episode 的研究 I 台账中：41 正确、**24 错轴**、**5 角色条件** —— 全部 tool-green，仅被类型化 oracle 拒绝。把两者合并会掩盖论文的核心观察，因为该观察恰恰是关于*轴*错误的：BundleS 对应零例观察到的错轴失败，而歧义基线三次里错两次。
 
-`passed = total_score >= 0.5`
+家族 A 的一个例子：可见证据证实 intent=`functional_close`、partition=`core`、check_mode=`setup`；agent 提交 (functional_close, core, **both**)。PrimeTime 返回绿灯且 `both` 类型合法 —— 但覆盖率权威证实的是 `setup`，因此 oracle 将其判为角色条件取值选择失败。
 
-这是一个二元标志。它并不定义"正确"与"缺陷"——见下文。
+## 唯一性在评分之前就已确立，而非评分时确立
 
-## P1 RTL 调试评分
+在声明的取值域上穷举是在构建期完成的，且必须恰好得到**一个**满足该实例约束的赋值 —— 工作实例是 294 个候选 → 1。因此"正确"由该实例的约束系统固定，评分器只做成员检查。没有评分器的主观判断，也没有余地在事后为"说得过去但不同"的答案争论。
 
-组件：
+## 权重
 
-| 组件 | 权重 | 衡量内容 |
-|------|------|----------|
-| compile | 0.2 | 设计使用 VCS 编译无错误 |
-| public_test | 0.3 | 公开测试平台通过所有用例 |
-| hidden_test | 0.4 | 隐藏测试平台通过所有用例 |
-| explanation | 0.1 | 智能体对修复的解释（LLM 评判，默认 1.0） |
+按家族给部分分。注意工具成功值多少。
 
-**评估逻辑：**
+**p14 workflow** —— `signoff` 0.10 · `final_state` 0.15 · `evidence_generation` 0.25 · `stage_chain` 0.10 · `provenance` 0.10 · `authority_consistency` 0.10 · `hazard_recovery` 0.10 · `explanation` 0.10
 
-- `compile`：检查 VCS 退出码和日志中的错误
-- `public_test`：解析公开测试日志中的通过/失败计数
-- `hidden_test`：解析隐藏测试日志中的通过/失败计数
-- `explanation`：保留用于 LLM 评估；在提交模式下返回 1.0
+**p15 STA（家族 A）** —— `provenance_attested` 0.30 · `coverage_cell_consistent` 0.20 · `check_view_legal` 0.10 · `pt_signoff_green` 0.10 · `not_masking` 0.15 · `explanation` 0.15
 
-## P4 SPICE 仿真评分
+**p16 SPICE（家族 B）** —— `semantic_binding` 0.30 · `evidence_provenance` 0.20 · `simulation_success` 0.10 · `numeric_validity` 0.10 · `artifact_completion` 0.15 · `protocol_completion` 0.15
 
-组件：
+`pt_signoff_green` 与 `simulation_success` 各占 0.10：工具必须跑起来，但相比正确绑定元组，"跑起来"几乎一文不值。`explanation` 从不占主导。
 
-| 组件 | 权重 | 衡量内容 |
-|------|------|----------|
-| tool_run | 0.3 | EDA 工具（HSPICE/Spectre）运行无致命错误 |
-| output_generated | 0.2 | 仿真产生了输出（波形/测量值） |
-| public_metric | 0.2 | 公开测量值在规格范围内 |
-| hidden_metric | 0.2 | 隐藏测量值在规格范围内 |
-| explanation | 0.1 | 智能体的解释（默认 1.0） |
+`not_masking` 值得一说。它抓的是这样一种 agent：靠*削弱检查*而不是靠正确绑定来换到绿色签核 —— 做法是统计声明例外的指令，并对超出那唯一一条预期例外的任何未声明削弱予以标记。这是"治症状而非解任务"的标志，论文中的掩蔽案例得 0.4，而 golden 得 1.0。
 
-**评估逻辑：**
+workflow 家族中"tool-green 错误绑定"的可识别分数特征是 `signoff = 1.0` 而 `evidence_generation = 0` —— 工具满意，链条不成立。
 
-- `tool_run`：要求有明确的完成标志且无错误（HSPICE：`job concluded`；Spectre：`spectre completes with 0 errors`）。工具缺失/崩溃/超时一律判 0。
-- `output_generated`：检查输出中的测量值（HSPICE：`.lis`；Spectre：`metrics.json`）
-- `public_metric`：检查公开测量值（如 `tdrise`）是否在 `[min, max]` 范围内
-- `hidden_metric`：检查隐藏测量值（如 `tdfall`）是否在 `[min, max]` 范围内
+## 反作弊
 
-**指标提取：**
+先结构性，后黑名单。评测器会：
 
-- HSPICE：解析 `.lis` 文件中的 `.measure` 结果，支持工程后缀（如 `1.234n`）
-- Spectre：读取运行脚本写入的 `metrics.json`，该脚本解析 `-format nutascii` 波形输出
+- 在执行前对禁改文件做 sha256 快照，执行后核验 —— `hidden/`、公共测试脚本、运行脚本；
+- 拒绝**隐藏影子**：agent 不得伪造一个文件去遮蔽评测器叠加层提供的隐藏产物（评分器、oracle、golden 网表）；
+- 洗净 agent 提供的 Tcl：可编辑的 `.sdc` 用 `read_sdc` 摄入（它会沙箱化 Tcl 的 `proc`/`exit`），再用 `write_sdc` 规范化重写；随后在一个不运行任何 agent 代码的独立阶段计算裁决。注入的 `proc incr {} {}`、`exit 0` 或 `echo CONSTRAINTS_OK` 都无法触及或伪造裁决；
+- 另外在工具运行之前，把明显的注入尝试标为显式违规（硬零分并记录）。该黑名单是*次级*层 —— 它可以被间接手法绕过，而这正是"保证完整性的是上面的结构性洗净、而不是这张表"的原因。
 
-## 缺陷基线语义
+实现在 `eda_agentbench/anti_cheat/guard.py`、`eda_agentbench/task/validator.py`；测试在 `tests/test_anti_cheat.py`、`tests/test_phase5_hidden_isolation.py`。
 
-**缺陷基线的正确判据是 `total_score < 1.0`。**
+## 公平性门禁
 
-不要与通过阈值（0.5）混淆。有缺陷的设计如果部分可用，分数仍可能高于 0.5。关键属性是：
+在信任任何模型分数之前，先让**已知正确的解**走同一条路径。它必须得 ≈1.00。若达不到，说明评分器或环境正在扭曲测量，那条路径上的任何分数都毫无意义 —— 这道检查曾抓到一个真实的 shim 缺陷，它把某个 track 上的每个分数都变成了同一个错误数值。
 
-- 解答必须得分**恰好为 1.00**
-- 缺陷基线必须得分**严格低于 1.00**
+逐任务的 golden−buggy 客观分差还必须 ≥ 0.15：未修复的输入不得像修复过一样得分。`scripts/validate_dataset.py` 把两者在整个家族上自动化。
 
-数据集评估跟踪 `buggy_lower_than_solution_count`：缺陷模式得分低于解答模式的任务数量。对于设计良好的基准，这应等于总任务数。
+## 测量效度高于评分
 
-## 提交模式下的解释分数
-
-在提交/工作空间模式（v0）中，智能体在评估期间不生成解释。`explanation` 组件默认 `raw_score = 1.0`，将其全部权重贡献给总分。
-
-这意味着：
-
-- 提交模式下的完美解答应得 1.00
-- 解释组件不会惩罚提交模式的评估
-- 在未来的智能体模式中，解释评分将由 LLM 评判
-
-## 自定义权重
-
-任务可以通过 `metadata.scoring.weights` 覆盖默认权重。唯一的约束是权重之和必须为 1.0。未在权重中列出的组件不会被评估。
+只有测量有效，分数才算结果。基础设施超时、网关错误或 worker 失败属于**测量无效**，绝不计为能力失败。反向规则被同样严格地执行，而且更要紧：**有效的错误分数是硬失败**，不许被重试掉。`scripts/fairness_retry.py` 只对基础设施故障放行重试；`scripts/episode_arbiter.py` 是"该 episode 是终态有效还是仅为恢复态"的权威。见 [`reproducibility.zh.md`](reproducibility.zh.md)。

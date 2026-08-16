@@ -94,20 +94,24 @@ The command runs with `shell=True` and `cwd=EDA_WORKSPACE`.
 
 ### Examples
 
+The three families need a commercial tool to grade, so these examples use the
+no-op and copy-solution agents to exercise the runner's workspace contract rather
+than to produce a meaningful score.
+
 **No-op agent** (does nothing):
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke --agent-cmd "true"
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 --agent-cmd "true"
 ```
 
 **Copy-answer agent** (copies correct answer from task path):
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
-    --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --agent-cmd "cp \$EDA_TASK_PATH/solution/flow_config.json \$EDA_WORKSPACE/"
 ```
 
 **Custom agent script**:
 ```bash
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 \
     --agent-cmd "python3 my_agent.py --workspace \$EDA_WORKSPACE --task \$EDA_TASK_PATH"
 ```
 

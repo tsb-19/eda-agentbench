@@ -12,9 +12,8 @@ import json
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
-# Written into reports/ rather than the former docs/phases/ chronology directory, which
-# this branch removed: the file is a generated artifact, and reports/ is where generated
-# artifacts live.
+# Written into reports/ rather than the research-chronology docs directory this branch
+# removed: the file is a generated artifact, and reports/ is where generated artifacts live.
 OUT = REPO / "reports/synthetic_p14_phase4z_figures_tables.md"
 SCEN, CORNER = {"slow", "typ", "fast"}, {"func", "test", "lowpower"}
 TASK_GOLDEN = {  # task_id -> (scenario, corner) golden

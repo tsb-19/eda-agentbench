@@ -4,29 +4,16 @@
 
 ## Overview
 
-EDA-AgentBench is designed exclusively for commercial EDA tools. It does not use or require open-source EDA alternatives. This policy documents which tools are used, how they are detected, and what licensing constraints apply.
+The task families are designed exclusively for commercial EDA tools. No open-source EDA alternative substitutes, and the reason is specific rather than a preference: the construct under study is a binding that a real tool *signs off green*. Without the commercial signoff there is nothing for the typed oracle to disagree with, and the failure class the paper measures disappears.
 
-## Supported Tools
+## Tools these families need
 
-| Tool | Vendor | Used By | Purpose |
-|------|--------|---------|---------|
-| VCS | Synopsys | P1 RTL Debug | RTL compilation and simulation |
-| HSPICE | Synopsys | P4 SPICE Sim, P5 SPICE Deck Debug | SPICE netlist simulation |
-| Spectre | Cadence | P4 SPICE Sim | SPICE netlist simulation |
+| Tool | Vendor | Used by | Role in the measurement |
+|------|--------|---------|-------------------------|
+| PrimeTime | Synopsys | p14 workflow, p15 STA (Family A) | times the design and signs off the evidence chain; a mis-bound package still signs off green |
+| HSPICE | Synopsys | p16 SPICE (Family B) | simulates the deck and produces the measured numbers a wrong binding still yields |
 
-## Future Tools (Planned)
-
-| Tool | Vendor | Planned Track |
-|------|--------|---------------|
-| Xcelium | Cadence | P2 Testbench/SVA Generation |
-| Design Compiler | Synopsys | P3 Timing Report QA |
-| PrimeTime | Synopsys | P3 Timing Report QA (prototype) |
-| SpyGlass | Synopsys | P6 Lint |
-| ICC2 | Synopsys | P7 Physical Design |
-| Innovus | Cadence | P7 Physical Design |
-| StarRC | Synopsys | P7 Physical Design |
-| Sentaurus | Synopsys | P7 Physical Design |
-| Verdi | Synopsys | Debug visualization |
+Nothing else is required. `master` additionally uses VCS, Spectre, Design Compiler, SpyGlass, ICC2, Innovus, StarRC, Sentaurus, Xcelium and Verdi for the P1-P9 benchmark tracks, which are not on this branch (see [REMOVED.md](REMOVED.md)).
 
 ## Tool Detection
 

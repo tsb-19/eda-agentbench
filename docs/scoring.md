@@ -1,112 +1,124 @@
 **English | [中文](scoring.zh.md)**
 
-# Scoring Rules
+# Scoring — how correctness is decided
 
-## Score Structure
+The one rule that matters: **semantic correctness is never inferred from tool success.** Not from
+exit status, not from a hidden numeric answer, not from the aggregate artifact score. It is decided
+solely by whether the submitted tuple matches the binding attested by an independent
+provenance/authority oracle.
 
-Each evaluation produces a `score.json`:
+This is not a stylistic preference. In the worked instance, *every* shipped evidence source signs
+off green under PrimeTime — including the one whose two role fields are swapped. A grader reading
+tool exit status would score a wrong binding as a pass, and the paper's entire failure class would
+be invisible.
 
-```json
-{
-  "schema_version": "1.0.0",
-  "task_id": "task_000001",
-  "track": "p1_rtl_debug",
-  "mode": "submission",
-  "total_score": 0.78,
-  "max_possible": 1.0,
-  "objective_score": 0.69,
-  "explanation_score": 0.09,
-  "passed": true,
-  "passing_threshold": 0.5,
-  "components": [...],
-  "anti_cheat": {...},
-  "resource_usage": {...}
-}
-```
+## The master evidence gate
 
-## Score Components
+Each family's grader has a master gate — `EVIDENCE_OK` in the workflow family — and the typed
+predicates are **folded into it** rather than scored alongside it. A sign-off-green but mis-typed
+package therefore cannot pass by accumulating credit elsewhere.
 
-### total_score
+The workflow gate requires every required stage to match a hidden re-run, *and* the typed
+predicates below to hold:
 
-Sum of all weighted component scores. Range: [0.0, 1.0].
+- the scenario field must belong to the scenario axis, and the corner field to the corner axis;
+- neither may be a **PVT descriptor** — a descriptor denotes a scenario–corner *pair* and is never
+  a value of either axis;
+- the clock must match by **exact identity**, so a generic alias is rejected;
+- the netlist must be in the declared family.
 
-### objective_score
+Downstream markers (`TYPED_BINDING_OK`, `AXIS_SCHEMA_OK`, `PVT_LABEL_OK`, the constraint-graph
+names) re-report the already-gated verdict under different names. They are diagnostics, not
+additional chances to pass: a wrong scenario or corner has already collapsed `EVIDENCE_OK`.
 
-Sum of all non-explanation component scores. This is the primary metric.
+## The two failure subtypes, never collapsed
 
-### explanation_score
+A failure is classified into exactly one of two kinds. The paper keeps them separate throughout,
+because they are different cognitive errors and the intervention affects them differently:
 
-Score from the `explanation` component. Only meaningful in agentic mode with LLM evaluation. In submission mode, defaults to 1.0.
+| Subtype | Definition | Example |
+|---|---|---|
+| **axis-binding failure** | a value occupies the **wrong typed axis** | `func`/`slow` — a corner value in the scenario role and vice versa |
+| **role-conditioned value-selection failure** | the value is axis- and type-valid, but the **wrong member** fills the role | `typ`/`func` — plausible, correctly typed, contradicted by the authority |
 
-### Pass Threshold
+Across the 70-episode Study I ledger: 41 correct, **24 axis-binding**, **5 role-conditioned** — all
+tool-green, rejected only by the typed oracle. Collapsing the two would have hidden the paper's
+central observation, which is specifically about *axis* errors: BundleS is associated with zero
+observed axis-binding failures where the ambiguous baseline fails two of three.
 
-`passed = total_score >= 0.5`
+A worked Family A example: visible evidence attests intent=`functional_close`, partition=`core`,
+check_mode=`setup`; the agent submits (functional_close, core, **both**). PrimeTime returns green
+and `both` is type-valid — but the coverage authority attests `setup`, so the oracle rejects it as
+a role-conditioned value-selection failure.
 
-This is a binary flag. It does NOT define "correct" vs "buggy" -- see below.
+## Uniqueness is established before grading, not during
 
-## P1 RTL Debug Scoring
+Exhaustive enumeration over the declared domains runs at construction time and must yield **exactly
+one** assignment satisfying the instance's constraints — 294 candidates → 1 for the worked
+instance. "Correct" is therefore fixed by the instance's constraint system, and the grader only
+checks membership. No grader judgement, and no room for a defensible-but-different answer to be
+argued about after the fact.
 
-Components:
+## Weights
 
-| Component | Weight | What It Measures |
-|-----------|--------|------------------|
-| compile | 0.2 | Design compiles with VCS without errors |
-| public_test | 0.3 | Public testbench passes all cases |
-| hidden_test | 0.4 | Hidden testbench passes all cases |
-| explanation | 0.1 | Agent's explanation of the fix (LLM-judged, defaults 1.0) |
+Partial credit, per family. Note how little tool success is worth.
 
-**Evaluation logic:**
+**p14 workflow** — `signoff` 0.10 · `final_state` 0.15 · `evidence_generation` 0.25 ·
+`stage_chain` 0.10 · `provenance` 0.10 · `authority_consistency` 0.10 · `hazard_recovery` 0.10 ·
+`explanation` 0.10
 
-- `compile`: checks VCS exit code and log for errors
-- `public_test`: parses public test log for PASS/FAIL counts
-- `hidden_test`: parses hidden test log for PASS/FAIL counts
-- `explanation`: reserved for LLM evaluation; in submission mode returns 1.0
+**p15 STA (Family A)** — `provenance_attested` 0.30 · `coverage_cell_consistent` 0.20 ·
+`check_view_legal` 0.10 · `pt_signoff_green` 0.10 · `not_masking` 0.15 · `explanation` 0.15
 
-## P4 SPICE Sim Scoring
+**p16 SPICE (Family B)** — `semantic_binding` 0.30 · `evidence_provenance` 0.20 ·
+`simulation_success` 0.10 · `numeric_validity` 0.10 · `artifact_completion` 0.15 ·
+`protocol_completion` 0.15
 
-Components:
+`pt_signoff_green` and `simulation_success` are each 0.10: the tool has to run, but running is
+nearly worthless next to binding the tuple correctly. `explanation` never dominates.
 
-| Component | Weight | What It Measures |
-|-----------|--------|------------------|
-| tool_run | 0.3 | EDA tool (HSPICE/Spectre) ran without fatal errors |
-| output_generated | 0.2 | Simulation produced output (waveform/measures) |
-| public_metric | 0.2 | Public measurement within spec range |
-| hidden_metric | 0.2 | Hidden measurement within spec range |
-| explanation | 0.1 | Agent's explanation (defaults 1.0) |
+`not_masking` deserves a note. It catches an agent that reaches a green sign-off by *weakening the
+check* rather than by binding correctly — counting exception-declaring directives and flagging any
+undeclared weakening beyond the single expected exception. It is the signature of solving the
+symptom instead of the task, and the paper's masking case scores 0.4 against a golden 1.0.
 
-**Evaluation logic:**
+The recognised score signature of a tool-green wrong binding in the workflow family is
+`signoff = 1.0` with `evidence_generation = 0` — the tool is happy and the chain is not.
 
-- `tool_run`: requires a positive completion banner with no errors (HSPICE: `job concluded`; Spectre: `spectre completes with 0 errors`). A missing/crashed/timed-out tool scores 0.
-- `output_generated`: checks for measurement values in output (HSPICE: `.lis`; Spectre: `metrics.json`)
-- `public_metric`: checks if the public measurement (e.g., `tdrise`) falls within `[min, max]`
-- `hidden_metric`: checks if the hidden measurement (e.g., `tdfall`) falls within `[min, max]`
+## Anti-cheat
 
-**Metric extraction:**
+Structural first, denylist second. The evaluator:
 
-- HSPICE: parses `.lis` file for `.measure` results with engineering suffixes (e.g., `1.234n`)
-- Spectre: reads `metrics.json` written by the run script, which parses `-format nutascii` waveform output
+- snapshots sha256 of forbidden files before execution and verifies them after — `hidden/`, public
+  test scripts, run scripts;
+- refuses **hidden shadows**: an agent may not fabricate a file that shadows a hidden artifact
+  (grader, oracle, golden netlist) the evaluator overlay provides;
+- launders agent-supplied Tcl: an editable `.sdc` is ingested with `read_sdc` (which sandboxes Tcl
+  `proc`/`exit`) and re-emitted canonically with `write_sdc`; the verdict is then computed in a
+  separate phase that runs no agent code. An injected `proc incr {} {}`, `exit 0` or
+  `echo CONSTRAINTS_OK` cannot reach or forge the verdict;
+- additionally flags obvious injection attempts as an explicit violation (hard zero, recorded)
+  before the tool runs. That denylist is the *secondary* layer — it can be evaded by indirection,
+  which is exactly why the structural laundering above, not the list, is what guarantees integrity.
 
-## Buggy Baseline Semantics
+Implementation: `eda_agentbench/anti_cheat/guard.py`, `eda_agentbench/task/validator.py`; tests in
+`tests/test_anti_cheat.py`, `tests/test_phase5_hidden_isolation.py`.
 
-**The correct criterion for a buggy baseline is `total_score < 1.0`.**
+## The fairness gate
 
-Do not confuse with the pass threshold (0.5). A buggy design might still score above 0.5 if it partially works. The key property is:
+Before trusting any model score, grade the **known-correct solution** through the same path. It
+must score ≈1.00. If it does not, the grader or the environment is distorting the measurement and
+no score from that path means anything — this check has caught a real shim bug that turned every
+score on a track into the same wrong number.
 
-- Solution must score **exactly 1.00**
-- Buggy baseline must score **strictly less than 1.00**
+Per-task, the golden−buggy objective margin must also be ≥ 0.15: an unfixed input must not score
+like a fix. `scripts/validate_dataset.py` automates both across a family.
 
-The dataset evaluation tracks `buggy_lower_than_solution_count`: the number of tasks where buggy mode scored less than solution mode. For a well-designed benchmark, this should equal the total task count.
+## Measurement validity beats scoring
 
-## Explanation Score in Submission Mode
-
-In submission/workspace mode (v0), the agent does not generate explanations during evaluation. The `explanation` component defaults to `raw_score = 1.0`, contributing its full weight to the total.
-
-This means:
-
-- A perfect solution in submission mode scores 1.00
-- The explanation component does not penalize submission-mode evaluations
-- In future agentic mode, explanation scoring will be LLM-judged
-
-## Custom Weights
-
-Tasks can override the default weights via `metadata.scoring.weights`. The only constraint is that weights must sum to 1.0. Components not listed in weights are not evaluated.
+A score is only a result if the measurement was valid. An infrastructure timeout, gateway error or
+worker failure is **measurement-invalid** and is never counted as a capability failure. The
+converse is enforced just as hard and matters more: a **valid wrong score is a hard failure** and
+may not be retried away. `scripts/fairness_retry.py` grants retries for infrastructure faults only;
+`scripts/episode_arbiter.py` is the authority on whether an episode was terminal-valid or merely
+recovered. See [`reproducibility.md`](reproducibility.md).

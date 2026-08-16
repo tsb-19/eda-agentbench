@@ -17,7 +17,10 @@
 ### track
 
 - 类型：`string`
-- 允许值：`p1_rtl_debug`、`p2_rtl_gen`、`p2_tb_sva_gen`、`p3_timing_report_qa`、`p4_spice_sim`、`p5_spice_deck_debug`、`p6_lint`、`p7_physical`
+- 允许值：`p14_workflow_handoff`、`p15_sta_handoff`、`p16_spice_handoff`、
+  `p13_trajectory_handoff`（仅为资产底料 —— 见 [REMOVED.zh.md](REMOVED.zh.md)）
+
+该任务所属的任务家族。此枚举随它所列的 track 一起收缩；在 `master` 上它列出全部十八个。
 
 该任务所属的基准轨道。
 
@@ -157,10 +160,10 @@
 
 ```json
 {
-  "script": "p1_rtl_debug_gen.py",
+  "script": "p14_workflow_handoff_gen.py",
   "seed": 42,
-  "config_index": 0,
-  "bug_type": "sensitivity_list"
+  "variant": "ambiguous",
+  "bundle_components": []
 }
 ```
 

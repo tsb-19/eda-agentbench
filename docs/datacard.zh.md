@@ -1,190 +1,92 @@
 **[English](datacard.md) | 中文**
 
-# EDA-AgentBench 数据集卡片
+# 数据卡 —— 三个语义交接家族
 
-## 摘要
+## 概要
 
-EDA-AgentBench 是一个用于评估 LLM 和编码 agent 在使用商业 Synopsys 和 Cadence 工具的真实 EDA（电子设计自动化）工作流程中表现的基准测试。它衡量 agent 是否能正确修改 RTL 设计、SPICE 网表和仿真网表以通过基于工具的验证。
+84 个任务目录，分属三个独立构建的家族，外加一份保留的资产底料。它们**不是**基准排行榜：每个家族实例化同一个构念 —— *语义绑定* —— 而设计是诊断性的，检验存在性、复现性、天花板行为与迁移方向。它无法估计总体通过率，也不试图去估计。
 
-## 数据集组成
+| 家族 | 目录 | 任务目录数 | 工具 | 待绑定元组 | 论文角色 |
+|---|---|---:|---|---|---|
+| workflow | `tasks/p14_workflow_handoff/` | 27 | PrimeTime | (netlist, clock, scenario, corner) —— PVT 轴 | 研究 I：S0、S1、S2-M |
+| 家族 A —— STA | `tasks/p15_sta_handoff/` | 46 | PrimeTime | 由权威溯源 DAG 得出的 (intent_class, target_partition, check_mode) | 研究 II：S2-F |
+| 家族 B —— SPICE | `tasks/p16_spice_handoff/` | 10 | HSPICE | 由请求–权威联接得出的 (corner, load_condition, metric) | 研究 II：S2-F 天花板 |
+| *底料，不是家族* | `tasks/p13_trajectory_handoff/` | 1 | — | — | 供 p14 生成器读取；无任何论断依赖它 |
 
-| Track | 数量 | 工具 | 数据类型 | 评分方式 |
-|-------|-------|---------|-----------|----------------|
-| P1 RTL 调试 | 1001 | VCS | mutation_synthetic | 编译 + 公开测试 + 隐藏测试 + 解释 |
-| P2 测试平台/SVA 生成 | 101 | VCS | mutation_synthetic | 编译 + golden_pass + mutant_1 + mutant_2 |
-| P3 时序报告 QA | 1008 | pt（合成） | template_synthetic | 答案匹配 |
-| P4 SPICE 仿真 | 302 | HSPICE, Spectre | template_synthetic | 工具运行 + 输出 + 公开指标 + 隐藏指标 + 解释 |
-| P5 SPICE 网表调试 | 100 | HSPICE | flow_synthetic | 基于执行（退出码 + 无致命错误）+ 解释 |
-| P6 DC 综合 QA | 51 | dc（合成） | template_synthetic | 答案匹配 |
-| P6 DC 约束调试 | 61 | dc | template_synthetic | 基于执行（约束 + 执行） |
-| P7 SpyGlass Lint 调试 | 50 | spyglass | template_synthetic | 基于执行（lint 违规） |
-| P7 PrimeTime STA 调试 | 53 | pt | template_synthetic | 时序检查 + 执行通过 + 解释 |
-| P8 PnR 报告问答 | 101 | icc2/innovus（合成） | template_synthetic | 答案匹配 + 解释 |
-| **合计** | **2828** | | | |
+p15 的 46 个目录是 15 个实例 × 3 个条件加一个 dev 实例；p16 的 10 个是 3 × 3 加一个 dev。论文的前瞻 STA 面板是实例 0004–0015（*n*=12）；0001–0003 是试点，**从不**与面板合并。
 
-### P1 RTL 调试（1001 个任务）
+## 构念
 
-- 1 个手工制作的冒烟任务
-- 1000 个生成任务：10 种缺陷类型 x 每种 100 个任务
-- 数据类型：`mutation_synthetic`（在正确设计中注入缺陷）
+每个任务都是一次**语义交接**：从*角色误导性*的证据中，把一个元组绑定到规范的类型化角色上。难点刻意不是检索。在工作实例中，证据文件把它们的轴字段标为 `op_point` 与 `mode`，而歧义变体不附术语表也不附轴声明，因此"每个标签指哪个逻辑轴"本身就必须从各来源的交集中还原出来。
 
-| 缺陷类型 | 数量 | 描述 |
-|----------|-------|-------------|
-| sensitivity_list | 100 | 不完整的 `always @(*)` 敏感列表 |
-| blocking_nonblocking | 100 | `=` 与 `<=` 的错误使用 |
-| reset_polarity | 100 | 高有效与低有效的极性不匹配 |
-| width_truncation | 100 | 端口宽度不匹配导致数据丢失 |
-| comparison_boundary | 100 | 比较操作中的差一错误 |
-| wrong_mux_select | 100 | 不正确的多路复用器 case/select 信号 |
-| priority_order | 100 | 错误的 if-else 优先级 |
-| fsm_transition_error | 100 | 不正确的状态转移 |
-| counter_off_by_one | 100 | 计数器边界错误 |
-| enable_condition | 100 | 缺失或错误的使能条件 |
+让该构念可被测量的性质是 **tool-green**：错误的绑定仍会产生绿色的工具签核。在工作实例中，随附的四份证据源在 PrimeTime 下全部签核为绿，包括那份两个角色字段被互换的。没有任何工具信号能把它们与真值区分开 —— 只有类型化 oracle 能。一个按工具退出码给这个任务计分的基准，会把错误绑定判为通过。
 
-### P2 测试平台/SVA 生成（101 个任务）
+正确性在构建期由穷举决定，而非由评分器判断：对工作实例而言，在声明的取值域上有 294 个候选赋值，其中恰有一个满足五条可还原的约束。
 
-- 1 个冒烟任务 + 100 个生成任务
-- 10 个设计模板：mux2、counter、fsm、handshake、priority_encoder、pulse_detector、arbiter、edge_detector、valid_ready_fsm、fifo_status
-- 10 个模板共 20 个变异体变种（极性反转、stuck-at、错误转移、阈值错误等）
-- 数据类型：`mutation_synthetic`（正确设计 + 每个任务 2 个变异体）
-- Agent 编写在正确设计上通过并捕获两个变异体的测试平台
-- 评分：compile（0.2）+ golden_pass（0.4）+ mutant_1（0.2）+ mutant_2（0.2）
+## 条件
 
-### P3 时序报告 QA（1008 个任务）
+三个条件的隐藏真值与评分器完全相同；只有可见信息不同。
 
-- 1 个冒烟任务 + 999 个生成任务 + 8 个 PT 原型任务
-- 数据类型：`template_synthetic`（合成的标准化时序报告）
-- Agent 回答关于时序报告字段（WNS、TNS、slack 等）的问题
-- 10 种问题类型，轮询分布（每种 99–100 个）
-- 30 个唯一时钟，15 个路径组，~30% 多时钟报告
-- 不需要真实 PrimeTime 工具（使用合成报告）
-- 评分：answer_match（1.0）
+| 条件 | agent 能看到什么 |
+|---|---|
+| **Base** | 歧义的交接。不披露该实例的赋值，无术语表，无轴声明 |
+| **BundleS** | 规范标签（C1）、取值域定义（C2）、术语表（C4）、流程契约（C7）。**不含 C6** —— 没有 golden 值，没有实例赋值 |
+| **TypedContract** | 与 BundleS 相同的信息，表达为 JSON Schema |
 
-### P4 SPICE 仿真（302 个任务）
+BundleS 是**与实例答案无关**，而不是"无答案"：它扣留该实例的目标元组，但刻意披露*任务级的角色语义* —— 某个标签指哪个轴、每个轴接受哪些取值。称其"无答案"会低估它。schema 与生成器结构*联合起来*是否允许还原出某个赋值，是另一个尚未解决的问题；论文点明了能解决它的泄漏检查，并把它标为尚未进行的、信息量最大的那一个实验。
 
-- 2 个冒烟任务（1 个 HSPICE，1 个 Spectre）
-- 300 个生成任务，3 种电路类型（每种 100 个：50 个 HSPICE + 50 个 Spectre）
-- 电路类型：RC 上升延迟、RC 下降延迟、RLC 响应
-- 数据类型：`template_synthetic`（带参数化元件值的 RC/RLC 电路）
+组件定义见 [`synthetic_p14_phase4w_clarity_bundle_ablation_design.md`](synthetic_p14_phase4w_clarity_bundle_ablation_design.md)。
 
-每个任务修复一个电路以满足上升/下降时间规格。缺陷版本的电阻值过高 4-20 倍（RLC 为过阻尼），导致边沿缓慢。解答版本将其替换为正确的值。
+## 目录形态
 
-### P5 SPICE 网表调试（100 个任务）
+```
+<instance>/
+  prompt.md          交接简报
+  metadata.json      机器可读规格（见 task_schema.zh.md）
+  files/             可见；其中指名的子集可编辑。证据源放在这里
+  hidden/            永不进入 agent 工作区：隐藏真值、类型化评分器、可信生成器
+  solution/          golden 提交
+```
 
-- 100 个从外部调试对比验证包导入的任务
-- 数据类型：`flow_synthetic`（在有效网表中注入结构/语法错误，用真实 HSPICE 验证）
+对工作实例而言，`files/` 有 25 个可见文件，其中 5 个可编辑；`hidden/` 有 11 个 —— 包括 `handoff_truth.json` 与 `grade_workflow.py`。agent 工作区只由可见+可编辑文件构建；评分在第二个工作区中进行，那里叠加了 `hidden/`。见 [`agentic_runner.zh.md`](agentic_runner.zh.md)。
 
-| 错误类别 | 数量 | 描述 |
-|----------------|-------|-------------|
-| missing_model | 15 | 引用未定义的 MOSFET/二极管模型 |
-| duplicate_element | 15 | 两个元件共享相同名称 |
-| missing_subckt | 14 | 引用未定义的子电路 |
-| wrong_pin_count | 14 | 子电路实例引脚数错误 |
-| missing_include | 14 | .include 引用不存在的文件 |
-| unsupported_dialect | 14 | 模型级别不被 HSPICE 支持 |
-| invalid_directive | 14 | 格式错误的 .include（无文件名） |
+## 家族独立性
 
-### P6 DC 综合 QA（51 个任务，原型）
+独立性由五条预注册的结构性准则定义 —— 独立的模板、词汇、真值、评分器、诱饵 —— 且是机械核验而非口头声明：`scripts/phase5a_independence_check.py` → `reports/synthetic_phase5_independence_check.json`。它对每个新的生成器/评分器/评测器做哈希，并断言：没有一个导入 p14 的评分器或生成器；角色词汇互不相交；新的真值文件不含 p14 的任何键；评分器模块使用不同的主门禁模式；诱饵配方类别不同。一旦发现结构重叠，冻结即被阻止。
 
-- 1 个冒烟任务 + 50 个生成任务
-- 数据类型：`template_synthetic`（合成的 DC 综合报告）
-- Agent 回答关于综合报告字段（面积、单元数、时序等）的问题
-- 10 种问题类型，轮询分布（每种 5 个）
-- 50 个模块名，30 个时钟名
-- 不需要真实 DC 工具（使用合成报告）
-- 评分：answer_match（1.0）
+通过意味着*在这些准则下未检测到重叠* —— 它不证明独立性。而论文对残余局限直言不讳：三个家族都由我们自己撰写，且都在 EDA 之内，所以这里的跨家族迁移更应读作"同一设计宇宙内的跨生成器迁移"，而不是跨领域迁移。
 
-### P6 DC 约束调试（61 个任务）
+规格见 [`synthetic_phase5a_family_specs.md`](synthetic_phase5a_family_specs.md)、[`synthetic_workflow_generator_spec.md`](synthetic_workflow_generator_spec.md)。
 
-- 1 个冒烟 + 60 个生成，6 种缺陷类别 × 10 个 RTL 模板
-- 数据类型：`template_synthetic`；基于执行的 SDC 修复（Design Compiler）
-- 评分：constraint_pass（0.6）+ execution_pass（0.3）+ explanation（0.1）
+## 准入门禁
 
-### P7 SpyGlass Lint 调试（50 个任务）
+一个实例只有同时通过两项才被接受：
 
-- 1 个冒烟 + 49 个生成，3 个 Lint 类别 × 设计库
-- 基于执行，使用真实 SpyGlass（sg_shell）
-- 评分：lint_pass（0.9）+ explanation（0.1）
+- **唯一性** —— 穷举恰好得到一个满足约束的赋值。
+- **硬可行性** —— 烘焙必须产出一个错误绑定的产物，它能被工具接受、能执行、能给出貌似合理的签核，却在语义上是错的，并且*确实*被类型化 oracle 拒绝。一个平凡地工具报红或无法解析的错误绑定会使该实例不合格并被重新生成。每个实例都把这五条准则与评分器的拒绝结果记入 `hard_feasibility.json`。
 
-### P7 PrimeTime STA 调试（53 个任务）
+## 评分
 
-- 1 个冒烟 + 52 个生成，4 种缺陷类型 × 13 个模板
-- 基于执行，使用真实 PrimeTime（pt_shell）
-- 评分：timing_check（0.6）+ execution_pass（0.3）+ explanation（0.1）
+权重按家族划分；主证据门禁把类型化成员判定折进去，因此一个签核为绿但类型错误的包无论其他分项如何都无法通过。
 
-### P8 PnR 报告问答（101 个任务，原型）
+| 家族 | 分项 |
+|---|---|
+| p14 workflow | `signoff` .10 · `final_state` .15 · `evidence_generation` .25 · `stage_chain` .10 · `provenance` .10 · `authority_consistency` .10 · `hazard_recovery` .10 · `explanation` .10 |
+| p15 STA | `provenance_attested` .30 · `coverage_cell_consistent` .20 · `check_view_legal` .10 · `pt_signoff_green` .10 · `not_masking` .15 · `explanation` .15 |
+| p16 SPICE | `semantic_binding` .30 · `evidence_provenance` .20 · `simulation_success` .10 · `numeric_validity` .10 · `artifact_completion` .15 · `protocol_completion` .15 |
 
-- 1 个冒烟 + 100 个生成，9 种问题类型
-- 基于解析器的合成 ICC2/Innovus 报告 QA（不需要真实工具）
-- 评分：answer_match（0.9）+ explanation（0.1）
+请注意 p15 中 `pt_signoff_green` 值多少：0.10。工具成功只是一个分项，绝不是裁决。两种绝不合并的失败子类型以及 oracle 的判定谓词见 [`scoring.zh.md`](scoring.zh.md)。
 
-## 评估模式
+## 资源限制
 
-每个任务支持两种提交模式用于验证：
+三个家族都用**standard** 预设，难度 `hard`。超时：p14 为 600 秒（它要重新生成两阶段的证据链），p15 与 p16 为 300 秒。
 
-- **Solution 模式**：任务的 `solution/` 目录作为提交。预期：所有任务得分为 1.00。
-- **Buggy 模式**：任务的可见/可编辑文件（有缺陷的原始文件）作为提交。预期：所有任务得分 < 1.00。
+## 溯源与已知局限
 
-这些模式验证任务校准良好：正确答案总是通过，缺陷基线总是失败。
-
-## 当前验证结果
-
-| 模式 | 任务 | 平均分 | Buggy 较低 |
-|------|-------|-----------|-------------|
-| Solution | 2828/2828 | 1.00 | N/A |
-| Buggy | 2828/2828 | < 1.00 | 2828/2828 |
-
-## 测试套件
-
-- pytest：全部通过
-- 每个 track 的冒烟脚本（VCS、P2、P3、HSPICE、Spectre、P5、P6、P7 SpyGlass、P7 PrimeTime、P8）
-- 数据集评估冒烟（所有 track）
-
-## 文件可见性
-
-| 类别 | Agent 可读？ | Agent 可编辑？ | 用于评分？ |
-|----------|----------------|-----------------|-------------------|
-| visible | 是 | 否（除非也可编辑） | 是 |
-| editable | 是 | 是 | 是 |
-| hidden | 否 | 否 | 是 |
-| forbidden | 否 | 否 | 检查是否被篡改 |
-
-## 生成的产物
-
-确定性数据集产物位于 `reports/` 下：
-
-- `task_inventory.json` / `task_inventory.csv` — 包含元数据的完整任务清单
-- `benchmark_summary.md` — 人类可读的摘要（数据集变更后请重新生成）
-- 按 track 分布：`p1_bug_distribution.csv`、`p2_template_mutant_distribution.csv`、`p3_question_type_distribution.csv`、`p5_error_category_distribution.csv`、`p6_question_type_distribution.csv`
-- `leaderboard_template.csv` — 用于记录模型评估结果的空模板
-
-生成命令：`python scripts/export_benchmark_summary.py`
-
-## 已知限制
-
-1. Agent 运行器 MVP 可用（`run-agent`、`run-agent-dataset`）；尚无交互式循环或逐次工具调用记录。
-2. P1 和 P4 使用精确解答匹配；P5 / P6 约束 / P7 调试 track 接受任何功能正确的修复（基于执行）。
-3. P4 覆盖 RC 和 RLC 拓扑（无运放或数字 SPICE）。
-4. P6 DC 约束 / P7 SpyGlass / P7 PrimeTime 调试 track 已规模化至 50+（在真实工具上验证）；P6 DC 综合 QA 与 P8 报告问答仍为原型。
-5. 提交模式下无 LLM API 集成用于解释评分。
-
-## 预期用途
-
-本基准测试适用于：
-
-- 评估 LLM/agent 执行 EDA 工程任务的能力
-- 在基于工具的代码修复和优化方面比较模型
-- 硬件设计 agent 工作流程的研究
-
-本基准测试不适用于：
-
-- 知识问答式的 EDA 问题
-- 无需运行 EDA 工具即可解决的任务
-- 训练数据（任务是合成的，非真实设计）
-
-## 伦理考量
-
-- 所有任务使用合成设计；不包含真实知识产权。
-- 商业 EDA 工具输出在存储前经过清理。
-- 日志去除用户名、主机名、绝对路径和许可证服务器名称。
-- 任务文件中不存储 API 密钥或凭证。
+- **已冻结。** 每个实例都处于实验冻结 HEAD 或其之前；任务语义不得改动。见 [`provenance.zh.md`](provenance.zh.md)。
+- **保管。** 逐 episode 字节比对、每个 episode 前后的规范哈希核验，以及由 `scripts/frozen_membership_verify.py` 核验的 1065 条 `path → sha256` 成员钉。
+- **两个生成器在冻结之后漂移。** 论文报告的数字来自被钉住的版本；漂移被如实报告而非抹去。
+- **九个被钉住的构建产物缺失。** 九个 p16 实例下的 `circuit_built.sp` 是被 gitignore 的 HSPICE 产物；清单在运行时钉住了它。
+- **面板很小。** S0、S1、S2-M 各自只依赖单实例单元、*k*=3–4。没有任何单元达到论文的*已泛化*层级。
+- **没有人类验证。** 正确性由可执行 oracle 判定，它们内部自洽且实例唯一，但未被证明与专家人类判断一致。盲法人类研究已预注册但从未执行。
+- **未匿名化。** 见 [`REMOVED.zh.md`](REMOVED.zh.md)。
