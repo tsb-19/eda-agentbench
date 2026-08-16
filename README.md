@@ -121,6 +121,19 @@ never `hidden/`; grading happens in a second workspace that overlays the hidden 
   `docs/frozen_membership_baseline.json`. They are carried forward rather than quietly cleaned up,
   because a clean sheet would hide real drift.
 
+## Documentation language
+
+Reader-facing documentation is bilingual: `x.md` plus `x.zh.md`, cross-linked in the first line.
+Three categories are deliberately English-only, and it is a decision rather than an omission:
+
+- **`CLAUDE.md`** — operating instructions consumed by coding agents, not a document for readers.
+- **`docs/phase7/*` and the `docs/synthetic_*` design records** — historical records of what was
+  believed and committed at a freeze point. One is hash-pinned and one is path-pinned; translating
+  a frozen record would create a second version of something whose value is that it cannot change.
+- **task `prompt.md`, `spec.md` and `glossary.md` files** — these are experimental *stimuli*. The
+  measured effect is a harness-information effect, so rewording what the agent reads would change
+  the measurement rather than document it.
+
 ## Commercial tools
 
 The families target commercial Synopsys tools; no open-source EDA tool substitutes. Probes look

@@ -93,6 +93,14 @@ agentic 路径采用两阶段工作区模型：agent 只看到可见+可编辑�
 - **本分支未做匿名化。** 约 212 个冻结的保管文件含有用户名、主机名或绝对路径，改写它们会破坏论文所主张的保管链。双盲补充材料需要另做一次脱敏导出，而不是 git 编辑。见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 - **两个生成器在冻结之后漂移了。** `frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件，均为既有状态，解释见 `docs/frozen_membership_baseline.json`。它们被原样带过来而不是被悄悄清理，因为一张"干净的表"会掩盖真实的漂移。
 
+## 文档语言
+
+面向读者的文档一律双语：`x.md` 加 `x.zh.md`，在首行相互链接。有三类刻意只保留英文，这是决定而非遗漏：
+
+- **`CLAUDE.md`** —— 供编码 agent 消费的操作说明，不是给读者看的文档。
+- **`docs/phase7/*` 与 `docs/synthetic_*` 设计记录** —— 记录的是某个冻结点上所相信、所提交的内容。其中一份被哈希钉住、一份被路径钉住；翻译一份冻结记录，等于为"其价值恰在于不可更改"的东西造出第二个版本。
+- **任务的 `prompt.md`、`spec.md`、`glossary.md`** —— 这些是实验*刺激材料*。被测量的效应正是 harness 信息效应，因此改写 agent 所读到的文字会改变测量本身，而不是记录它。
+
 ## 商业工具
 
 三个家族面向商业 Synopsys 工具；没有开源 EDA 工具可以替代。探测默认在 `/EDA/soft2/synopsys/` 与 `/EDA/soft2/cadence/` 下进行；若安装前缀不同，可设 `EDA_TOOL_ROOT` 替换开头的 `/EDA`。任务定义中不写死任何路径。见 [`docs/commercial_tool_policy.zh.md`](docs/commercial_tool_policy.zh.md)。

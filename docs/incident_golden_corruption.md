@@ -1,4 +1,4 @@
-**English**
+**English | [中文](incident_golden_corruption.zh.md)**
 
 # Incident: the canonical golden truncated to `{}` — root cause and fix
 
@@ -137,7 +137,9 @@ at all. Content-first, then process-level.
 true cause on the strength of a generalization: *"all tests use `tmp_path`; `scripts/check` is
 innocent."* That generalization was never checked against this one file. Ask what was actually
 verified, on which specific artifact and code path — a conclusion supports only the scope it was
-tested at, which is the same discipline the accompanying paper argues for in its claim-scope ladder.
+tested at, which is the same discipline the accompanying paper argues for with its claim-scope
+lattice. (The paper deliberately does *not* call that structure a ladder: the point is that the
+scope coordinates are partially ordered, so widening one is incomparable to widening another.)
 
 ## Standing guidance
 

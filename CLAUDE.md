@@ -152,8 +152,11 @@ dispatch edit; an unknown spec raises rather than falling back to a different gr
 
 - Prefer Python for generators, runners, evaluators and report scripts; simple shell for tool
   invocation. Keep tool setup out of generators — nothing hardcodes an EDA path.
-- Every documentation change ships **both** languages: `x.md` and `x.zh.md`, with the
-  `**English | [中文](x.zh.md)**` header. A monolingual doc is an incomplete change.
+- Every **reader-facing** documentation change ships both languages: `x.md` and `x.zh.md`, with
+  the `**English | [中文](x.zh.md)**` header. A monolingual reader-facing doc is an incomplete
+  change. Deliberately English-only, for the reasons given in `README.md`: this file, the frozen
+  `docs/phase7/*` and `docs/synthetic_*` records, and task `prompt.md`/`spec.md`/`glossary.md`
+  (experimental stimuli — rewording them would change the measurement).
 - Generated artifacts go in `reports/`, never in `docs/`.
 - Never commit `.env`, `runs/`, `workspaces/`, raw simulator output (`*.log *.lis *.raw *.trn *.st0
   *.sw0 *.ac0 *.ic0`), license paths or API keys.
