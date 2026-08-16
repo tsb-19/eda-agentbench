@@ -1,93 +1,95 @@
+**English | [中文](README.zh.md)**
+
 # reports/ — evidence index
 
-This directory holds the benchmark's measurement artifacts and the synthetic-research probe
-reports. **Top level = load-bearing evidence** (mechanism findings, failure modes, reliability
-data, and the code-generated benchmark artifacts). **`archive/` = probes whose outcome was
-"everything passed / saturated"** — kept for the record, digested by a synthesis, no longer
-load-bearing. `evidence/` holds sanitized per-episode artifacts (submitted files, grader
-breakdowns, stream diagnostics, hashes) for the probe reports that cite them.
+Every number in the paper is derived from this directory by a committed script, never
+transcribed by hand. Two kinds of thing live here:
 
-Nothing in `archive/` was edited — files are moved verbatim; every entry is indexed below with
-its verdict.
+- **`evidence/`** — frozen, read-only custody records: sanitized per-episode artifacts
+  (submitted `flow_config.json`, grader breakdown, stream diagnostics, agent log), pre-run
+  freeze manifests, randomization schedules, and `path → sha256` membership manifests that pin
+  the exact code in force when each set of paid episodes ran. `scripts/frozen_membership_verify.py`
+  re-checks all 1065 of those pins; `scripts/check` runs it on every invocation.
+- **top level** — the per-phase collection reports and the derived artifacts the manuscript
+  reads. Nothing here is edited by hand either; each file names the script that wrote it.
 
-## What the research line demonstrates (paper-facing map)
+On this branch the directory holds only the evidence for the three semantic-handoff families the
+paper studies. The benchmark measurement artifacts (baseline sweeps, leaderboards, task
+inventories, per-track distributions), the reliability-layer reports, the phase-6 freeze manifest
+superseded by phase-7c, and `archive/` (probes whose outcome was saturation) were removed with
+the tracks they described — see [`../docs/REMOVED.md`](../docs/REMOVED.md) for the list and how
+to retrieve any of them from `master`.
 
-**C1 — Multi-artifact EDA workflow benchmark with typed-binding oracles on real commercial
-tools.** Agents must bind conflicting evidence to semantic roles (netlist/clock/scenario/corner)
-and regenerate a real PrimeTime evidence chain; a typed-binding oracle makes *signoff-green but
-semantically wrong* machine-detectable (the 0.20 signature: `signoff=1.0`,
-`evidence_generation=0`). 294→1 uniqueness gates; anti-cheat (oracle isolation, tcl-injection,
-hash, hidden-shadow checks).
-→ `synthetic_p14_v5_0006_constraint_graph_probe.*`, task family under
-`tasks/p14_workflow_handoff/`, designs in `docs/synthetic_*.md`.
+## Which report backs which claim
 
-**C2 — Clarity-bundle controlled-pair methodology.** `workflow_handoff_0009` (ambiguous) vs
-`0010` (clear control): byte-identical hidden truth, grader, flow, mutant, decoys — differing ONLY
-in the visible clarity bundle. Accepted primary conclusion (k=3 per cell, Phase-4V2): *the full
-clarity bundle suppresses the scenario/corner wrong-axis binding failure for both models — DeepSeek
-0/3→3/3, Qwen 1/3→3/3 — a replicated cross-model effect on this constructed pair, not yet a general
-population success-rate estimate.* This establishes the effect of the complete bundle; it does not
-isolate the causal component or generalize beyond 0009/0010 (Phase-4W ablation subject). Qwen × 0010
-reached 3/3 artifact/typed-binding correctness but only 1/3 protocol-complete FINISH — role clarity
-suppressed the binding error, not termination inefficiency.
-→ `synthetic_p14_balanced_controlled_pair.*` (Phase-4V2, the balanced 2×2 × k=3 result),
-`synthetic_p14_qwen_0009_stream_anchor.*` (Phase-4V1), `synthetic_p14_semantic_role_controlled_pair_probe.*`
-(Phase-4U), evidence in `evidence/p14_qwen_0009_stream_anchor/` and `evidence/p14_qwen_0010_stream_anchor/`.
+For the full paper↔file mapping see [`../docs/artifact_map.md`](../docs/artifact_map.md). The
+short version:
 
-**C3 — Reliability/calibration layer over agentic capability.** pass@k / pass^k, run-to-run
-variance at temperature>0, confidence elicitation, `overconfident_wrong`,
-protocol-vs-capability failure classification. Instantiated concretely: a HIGH-confidence
-wrong-axis submission (Qwen × 0009 trial1) and a byte-confirmed confident-wrong DeepSeek
-episode on 0006/0005.
-→ `reliability_phase2.*`, `reliability_phase2_repaired.*`,
-`synthetic_p14_v5_0006_deepseek_k5_preserved.*`, `synthetic_p14_v4_0005_deepseek_calibrated.*`.
-
-**C4 — Measurement-validity discipline.** Fairness anchors; infrastructure-invalid vs
-capability classification; discovery that a NON-STREAMING transport censors long-reasoning
-(thinking) models via the socket-inactivity timeout — and its resolution by dependency-free SSE
-streaming (code `e1c36d2`), which reclassified the Phase-4V Qwen episodes as transport-invalid.
-Process-isolated hard request deadlines bound slow-drip stalls.
-→ `synthetic_p14_qwen_0009_fairness_anchor.*` (the unresolved→resolved arc),
-`synthetic_p14_qwen_0009_stream_anchor.*`, `tests/test_llm_streaming.py`,
-`tests/test_llm_driver_deadline.py`.
-
-**C5 — Saturation discovery as a design method.** Systematic cheap probes showed frontier
-models saturate single-fault localization and lookup-style tasks; each negative result
-redirected design toward ambiguity/conflict mechanisms (don't publish the binding vocabulary —
-make inference the task). The archived probes below are that chain's raw record; the syntheses
-live in `docs/synthetic_p14_*_synthesis.md` and `docs/synthetic_negative_results_summary.md`.
-
-## Top-level reports (kept — load-bearing)
-
-| Report | Why it is load-bearing |
+| Paper location | Report |
 |---|---|
-| `synthetic_p14_v5_0006_constraint_graph_probe` | Origin of the semantic-role binding mechanism: first real capability-difficulty signal (DeepSeek 2/3 + byte-confirmed confident-wrong; Qwen 3/3) |
-| `synthetic_p14_v5_0006_deepseek_k5_preserved` | Reproducibility of the 0006 signal at k=5 (4/5, one byte-confirmed wrong-global-assignment) |
-| `synthetic_p14_semantic_role_controlled_pair_probe` | Phase-4U controlled pair: DeepSeek 0009 0/3 vs 0010 3/3 — the clarity bundle produces the difference |
-| `synthetic_p14_qwen_0009_fairness_anchor` | Phase-4V: the fairness anchor UNRESOLVED — measurement-invalid via non-streaming long-reasoning transport censoring (the C4 discovery) |
-| `synthetic_p14_qwen_0009_stream_anchor` | Phase-4V1 (streaming, k=3): Qwen × 0009 anchor over the fixed transport — wrong-axis failure reproduces (2/3) |
-| `synthetic_p14_balanced_controlled_pair` | Phase-4V2 balanced 2×2 × k=3: the full clarity bundle suppresses the wrong-axis failure for both models (DeepSeek 0/3→3/3, Qwen 1/3→3/3); effect of the complete bundle on this pair, not component-isolated |
-| `synthetic_p14_v4_0005_deepseek_calibrated` / `_deepseek_k5_preserved` / `_deepseek_preserved_followup` | v4 0005 reliability chain: mixed solve + confident-wrong episodes (calibration evidence); digested in `docs/synthetic_p14_v4_post_k5_synthesis.md` |
-| `reliability_phase2` / `reliability_phase2_repaired` | Reliability layer result: non-passes are dominantly protocol, trust discriminates models |
-| `prompt_diversification_real_pilot` / `prompt_diversification_review_packet` | Prompt-diversification evidence (referenced by `tests/test_prompt_diversification.py` — do not move) |
-| `baseline_summary`, `benchmark_summary`, `*.csv`, `task_inventory.*` | Generated benchmark artifacts — written at these fixed paths by `scripts/export_benchmark_summary.py` / `scripts/run_baseline_suite.py` (do not move) |
+| Table 2, rows S0 / S1 / S2-M | `synthetic_p14_study1_ledger.json` (generated by `scripts/phase7c_study1_ledger.py`) |
+| Table 2, row STA (S2-F) | `synthetic_phase7a_sta72_report.json` |
+| Table 2, row SPICE (S2-F ceiling) | `synthetic_phase5c_collection_report.json` |
+| Table 7 ledger; every `\Stat*` macro | `synthetic_p14_study1_ledger.json`, `synthetic_p14_claim_statistics.json` |
+| Table 9, three-instance pilot | `synthetic_phase5d_collection_report.json` |
+| §5 Terminal-Bench 2.0→2.1 coding | `synthetic_phase7c_terminalbench_audit.md`, `evidence/phase7c_terminalbench/` |
+| §5 transport-censoring incident | `synthetic_p14_qwen_0009_fairness_anchor.*` (unresolved) → `synthetic_p14_qwen_0009_stream_anchor.*` (resolved) |
+| §5 SPICE action-surface false positive | `synthetic_phase5c_spice_forensic_audit.json` |
+| App. F freeze points, program accounting | `synthetic_p14_phase4z_freeze_manifest.json` |
+| App. F family independence (5 criteria) | `synthetic_phase5_independence_check.json` |
 
-## archive/ (verbatim moves — outcome was saturation / merely-positive / superseded)
+## Top-level reports
 
-| Archived report | Verdict (from the report itself) |
+**Study I — the workflow family (p14).** The ablation chain, in the order it ran. A condition
+measured in two run windows keeps both reports; the ledger deliberately does not deduplicate
+them, because the disagreement between windows is itself the evidence that a component result at
+*k*=4 is not stable enough to name a mechanism.
+
+| Report | What it carries |
 |---|---|
-| `synthetic_p11_tiny_probe` | early FlowHandoff smoke — saturated |
-| `synthetic_p12_smoke_probe` | multi-artifact handoff smoke — saturated |
-| `synthetic_p13_smoke_probe` | trajectory/evidence-generation smoke — saturated |
-| `synthetic_p14_tiny_probe` | p14 v1 tiny probe — saturated |
-| `synthetic_p14_v2_0003_probe` | stopped early at k=1 cost cap; completed episodes solved |
-| `synthetic_p14_v3_0004_capability_probe` | k=3 valid, both models saturated |
-| `synthetic_p14_v4_0005_capability_probe` | stopped at k=1 cost cap; superseded by the k5 chain |
-| `synthetic_p14_v5_0006_qwen_k5_preserved` | Qwen robustly saturates 0006 (5/5, zero wrong) |
-| `synthetic_p14_v6_0007_axis_binding_probe` | 0007 saturated at k=3 for both models (published axis schema → lookup) |
-| `synthetic_p14_v7_0008_implicit_axis_binding_probe` | 0008 did not restore difficulty (6/6 correct) |
-| `synthetic_phase0d_probe` | phase-0D constraint-drift family probe — superseded by the p14 line |
+| `synthetic_p14_v5_0006_constraint_graph_probe` | origin of the semantic-role binding mechanism: the first real capability-difficulty signal (DeepSeek 2/3 with a byte-confirmed confident-wrong episode; Qwen 3/3) |
+| `synthetic_p14_v5_0006_deepseek_k5_preserved` | the 0006 signal at *k*=5 (4/5, one wrong global assignment) |
+| `synthetic_p14_v4_0005_deepseek_calibrated` · `_k5_preserved` · `_preserved_followup` | the 0005 chain: mixed solves and confident-wrong episodes |
+| `synthetic_p14_semantic_role_controlled_pair_probe` | the first controlled pair: DeepSeek 0009 0/3 vs 0010 3/3 |
+| `synthetic_p14_qwen_0009_fairness_anchor` | the anchor **unresolved** — measurement-invalid through non-streaming transport censoring of a long-reasoning model. Paper Table 3, execution layer |
+| `synthetic_p14_qwen_0009_stream_anchor` | the same anchor over SSE streaming: the wrong-axis failure reproduces (2/3) |
+| `synthetic_p14_balanced_controlled_pair` | balanced 2×2 × *k*=3: the full bundle (including C6) moves both models to 3/3 |
+| `synthetic_p14_phase4w_run1` · `_run2` · `_heldout` | BundleS on the development instance, its repeat window, and the pre-frozen held-out instance (paper S0 and S1) |
+| `synthetic_p14_phase4x_dev` · `_stage1b` · `_stage1c` | Schema-vs-Contract decomposition |
+| `synthetic_p14_phase4y_stage1` · `_phase4y2_stage2` · `_phase4y3_stage3` · `_phase4y3_c24_bridge` | the component ablation: C1 alone, C2-only, C4-only, the C24 bridge — none isolated a stable component |
+| `synthetic_p14_phase4z_freeze_manifest` · `_synthesis` | the phase matrix, freeze points and program accounting behind Appendix F |
+| `synthetic_p14_phase4z_figures_tables.md` | generated figure/table dump (`scripts/phase4z_figures_tables.py`) |
+| `synthetic_p14_study1_ledger.json` · `synthetic_p14_claim_statistics.json` | the two derived artifacts the manuscript `\input`s |
 
-**Archive policy:** move whole files, never edit content; a report is archivable only when its
-outcome is merely-positive/saturated AND a kept synthesis (in `docs/` or a kept report) carries
-its lesson; anything with failure-mode, calibration, or mechanism signal stays at top level.
+**Study II — the cross-family probes (p15 STA, p16 SPICE).**
+
+| Report | What it carries |
+|---|---|
+| `synthetic_phase5a_design.json` | the pre-declared cross-family design (design-only, no paid calls) |
+| `synthetic_phase5_independence_check.json` | the five structural independence criteria, checked mechanically |
+| `synthetic_phase5b_eval_set_report` · `_gate_report` · `_phase5c_budget` | eval-set construction, the pre-run gate, and the committed budget |
+| `synthetic_phase5c_collection_report` | Family B (SPICE): Base = BundleS = TypedContract = 1.00, the non-discriminative ceiling |
+| `synthetic_phase5c_spice_forensic_audit.json` | the action-surface false positive that had spuriously zeroed 12 SPICE episodes and hidden that ceiling |
+| `synthetic_phase5d_collection_report` | the three-instance STA pilot (paper Table 9), whose descriptive direction the prospective panel reversed |
+| `synthetic_phase7a_sta12_construction` | construction of the twelve prospective STA instances |
+| `synthetic_phase7a_sta72_report` | the prospective panel: 72 episodes, Base .208 / BundleS .333 / TypedContract .458 |
+
+**Study III — measurement validity.**
+
+| Report | What it carries |
+|---|---|
+| `synthetic_phase7c_terminalbench_audit.md` | the 26 Terminal-Bench 2.0→2.1 repairs coded under the frozen four-layer rubric: 1 direct, 21 partial, 4 outside; sampling layer 0 |
+
+## Regenerating the derived artifacts
+
+```bash
+python3 scripts/phase7c_study1_ledger.py --check       # ledger: 58 program-primary + 12 controlled-pair = 70
+python3 scripts/phase7c_claim_statistics.py --check    # intervals, bands, p-values, pilot table
+python3 scripts/phase4z_figures_tables.py              # figure/table dump
+```
+
+`--check` recomputes from `evidence/` and diffs against the committed JSON, exiting non-zero on
+any drift. Drop `--check` to rewrite. Both scripts assert their episode counts against the frozen
+program manifest and abort on mismatch — an earlier aggregation of these same records keyed cells
+by (condition, model) in a dictionary and silently dropped repeat measurements, which is a failure
+mode a stated inclusion rule alone does not prevent.
