@@ -48,6 +48,7 @@ positive) would have produced confident wrong numbers in *any* analysis of the u
 | know how correctness is decided | [`docs/scoring.md`](docs/scoring.md) |
 | know which commit produced what | [`docs/provenance.md`](docs/provenance.md) |
 | know what this branch dropped and why | [`docs/REMOVED.md`](docs/REMOVED.md) |
+| see it as a one-page overview | [`docs/overview.html`](docs/overview.html) |
 
 ## Layout
 

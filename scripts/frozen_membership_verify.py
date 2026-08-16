@@ -2,8 +2,10 @@
 """Verify every frozen path->sha256 pin recorded anywhere under reports/.
 
 The pre-run freeze manifests under `reports/evidence/` record the sha256 of the exact
-"membership code" (generators, graders, drivers, freeze/fairness scripts, tests) that was in
-force when a set of paid episodes ran.  Those hashes are the reason a reader can believe the
+"membership code" and task files in force when a set of paid episodes ran -- as of the branch
+point that is 1020 task files, 36 scripts, 6 generator files and 3 package modules.  Some tests
+and documents are *named* in those manifests without a hash: naming means the path must stay
+valid, only a hash means the bytes must stay identical.  Those hashes are the reason a reader can believe the
 reported numbers were produced by the committed code and not by something edited afterwards.
 
 This script re-derives that check mechanically: it walks every JSON under reports/, extracts

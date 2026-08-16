@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>语义交接与测量效度 · 论文产物速览</title>
+<title>Semantic Binding and Measurement Validity · artifact overview</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -53,7 +53,7 @@
   .mast .kicker{font-family:var(--mono);font-size:11.5px;letter-spacing:.22em;color:var(--accent);
     text-transform:uppercase;margin-bottom:8px}
   .mast h1{font-family:var(--mono);font-weight:600;margin:0;font-size:40px;letter-spacing:-.5px;line-height:1}
-  .mast .zh{font-size:16px;color:#cdd3dc;margin:10px 0 0;font-weight:500}
+  .mast .zh,.mast .tagline{font-size:16px;color:#cdd3dc;margin:10px 0 0;font-weight:500}
   .mast .sub{font-size:13px;color:#aab2bf;margin:12px 0 0;max-width:680px;line-height:1.66}
   .mast .tags{position:relative;display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
   .mast .tags span{font-size:11.5px;color:#dfe3ea;border:1px solid rgba(243,239,230,.22);
@@ -150,83 +150,83 @@
   <header class="mast">
     <div class="row">
       <div>
-        <div class="kicker">ICLR 2027 投稿 · 可复现产物</div>
-        <h1>审计 LLM Agent Harness 的泛化论断</h1>
-        <div class="zh">语义绑定与测量效度 —— 三个跨真实商用 EDA 工具的受控家族</div>
-        <p class="sub">当一次 harness 干预改变了 agent 的行为，你到底可以主张什么？本仓库是该问题的证据基础：论文、三个任务家族、审计基础设施，以及每个数字所源自的冻结记录。</p>
+        <div class="kicker">ICLR 2027 submission · reproducibility artifact</div>
+        <h1>Auditing Generalization Claims for LLM Agent Harnesses</h1>
+        <div class="tagline">Semantic binding and measurement validity — three controlled families on real commercial EDA tools</div>
+        <p class="sub">When a harness intervention changes agent behaviour, what may you actually claim? This repository is the evidence base for that question: the paper, the three task families, the audit infrastructure, and the frozen records every number comes from.</p>
       </div>
       <div class="cluster">
-        <div class="s"><div class="n">3</div><div class="l">个任务家族</div></div>
-        <div class="s"><div class="n">84</div><div class="l">个任务目录</div></div>
-        <div class="s"><div class="n">190</div><div class="l">个付费 episode</div></div>
-        <div class="s"><div class="n">1065</div><div class="l">条保管钉</div></div>
+        <div class="s"><div class="n">3</div><div class="l">task families</div></div>
+        <div class="s"><div class="n">84</div><div class="l">task directories</div></div>
+        <div class="s"><div class="n">190</div><div class="l">paid episodes</div></div>
+        <div class="s"><div class="n">1065</div><div class="l">custody pins</div></div>
       </div>
     </div>
     <div class="tags">
       <span>PrimeTime</span>
       <span>HSPICE</span>
-      <span>类型化溯源 oracle</span>
-      <span>tool-green 失败</span>
-      <span>预注册</span>
-      <span>逐字节保管</span>
-      <span><a href="overview.html">English</a></span>
+      <span>typed provenance oracle</span>
+      <span>tool-green failure</span>
+      <span>preregistered</span>
+      <span>byte-level custody</span>
+      <span><a href="overview.zh.html">中文</a></span>
     </div>
   </header>
 
   <div class="grid">
 
     <div class="card">
-      <h2 class="kick"><span class="idx">01</span><span class="t">为什么做 · 问题</span></h2>
-      <p class="lead">"多 general"通常被当成<b>一个</b>轴。但一次研究真正实现的单元是一个<b>配置</b> <span class="mono">(家族, 实例, 模型)</span>。</p><ul class="tight"><li>"它在另一个模型上也有效"与"它在另一个任务家族上也有效"添加的是<b>不可比</b>的配置 —— 谁也不是谁的前提。</li><li>把它们排成阶梯，会让论断显得比证据更有据，并许可一个无效推论：跨家族结果以跨模型结果为前提。</li><li>在更大支撑上失败<b>不</b>否证更小支撑上的论断；它只是界定该论断的范围。</li></ul><p class="note">本文因此把一个论断的<b>证据</b>按其被测量到的配置集合来索引，并以包含关系排序 —— 于是"未测量"与"已测但未确立"成为两件不同的事。</p>
+      <h2 class="kick"><span class="idx">01</span><span class="t">The problem</span></h2>
+      <p class="lead">"How general" is usually treated as <b>one</b> axis. But the unit a study actually realizes is a <b>configuration</b> <span class="mono">(family, instance, model)</span>.</p><ul class="tight"><li>"it also works on another model" and "it also works on another task family" add <b>incomparable</b> configurations — neither is a prerequisite for the other.</li><li>Arranging them as rungs of a ladder makes a claim look better-indexed than its evidence, and licenses an invalid inference: that a cross-family result presupposes a cross-model one.</li><li>Failure at a larger support does <b>not</b> refute a claim at a smaller one; it bounds the claim's scope.</li></ul><p class="note">So the paper indexes the <b>evidence</b> for a claim by the set of configurations at which it was measured, ordered by inclusion — which makes "unmeasured" and "measured but unestablished" two different things.</p>
     </div>
 
     <div class="card">
-      <h2 class="kick"><span class="idx">02</span><span class="t">研究对象 · 语义交接</span></h2>
-      <p class="lead">从<b>角色误导性</b>的证据中，把一个元组绑定到规范的类型化角色上。难点刻意不是检索。</p><ul class="tight"><li>证据文件把轴字段标为 <span class="mono">op_point</span> 与 <span class="mono">mode</span>；歧义变体不附术语表也不附轴声明，所以"哪个标签指哪个轴"本身就要还原出来。</li><li><b>tool-green：</b>随附的四份证据源在 PrimeTime 下<b>全部签核为绿</b>，包括那份两个角色字段被互换的。没有工具信号能把它们与真值分开。</li><li>只有<b>类型化溯源/权威 oracle</b> 会拒绝它。按工具退出码计分的基准，会把错误绑定判为通过。</li></ul><p class="note">正确性在构建期由穷举固定：工作实例有 294 个候选赋值，恰有一个满足全部五条约束。</p>
+      <h2 class="kick"><span class="idx">02</span><span class="t">The object of study · semantic handoff</span></h2>
+      <p class="lead">Bind a tuple to canonical typed roles from <b>role-misleading</b> evidence. The difficulty is deliberately not retrieval.</p><ul class="tight"><li>The evidence files label their axis fields <span class="mono">op_point</span> and <span class="mono">mode</span>; the ambiguous variant ships no glossary and no axis declaration, so which axis each label denotes must itself be recovered.</li><li><b>Tool-green:</b> all four shipped evidence sources <b>sign off green</b> under PrimeTime — including the one whose two role fields are swapped. No tool signal separates them from the truth.</li><li>Only the <b>typed provenance/authority oracle</b> rejects it. A benchmark scoring by tool exit status would score a wrong binding as a pass.</li></ul><p class="note">Correctness is fixed at construction time by exhaustive enumeration: 294 candidate assignments for the worked instance, exactly one satisfying all five constraints.</p>
     </div>
 
     <div class="card full">
-      <h2 class="kick"><span class="t">03　结果 · 按支撑索引，逐一给出资格</span></h2>
+      <h2 class="kick"><span class="t">03　Results · indexed by support, qualified one by one</span></h2>
       <table>
-        <thead><tr><th>支撑</th><th>拓宽了什么</th><th>测到了什么</th><th>资格</th></tr></thead>
+        <thead><tr><th>Support</th><th>What it widens</th><th>What was measured</th><th>Qualification</th></tr></thead>
         <tbody>
-          <tr><td><span class="pc">S0</span></td><td>局部（Qwen3.7-Max，workflow，开发实例）</td><td class="mono">Base 1/3 → BundleS 3/3，零错轴失败</td><td>已观察到</td></tr>
-          <tr><td><span class="pc">S1</span></td><td>+ 预先冻结的留出实例（拓宽实例）</td><td class="mono">方向一致：1/3 → 3/3</td><td>复现一次</td></tr>
-          <tr><td><span class="pc">S2-M</span></td><td>+ DeepSeek-V4-Pro（拓宽模型）</td><td class="mono">3/4 = 3/4</td><td>未确立</td></tr>
-          <tr><td><span class="pc">S2-F</span></td><td>+ STA 家族，12 个前瞻实例</td><td class="mono">+12.5 pp；敏感带 −12.5 至 41.7；试点方向相反</td><td>面板上估计；带跨零</td></tr>
-          <tr><td><span class="pc">S2-F</span></td><td>+ SPICE 家族</td><td class="mono">1.00 = 1.00 = 1.00</td><td>天花板；无信息量</td></tr>
-          <tr><td><span class="pc">S3</span></td><td>换模型 <b>且</b> 换家族</td><td class="mono">什么都没有</td><td><b>未测量</b></td></tr>
+          <tr><td><span class="pc">S0</span></td><td>local (Qwen3.7-Max, workflow, dev instance)</td><td class="mono">Base 1/3 → BundleS 3/3, zero axis-binding failures</td><td>observed</td></tr>
+          <tr><td><span class="pc">S1</span></td><td>+ pre-frozen held-out instance (widens instance)</td><td class="mono">same direction: 1/3 → 3/3</td><td>replicated once</td></tr>
+          <tr><td><span class="pc">S2-M</span></td><td>+ DeepSeek-V4-Pro (widens model)</td><td class="mono">3/4 = 3/4</td><td>not established</td></tr>
+          <tr><td><span class="pc">S2-F</span></td><td>+ STA family, 12 prospective instances</td><td class="mono">+12.5 pp; band −12.5 to 41.7; pilot ran the other way</td><td>estimated; band spans 0</td></tr>
+          <tr><td><span class="pc">S2-F</span></td><td>+ SPICE family</td><td class="mono">1.00 = 1.00 = 1.00</td><td>ceiling; uninformative</td></tr>
+          <tr><td><span class="pc">S3</span></td><td>different model <b>and</b> family</td><td class="mono">nothing</td><td><b>not measured</b></td></tr>
         </tbody>
       </table>
-      <p class="note">刻意用了比"已确立"更弱的词。三个结果绝不合并：一个有判别力家族上<b>未确立</b>的效应、一个<b>无判别力的天花板</b>，以及<b>一次方向反转</b>。</p>
+      <p class="note">The words are deliberately weaker than "established". Three outcomes are never pooled: <b>no established effect</b> on a discriminating family, a <b>non-discriminative ceiling</b>, and a <b>direction reversal</b>.</p>
     </div>
 
     <div class="card full">
-      <h2 class="kick"><span class="t">04　第二个轴 · 四层测量效度审计</span></h2>
+      <h2 class="kick"><span class="t">04　The second axis · a four-layer measurement-validity audit</span></h2>
       <div class="flow">
-        <div class="step"><span class="sn">01</span><b>能力</b>任务是否测的是意图中的能力？<small>类型化 oracle，绝不看工具退出码</small></div>
-        <div class="step"><span class="sn">02</span><b>采样</b>重复轨迹、平衡、成员仲裁<small>位置平衡分块，付费调用前冻结</small></div>
-        <div class="step"><span class="sn">03</span><b>执行</b>传输、终态对恢复态、工具健康<small>非流式会截断长推理模型</small></div>
-        <div class="step"><span class="sn">04</span><b>产物</b>动作面隔离、规范源完整性、保管<small>精确 commit 的 worktree + 哈希守卫</small></div>
+        <div class="step"><span class="sn">01</span><b>Capability</b>Does the task measure the intended capability?<small>typed oracle, never tool exit status</small></div>
+        <div class="step"><span class="sn">02</span><b>Sampling</b>Repeated trajectories, balance, membership arbitration<small>position-balanced blocking, frozen before any paid call</small></div>
+        <div class="step"><span class="sn">03</span><b>Execution</b>Transport, terminal-vs-recovered, tool health<small>non-streaming censors long-reasoning models</small></div>
+        <div class="step"><span class="sn">04</span><b>Artifact</b>Action-surface isolation, canonical-source integrity, custody<small>exact-commit worktree + hash guard</small></div>
       </div>
-      <p class="note">每一层都抓到了一个会改变结论的具体威胁。其中两个 —— 传输截断与动作面假阳性 —— 在<b>任何</b>对未校正日志的分析中都会产出"自信但错"的数字。第五条要求被写成我们自己欠下的局限：<b>要记录提供方解析后的模型身份，而不是请求时的别名。</b></p>
+      <p class="note">Every layer caught a concrete threat that would have changed the conclusion. Two of them — transport censoring and an action-surface false positive — would have produced confident wrong numbers in <b>any</b> analysis of the uncorrected logs. A fifth requirement is stated as our own gap: <b>record the provider-resolved model identity per episode, not the requested alias.</b></p>
     </div>
 
     <div class="card full">
-      <h2 class="kick"><span class="t">05　为什么可以信这些数字</span></h2>
+      <h2 class="kick"><span class="t">05　Why these numbers can be trusted</span></h2>
       <ul class="tight">
-        <li><b>1065 条保管钉。</b>运行前清单钉住了每批付费 episode 运行时生效的确切代码；<span class="mono">scripts/check</span> 每次都重新核验全部。</li>
-        <li><b>没有一个数字是手抄的。</b>论文 <span class="mono">\input</span> 表格生成脚本的产出；<span class="mono">--check</span> 会重算并在漂移时报错。</li>
-        <li><b>门禁报告非零就是对的。</b>2 处冻结后漂移与 9 个被 gitignore 的构建产物被原样带过来 —— 一张"干净的表"会掩盖下一次真实改动。</li>
-        <li><b>局限也一并陈述。</b>没有人类构念验证；模型只由别名标识；三个家族都由我们撰写且都在 EDA 之内。</li>
+        <li><b>1065 custody pins.</b> Pre-run manifests pin the exact code in force when each batch of paid episodes ran; <span class="mono">scripts/check</span> re-verifies all of them every time.</li>
+        <li><b>No number is transcribed.</b> The paper <span class="mono">\input</span>s what the table scripts emit; <span class="mono">--check</span> recomputes and fails on drift.</li>
+        <li><b>A non-zero gate report is the correct one.</b> 2 post-freeze drifts and 9 gitignored build products are carried forward — a clean sheet would hide the next real mutation.</li>
+        <li><b>The limitations are stated too.</b> No human construct validation; models identified only by alias; all three families authored by us and all within EDA.</li>
       </ul>
     </div>
 
   </div>
 
   <footer>
-    <span class="mono">语义交接 · 3 个家族 / 84 个任务目录 · 手稿 v12 冻结 · Apache-2.0</span>
-    <span>详见 <span class="mono">README.zh.md</span> 与 <span class="mono">docs/artifact_map.zh.md</span></span>
+    <span class="mono">Semantic handoff · 3 families / 84 task directories · manuscript v12 frozen · Apache-2.0</span>
+    <span>Details in <span class="mono">README.md</span> and <span class="mono">docs/artifact_map.md</span></span>
   </footer>
 
 </div>

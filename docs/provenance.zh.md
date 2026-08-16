@@ -31,7 +31,7 @@
 
 | 对象 | 冻结方式 | 强制手段 |
 |---|---|---|
-| 成员代码（生成器、评分器、驱动、冻结与公平性脚本及其测试） | `reports/evidence/` 下运行前清单中的 **1065 条 `path → sha256` 钉** | `scripts/frozen_membership_verify.py`，由 `scripts/check` 调用 |
+| 成员代码与任务文件 —— 1020 个任务文件、36 个脚本、6 个生成器文件、3 个包模块；没有任何测试或文档带哈希 | `reports/evidence/` 下运行前清单中的 **1065 条 `path → sha256` 钉** | `scripts/frozen_membership_verify.py`，由 `scripts/check` 调用 |
 | `docs/phase7/phase7_synthesis.md` | sha256 记录在 `submission/FREEZE_HASHES.md`（`9dbecd9f…`） | 该文件；此文档不得移动或改动 |
 | `docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md` | 在 `reports/evidence/p14_phase4w_fairness/MANIFEST.json` 中作为预先声明的解释表**按路径**被引用 | 该清单已冻结，故此路径必须保持有效 |
 | 三个任务家族 | 逐 episode 保管字节比对；每个 episode 前后的规范哈希核验 | `scripts/canonical_integrity.py`（`FAILED_INTEGRITY` 停机）、`scripts/chain_executor.py` |

@@ -43,7 +43,7 @@ manifest and aborts on mismatch.
 
 | Object | Frozen by | Enforced by |
 |---|---|---|
-| membership code (generators, graders, drivers, freeze and fairness scripts, their tests) | **1065 `path → sha256` pins** in the pre-run manifests under `reports/evidence/` | `scripts/frozen_membership_verify.py`, run by `scripts/check` |
+| membership code and task files — 1020 task files, 36 scripts, 6 generator files, 3 package modules; no test and no document carries a hash | **1065 `path → sha256` pins** in the pre-run manifests under `reports/evidence/` | `scripts/frozen_membership_verify.py`, run by `scripts/check` |
 | `docs/phase7/phase7_synthesis.md` | sha256 recorded in `submission/FREEZE_HASHES.md` (`9dbecd9f…`) | that file; the doc must not move or change |
 | `docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md` | cited **by path** as the pre-declared interpretation table in `reports/evidence/p14_phase4w_fairness/MANIFEST.json` | the manifest is frozen, so the path must stay valid |
 | the three task families | per-episode custody byte-matching; canonical-hash verification before and after each episode | `scripts/canonical_integrity.py` (`FAILED_INTEGRITY` stop), `scripts/chain_executor.py` |
