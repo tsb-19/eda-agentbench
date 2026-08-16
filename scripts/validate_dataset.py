@@ -15,12 +15,11 @@ A content-hash cache makes "validate on every change" affordable: ``--changed``
 re-grades only tasks whose files changed since the last run, but still reports the
 cached verdict of unchanged tasks (so a known failure is never hidden).
 
-Requires the EDA tools (or the b04 shim env) reachable for tool tracks, same as
-grading. Mirrors scripts/calibrate_p4_settling_windows.py.
+Requires the EDA tools (or a shim env) reachable for tool tracks, same as grading.
 
-    source /data1/tongsb/eda-remote-shim/env.sh
-    python3 scripts/validate_dataset.py --tasks-root tasks/p4_spice_sim \
-        --glob 'generated_*/*_rlc_settling_*' --concurrency 4
+    python3 scripts/validate_dataset.py --structural --tasks-root tasks   # tool-free
+    python3 scripts/validate_dataset.py --tasks-root tasks/p15_sta_handoff \
+        --glob 'p15_eval_*' --concurrency 4                               # real PrimeTime
 """
 from __future__ import annotations
 

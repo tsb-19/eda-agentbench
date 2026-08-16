@@ -7,19 +7,22 @@
 #   [1] pytest unit suite          — EDA-tool tests excluded here by marker; tests/conftest.py
 #                                     also auto-skips them when no tool is on PATH
 #   [2] structural dataset check    — schema + required files + golden present (every task)
-#   [3] Tier-2 discrimination scan  — optional, only if --results <tree> is given
+#   [3] frozen membership verify    — every path->sha256 pin recorded by the pre-run manifests
+#                                     under reports/evidence/ still hashes as recorded
+#
+# The Tier-2 discrimination scan that used to be step [3] was a benchmark-wide instrument for
+# the P1-P9 tracks and left with them; the frozen-membership check took its slot because on this
+# branch the load-bearing invariant is custody, not cross-track discrimination.
 #
 # The real-tool GOLDEN gate (`validate_dataset.py --changed` + the b04 shim) is a
 # SEPARATE manual step — it needs the commercial tools and cannot be gated here.
 #
-# Usage: scripts/check [--results runs/<.../results>]
+# Usage: scripts/check
 set -uo pipefail
 cd "$(dirname "$0")/.."
 
-RESULTS=""
 while [ $# -gt 0 ]; do
   case "$1" in
-    --results) RESULTS="${2:-}"; shift 2 ;;
     -h|--help) grep '^#' "$0" | sed 's/^#\{1,\} \{0,1\}//'; exit 0 ;;
     *) echo "unknown arg: $1" >&2; exit 2 ;;
   esac
@@ -33,12 +36,8 @@ python3 -m pytest -q -m "not requires_tools" tests/ || fail=1
 echo; echo "== [2/3] structural dataset validation (schema + files + golden present) =="
 python3 scripts/validate_dataset.py --structural --tasks-root tasks || fail=1
 
-if [ -n "$RESULTS" ]; then
-  echo; echo "== [3/3] Tier-2 discrimination scan ($RESULTS) =="
-  python3 scripts/scan_discrimination.py --results "$RESULTS" || fail=1
-else
-  echo; echo "== [3/3] Tier-2 scan skipped (pass --results <tree> to enable) =="
-fi
+echo; echo "== [3/3] frozen membership (path->sha256 pins under reports/evidence/) =="
+python3 scripts/frozen_membership_verify.py --expect docs/frozen_membership_baseline.json || fail=1
 
 echo
 if [ "$fail" -eq 0 ]; then echo "CHECK PASSED"; else echo "CHECK FAILED"; fi
