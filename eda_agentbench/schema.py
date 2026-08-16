@@ -12,23 +12,18 @@ METADATA_SCHEMA = {
         "files", "run_command", "scoring",
     ],
     "properties": {
-        "task_id": {"type": "string", "pattern": "^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6}|dc_constraint_[0-9]{4}|sg_lint_[0-9]{4}|pt_sta_debug_[0-9]{4}|pnr_report_qa_[0-9]{4}|pt_exc_debug_[0-9]{4}|syn_proj_[0-9]{4}|fhandoff_[0-9]{4}|mf_handoff_[0-9]{4}|traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4})$"},
+        "task_id": {"type": "string", "pattern": "^(traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4}|p15_[a-z]+_[0-9]{4}|p16_[a-z]+_[0-9]{4})$"},
         "track": {
             "type": "string",
-            "enum": ["p1_rtl_debug", "p2_rtl_gen", "p2_tb_sva_gen", "p3_timing_report_qa",
-                      "p4_spice_sim", "p5_spice_deck_debug", "p6_dc_synthesis_qa", "p6_dc_constraint_debug",
-                      "p6_lint", "p7_spyglass_lint_debug", "p7_primetime_sta_debug", "p7_physical",
-                      "p8_pnr_report_qa", "p9_pt_exception_debug", "p10_synthetic_project",
-                      "p11_flow_handoff", "p12_multifact_handoff", "p13_trajectory_handoff",
-                      "p14_workflow_handoff"],
+            # The three semantic-handoff families this repository studies, plus the p13
+            # directory retained only as the asset substrate the p14 generator reads.
+            "enum": ["p13_trajectory_handoff", "p14_workflow_handoff",
+                      "p15_sta_handoff", "p16_spice_handoff"],
         },
         "tool": {
             "type": "array",
-            "items": {"type": "string", "enum": [
-                "vcs", "xcelium", "hspice", "spectre",
-                "dc", "pt", "spyglass", "icc2", "innovus",
-                "starrc", "sentaurus", "verdi",
-            ]},
+            # PrimeTime for the workflow/STA families, HSPICE for the SPICE family.
+            "items": {"type": "string", "enum": ["pt", "hspice"]},
             "minItems": 1,
         },
         "difficulty": {"type": "string", "enum": ["easy", "medium", "hard", "expert"]},
@@ -108,7 +103,7 @@ def validate_metadata(meta: dict) -> list[str]:
 
     # task_id format
     import re
-    if not re.match(r"^(task_[0-9]{6}|spice_deck_debug_[0-9]{4}|p3_timing_[0-9]{6}|p6_dc_syn_[0-9]{6}|dc_constraint_[0-9]{4}|sg_lint_[0-9]{4}|pt_sta_debug_[0-9]{4}|pnr_report_qa_[0-9]{4}|pt_exc_debug_[0-9]{4}|syn_proj_[0-9]{4}|fhandoff_[0-9]{4}|mf_handoff_[0-9]{4}|traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4}|p15_[a-z]+_[0-9]{4}|p16_[a-z]+_[0-9]{4})$", meta["task_id"]):
+    if not re.match(r"^(traj_handoff_[0-9]{4}|workflow_handoff_[0-9]{4}|p15_[a-z]+_[0-9]{4}|p16_[a-z]+_[0-9]{4})$", meta["task_id"]):
         errors.append(f"Invalid task_id format: {meta['task_id']!r}")
 
     # weights sum to 1.0

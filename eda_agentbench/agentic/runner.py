@@ -456,62 +456,10 @@ def _run_agent_subprocess(
 
 
 def _select_evaluator(meta: dict, task_path: Path):
-    """Select the appropriate evaluator based on metadata."""
-    evaluator_spec = meta["scoring"].get("evaluator", "rtl_debug.VCSRTLEvaluator")
-    if evaluator_spec == "spice_sim.SPICESimEvaluator":
-        from eda_agentbench.evaluator.spice_sim import SPICESimEvaluator
-        return SPICESimEvaluator(task_path, meta)
-    elif evaluator_spec == "spice_deck_debug.SPICEDeckDebugEvaluator":
-        from eda_agentbench.evaluator.spice_deck_debug import SPICEDeckDebugEvaluator
-        return SPICEDeckDebugEvaluator(task_path, meta)
-    elif evaluator_spec == "timing_report_qa.TimingReportQAEvaluator":
-        from eda_agentbench.evaluator.timing_report_qa import TimingReportQAEvaluator
-        return TimingReportQAEvaluator(task_path, meta)
-    elif evaluator_spec == "dc_synthesis_qa.DCSynthesisQAEvaluator":
-        from eda_agentbench.evaluator.dc_synthesis_qa import DCSynthesisQAEvaluator
-        return DCSynthesisQAEvaluator(task_path, meta)
-    elif evaluator_spec in ("tb_sva_gen.TBSVAGenEvaluator", "rtl_gen.RTLGenEvaluator"):
-        from eda_agentbench.evaluator.tb_sva_gen import TBSVAGenEvaluator
-        return TBSVAGenEvaluator(task_path, meta)
-    elif evaluator_spec == "dc_constraint_debug.DCConstraintDebugEvaluator":
-        from eda_agentbench.evaluator.dc_constraint_debug import DCConstraintDebugEvaluator
-        return DCConstraintDebugEvaluator(task_path, meta)
-    elif evaluator_spec == "spyglass_lint_debug.SpyGlassLintDebugEvaluator":
-        from eda_agentbench.evaluator.spyglass_lint_debug import SpyGlassLintDebugEvaluator
-        return SpyGlassLintDebugEvaluator(task_path, meta)
-    elif evaluator_spec == "primetime_sta_debug.PrimeTimeSTADebugEvaluator":
-        from eda_agentbench.evaluator.primetime_sta_debug import PrimeTimeSTADebugEvaluator
-        return PrimeTimeSTADebugEvaluator(task_path, meta)
-    elif evaluator_spec == "pt_exception_debug.PTExceptionDebugEvaluator":
-        from eda_agentbench.evaluator.pt_exception_debug import PTExceptionDebugEvaluator
-        return PTExceptionDebugEvaluator(task_path, meta)
-    elif evaluator_spec == "synthetic_project.SyntheticProjectEvaluator":
-        from eda_agentbench.evaluator.synthetic_project import SyntheticProjectEvaluator
-        return SyntheticProjectEvaluator(task_path, meta)
-    elif evaluator_spec == "flow_handoff.FlowHandoffEvaluator":
-        from eda_agentbench.evaluator.flow_handoff import FlowHandoffEvaluator
-        return FlowHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "multifact_handoff.MultiFactHandoffEvaluator":
-        from eda_agentbench.evaluator.multifact_handoff import MultiFactHandoffEvaluator
-        return MultiFactHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "trajectory_handoff.TrajectoryHandoffEvaluator":
-        from eda_agentbench.evaluator.trajectory_handoff import TrajectoryHandoffEvaluator
-        return TrajectoryHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "workflow_handoff.WorkflowHandoffEvaluator":
-        from eda_agentbench.evaluator.workflow_handoff import WorkflowHandoffEvaluator
-        return WorkflowHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "sta_handoff.STAHandoffEvaluator":
-        from eda_agentbench.evaluator.sta_handoff import STAHandoffEvaluator
-        return STAHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "spice_handoff.SPICEHandoffEvaluator":
-        from eda_agentbench.evaluator.spice_handoff import SPICEHandoffEvaluator
-        return SPICEHandoffEvaluator(task_path, meta)
-    elif evaluator_spec == "pnr_report_qa.PnRReportQAEvaluator":
-        from eda_agentbench.evaluator.pnr_report_qa import PnRReportQAEvaluator
-        return PnRReportQAEvaluator(task_path, meta)
-    else:
-        from eda_agentbench.evaluator.rtl_debug import VCSRTLEvaluator
-        return VCSRTLEvaluator(task_path, meta)
+    """Select the evaluator named by the task's metadata (see evaluator/resolve.py)."""
+    from eda_agentbench.evaluator.resolve import resolve_evaluator
+
+    return resolve_evaluator(meta["scoring"].get("evaluator", ""), task_path, meta)
 
 
 def _run_eda_tools(

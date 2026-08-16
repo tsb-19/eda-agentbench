@@ -1,1 +1,0 @@
-"""DC synthesis report parsing."""

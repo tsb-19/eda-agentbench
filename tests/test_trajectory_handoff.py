@@ -76,10 +76,14 @@ def test_dispatch_parity_both_sites():
     ev = _select_evaluator(meta, TASK)
     got = f"{type(ev).__module__.split('.')[-1]}.{type(ev).__name__}"
     assert got == meta["scoring"]["evaluator"]
+    # Dispatch parity: both call sites must delegate to the single shared resolver, so an
+    # evaluator can never be reachable from the CLI but not from the agentic runner (the bug
+    # this guard was written for). The chained if/elif that used to name each spec twice was
+    # replaced by evaluator/resolve.py, so parity is now checked as delegation.
     cli = (REPO / "eda_agentbench" / "cli.py").read_text()
     runner = (REPO / "eda_agentbench" / "agentic" / "runner.py").read_text()
-    assert 'evaluator_spec == "trajectory_handoff.TrajectoryHandoffEvaluator"' in cli
-    assert 'evaluator_spec == "trajectory_handoff.TrajectoryHandoffEvaluator"' in runner
+    assert "resolve_evaluator(" in cli
+    assert "resolve_evaluator(" in runner
 
 
 # --- 2. schema / structural -------------------------------------------------

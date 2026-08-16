@@ -1,7 +1,8 @@
 """Tests for the agentic runner MVP.
 
-All tests use tmp_path and real evaluators on synthetic QA tasks.
-No EDA tools required.
+All tests use tmp_path and the answer-match stub of tests/support/qa_stub_evaluator.py
+on synthetic QA tasks: the three semantic-handoff families all need commercial EDA
+tools, so none of them can exercise the runner tool-free. No EDA tools required.
 """
 
 from __future__ import annotations
@@ -22,13 +23,18 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 @pytest.fixture
 def qa_task(tmp_path):
-    """Create a minimal P3 QA task directory (no EDA tools needed)."""
-    task_dir = tmp_path / "p3_timing_report_qa" / "smoke"
+    """Create a minimal answer-match task directory (no EDA tools needed).
+
+    The track and id are a surviving shape with an out-of-range index (real workflow instances
+    are 0001-0027), so the fixture validates against the schema without colliding with a
+    frozen task.
+    """
+    task_dir = tmp_path / "p14_workflow_handoff" / "smoke"
     task_dir.mkdir(parents=True)
 
     meta = {
-        "task_id": "p3_timing_999999",
-        "track": "p3_timing_report_qa",
+        "task_id": "workflow_handoff_9999",
+        "track": "p14_workflow_handoff",
         "tool": ["pt"],
         "difficulty": "easy",
         "data_type": "template_synthetic",
@@ -45,7 +51,7 @@ def qa_task(tmp_path):
             "forbidden": ["timing_report.rpt"],
         },
         "scoring": {
-            "evaluator": "timing_report_qa.TimingReportQAEvaluator",
+            "evaluator": "tests.support.qa_stub_evaluator:AnswerMatchStub",
             "weights": {
                 "answer_match": 1.0,
             },
@@ -76,14 +82,14 @@ def qa_task(tmp_path):
 
 @pytest.fixture
 def qa_task_p6(tmp_path):
-    """Create a minimal P6 DC Synthesis QA task directory."""
-    task_dir = tmp_path / "p6_dc_synthesis_qa" / "smoke"
+    """A second answer-match task, to prove the runner is not tied to one task shape."""
+    task_dir = tmp_path / "p15_sta_handoff" / "smoke"
     task_dir.mkdir(parents=True)
 
     meta = {
-        "task_id": "p6_dc_syn_999999",
-        "track": "p6_dc_synthesis_qa",
-        "tool": ["dc"],
+        "task_id": "p15_smoke_9999",
+        "track": "p15_sta_handoff",
+        "tool": ["pt"],
         "difficulty": "easy",
         "data_type": "template_synthetic",
         "resource_preset": "fast",
@@ -99,7 +105,7 @@ def qa_task_p6(tmp_path):
             "forbidden": ["synthesis_report.rpt"],
         },
         "scoring": {
-            "evaluator": "dc_synthesis_qa.DCSynthesisQAEvaluator",
+            "evaluator": "tests.support.qa_stub_evaluator:AnswerMatchStub",
             "weights": {
                 "answer_match": 1.0,
             },
@@ -130,14 +136,18 @@ def qa_task_p6(tmp_path):
 
 @pytest.fixture
 def task_with_hidden(tmp_path):
-    """Create a task with hidden files for security isolation tests."""
-    task_dir = tmp_path / "p1_rtl_debug" / "test_task"
+    """Create a task with hidden files for security isolation tests.
+
+    The track/tool names are synthetic: these tests assert workspace isolation, not scoring,
+    so the task only needs a resolvable evaluator and a hidden/ directory to hide.
+    """
+    task_dir = tmp_path / "p14_workflow_handoff" / "test_task"
     task_dir.mkdir(parents=True)
 
     meta = {
-        "task_id": "task_999999",
-        "track": "p1_rtl_debug",
-        "tool": ["vcs"],
+        "task_id": "workflow_handoff_9998",
+        "track": "p14_workflow_handoff",
+        "tool": ["pt"],
         "difficulty": "easy",
         "data_type": "mutation_synthetic",
         "resource_preset": "fast",
@@ -153,7 +163,7 @@ def task_with_hidden(tmp_path):
             "forbidden": ["run_public.sh"],
         },
         "scoring": {
-            "evaluator": "rtl_debug.VCSRTLEvaluator",
+            "evaluator": "tests.support.qa_stub_evaluator:AnswerMatchStub",
             "weights": {
                 "compile": 0.2,
                 "public_test": 0.3,
@@ -408,7 +418,11 @@ class TestHiddenIsolation:
             shutil.rmtree(ws, ignore_errors=True)
 
     def test_oracle_dir_not_in_agent_workspace(self, tmp_path):
-        """Oracle directory (P5 layout) should not be in agent workspace."""
+        """An oracle/ directory must never reach the agent workspace.
+
+        No surviving family ships the visible/hidden/oracle bundle layout, but workspace.py
+        is frozen membership code that still guards against it, so the branch stays covered.
+        """
         from eda_agentbench.agentic.workspace import create_agent_workspace
         task_dir = tmp_path / "p5_task"
         (task_dir / "visible").mkdir(parents=True)
@@ -698,7 +712,7 @@ class TestArtifacts:
             assert mpath.is_file()
             run_meta = json.loads(mpath.read_text())
             assert run_meta["mode"] == "agentic"
-            assert run_meta["task_id"] == "p3_timing_999999"
+            assert run_meta["task_id"] == "workflow_handoff_9999"
             assert "agent_cmd" in run_meta
         finally:
             import shutil

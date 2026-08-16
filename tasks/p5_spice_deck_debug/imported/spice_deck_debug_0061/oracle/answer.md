@@ -1,3 +1,0 @@
-# Expected Fix
-
-Remove `.include models_3.lib` and add `.model nmos nmos (level=1 vto=0.7 kp=120u)` directly.

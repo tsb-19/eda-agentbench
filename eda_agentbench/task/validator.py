@@ -19,11 +19,11 @@ def check_submission_forbidden(submission_dir: Path, forbidden_files: list[str])
 
 # --- TCL injection guard for editable constraint files -----------------------
 #
-# Defense-in-depth against grader subversion via the agent-EDITABLE
-# constraints.sdc (P6 dc_shell / P7-PT pt_shell).
+# Defense-in-depth against grader subversion via an agent-EDITABLE constraint file
+# (constraints.sdc under pt_shell in the workflow and STA handoff families).
 #
-# The PRIMARY defense is structural (see generators/p6_dc_constraint_debug_gen
-# and p7_primetime_sta_debug_gen): the apply phase ingests the agent SDC with
+# The PRIMARY defense is structural, and lives in the family generators rather than here:
+# the apply phase ingests the agent SDC with
 # `read_sdc` (which sandboxes Tcl `proc`/`exit`) and re-emits a canonical file
 # with `write_sdc`; a separate bash phase -- running no agent code -- computes
 # the pass/fail verdict from that laundered file. An injected `proc incr {} {}`,

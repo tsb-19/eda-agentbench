@@ -1,1 +1,0 @@
-"""Timing report analysis module."""

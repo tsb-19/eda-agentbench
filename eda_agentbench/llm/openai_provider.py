@@ -22,7 +22,7 @@ from eda_agentbench.llm.base import BaseLLMProvider, LLMResponse
 # Structured provider errors (dependency-free; used for type-aware retry
 # classification by callers' retry loops). These MUST stay RuntimeError-derived
 # with an "HTTP <code>" message prefix so existing message-string retry
-# classifiers (e.g. scripts/generate_model_submissions._is_retryable) keep
+# classifiers (e.g. the retry predicate in scripts/llm_agent_driver.py) keep
 # working unchanged. Network-layer exceptions (urllib.error.URLError,
 # socket.timeout/TimeoutError, ConnectionError) are NOT wrapped -- callers
 # classify them by type.

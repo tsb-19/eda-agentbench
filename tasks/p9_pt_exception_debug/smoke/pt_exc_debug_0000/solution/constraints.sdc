@@ -1,5 +1,0 @@
-create_clock -name clk -period 0.6 [get_ports clk]
-set_input_delay  0.05 -clock clk [get_ports {a_in cmd_in}]
-set_output_delay 0.05 -clock clk [get_ports {acc_out stat_out}]
-set_multicycle_path 2 -setup -from [get_pins prod_reg/CK] -to [get_pins acc_reg/D]
-set_multicycle_path 1 -hold  -from [get_pins prod_reg/CK] -to [get_pins acc_reg/D]
