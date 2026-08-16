@@ -17,6 +17,9 @@ Scope and exemptions, each for a stated reason:
     but a reference is only reported when it looks like a concrete file or directory, not a glob,
     a placeholder (`<...>`, `{...}`, `$VAR`, `...`), or a path under a gitignored output tree.
 
+Only *tracked* files are scanned, so a newly created file is not checked until it has been staged.
+Run this after `git add`, not before it.
+
 Usage:
     python3 scripts/slim_link_check.py           # report and exit non-zero on any dangling ref
     python3 scripts/slim_link_check.py --list     # also list every resolved reference
@@ -36,8 +39,14 @@ IGNORED_PREFIXES = (
     "runs/", "workspaces/", "datagen/tasks_eval_private/", "datagen/.local_runs/", ".cache/",
 )
 
-# Files that are allowed -- required -- to mention removed paths.
+# Files that are allowed -- required -- to mention removed or absent paths.
+#
+# VERIFICATION.md and its translation reproduce the frozen-membership report verbatim, and that
+# report names the nine gitignored HSPICE build products the pre-run manifests pinned at run time.
+# Those paths are *meant* to be absent; flagging them would force the record to misreport the gate.
 EXEMPT_FILES = {
+    "VERIFICATION.md",
+    "VERIFICATION.zh.md",
     "docs/REMOVED.md",
     "docs/REMOVED.zh.md",
     "docs/frozen_membership_baseline.json",
