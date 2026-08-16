@@ -84,8 +84,9 @@ Two further sites keep the superseded attribution, for the same reason or as his
 - `reports/synthetic_p14_phase4z_synthesis.md` §7 item 8 ("Unresolved external writer … not
   root-caused"). Also **hash-pinned**: its sha256 `92ed19d26e8ca62d…` is recorded in
   `reports/synthetic_p14_phase4z_freeze_manifest.json`. Unchanged; superseded by this document.
-- `docs/phases/synthetic_phase6_manuscript_v2.md`, a historical manuscript draft — left as-is as a
-  record of what that draft said.
+- A historical Phase-6 manuscript draft, which repeated the same attribution. It was removed with
+  the rest of the research chronology on this branch (see `docs/REMOVED.md`); it survives on
+  `master` as a record of what that draft said.
 
 **The submitted manuscript needs no change.** It never relied on the external-process explanation:
 the audit table rows read *"Canonical-source mutation (Art)"* and *"Golden rewrite read as tool

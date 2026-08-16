@@ -56,10 +56,10 @@ def collect_pins(root: Path) -> dict[str, set[tuple[str, str]]]:
     def walk(node: object, src: Path) -> None:
         if isinstance(node, dict):
             for key, val in node.items():
-                # {"scripts/x.py": "<sha>"}
+                # {"<repo path>": "<sha256>"}
                 if _is_repo_path(key) and _is_sha(val):
                     add(key, val, src)
-                # {"scripts/x.py": {"sha256": "<sha>", ...}}
+                # {"<repo path>": {"sha256": "<sha256>", ...}}
                 elif _is_repo_path(key) and isinstance(val, dict) and _is_sha(val.get("sha256")):
                     add(key, val["sha256"], src)
                 else:
@@ -67,7 +67,7 @@ def collect_pins(root: Path) -> dict[str, set[tuple[str, str]]]:
         elif isinstance(node, list):
             for item in node:
                 if isinstance(item, dict):
-                    # [{"path": "scripts/x.py", "sha256": "<sha>"}]
+                    # [{"path": "<repo path>", "sha256": "<sha256>"}]
                     p = item.get("path") or item.get("file")
                     s = item.get("sha256") or item.get("sha")
                     if _is_repo_path(p) and _is_sha(s):

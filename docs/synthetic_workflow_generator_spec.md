@@ -2,8 +2,10 @@
 
 **Status:** design-only. No code, tasks, tools, or models are produced by this document.
 **Worktree / branch:** `eda-agentbench-synthetic-phase0a` @ `synthetic-phase0a`, from clean checkpoint `ee60a82`.
-**Builds on:** `docs/synthetic_negative_results_summary.md` (the p10→p13 ladder) and
-`docs/synthetic_trajectory_handoff_design.md` (the p13 evidence/provenance substrate).
+**Builds on:** the p10→p13 probe ladder and the p13 evidence/provenance substrate. Both source
+documents were part of the research chronology and are not on this branch; see
+`docs/REMOVED.md`. The substrate itself is retained at
+`tasks/p13_trajectory_handoff/traj_handoff_0001/`, because this generator reads it.
 **One-line goal:** specify a generator that emits *mini EDA workflow projects* whose pass requires repairing a
 broken handoff **and** executing an ordered, evidence-producing tool workflow whose provenance binds across
 stages — so that local single-file repair is provably insufficient.
@@ -414,14 +416,16 @@ not emitted) — runaway generation is bounded by a per-batch attempt cap.
 
 ## 14. Directory layout
 
-Proposed layout:
+Proposed layout, with the **as-built** paths beside each entry — three of
+the names below were renamed during implementation, and this document is preserved as written
+rather than retro-edited:
 
 ```
-generators/p14_workflow_project_gen.py        # the generator (sample → golden → mutant → validate → emit)
-scripts/generate_workflow_tasks.py            # batch driver (seed range, difficulty presets, b04 validation)
-eda_agentbench/evaluator/workflow_handoff.py  # WorkflowHandoffEvaluator (chain-aware; gates per §9)
-tasks/p14_workflow_handoff/workflow_handoff_0001/   # generated task dirs
-tests/test_workflow_generator.py              # generator + evaluator + dispatch-parity + forgery/chain matrix
+generators/p14_workflow_project_gen.py        # AS BUILT: generators/p14_workflow_handoff_gen.py
+scripts/generate_workflow_tasks.py            # AS BUILT: scripts/generate_workflow_handoff_tasks.py
+eda_agentbench/evaluator/workflow_handoff.py  # as built
+tasks/p14_workflow_handoff/workflow_handoff_0001/   # as built (0001-0027)
+tests/test_workflow_generator.py              # AS BUILT: tests/test_workflow_handoff_gen.py
 docs/synthetic_workflow_generator_spec.md     # this document
 ```
 

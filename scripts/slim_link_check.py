@@ -63,6 +63,8 @@ KNOWN_PROSE = {
     "submission/workspace": "prose: 'submission/workspace layout'",
     "tasks/grader": "prose: 'tasks/grader pair' in a generated report",
     "tasks/track": "prose: 'tasks/track breakdown' in a generated report",
+    "reports/archive/": "a removed directory named inside a generated report that may not be edited; "
+                        "the probes it held are listed in docs/REMOVED.md",
     "docs/synthetic_trajectory_handoff_design.md":
         "pre-move path frozen into tasks/p13_trajectory_handoff/traj_handoff_0001/metadata.json; "
         "already dangling on master (the 2026-08-11 doc move), and the metadata is frozen task "

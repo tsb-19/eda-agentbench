@@ -2,7 +2,7 @@
 
 No EDA tools, no network: the verdict/hash/cache logic is pure, and the main()
 orchestration is exercised with validate_one monkeypatched (so no real grading).
-Mirrors the mock style of tests/test_model_baseline.py.
+validate_one is monkeypatched, so no submission is ever really graded.
 """
 import json
 import sys

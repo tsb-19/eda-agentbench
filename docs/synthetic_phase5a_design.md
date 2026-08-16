@@ -1,7 +1,7 @@
 # Phase-5A — Cross-Family External-Validity Design (p14 program, external-validity phase)
 
 **Date:** 2026-08-03 · **Branch:** `synthetic-phase0a` · **Status:** design-only, NO paid model calls, NO task-generator/grader implementation, stopped for review (no push).
-**Scope:** design two **genuinely independent** semantic-handoff task families and three harness conditions, pre-register the confirmatory experiment, and freeze the analysis plan. Execution (generators, graders, paid episodes) is a **separately authorized** later phase (Phase-5B). This document is deliverable **(1) Phase-5A design report** and **(5) predeclared analysis plan**; companions are `docs/synthetic_phase5a_family_specs.md` (2), `docs/synthetic_phase5a_generator_grader_plans.md` (3), `docs/synthetic_phase5a_budget_risk_commit.md` (4+6+7), and the machine-readable `reports/synthetic_phase5a_design.json`.
+**Scope:** design two **genuinely independent** semantic-handoff task families and three harness conditions, pre-register the confirmatory experiment, and freeze the analysis plan. Execution (generators, graders, paid episodes) is a **separately authorized** later phase (Phase-5B). This document is deliverable **(1) Phase-5A design report** and **(5) predeclared analysis plan**; companions are `docs/synthetic_phase5a_family_specs.md` (2), `docs/synthetic_phase5a_generator_grader_plans.md` (3), the budget/risk commitment document (4+6+7 — removed on this branch as program process, see `docs/REMOVED.md`), and the machine-readable `reports/synthetic_phase5a_design.json`.
 
 ## 0. Program context (frozen)
 
