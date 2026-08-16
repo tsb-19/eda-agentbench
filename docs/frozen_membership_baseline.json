@@ -1,0 +1,110 @@
+{
+  "_what": "Baseline output of scripts/frozen_membership_verify.py, recorded on master before the iclr2027-artifact branch removed anything. Every commit on that branch must reproduce these counts exactly.",
+  "_recorded_at_commit": "cc797ffeda87f4d7e4b4057e5b0b69dc7a6cc9d3",
+  "_why_nonzero": {
+    "missing": "9 p16 circuit_built.sp files are gitignored HSPICE build products; the manifests pinned them at run time, the repository never tracked them.",
+    "mismatch": "generators/p15_sta_handoff_gen.py and p16_spice_handoff_gen.py were edited after the phase5b/5c freeze. The reported numbers derive from the pinned versions; the drift is pre-existing and is carried forward unchanged rather than papered over.",
+    "multi_sha": "scripts/phase5c_run.py is legitimately versioned across phases, so more than one sha is pinned for it and 'differs from one of them' is not drift."
+  },
+  "summary": {
+    "pins": 1065,
+    "missing": 9,
+    "mismatch": 2,
+    "multi_sha": 1
+  },
+  "missing": [
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0001_base/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0001_bundles/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0001_typedcontract/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0002_base/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0002_bundles/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0002_typedcontract/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0003_base/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0003_bundles/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "tasks/p16_spice_handoff/p16_eval_0003_typedcontract/files/circuit_built.sp",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    }
+  ],
+  "mismatch": [
+    {
+      "path": "generators/p15_sta_handoff_gen.py",
+      "actual": "2784bc1158fd66dfd4d358442dab5b02836dd5f919f28c115d2387bac7911c45",
+      "pinned": "e0a68acb9198cb5f9279772abde3a8ec52a428dc02e2e770ec21c23adf249cdc",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    },
+    {
+      "path": "generators/p16_spice_handoff_gen.py",
+      "actual": "8954b666af74d6303e2496cc391fe78ca288dbdc6f82771640b1073f59e5c7ba",
+      "pinned": "4083a9dbdde7345776601448484e76538c458add490939254ea8cb1bed880655",
+      "manifests": [
+        "reports/evidence/phase5b_custody_manifest.json",
+        "reports/evidence/phase5c_prerun_manifest.json"
+      ]
+    }
+  ],
+  "multi": [
+    {
+      "path": "scripts/phase5c_run.py",
+      "actual": "ae994fba032e6d5ba92a80a9bf4470801e3a9ae0af0b9263187476a0a4c28682",
+      "pinned": [
+        "4217b0722738600036b06a651ddbdec0f5bc36063351414e607e3358fb7af945",
+        "79957b8ed566a90e750128a480757dcd06ebee8a47a8a2c726394842534bd0d6"
+      ]
+    }
+  ]
+}
