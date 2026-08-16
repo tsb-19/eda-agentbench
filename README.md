@@ -49,6 +49,7 @@ positive) would have produced confident wrong numbers in *any* analysis of the u
 | know which commit produced what | [`docs/provenance.md`](docs/provenance.md) |
 | know what this branch dropped and why | [`docs/REMOVED.md`](docs/REMOVED.md) |
 | see it as a one-page overview | [`docs/overview.html`](docs/overview.html) |
+| see the gate output for this branch | [`VERIFICATION.md`](VERIFICATION.md) |
 
 ## Layout
 

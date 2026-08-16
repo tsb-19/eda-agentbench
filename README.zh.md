@@ -37,6 +37,7 @@
 | 了解哪个 commit 产出了什么 | [`docs/provenance.zh.md`](docs/provenance.zh.md) |
 | 了解本分支删了什么、为什么 | [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md) |
 | 想看一页速览 | [`docs/overview.zh.html`](docs/overview.zh.html) |
+| 想看本分支的门禁输出 | [`VERIFICATION.zh.md`](VERIFICATION.zh.md) |
 
 ## 目录结构
 
