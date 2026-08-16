@@ -1,288 +1,100 @@
 **[English](README.md) | 中文**
 
-# EDA-AgentBench
+# 审计 LLM Agent Harness 的泛化论断 —— 可复现产物
 
-一个用于评估 LLM 和编程智能体在使用商用 Synopsys 和 Cadence 工具的真实 EDA 工作流上表现的基准测试。
+本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 v12，已冻结）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。
 
-## 测试内容
+> 想找 **EDA-AgentBench** —— 那个 2892 任务的商业 EDA 基准？它在 `master` 上。本分支只保留论文涉及的内容 —— 见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 
-EDA-AgentBench 测试智能体是否能够：
+## 论文主张什么
 
-- 借助仿真反馈调试 RTL 设计（VCS）
-- 修复 SPICE 网表以满足时序规格要求（HSPICE、Spectre）
-- （未来）生成 RTL、诊断 EDA 日志、运行时序收敛、Lint 检查和物理设计
+当一次 harness 干预改变了 agent 的行为，你可以主张什么？"多general"不是一个轴而是三个 —— 跨任务**实例**、跨模型**后端**、跨任务**家族** —— 而且拓宽其中一个与拓宽另一个是*不可比*的移动，不是阶梯上更高的一级。因此论文把一个论断的*证据*按其被测量到的 (家族, 实例, 模型) 配置集合来索引，并以包含关系排序。
 
-所有任务仅使用**商用 EDA 工具**，不需要开源 EDA 工具。
+用到自己的结果上（在一个以工具为地基的**语义交接**任务上）：
 
-## 当前覆盖范围（Phase 8A — P8 PnR 报告问答）
+| 支撑 | 测到了什么 | 判定 |
+|---|---|---|
+| **S0** 局部（Qwen3.7-Max，workflow 家族，开发实例） | Base 1/3 → BundleS 3/3，BundleS 下零错轴失败 | **已观察到** |
+| **S1** + 留出实例（拓宽实例范围） | 在预先冻结的实例上方向一致 | **复现一次** |
+| **S2-M** + DeepSeek-V4-Pro（拓宽模型范围） | 3/4 = 3/4 | **未确立** —— 也不等于不存在 |
+| **S2-F** + STA 家族，12 个前瞻实例 | +12.5 pp，敏感带 −12.5 至 41.7；三实例试点方向*相反*（−16.7 pp） | **在固定面板上估计；敏感带跨零** |
+| **S2-F** + SPICE 家族 | 1.00 = 1.00 = 1.00 | **天花板；无信息量** |
+| **S3** 同时换模型*与*换家族 | 什么都没有 | **未测量** —— 报为未检验，而非失败 |
 
-| 路道 | 任务数 | 工具 | 描述 |
-|------|--------|------|------|
-| P1 RTL 调试 | 1001 | VCS | 修复有缺陷的 SystemVerilog 设计 |
-| P2 测试平台/SVA 生成 | 101 | VCS | 编写能捕获 RTL 变异体的测试平台 |
-| P3 时序报告问答 | 1008 | pt（合成） | 回答关于时序报告的问题 |
-| P4 SPICE 仿真 | 302 | HSPICE, Spectre | 修复 RC/RLC 滤波器的上升/下降时间 |
-| P5 SPICE 网表调试 | 100 | HSPICE | 修复损坏的 SPICE 仿真网表 |
-| P6 DC 综合问答 | 51 | dc（合成） | 回答关于 DC 综合报告的问题 |
-| P6 DC 约束调试 | 61 | dc | 修复损坏的 SDC 约束文件 |
-| P7 SpyGlass Lint 调试 | 50 | spyglass | 修复由 SpyGlass 检测到的 RTL Lint 违规 |
-| P7 PrimeTime STA 调试 | 53 | pt | 修复 PrimeTime 的时序约束错误 |
-| P8 PnR 报告问答 | 101 | icc2/innovus（合成） | 回答关于 PnR 报告的问题 |
-| **合计** | **2828** | | |
+错误的绑定仍会产生绿色的工具签核（*tool-green*），因此只有类型化的溯源/权威 oracle 才会拒绝它。这正是论文中的失败能够在"以工具退出码计分"的基准里存活的原因。
 
-- 1001 个 P1 任务：1 个手工制作的冒烟测试 + 1000 个生成（10 种缺陷类型 x 各 100 个）
-- 101 个 P2 任务：1 个冒烟测试 + 100 个生成（10 个设计模板，20 个变异体）
-- 1008 个 P3 任务：1 个冒烟测试 + 999 个合成 + 8 个 PT 原型（30 个时钟，15 个路径组，10 种问题类型）
-- 302 个 P4 任务：2 个冒烟测试 + 300 个生成（3 种电路类型，各 50 个 HSPICE + 50 个 Spectre）
-- 100 个 P5 任务：从外部调试对比验证包导入（7 个错误类别）
-- 51 个 P6 DC QA 任务：1 个冒烟测试 + 50 个生成（10 种问题类型）
-- 61 个 P6 DC 约束任务：1 个冒烟测试 + 60 个生成（6 个缺陷类别 × 10 个 RTL 模板）
-- 50 个 P7 SpyGlass 任务：1 个冒烟测试 + 49 个生成（3 个 Lint 类别 × 设计库）
-- 53 个 P7 PrimeTime 任务：1 个冒烟测试 + 52 个生成（4 种缺陷类型 × 13 个模板）
-- 101 个 P8 PnR 报告问答任务：1 个冒烟测试 + 100 个生成（9 种问题类型）
+第二项正交的贡献是四层 **Harness 效应审计协议** —— 能力、采样、执行、产物完整性。每一层都抓到了一个会改变科学结论的具体威胁；其中两个（传输截断、动作面假阳性）在*任何*对未校正日志的分析中都会产出"自信但错"的数字。
 
-## 工具依赖
+## 从这里开始
 
-| 工具 | 厂商 | 使用场景 |
-|------|------|----------|
-| VCS | Synopsys | P1 RTL 调试，P2 测试平台/SVA 生成 |
-| HSPICE | Synopsys | P4 SPICE 仿真，P5 SPICE 网表调试 |
-| Spectre | Cadence | P4 SPICE 仿真 |
-| PrimeTime | Synopsys | P7 PrimeTime STA 调试（P3 使用合成报告，不需要真实工具） |
-| Design Compiler | Synopsys | P6 DC 约束调试（P6 DC 综合问答使用合成报告） |
-| SpyGlass | Synopsys | P7 SpyGlass Lint 调试 |
-| ICC2 / Innovus | Synopsys / Cadence | P8 PnR 报告问答（合成报告，不需要真实工具） |
+| 如果你想…… | 读 |
+|---|---|
+| 找某个具体论断／表格／图的证据 | **[`docs/artifact_map.zh.md`](docs/artifact_map.zh.md)** —— 论文每个对象到生成它的文件 |
+| 理解证据基础 | [`reports/README.zh.md`](reports/README.zh.md) |
+| 复现数字 | [`docs/reproducibility.zh.md`](docs/reproducibility.zh.md) |
+| 了解任务家族是什么 | [`docs/datacard.zh.md`](docs/datacard.zh.md) |
+| 了解正确性如何判定 | [`docs/scoring.zh.md`](docs/scoring.zh.md) |
+| 了解哪个 commit 产出了什么 | [`docs/provenance.zh.md`](docs/provenance.zh.md) |
+| 了解本分支删了什么、为什么 | [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md) |
 
-预期安装路径：
+## 目录结构
 
-- Synopsys: `/EDA/soft2/synopsys/`
-- Cadence: `/EDA/soft2/cadence/`
+```
+submission/        冻结的手稿：main.tex、main.pdf（15 页）、生成的表格、冻结哈希
+tasks/             三个语义交接家族
+  p14_workflow_handoff/   27 个实例 —— 研究 I（PVT 轴，PrimeTime）
+  p15_sta_handoff/        家族 A —— 研究 II S2-F（溯源 DAG，PrimeTime）
+  p16_spice_handoff/      家族 B —— 研究 II S2-F（请求-权威联接，HSPICE）
+  p13_trajectory_handoff/ 并非被研究的家族 —— 是 p14 生成器读取的资产底料
+generators/        三个家族的生成器及其类型化评分器
+eda_agentbench/    harness：任务加载器、agentic runner、两阶段工作区、反作弊
+scripts/           审计基础设施，以及各阶段的冻结／公平性／分析脚本
+reports/           证据基础；reports/evidence/ 是冻结的保管记录
+docs/              文档，中英双语
+```
 
-基准测试在运行时会探测文件系统中的工具位置。任务定义中不包含硬编码路径。
+## 不用任何 EDA 工具复现论文
 
-## 安装
+所有派生数字 —— 每个表格、区间、敏感带和 *p* 值 —— 都可以在不用商业工具、不联网、不调用模型的前提下从冻结的逐 episode 记录重算：
 
 ```bash
 pip install -e ".[test]"
+
+scripts/check                                          # 测试 + 任务结构 + 1065 条保管钉
+python3 scripts/phase7c_study1_ledger.py    --check    # 研究 I 台账：58 + 12 = 70 个 episode
+python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
+
+cd submission && make distclean && make                # 15 页；逐字节可复现的 PDF
 ```
 
-## 快速开始
+`--check` 从 `reports/evidence/` 重算并与已提交的输出比对，一旦漂移即以非零码退出。论文中没有一张表是手工抄录的：`main.tex` 直接 `\input` 这些脚本的产出。
 
-### 1. 检测工具
+## 运行任务家族
+
+给一个交接实例评分需要真实工具 —— p14/p15 用 PrimeTime，p16 用 HSPICE —— 因为错误的绑定只有在工具*绿灯签核之后*才可被检出。工具可达时：
 
 ```bash
 eda-bench detect-tools
+eda-bench evaluate-task tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --submission tasks/p14_workflow_handoff/workflow_handoff_0009/solution
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 --agent-cmd "<你的 agent>"
 ```
 
-预期输出：显示 VCS、HSPICE、Spectre 可用性的表格。
+agentic 路径采用两阶段工作区模型：agent 只看到可见+可编辑文件，永远看不到 `hidden/`；评分在第二个工作区中进行，那里叠加了隐藏真值。见 [`docs/agentic_runner.zh.md`](docs/agentic_runner.zh.md)。
 
-### 2. 运行冒烟测试
+## 刻意不在此处的东西
 
-```bash
-# RTL 调试冒烟测试（VCS）
-bash scripts/run_smoke.sh
+- **付费 episode 无法重跑。** 实验程序已在冻结的实验 HEAD 上永久关闭；所有报告的数字都是从该 HEAD 及其之前已提交的台账重新派生的。见 [`docs/provenance.zh.md`](docs/provenance.zh.md)。
+- **没有 S3 证据。** 同时换模型*与*换家族从未测量。它的缺席就是论断本身，而不是遗漏。
+- **没有人类构念验证。** 盲法人类研究已预注册但从未执行 —— 也没有用 LLM 顶替缺席的标注者。
+- **本分支未做匿名化。** 约 212 个冻结的保管文件含有用户名、主机名或绝对路径，改写它们会破坏论文所主张的保管链。双盲补充材料需要另做一次脱敏导出，而不是 git 编辑。见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
+- **两个生成器在冻结之后漂移了。** `frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件，均为既有状态，解释见 `docs/frozen_membership_baseline.json`。它们被原样带过来而不是被悄悄清理，因为一张"干净的表"会掩盖真实的漂移。
 
-# SPICE 冒烟测试（HSPICE）
-bash scripts/run_spice_smoke.sh
+## 商业工具
 
-# Spectre 冒烟测试
-bash scripts/run_spectre_smoke.sh
+三个家族面向商业 Synopsys 工具；没有开源 EDA 工具可以替代。探测默认在 `/EDA/soft2/synopsys/` 与 `/EDA/soft2/cadence/` 下进行；若安装前缀不同，可设 `EDA_TOOL_ROOT` 替换开头的 `/EDA`。任务定义中不写死任何路径。见 [`docs/commercial_tool_policy.zh.md`](docs/commercial_tool_policy.zh.md)。
 
-# 数据集冒烟测试（所有路道）
-bash scripts/evaluate_dataset_smoke.sh
-```
-
-### 3. 验证任务
-
-```bash
-eda-bench validate-task tasks/p1_rtl_debug/task_000001
-```
-
-## 评估任务
-
-### 智能体模式
-
-在沙盒化的工作空间中运行外部智能体命令来执行任务：
-
-```bash
-# 使用脚本智能体运行单个任务
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
-    --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
-
-# 使用空操作智能体进行采样数据集评估
-eda-bench run-agent-dataset tasks --sample-per-track 1 --seed 42 --agent-cmd "true"
-```
-
-智能体通过环境变量接收 `EDA_WORKSPACE`、`EDA_TASK_PATH`、`EDA_TASK_ID` 和 `EDA_TIMEOUT`。详情请参阅 [docs/agentic_runner.md](docs/agentic_runner.md)。
-
-### 单个任务
-
-```bash
-# 使用正确解答（应得分 1.00）
-eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
-    --submission tasks/p1_rtl_debug/task_000001/solution
-
-# 使用有缺陷的基线（应得分 < 1.00）
-eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
-    --submission tasks/p1_rtl_debug/task_000001/files
-```
-
-### 完整数据集
-
-```bash
-# 解答模式：每个任务使用其自身的 solution/ 目录作为提交
-eda-bench evaluate-dataset tasks --submission-mode solution
-
-# 缺陷模式：每个任务使用其自身的 files/（有缺陷的）目录作为提交
-eda-bench evaluate-dataset tasks --submission-mode buggy
-
-# 按路道过滤
-eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
-```
-
-### 快速采样评估
-
-用于快速集成检查（约 2 分钟完成，而非约 50 分钟）：
-
-```bash
-# 每个路道采样 1 个任务（覆盖所有 10 个路道）
-eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
-eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode buggy
-
-# 最多评估 10 个任务
-eda-bench evaluate-dataset tasks --limit 10 --seed 42 --submission-mode solution
-
-# 完整集成冒烟测试（解答 + 缺陷采样）
-bash scripts/evaluate_dataset_fast.sh
-```
-
-**注意：** 采样评估不能替代完整评估。在开发过程中用于快速迭代；在最终验证前请运行完整评估。
-
-### 报告
-
-```bash
-# 生成所有报告格式（终端 + JSON + Markdown）
-eda-bench report runs/dataset_XXXXXXXX --format all
-```
-
-## 预期结果
-
-| 模式 | 任务数 | 平均得分 | 备注 |
-|------|--------|----------|------|
-| 解答 | 2828/2828 | 1.00 | 正确解答始终获得满分 |
-| 缺陷 | 2828/2828 | < 1.00 | 有缺陷的基线始终得分 < 1.00 |
-
-## 任务结构
-
-标准布局（P1、P2、P4）：
-```
-task_xxxxxx/
-  prompt.md           # 可读的任务描述
-  metadata.json       # 机器可读的任务规格
-  files/              # 智能体可见
-    design.sv         # 可编辑（RTL）或 circuit.sp（SPICE）
-    tb_public.sv      # 公共测试平台（只读）
-    run_public.sh     # 公共测试脚本（只读）
-  hidden/             # 仅用于评分
-    tb_hidden.sv      # 隐藏测试平台
-    run_hidden.sh     # 隐藏测试脚本
-  solution/           # 正确解答
-    design.sv
-```
-
-datagen 包布局（P5）：
-```
-spice_deck_debug_NNNN/
-  prompt.md
-  metadata.json
-  grader_contract.json
-  visible/            # 有缺陷的网表（可编辑）
-  hidden/             # 黄金标准修复后网表
-  oracle/             # 可读的参考解答
-  validation/         # 验证记录
-```
-
-## 评分
-
-每个任务生成一个 `score.json`，包含加权组件：
-
-**RTL 调试（P1）：**
-- compile：0.2
-- public_test：0.3
-- hidden_test：0.4
-- explanation：0.1
-
-**测试平台/SVA 生成（P2）：**
-- compile：0.2
-- golden_pass：0.4
-- mutant_1：0.2
-- mutant_2：0.2
-
-**时序报告问答（P3）：**
-- answer_match：1.0
-
-**SPICE 仿真（P4）：**
-- tool_run：0.3
-- output_generated：0.2
-- public_metric：0.2
-- hidden_metric：0.2
-- explanation：0.1
-
-**SPICE 网表调试（P5）：**
-- execution_pass：0.9
-- explanation：0.1
-
-**DC 综合问答（P6）：**
-- answer_match：1.0
-
-**DC 约束调试（P6）：**
-- constraint_pass：0.6
-- execution_pass：0.3
-- explanation：0.1
-
-**SpyGlass Lint 调试（P7）：**
-- lint_pass：0.9
-- explanation：0.1
-
-**PrimeTime STA 调试（P7）：**
-- timing_check：0.6
-- execution_pass：0.3
-- explanation：0.1
-
-**PnR 报告问答（P8）：**
-- answer_match：0.9
-- explanation：0.1
-
-通过阈值：0.5。详情请参阅 [docs/scoring.md](docs/scoring.md)。
-
-## 防作弊
-
-评估器会在执行前对受保护文件（测试平台、运行脚本）进行 SHA-256 哈希快照，并在执行后验证。对受保护文件的修改将导致评估失败。
-
-## 日志清理
-
-所有工具输出日志在存储前都会进行清理：用户名、主机名、绝对路径和许可证服务器名称会被替换为稳定的占位符。
-
-## 运行目录
-
-`runs/` 目录不会提交到 git。所有评估产物（score.json、日志、工作空间）都写入到该本地目录。
-
-## 文档
-
-- [智能体运行器](docs/agentic_runner.md) — 智能体评估模式
-- [基准路道](docs/benchmark_tracks.md) — 路道详细描述和评分规则
-- [数据集卡片](docs/datacard.md) — 数据集组成和验证结果
-- [基准测试状态](docs/status.md) — 任务清单、验证、已知限制、阶段历史与后续阶段
-- [v0 状态（已冻结）](docs/phases/current_v0_status.md) — 冻结的 v0 里程碑快照（1113 个任务）
-- [可复现性](docs/reproducibility.md) — 确定性生成和评估
-- [公开发布策略](docs/public_release_policy.md) — 发布检查清单和排除项
-- [商用工具策略](docs/commercial_tool_policy.md) — 支持的工具和许可证
-- [基准规格](docs/benchmark_spec.md) — 整体设计和评估模型
-- [任务模式](docs/task_schema.md) — metadata.json 字段参考
-- [评分规则](docs/scoring.md) — 任务评分方式
-- [添加任务](docs/adding_tasks.md) — 如何创建新任务
-- [数据工厂 (datagen/)](datagen/README.md) — 生成并验证 P5 SPICE 网表调试赛道的仓库内模块
-
-## 许可证
+## 许可
 
 Apache-2.0

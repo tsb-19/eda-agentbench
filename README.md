@@ -1,287 +1,130 @@
 **English | [中文](README.zh.md)**
 
-# EDA-AgentBench
+# Auditing Generalization Claims for LLM Agent Harnesses — reproducibility artifact
 
-A benchmark for evaluating LLMs and coding agents on realistic EDA workflows using commercial Synopsys and Cadence tools.
+This branch is the artifact for one paper: ***Auditing Generalization Claims for LLM Agent
+Harnesses: Semantic Binding and Measurement Validity*** (ICLR 2027 submission, manuscript v12,
+frozen). The paper is in [`submission/`](submission/); build it with `cd submission && make`.
 
-## What It Measures
+> Looking for **EDA-AgentBench**, the 2892-task commercial-EDA benchmark? That is on `master`.
+> This branch keeps only what the paper covers — see [`docs/REMOVED.md`](docs/REMOVED.md).
 
-EDA-AgentBench tests whether an agent can:
+## What the paper claims
 
-- Debug RTL designs with simulation feedback (VCS)
-- Fix SPICE netlists to meet timing specifications (HSPICE, Spectre)
-- (Future) Generate RTL, diagnose EDA logs, run timing closure, lint, and physical design
+When a harness intervention changes agent behaviour, what may you claim? "How general" is not one
+axis but three — over task **instances**, over model **backends**, over task **families** — and
+widening one is a move *incomparable* to widening another, not a further rung on a ladder. The
+paper therefore indexes the *evidence* for a claim by the set of (family, instance, model)
+configurations at which it was measured, ordered by inclusion.
 
-All tasks use **commercial EDA tools** only. No open-source EDA tools are required.
+Applied to its own results, on a tool-grounded **semantic-handoff** task:
 
-## Current Coverage (Phase 8A — P8 PnR Report QA)
+| Support | What was measured | Verdict |
+|---|---|---|
+| **S0** local (Qwen3.7-Max, workflow family, dev instance) | Base 1/3 → BundleS 3/3, zero axis-binding failures under BundleS | **observed** |
+| **S1** + held-out instance (widens instance scope) | same direction on a pre-frozen instance | **replicated once** |
+| **S2-M** + DeepSeek-V4-Pro (widens model scope) | 3/4 = 3/4 | **not established** — and not absence either |
+| **S2-F** + STA family, 12 prospective instances | +12.5 pp, sensitivity band −12.5 to 41.7; the 3-instance pilot ran the *other* way (−16.7 pp) | **estimated; band spans zero** |
+| **S2-F** + SPICE family | 1.00 = 1.00 = 1.00 | **ceiling; uninformative** |
+| **S3** different model *and* different family | nothing | **not measured** — reported as untested, not as failed |
 
-| Track | Tasks | Tool(s) | Description |
-|-------|-------|---------|-------------|
-| P1 RTL Debug | 1001 | VCS | Fix buggy SystemVerilog designs |
-| P2 Testbench/SVA Gen | 101 | VCS | Write testbenches that catch RTL mutants |
-| P3 Timing Report QA | 1008 | pt (synthetic) | Answer questions about timing reports |
-| P4 SPICE Sim | 302 | HSPICE, Spectre | Fix RC/RLC filter rise/fall time |
-| P5 SPICE Deck Debug | 100 | HSPICE | Fix broken SPICE simulation decks |
-| P6 DC Synthesis QA | 51 | dc (synthetic) | Answer questions about DC synthesis reports |
-| P6 DC Constraint Debug | 61 | dc | Fix broken SDC constraint files |
-| P7 SpyGlass Lint Debug | 50 | spyglass | Fix RTL lint violations detected by SpyGlass |
-| P7 PrimeTime STA Debug | 53 | pt | Fix timing constraint errors for PrimeTime |
-| P8 PnR Report QA | 101 | icc2/innovus (synthetic) | Answer questions about PnR reports |
-| **Total** | **2828** | | |
+A wrong binding still produces a green tool sign-off (*tool-green*), so only a typed
+provenance/authority oracle rejects it. That is why the paper's failures survive a benchmark that
+scores by tool exit status.
 
-- 1001 P1 tasks: 1 handcrafted smoke + 1000 generated (10 bug types x 100 each)
-- 101 P2 tasks: 1 smoke + 100 generated (10 design templates, 20 mutant variants)
-- 1008 P3 tasks: 1 smoke + 999 synthetic + 8 PT prototype (30 clocks, 15 path groups, 10 question types)
-- 302 P4 tasks: 2 smoke + 300 generated (3 circuit types, 50 HSPICE + 50 Spectre each)
-- 100 P5 tasks: imported from external debug-contrast validated bundle (7 error categories)
-- 51 P6 DC QA tasks: 1 smoke + 50 generated (10 question types)
-- 61 P6 DC Constraint tasks: 1 smoke + 60 generated (6 bug categories × 10 RTL templates)
-- 50 P7 SpyGlass tasks: 1 smoke + 49 generated (3 lint categories × design library)
-- 53 P7 PrimeTime tasks: 1 smoke + 52 generated (4 bug types × 13 templates)
-- 101 P8 PnR Report QA tasks: 1 smoke + 100 generated (9 question types)
+The second, orthogonal contribution is a four-layer **Harness Effect Audit Protocol** — capability,
+sampling, execution, artifact integrity. Each layer caught a concrete threat that would have
+changed the scientific conclusion; two of them (transport censoring, an action-surface false
+positive) would have produced confident wrong numbers in *any* analysis of the uncorrected logs.
 
-## Tool Dependencies
+## Start here
 
-| Tool | Vendor | Used By |
-|------|--------|---------|
-| VCS | Synopsys | P1 RTL Debug, P2 Testbench/SVA Gen |
-| HSPICE | Synopsys | P4 SPICE Sim, P5 SPICE Deck Debug |
-| Spectre | Cadence | P4 SPICE Sim |
-| PrimeTime | Synopsys | P7 PrimeTime STA Debug (P3 uses synthetic reports, no real tool) |
-| Design Compiler | Synopsys | P6 DC Constraint Debug (P6 DC Synthesis QA uses synthetic reports) |
-| SpyGlass | Synopsys | P7 SpyGlass Lint Debug |
-| ICC2 / Innovus | Synopsys / Cadence | P8 PnR Report QA (synthetic reports, no real tool) |
+| If you want to… | Read |
+|---|---|
+| find the evidence for a specific claim, table or figure | **[`docs/artifact_map.md`](docs/artifact_map.md)** — every paper object mapped to the files that produce it |
+| understand the evidence base | [`reports/README.md`](reports/README.md) |
+| reproduce the numbers | [`docs/reproducibility.md`](docs/reproducibility.md) |
+| know what the task families are | [`docs/datacard.md`](docs/datacard.md) |
+| know how correctness is decided | [`docs/scoring.md`](docs/scoring.md) |
+| know which commit produced what | [`docs/provenance.md`](docs/provenance.md) |
+| know what this branch dropped and why | [`docs/REMOVED.md`](docs/REMOVED.md) |
 
-Expected install paths:
+## Layout
 
-- Synopsys: `/EDA/soft2/synopsys/`
-- Cadence: `/EDA/soft2/cadence/`
+```
+submission/        the frozen manuscript: main.tex, main.pdf (15 pp), generated tables, freeze hashes
+tasks/             the three semantic-handoff families
+  p14_workflow_handoff/   27 instances — Study I (PVT axes, PrimeTime)
+  p15_sta_handoff/        Family A — Study II S2-F (provenance DAG, PrimeTime)
+  p16_spice_handoff/      Family B — Study II S2-F (request-authority join, HSPICE)
+  p13_trajectory_handoff/ NOT a studied family — the asset substrate the p14 generator reads
+generators/        the three family generators and their typed graders
+eda_agentbench/    the harness: task loader, agentic runner, two-phase workspace, anti-cheat
+scripts/           the audit infrastructure and the per-phase freeze/fairness/analysis scripts
+reports/           the evidence base; reports/evidence/ is frozen custody records
+docs/              documentation, bilingual (EN + zh)
+```
 
-The benchmark probes the filesystem for tools at runtime. No hardcoded paths in task definitions.
+## Reproduce the paper without any EDA tool
 
-## Installation
+Every derived number — each table, interval, sensitivity band and *p*-value — recomputes from the
+frozen per-episode records with no commercial tool, no network and no model call:
 
 ```bash
 pip install -e ".[test]"
+
+scripts/check                                          # tests + task structure + 1065 custody pins
+python3 scripts/phase7c_study1_ledger.py    --check    # Study I ledger: 58 + 12 = 70 episodes
+python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/slim_link_check.py                     # no dangling repository references
+
+cd submission && make distclean && make                # 15 pp; byte-reproducible PDF
 ```
 
-## Quick Start
+`--check` recomputes from `reports/evidence/` and diffs against the committed output, exiting
+non-zero on any drift. No table in the paper is a transcribed number: `main.tex` `\input`s what
+these scripts emit.
 
-### 1. Detect Tools
+## Running the task families
+
+Grading a handoff instance needs the real tool — PrimeTime for p14/p15, HSPICE for p16 — because a
+wrong binding is only detectable *after* the tool signs it off green. With the tools reachable:
 
 ```bash
 eda-bench detect-tools
+eda-bench evaluate-task tasks/p14_workflow_handoff/workflow_handoff_0009 \
+    --submission tasks/p14_workflow_handoff/workflow_handoff_0009/solution
+eda-bench run-agent tasks/p14_workflow_handoff/workflow_handoff_0009 --agent-cmd "<your agent>"
 ```
 
-Expected output: table showing VCS, HSPICE, Spectre availability.
+The agentic path is a two-phase workspace model: the agent sees visible+editable files only,
+never `hidden/`; grading happens in a second workspace that overlays the hidden truth. See
+[`docs/agentic_runner.md`](docs/agentic_runner.md).
 
-### 2. Run Smoke Tests
+## What is deliberately not here
 
-```bash
-# RTL Debug smoke (VCS)
-bash scripts/run_smoke.sh
+- **The paid episodes cannot be re-run.** The experimental program is permanently closed at the
+  frozen experiment HEAD; all reported numbers are re-derived from committed ledgers at or before
+  it. See [`docs/provenance.md`](docs/provenance.md).
+- **No S3 evidence.** Different model *and* different family was never measured. Its absence is
+  the claim, not an omission.
+- **No human construct validation.** The blinded human study was preregistered and never executed
+  — no LLM was substituted for the missing annotators.
+- **This branch is not anonymised.** ~212 frozen custody files contain a username, host name or
+  absolute path, and rewriting them would break the custody chain the paper asserts. A double-blind
+  supplement needs a separate sanitising export, not a git edit. See
+  [`docs/REMOVED.md`](docs/REMOVED.md).
+- **Two generators drifted after their freeze.** `frozen_membership_verify.py` reports exactly 2
+  mismatches and 9 missing pinned files, all pre-existing and explained in
+  `docs/frozen_membership_baseline.json`. They are carried forward rather than quietly cleaned up,
+  because a clean sheet would hide real drift.
 
-# SPICE smoke (HSPICE)
-bash scripts/run_spice_smoke.sh
+## Commercial tools
 
-# Spectre smoke
-bash scripts/run_spectre_smoke.sh
-
-# Dataset smoke (all tracks)
-bash scripts/evaluate_dataset_smoke.sh
-```
-
-### 3. Validate a Task
-
-```bash
-eda-bench validate-task tasks/p1_rtl_debug/task_000001
-```
-
-## Evaluating Tasks
-
-### Agentic Mode
-
-Run an external agent command against a task in a sandboxed workspace:
-
-```bash
-# Single task with a script agent
-eda-bench run-agent tasks/p3_timing_report_qa/smoke \
-    --agent-cmd "cp \$EDA_TASK_PATH/solution/answer.txt \$EDA_WORKSPACE/"
-
-# Sampled dataset with a no-op agent
-eda-bench run-agent-dataset tasks --sample-per-track 1 --seed 42 --agent-cmd "true"
-```
-
-The agent receives `EDA_WORKSPACE`, `EDA_TASK_PATH`, `EDA_TASK_ID`, and `EDA_TIMEOUT` as environment variables. See [docs/agentic_runner.md](docs/agentic_runner.md) for details.
-
-### Single Task
-
-```bash
-# With correct solution (should score 1.00)
-eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
-    --submission tasks/p1_rtl_debug/task_000001/solution
-
-# With buggy baseline (should score < 1.00)
-eda-bench evaluate-task tasks/p1_rtl_debug/task_000001 \
-    --submission tasks/p1_rtl_debug/task_000001/files
-```
-
-### Full Dataset
-
-```bash
-# Solution mode: every task uses its own solution/ as submission
-eda-bench evaluate-dataset tasks --submission-mode solution
-
-# Buggy mode: every task uses its own files/ (buggy) as submission
-eda-bench evaluate-dataset tasks --submission-mode buggy
-
-# Filter by track
-eda-bench evaluate-dataset tasks --submission-mode solution --track p1_rtl_debug
-```
-
-### Fast Sampled Evaluation
-
-For quick integration checks (runs in ~2 minutes instead of ~50 minutes):
-
-```bash
-# Sample 1 task per track (covers all 10 tracks)
-eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode solution
-eda-bench evaluate-dataset tasks --sample-per-track 1 --seed 42 --submission-mode buggy
-
-# Evaluate at most 10 tasks total
-eda-bench evaluate-dataset tasks --limit 10 --seed 42 --submission-mode solution
-
-# Full integration smoke (solution + buggy sampled)
-bash scripts/evaluate_dataset_fast.sh
-```
-
-**Warning:** Sampled evaluation is not a substitute for full evaluation. Use it for fast iteration during development; run full evaluation before final validation.
-
-### Report
-
-```bash
-# Generate all report formats (terminal + JSON + markdown)
-eda-bench report runs/dataset_XXXXXXXX --format all
-```
-
-## Expected Results
-
-| Mode | Tasks | Avg Score | Notes |
-|------|-------|-----------|-------|
-| Solution | 2828/2828 | 1.00 | Correct answer always scores perfect |
-| Buggy | 2828/2828 | < 1.00 | Buggy baseline always scores < 1.00 |
-
-## Task Structure
-
-Standard layout (P1, P2, P4):
-```
-task_xxxxxx/
-  prompt.md           # Human-readable task description
-  metadata.json       # Machine-readable task specification
-  files/              # Visible to agent
-    design.sv         # Editable (RTL) or circuit.sp (SPICE)
-    tb_public.sv      # Public testbench (read-only)
-    run_public.sh     # Public test script (read-only)
-  hidden/             # Used for scoring only
-    tb_hidden.sv      # Hidden testbench
-    run_hidden.sh     # Hidden test script
-  solution/           # Correct answer
-    design.sv
-```
-
-datagen bundle layout (P5):
-```
-spice_deck_debug_NNNN/
-  prompt.md
-  metadata.json
-  grader_contract.json
-  visible/            # Buggy deck (editable)
-  hidden/             # Golden fixed deck
-  oracle/             # Human-readable answer
-  validation/         # Validation records
-```
-
-## Scoring
-
-Each task produces a `score.json` with weighted components:
-
-**RTL Debug (P1):**
-- compile: 0.2
-- public_test: 0.3
-- hidden_test: 0.4
-- explanation: 0.1
-
-**Testbench/SVA Gen (P2):**
-- compile: 0.2
-- golden_pass: 0.4
-- mutant_1: 0.2
-- mutant_2: 0.2
-
-**Timing Report QA (P3):**
-- answer_match: 1.0
-
-**SPICE Sim (P4):**
-- tool_run: 0.3
-- output_generated: 0.2
-- public_metric: 0.2
-- hidden_metric: 0.2
-- explanation: 0.1
-
-**SPICE Deck Debug (P5):**
-- execution_pass: 0.9
-- explanation: 0.1
-
-**DC Synthesis QA (P6):**
-- answer_match: 1.0
-
-**DC Constraint Debug (P6):**
-- constraint_pass: 0.6
-- execution_pass: 0.3
-- explanation: 0.1
-
-**SpyGlass Lint Debug (P7):**
-- lint_pass: 0.9
-- explanation: 0.1
-
-**PrimeTime STA Debug (P7):**
-- timing_check: 0.6
-- execution_pass: 0.3
-- explanation: 0.1
-
-**PnR Report QA (P8):**
-- answer_match: 0.9
-- explanation: 0.1
-
-Pass threshold: 0.5. See [docs/scoring.md](docs/scoring.md) for details.
-
-## Anti-Cheat
-
-The evaluator snapshots SHA-256 hashes of forbidden files (testbenches, run scripts) before execution and verifies them after. Modifications to forbidden files cause evaluation failure.
-
-## Log Sanitization
-
-All tool output logs are sanitized before storage: usernames, hostnames, absolute paths, and license server names are replaced with stable placeholders.
-
-## Runs Directory
-
-The `runs/` directory is not committed to git. All evaluation artifacts (score.json, logs, workspaces) are written there locally.
-
-## Documentation
-
-- [Agentic Runner](docs/agentic_runner.md) — Agentic evaluation mode
-- [Benchmark Tracks](docs/benchmark_tracks.md) — Detailed track descriptions and scoring
-- [Dataset Card](docs/datacard.md) — Dataset composition and validation results
-- [Benchmark Status](docs/status.md) — Task inventory, validation, known limitations, phase history, next phases
-- [v0 Status (frozen)](docs/phases/current_v0_status.md) — Frozen v0 milestone snapshot (1113 tasks)
-- [Reproducibility](docs/reproducibility.md) — Deterministic generation and evaluation
-- [Public Release Policy](docs/public_release_policy.md) — Release checklist and exclusions
-- [Commercial Tool Policy](docs/commercial_tool_policy.md) — Supported tools and licensing
-- [Benchmark Specification](docs/benchmark_spec.md) — Overall design and evaluation model
-- [Task Schema](docs/task_schema.md) — metadata.json field reference
-- [Scoring Rules](docs/scoring.md) — How tasks are scored
-- [Adding Tasks](docs/adding_tasks.md) — How to create new tasks
-- [Dataset Factory (datagen/)](datagen/README.md) — In-repo module that generates and validates the P5 SPICE-deck-debug track
+The families target commercial Synopsys tools; no open-source EDA tool substitutes. Probes look
+under `/EDA/soft2/synopsys/` and `/EDA/soft2/cadence/` by default; set `EDA_TOOL_ROOT` to replace
+the leading `/EDA` for a different install prefix. Nothing is hardcoded in task definitions. See
+[`docs/commercial_tool_policy.md`](docs/commercial_tool_policy.md).
 
 ## License
 
