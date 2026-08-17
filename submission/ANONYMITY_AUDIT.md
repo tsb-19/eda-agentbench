@@ -6,7 +6,7 @@ no model calls and alters no experimental record.
 
 ## v14 re-scan
 
-Re-run on the v14 PDF (`88ffca9d…`, 301 768 B, 20 pp; main text 9 pp).
+Re-run on the v14 PDF (`95664f93…`, 301 763 B, 20 pp; main text 9 pp).
 
 | Check | Result |
 |---|---|

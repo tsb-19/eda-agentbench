@@ -10,7 +10,7 @@ Recorded at `dd867c84` on `iclr2027-artifact`, branched from `master@cc797ffe`.
 
 **This is a snapshot, and two of its rows have deliberately moved since.** The branch later took
 further manuscript freezes (v13, then v14), so the PDF row below records v12 (15 pp, `bbf948bf…`)
-rather than the current artifact — v14 is 20 pp, `88ffca9d…`, with the main text at 9 pp — and the
+rather than the current artifact — v14 is 20 pp, `95664f93…`, with the main text at 9 pp — and the
 pytest count has grown with the tests added alongside them, most recently the 35 regression tests
 of the Phase-7E answer-identifiability probe. The recorded
 numbers are left as measured — this file's claim is that slimming preserved `master`'s baselines,

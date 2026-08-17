@@ -67,8 +67,8 @@ where space is free.
 ## SHA-256 hashes (frozen artifacts, v14)
 | Artifact | SHA-256 | vs v13 |
 |---|---|---|
-| Source (main.tex) | `cacf3396a5425db3699006caaab8e720f9b9ed7da0d3028ae5d846f20424cb6a` | changed |
-| Final PDF (main.pdf, 20 pp: 9 main + refs + appendix; 301 768 B) | `88ffca9d9479e22bc26603b2de2947c0aa1f327845d1f8acf1d27a86546eb8bb` | changed |
+| Source (main.tex) | `d0fdc5a2d13ffb0b68acd57174730b871499765cfe55ba689ac522d359a6ab65` | changed |
+| Final PDF (main.pdf, 20 pp: 9 main + refs + appendix; 301 763 B) | `95664f93161eb3c23a00f971cad0000f4422e5d859cf690f0b8dec5c6cba0b32` | changed |
 | Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | changed |
 | Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
 | Generated pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
