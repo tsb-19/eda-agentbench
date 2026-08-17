@@ -327,6 +327,31 @@ def compute() -> dict:
         (tally["improve"], tally["decline"], tally["tie"]), \
         "recomputed improve/decline/tie tally disagrees with the frozen report"
 
+    # ---- Panel anatomy (post hoc; added in v14) ----------------------------------------
+    # A tie is not one thing. Six instances sit at zero in BOTH arms and one at one in both,
+    # so seven of twelve cannot express any condition difference and the contrast rests on
+    # five. Reported because "12 instances" otherwise reads as twelve units of discriminating
+    # power, which would overstate what the panel can resolve either way.
+    rates = [(i["instance"], i["Base_rate"], i["BundleS_rate"]) for i in sta["instances"]]
+    floor = [n for n, b, s in rates if b == 0.0 and s == 0.0]
+    ceiling = [n for n, b, s in rates if b == 1.0 and s == 1.0]
+    informative = [n for n, b, s in rates if s - b != 0.0]
+    assert len(floor) + len(ceiling) + len(informative) == n_inst, \
+        "floor/ceiling/informative partition does not cover the panel"
+    assert len(informative) == tally["improve"] + tally["decline"], \
+        "informative count disagrees with the frozen improve+decline tally"
+
+    # Leave-two-out: DROP the two largest-contributing instances (n=10). Distinguished from
+    # zeroing them inside n=12, which is a different operation and a different number; the
+    # payload carries both so neither can be quoted as the other.
+    order = sorted(rates, key=lambda r: -(r[2] - r[1]))
+    dominant = [n for n, _, _ in order[:2]]
+    kept = [s - b for n, b, s in rates if n not in set(dominant)]
+    delta_leave_two_out = sum(kept) / len(kept)
+    delta_two_zeroed = sum(kept) / n_inst
+    assert (delta_hat > 0) != (delta_leave_two_out > 0), \
+        "leave-two-out was expected to reverse the descriptive sign; it did not"
+
     windows = scan_run_windows()
     envelope = summarize_run_windows(windows)
     ledger_episodes = json.loads(LEDGER.read_text())["totals"]["episodes"]
@@ -399,6 +424,28 @@ def compute() -> dict:
             ),
             "frozen_sign_test_two_sided_p": sta["primary_sign_test"]["two_sided_exact_p"],
             "frozen_permutation_two_sided_p": sta["primary_permutation_sensitivity"]["two_sided_permutation_p"],
+            "panel_anatomy": {
+                "post_hoc": True,
+                "floor_limited_both_arms": len(floor),
+                "ceiling_limited_both_arms": len(ceiling),
+                "informative_instances": len(informative),
+                "dominant_instances": dominant,
+                "delta_leave_two_out_n10": delta_leave_two_out,
+                "delta_two_zeroed_within_n12": delta_two_zeroed,
+                "interpretation": (
+                    "seven of twelve instances cannot express a condition difference (six at "
+                    "the floor in both arms, one at the ceiling), so five carry the contrast "
+                    "and two of those account for more than all of it. Dropping those two "
+                    "(n=10) reverses the descriptive sign. This bounds how much directional "
+                    "weight the aggregate ordering can carry; it is not evidence that the "
+                    "treatment harms, and it does not change the frozen confirmatory verdict."
+                ),
+                "two_operations_are_distinct": (
+                    "delta_leave_two_out_n10 drops the instances and divides by 10; "
+                    "delta_two_zeroed_within_n12 keeps twelve denominators. Both are given so "
+                    "neither can be quoted as the other."
+                ),
+            },
         },
         "sta_pilot": {
             "n_instances": len(pilot_rows),
@@ -462,6 +509,11 @@ def render_tex(stats: dict) -> str:
     macro("StatStaDelta", f"{100 * sta['delta_hat_BundleS_minus_Base']:+.1f}")
     macro("StatStaBandLo", f"{100 * sta['instance_resampling_band95'][0]:+.1f}")
     macro("StatStaBandHi", f"{100 * sta['instance_resampling_band95'][1]:+.1f}")
+    _anat = sta["panel_anatomy"]
+    macro("StatStaFloorN", str(_anat["floor_limited_both_arms"]))
+    macro("StatStaCeilingN", str(_anat["ceiling_limited_both_arms"]))
+    macro("StatStaInformativeN", str(_anat["informative_instances"]))
+    macro("StatStaLeaveTwoOut", f"{100 * _anat['delta_leave_two_out_n10']:+.1f}")
     env = stats["backend_provenance"]["envelope"]
     macro("StatRunFirst", env["earliest"])
     macro("StatRunLast", env["latest"])
