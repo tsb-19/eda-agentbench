@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7D / manuscript v13 — **frozen**)
+# ICLR 2027 Submission Package (Phase-7E / manuscript v14 — **frozen**)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE — re-verified against all three official pages on 2026-08-17, unchanged; see the Deadlines section of [FREEZE_HASHES.md](FREEZE_HASHES.md) for the fetch and the AOE↔UTC cross-check.
@@ -18,8 +18,8 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Page boundaries
 - **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
 - References: p10 (outside page limit)
-- Appendix A–J: p11–p18 (outside page limit)
-- **Total PDF: 18 pp**
+- Appendix A–K: p11–p20 (outside page limit)
+- **Total PDF: 20 pp**
 - **Do not measure the main-text page count by page arithmetic.** The rule is about whether main text
   appears above the `REFERENCES` heading on the heading's own page — during v13 an intermediate state
   reported "9 pp" because references began on p10, with 580 words of main text above them on that same
@@ -38,7 +38,7 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v13 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
+| main.tex | v14 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
@@ -50,6 +50,29 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v14 (Phase-7E: direct-answer disclosure excluded; **no paid calls, no new episode, no EDA tool run, no previously reported number moved**)
+
+A mock expert review of v13 surfaced the one alternative explanation that could have materially
+weakened the paper's only positive result — that BundleS narrows the answer to one rather than
+helping the agent reason. v13 had itself flagged this as "the single most informative experiment not
+yet run"; it turned out to need no experiment, only deterministic enumeration over already-frozen
+files. Reading a condition's own disclosure and never the task evidence, BundleS leaves **9 to 147 of
+294** candidate assignments and never one, at S0 and at the pre-frozen held-out instance, while the
+deliberately answer-bearing component C6 collapses the sign-off pair to one. Direct answer disclosure
+is excluded; softer informational advantage is explicitly **not**, and the Base/BundleS contrast is
+deliberately not an equal-information comparison.
+
+Four correctness items travelled with it: task constraints relabelled **K1–K5** to split them from
+the clarity components C1–C7 (constraint K5 is what component C6 asserts); S3's absence given its
+methodological reason rather than left bare; the prospective panel's **6 floor / 1 ceiling / 5
+informative** structure disclosed with its leave-two-out figure of −5.0 pp; and classical
+generalizability and validity theory cited, having previously been used in substance and referenced
+nowhere. Main text stays at 9 pp — every addition was paid for after the last float.
+
+  ```bash
+  python3 scripts/phase7e_answer_identifiability.py --check   # 294 universe; BundleS 9–147, never 1
+  ```
 
 ## v13 (Phase-7D: measured result promoted ahead of the framework; **no paid calls, no experimental record altered, no derived number moved**)
 v12's abstract opened on the claim-scope framework — a method of description — while the paper's

@@ -12,7 +12,8 @@ change. It replaces the benchmark-era status document and absorbs the Phase-6C f
 |---|---|---|
 | **Experiment freeze HEAD** | `a89e084` | *"report(phase5d): TypedContract extension complete 36/36"*. **No experiment, paid model call, or task/model asset beyond this commit contributes to the paper.** Every reported number is re-derived from committed ledgers at or before it. |
 | **Submission HEAD (v12)** | `cc797ffe` (tag `iclr2027-submission-v3`) | manuscript v12. Ahead of `a89e084` by documentation and submission work only — no new experimental result. **Retained as an immutable historical snapshot; not rewritten by v13.** |
-| **Submission HEAD (v13)** | `c7b3828a`, published as tag `iclr2027-submission-v4` | manuscript v13, frozen. Promotes the Phase-7D retrospective result ahead of the claim-scope framework, adds four citations and states harness scope as a limitation. **No paid model call, no new episode, no task-semantics change, no derived experimental number moved** — all three generated tables stay byte-identical to v12. |
+| **Submission HEAD (v13)** | `c7b3828a`, tag `iclr2027-submission-v4` | manuscript v13. Promotes the Phase-7D retrospective result ahead of the claim-scope framework, adds four citations and states harness scope as a limitation. **No paid model call, no new episode, no task-semantics change, no derived experimental number moved** — all three generated tables stay byte-identical to v12. |
+| **Submission HEAD (v14)** | `b281137f` | manuscript v14, frozen. Adds the Phase-7E answer-identifiability result (Appendix F), relabels the task constraints K1--K5 to split them from the clarity components C1--C7, records why S3 is unmeasured, discloses the prospective panel's floor/ceiling anatomy, and cites classical generalizability and validity theory. **No paid model call, no new episode, no EDA tool run, no task-semantics change**; all three generated tables and every previously reported number are unchanged. |
 
 `iclr2027-artifact`, this branch, is cut from `cc797ffe` and contains no experimental change at
 all: only deletions, documentation, and the two verifier scripts. See
@@ -25,7 +26,8 @@ all: only deletions, documentation, and the two verifier scripts. See
 | `iclr2027-submission-v1` | `3d3e77b7` | v5 |
 | `iclr2027-submission-v2` | `5858d843` | v7 — closed the Study I episode accounting (58 program-primary vs the 70-episode descriptive ledger) |
 | `iclr2027-submission-v3` | `cc797ffe` | v12. Evidence-support claim lattice, symmetric claim qualification, estimand-aligned uncertainty |
-| `iclr2027-submission-v4` | tags the commit recording `c7b3828a` | **v13 — current.** The Phase-7D retrospective audit becomes the leading result: the tool-success signal is constant across 169 pairing-verified frozen trajectories and accepts all 82 semantically wrong bindings, so the typed provenance/authority oracle carries the entire measurement. Interpretation and positioning only. |
+| `iclr2027-submission-v4` | tags the commit recording `c7b3828a` | **v13.** The Phase-7D retrospective audit becomes the leading result: the tool-success signal is constant across 169 pairing-verified frozen trajectories and accepts all 82 semantically wrong bindings, so the typed provenance/authority oracle carries the entire measurement. Interpretation and positioning only. |
+| *(v14 tag applied at freeze)* | `b281137f` | **v14 — current.** Direct-answer disclosure excluded by deterministic enumeration; K1--K5 / C1--C7 separated; S3's absence given its methodological reason; panel anatomy disclosed; classical measurement theory cited. Interpretation, positioning and one zero-call derived analysis. |
 
 ### Why the v12 freeze was reopened
 
@@ -126,7 +128,10 @@ scripts/check                                          # tests + task structure 
 python3 scripts/slim_link_check.py                     # no dangling repository references
 python3 scripts/phase7c_study1_ledger.py --check       # 58 + 12 = 70
 python3 scripts/phase7c_claim_statistics.py --check     # 12.5 / [-12.5, 41.7] / -16.7
-cd submission && make distclean && make                # 18 pp, sha256 unchanged
+python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong
+python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9-147, never 1
+cd submission && make distclean && make                # 20 pp (main text 9), sha256 unchanged
+python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 
 `make clean` deliberately keeps `main.pdf`; use `distclean` before any build whose log you intend

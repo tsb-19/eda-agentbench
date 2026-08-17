@@ -1,13 +1,107 @@
-# Phase-7D Submission Freeze (v13 — measured result promoted ahead of the framework)
+# Phase-7E Submission Freeze (v14 — direct-answer disclosure excluded; measurement theory cited)
 
-**Submission HEAD:** `c7b3828a`. v13 was assembled over two commits — `1c01670e` reordered the
-manuscript around the measured result; `c7b3828a` adds the harness-scope limitation, its citation, and
-the mechanical page-limit gate. The hashes below are `c7b3828a`'s. One further commit records the
-tag `iclr2027-submission-v4` and the deadline re-verification; it touches no build input and rebuilds
-to the same PDF byte-for-byte.
-**Experiment freeze HEAD:** `a89e084` (immutable). **v13 ran no model calls and altered no experimental record.**
-**v12 remains an immutable historical snapshot:** source `82cb22da…`, PDF `bbf948bf…`, 15 pp. Neither is rewritten; v13 is a *new* freeze, not an amendment of v12.
-**Previous freezes:** v12 = the commit that added the section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither of those two tags moves.**
+**Submission HEAD:** `b281137f`. v14 was assembled over two commits — `5ac63be6` added the
+answer-identifiability probe, its regression tests and its report, touching no manuscript file;
+`b281137f` is the manuscript. The hashes below are `b281137f`'s. One further commit records the tag
+and the documentation updates; it touches no build input and rebuilds to the same PDF byte-for-byte.
+**Experiment freeze HEAD:** `a89e084` (immutable). **v14 ran no model calls, no EDA tool and no new
+episode, and altered no experimental record.**
+**v13 remains an immutable historical snapshot:** source `64b7f0b8…`, PDF `6f64140d…`, 18 pp, tag
+`iclr2027-submission-v4`. **v12** likewise: source `82cb22da…`, PDF `bbf948bf…`, 15 pp. v14 is a
+*new* freeze, not an amendment of either.
+**Previous freezes:** v13 = `c7b3828a`, tagged `iclr2027-submission-v4`. v12 = the commit that added
+its section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 =
+`5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`.
+**None of those tags moves.**
+
+## Why v14 exists
+
+A mock expert review of v13 identified one alternative explanation that would have materially
+weakened the paper's only positive result, and it was answerable without any new measurement: that
+BundleS does not help an agent reason but simply narrows the answer to one. v13 flagged this itself
+as "the single most informative experiment not yet run." It turned out not to need an experiment —
+only deterministic enumeration over already-frozen files — so leaving it open would have meant
+shipping a paper whose central positive cell had an unexcluded trivial explanation that the paper
+named on its own.
+
+Four smaller items travelled with it, each a correctness or positioning defect rather than polish:
+
+1. **A notation collision.** The frozen task files number the five task constraints C1–C5 and the
+   clarity components C1–C7. Constraint C5 *is* the sign-off pair, and component C6 is what asserts
+   it — so the two systems collided precisely where the disclosure argument lives. The manuscript now
+   says **K1–K5** for task constraints and states the relabel; the frozen stimuli keep their own
+   numbering, because rewording an experimental stimulus would change the measurement.
+2. **S3's absence had no stated reason.** The paper reported the cell as unmeasured without saying
+   why. The reason is methodological, not budgetary, and is now on the record.
+3. **The prospective panel's heterogeneity was derivable but unstated.** Per-instance outcomes were
+   already published; that six instances are floor-limited and one ceiling-limited was left for the
+   reader to work out.
+4. **Classical measurement theory was used and uncited.** "Construct validity" appeared with no
+   reference attached, and the claim-scope lattice restates facet- and external-validity reasoning
+   that predates this field by decades. Not citing it read as ignorance of the tradition.
+
+### What changed
+
+| | v13 | v14 |
+|---|---|---|
+| Direct answer disclosure | flagged as the most informative test not yet run | **excluded by enumeration**: BundleS leaves 9–147 of 294 candidates, never 1, at S0 and S1 |
+| Task constraints | C1–C5, colliding with components C1–C7 | **K1–K5**, with the relabel stated |
+| S3 | "not measured" | not measured **and why**: adding it post-outcome would make the ladder outcome-adaptive |
+| STA panel | 3 improve / 2 decline / 7 tie | plus **6 floor / 1 ceiling / 5 informative**, leave-two-out (*n*=10) −5.0 pp |
+| Measurement theory | uncited | Brennan, Shadish–Cook–Campbell, Messick, plus one recent LLM-benchmark treatment |
+| Bibliography | 16 entries | 20 entries |
+| Main text | 9 pp | 9 pp (unchanged; additions paid for after the last float) |
+
+### Page cost, and a re-confirmed layout fact
+
+Main text was already exactly 9 pp with zero slack. Every addition had to be paid for **after the
+last main-text float**, which is the only region where a cut moves the boundary. This was
+re-confirmed the hard way: trimming ~30 words *before* the last float moved the REFERENCES heading
+by exactly 0.00 pt, and resizing two main-text tables moved it by 0.00 pt as well — float repacking
+absorbs both. Progress came only from the tail. The Discussion was merged into the Conclusion (which
+also reclaimed a section heading's vertical space), the Limitations items were tightened, and one
+Conclusion sentence was dropped as duplicative of §6 and Table 4's caption. **All eight limitation
+claims and both Discussion assertions survive**; the `app:falsif` pointer moved into an appendix,
+where space is free.
+
+## SHA-256 hashes (frozen artifacts, v14)
+| Artifact | SHA-256 | vs v13 |
+|---|---|---|
+| Source (main.tex) | `cacf3396a5425db3699006caaab8e720f9b9ed7da0d3028ae5d846f20424cb6a` | changed |
+| Final PDF (main.pdf, 20 pp: 9 main + refs + appendix; 301 768 B) | `88ffca9d9479e22bc26603b2de2947c0aa1f327845d1f8acf1d27a86546eb8bb` | changed |
+| Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | changed |
+| Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
+| Generated pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
+| Generated stat macros (tables/claim_stats.tex) | `40f4b24d1f5b3a2c0c1a57a7fd01125908f4b84f41d7f09343a95d10f3c3b96f` | **additive only** |
+| Phase-7E analysis (reports/synthetic_phase7e_answer_identifiability.json) | `9f77ff07ed18f2aa3bf5ff81e9b881f9967daf29abe725f3befd3c7addfa1dea` | new |
+| Phase-7E probe (scripts/phase7e_answer_identifiability.py) | `d65bf72ba9b42fc771105a33d1101f88ad35ebc82cd38280b0281243d43c2bb5` | new |
+| Claim statistics (scripts/phase7c_claim_statistics.py) | `ebb94c82636a0fa52f2d837b6dabf4836d50b620e1c9dc7b108c63e6ba4a8044` | changed |
+| Phase-7D analysis (reports/synthetic_phase7d_semantic_proxy_gap.json) | `e0370a04ba6de10554b8caada29507ec27c0775b8558633d4a2b31c46fb8aa28` | **identical** |
+| Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
+
+**On "additive only".** Two of the three generated tables are byte-identical. The third,
+`claim_stats.tex`, differs by exactly **four added lines** — `\StatStaFloorN`, `\StatStaCeilingN`,
+`\StatStaInformativeN`, `\StatStaLeaveTwoOut` — with **no pre-existing macro modified or removed**
+(`git diff` shows four insertions and zero deletions). So the v13 mechanical proof still holds in the
+form that matters: **no previously reported derived number moved in v14.** +12.5, [−12.5, 41.7],
+−16.7, 58+12=70 and 169/82 are all unchanged, and the panel-anatomy figures are new derivations from
+the same frozen records rather than revisions of old ones. The claim-evidence matrix and the Phase-7D
+report are untouched, because retroactively editing a frozen custody record would break the chain it
+exists to document.
+
+**A precision note carried deliberately.** The leave-two-out figure is **−5.0 pp** at *n*=10 — the
+two dominant instances are *dropped*. Zeroing them inside *n*=12 gives −4.2 pp. These are different
+operations on the same data and the payload records both, because an earlier draft of this work
+quoted the second while describing the first.
+
+**Verification performed for v14:** two independent `make distclean && make` builds give the same PDF
+sha256 (byte-reproducible); 3 pdflatex start banners counted rather than assuming a log exists; 0
+Overfull boxes, 0 undefined references or citations and 0 multiply-defined labels in the final pass;
+the page-limit gate passes with **0 main-text words above the REFERENCES heading** and its negative
+control still exits 1 at `--limit 8`; anonymity re-scanned (PDF metadata Title/Author/Subject/
+Keywords empty, 0 infra or forge leaks in PDF text); 20 bibitems rendered and all four new citations
+present; `scripts/check` passes at the recorded 1065/9/2/1 baseline; and all five `--check` analyses
+reproduce their committed outputs.
 
 ## Why v13 exists
 
@@ -299,8 +393,22 @@ Unchanged from v8–v11; each is stated in the manuscript as a limitation rather
   the sensitivity band may be read to mean.
 
 ## Freeze status
-**The manuscript is frozen at v13**, on branch `iclr2027-artifact`, tagged
-`iclr2027-submission-v4`. The v12 freeze below still stands as an immutable historical snapshot; v13
+**The manuscript is frozen at v14**, on branch `iclr2027-artifact`. The v13 freeze (tag
+`iclr2027-submission-v4`) and the v12 freeze below both stand as immutable historical snapshots; v14 is
+a new freeze, not an amendment.
+
+A v14-specific corollary, stated because it is the boundary this round tested: **a genuine alternative
+explanation of a reported result is grounds to reopen a freeze; wanting a better-scoring paper is not.**
+The answer-identifiability probe qualified because it could have overturned the paper's own positive
+cell — and was run knowing that. The four items that travelled with it qualified because each was a
+correctness or attribution defect (a notation collision, an unstated reason, an underivable-from-prose
+fact, an uncited tradition), not a rewording. **No further post-hoc analysis should be added before
+submission.** The search for new derived results is closed at Phase-7E.
+
+The v13 status text follows.
+
+### v13 freeze status (historical)
+**v13 was frozen** on branch `iclr2027-artifact`, tagged `iclr2027-submission-v4`. The v12 freeze below still stands as an immutable historical snapshot; v13
 did not amend it.
 
 The reasoning that closed v12 applies unchanged to v13, and is the reason this section is not

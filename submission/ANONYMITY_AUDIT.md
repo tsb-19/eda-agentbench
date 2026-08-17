@@ -4,6 +4,20 @@
 result ahead of the claim-scope framework, adds four citations and a harness-scope limitation; it runs
 no model calls and alters no experimental record.
 
+## v14 re-scan
+
+Re-run on the v14 PDF (`88ffca9d…`, 301 768 B, 20 pp; main text 9 pp).
+
+| Check | Result |
+|---|---|
+| PDF metadata (pdfinfo) | Title/Author/Subject/Keywords empty; Creator `LaTeX with hyperref`, Producer `pdfTeX-1.40.25` — both generic. PASS |
+| PDF text: infra leaks (tongsb, /data1, /home, b04, eda-agentbench, harbor-framework, laude-institute, 192.168, 10.x, tsb@) | **0 matches.** PASS |
+| PDF text: acknowledgements, github.com, ORCID, institutional e-mail | **0 matches.** PASS |
+| New in v14: Appendix F (answer identifiability) | Names only task instances (`0009`–`0023`), condition labels and file names inside the artifact. No author, host, path or licence-server string. PASS |
+| New in v14: four measurement-theory citations | Brennan 2001, Shadish–Cook–Campbell 2002, Messick 1995, arXiv:2511.04703 — all third-party published work; citing them reveals nothing about the authors. PASS |
+| New in v14: panel-anatomy macros | Four integers/percentages from the frozen records. PASS |
+| Reminder, unchanged | The **repository** is not anonymised: ~212 frozen custody files under `reports/evidence/` still carry a username or host name and cannot be rewritten without breaking the custody chain. A double-blind supplement needs a separate sanitising export. The **PDF** is clean, which is what the double-blind requirement covers. |
+
 ## v13 re-scan
 | Surface | Result |
 |---|---|

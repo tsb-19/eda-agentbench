@@ -3,7 +3,7 @@
 # Artifact map — every paper claim to the files that produce it
 
 This document exists so a reader arriving from the paper can locate the evidence for any claim
-without guessing. Section and table numbers refer to `submission/main.tex` (manuscript v13, the
+without guessing. Section and table numbers refer to `submission/main.tex` (manuscript v14, the
 frozen ICLR 2027 submission; build it with `cd submission && make`).
 
 Nothing in the paper is a transcribed number. The two derived-table scripts read the frozen
@@ -33,7 +33,7 @@ Generators: `generators/p14_workflow_handoff_gen.py`, `p15_sta_handoff_gen.py`,
 `p16_spice_handoff_gen.py`. Evaluators (the harness side):
 `eda_agentbench/evaluator/{workflow,sta,spice}_handoff.py`.
 
-The five structural independence criteria Appendix F asserts (independent templates,
+The five structural independence criteria the operational-independence appendix asserts (independent templates,
 vocabularies, truths, graders, decoys) are checked mechanically by
 `scripts/phase5a_independence_check.py` → `reports/synthetic_phase5_independence_check.json`.
 Family designs: `docs/synthetic_phase5a_family_specs.md`,
@@ -46,7 +46,7 @@ Family designs: `docs/synthetic_phase5a_family_specs.md`,
 | §1, Fig. 1 | the five supports S0 / S1 / S2-M / S2-F / S3 | prose framework; the cells it names resolve through the rows below |
 | §3.1, Table 1 | claim-qualification standard | prose only — a stated standard, not a measurement |
 | §3, Table 6 (App. A) | the worked instance: 4 shipped evidence sources, each pairwise plausible, each PrimeTime-green | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/report_A_role_swap.rpt`, `report_B_role_stale.rpt`, `report_C_role_pvt.rpt`, `evidence_D_role_mismatch.json` |
-| §3 | 294 candidate assignments, exactly one satisfies C1–C5 | uniqueness enumeration in `generators/p14_workflow_handoff_gen.py`; hidden truth at `workflow_handoff_0009/hidden/handoff_truth.json` |
+| §3 | 294 candidate assignments, exactly one satisfies K1–K5 | uniqueness enumeration in `generators/p14_workflow_handoff_gen.py`; hidden truth at `workflow_handoff_0009/hidden/handoff_truth.json`. **Naming:** the paper says **K1–K5** for the five *task constraints*; the frozen task files number the same five C1–C5, which collides with the *clarity components* C1–C7 — constraint K5 (sign-off pair) is what component C6 asserts. The stimuli keep their own numbering because rewording them would change the measurement |
 | §3 | how the oracle adjudicates; the two never-collapsed failure subtypes | `workflow_handoff_0009/hidden/grade_workflow.py` |
 | §3 | conditions Base / BundleS / TypedContract | the per-instance `files/` visible sets; component definition in `docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md` |
 | §4 | Base 1/3 → BundleS 3/3 at S0; the same direction at S1 | `reports/synthetic_p14_phase4w_run1.*` (S0), `_heldout.*` (S1), `_run2.*` (repeat window) |
@@ -58,7 +58,9 @@ Family designs: `docs/synthetic_phase5a_family_specs.md`,
 | §5 | +12.5 pp, sensitivity band −12.5 to 41.7; sign test p=1.0; permutation p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
 | §5 | the 3-instance pilot reversed direction (−16.7 pp) | `reports/synthetic_phase5d_collection_report.json` |
 | §5, Table 2 row 5 | S2-F SPICE: Base = BundleS = TypedContract = 1.00 ceiling | `reports/synthetic_phase5c_collection_report.json` |
-| §3, App. F | the tool-success signal is **constant** (accept) over 169 pairing-verified trajectories, accepting all 82 semantically wrong bindings, so the typed oracle carries all measured discrimination; SPICE-5D is the negative control (18/18 correct, oracle and tool agreeing) | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`; regression `tests/test_phase7d_semantic_proxy_gap.py` |
+| §3, App. G | the tool-success signal is **constant** (accept) over 169 pairing-verified trajectories, accepting all 82 semantically wrong bindings, so the typed oracle carries all measured discrimination; SPICE-5D is the negative control (18/18 correct, oracle and tool agreeing) | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`; regression `tests/test_phase7d_semantic_proxy_gap.py` |
+| §4, App. F | BundleS does not uniquely identify the golden assignment from its own disclosure: 9–147 of 294 candidates survive (the bracket spans the two readings), never 1, at S0 and at the pre-frozen held-out instance; the answer-bearing component C6 collapses the (scenario, corner) projection to 1. Closes direct answer disclosure only | `scripts/phase7e_answer_identifiability.py --check` → `reports/synthetic_phase7e_answer_identifiability.json`; regression `tests/test_phase7e_answer_identifiability.py` |
+| §5, App. C | prospective panel anatomy (post hoc): 6 floor-limited, 1 ceiling-limited, 5 informative instances; leave-two-out (*n*=10) is −5.0 pp | `scripts/phase7c_claim_statistics.py --check` → `sta_finite_panel.panel_anatomy` in `reports/synthetic_p14_claim_statistics.json` |
 | §6 | 9 of 58 workflow episodes excluded because the recorded tool verdict did not attest the final submitted artifact; tuple equality would have caught 2 of the 9 | same JSON — `per_episode[].pairing_verified` and `exclusion_reason` |
 | §6, Table 3 | the seven audit incidents | one row each, below |
 | §6 | model custody: episode span, snapshot retention, per-episode transport records | `scripts/phase7c_claim_statistics.py` (`resolved_snapshot_retained`, diag-episode counts) over `reports/evidence/` |
@@ -89,11 +91,15 @@ been rewritten by a component of the test harness rather than by the remote tool
 |---|---|---|
 | A | worked instance evidence sources | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/` |
 | B | Study I per-instance ledger; per-cell exact intervals; the pooled figure set aside | `scripts/phase7c_study1_ledger.py` → `reports/synthetic_p14_study1_ledger.json` → `submission/tables/study1_ledger.tex` |
-| C | prospective STA per-instance table; pilot table; frozen statistical procedure; post-hoc band | `reports/synthetic_phase7a_sta72_report.json`, `reports/synthetic_phase5d_collection_report.json`, `submission/tables/sta_pilot.tex` |
-| D | the full 26-task Terminal-Bench coding | `reports/synthetic_phase7c_terminalbench_audit.md`, `reports/evidence/phase7c_terminalbench/` |
-| E | freeze points, exploratory vs confirmatory, program accounting (58/24/36/72 episodes; ¥745.29) | `reports/synthetic_p14_phase4z_freeze_manifest.json`, `docs/phase7/phase7a_preregistration.md`, and the `prerun_freeze_manifest.json` / `membership_code_manifest.json` files under `reports/evidence/` |
-| F | infrastructure and custody; the pre-flight grading-path bug caught before the prospective run | `docs/phase7/phase7a_preflight.md`, `docs/phase7/phase7a_sta_bug_audit.md`, `scripts/fullpath_check.py`, `scripts/spice_fullpath_check.py`, `scripts/measurement_control.py`, `scripts/fairness_retry.py` |
-| G | positioning relative to prior work | `submission/references.bib` |
+| C | prospective STA per-instance table; pilot table; frozen statistical procedure; post-hoc band; **panel anatomy** | `reports/synthetic_phase7a_sta72_report.json`, `reports/synthetic_phase5d_collection_report.json`, `submission/tables/sta_pilot.tex`, `sta_finite_panel.panel_anatomy` in `reports/synthetic_p14_claim_statistics.json` |
+| D | what would change each conclusion — the seven falsification conditions, one per verdict | prose; the S0–S1 item now reports the Appendix F result instead of promising it |
+| E | claim-qualification standard, full tier definitions | prose — a stated standard, not a measurement |
+| F | **disclosure-only answer identifiability** of the treatment conditions | `scripts/phase7e_answer_identifiability.py --check` → `reports/synthetic_phase7e_answer_identifiability.json`; regression `tests/test_phase7e_answer_identifiability.py` |
+| G | semantic/tool discrimination: exclusion accounting and pairing sensitivity | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json` |
+| H | the full 26-task Terminal-Bench coding | `reports/synthetic_phase7c_terminalbench_audit.md`, `reports/evidence/phase7c_terminalbench/` |
+| I | operational independence (the five structural criteria), freeze points, exploratory vs confirmatory, program accounting (58/24/36/72 episodes; ¥745.29) | `scripts/phase5a_independence_check.py`, `reports/synthetic_p14_phase4z_freeze_manifest.json`, `docs/phase7/phase7a_preregistration.md`, and the `prerun_freeze_manifest.json` / `membership_code_manifest.json` files under `reports/evidence/` |
+| J | infrastructure and custody; the pre-flight grading-path bug caught before the prospective run | `docs/phase7/phase7a_preflight.md`, `docs/phase7/phase7a_sta_bug_audit.md`, `scripts/fullpath_check.py`, `scripts/spice_fullpath_check.py`, `scripts/measurement_control.py`, `scripts/fairness_retry.py` |
+| K | positioning relative to prior work | `submission/references.bib` |
 | Ethics | Study B (blinded human construct validity) preregistered but unexecuted | `docs/phase7/phase7b_annotation_freeze.md`, `scripts/phase7a_annotation_packets.py` |
 | Reproducibility | frozen manifests, schedules, custody hashes, per-episode evidence | `reports/evidence/`, verified by `scripts/frozen_membership_verify.py` |
 
@@ -127,10 +133,54 @@ pairing is decided by hash: 9 of 58 fail, and tuple equality would have caught o
 the other 7 agree on `(scenario, corner, netlist)` while consuming a different file. The frozen
 grader flags these independently (`stage_chain == 0.0`).
 
+## How to read the Phase-7E result (cited by §4 and Appendix F of v14)
+
+Phase-7E is the same class of analysis as Phase-7D: **retrospective, post-freeze**, specified after
+the experimental program closed, not preregistered, re-derived entirely from files committed at or
+before the experiment freeze — no model call, no EDA tool run, no new episode.
+
+It answers exactly one question: *reading only what a condition discloses, and never the task
+evidence, is the golden assignment already pinned to a single candidate?*
+
+- **What it closes.** Direct answer disclosure. BundleS leaves 9–147 of 294 candidates and never
+  one, so the S0/S1 result cannot be explained by the treatment simply publishing the answer. The
+  probe is shown to be capable of detecting disclosure: component **C6** is found in exactly the two
+  instances the ablation design says carry it (`0010`, `0014`) and in none of the other twelve, and
+  it collapses the (scenario, corner) projection to one under both readings. `main()` exits non-zero
+  if that positive control ever stops firing, so the negative result cannot be reported from a
+  probe that has gone blind.
+- **What it does *not* close.** Softer information leakage, prior narrowing, prompt-induced
+  heuristic cues, accidental lexical correlation, model-specific exploitation. Do **not** describe
+  this as "no leakage" — the correct name is *direct-answer disclosure* or
+  *answer-identifiability*.
+- **It is not an equal-information comparison.** BundleS is *designed* to reduce semantic
+  ambiguity; on the leakage-favourable reading it narrows the typed grid from 49 candidates to 9.
+  That is a substantial informational advantage that stops short of publishing the answer, and both
+  halves of that sentence must travel together.
+- **Bounds, not mechanism.** The probe bounds a condition's informational advantage. It does not
+  identify the behavioral mechanism, and the survivor ratio must not be restated as one — under the
+  strict reading BundleS does not shrink the candidate set at all relative to Base.
+- **Report the bracket, not a point.** 9 is the leakage-favourable bound and 147 the strict one.
+  Quoting only 9 overstates how much the treatment narrows; quoting only 147 understates it.
+
+The read discipline is executable rather than promised: the probe reads only `prompt.md`,
+`spec.md`, `glossary.md` and `public_check_summary.json`, and the reports, `evidence_D`,
+`prev_signoff`, `flow_config.json`, the handoff manifest, the netlists and everything under
+`hidden/` raise `ForbiddenRead`. Nine tests assert those refusals fire. The candidate universe is
+asserted byte-identical across all fourteen conditions, and the golden tuple loads through a
+separate accessor called only after every survivor set is already fixed.
+
 ## What the paper does *not* claim, and where that shows in the tree
 
 - **S3 (different model *and* different family) was never measured.** No report exists for it, by
-  design. Its absence in `reports/` is the claim.
+  design. Its absence in `reports/` is the claim. It stays unmeasured deliberately: adding the cell
+  after seeing the S2-F outcomes would make the evidentiary ladder outcome-adaptive, which is the
+  practice the paper's own standard exists to prevent. Cost is not the reason — the 72-episode STA
+  panel cost ¥43.56 of ¥745.29.
+- **Softer information leakage is not excluded.** Phase-7E closes *direct answer disclosure* only
+  (BundleS leaves 9–147 of 294 candidates, never 1). Prior narrowing, prompt-induced heuristic cues,
+  accidental lexical correlation and model-specific exploitation remain open, and the Base/BundleS
+  contrast is deliberately **not** an equal-information comparison.
 - **No production-harness transfer.** "Harness" in the paper means the *task-level information
   structure* (§2) — prompt, visible files, disclosure bundle, public tool feedback, action surface —
   not the agent scaffold. Every episode ran through `scripts/llm_agent_driver.py` and
@@ -158,7 +208,8 @@ scripts/check                                          # tests + structure + cus
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
-cd submission && make distclean && make                # 18 pp, byte-reproducible
+python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9–147, never 1
+cd submission && make distclean && make                # 20 pp (main text 9), byte-reproducible
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 

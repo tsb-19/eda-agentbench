@@ -2,7 +2,7 @@
 
 # 产物地图 —— 论文每个论断到生成它的文件
 
-本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 v13，已冻结的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
+本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 v14，已冻结的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
 
 论文中没有任何数字是手工抄录的。两个派生表脚本读取冻结的逐 episode 记录并生成 LaTeX，由 `main.tex` 直接 `\input`，因此表格不可能与记录脱节：
 
@@ -25,7 +25,7 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 
 生成器：`generators/p14_workflow_handoff_gen.py`、`p15_sta_handoff_gen.py`、`p16_spice_handoff_gen.py`。评测器（harness 侧）：`eda_agentbench/evaluator/{workflow,sta,spice}_handoff.py`。
 
-附录 F 所主张的五条结构性独立准则（独立的模板、词汇、真值、评分器、诱饵）由 `scripts/phase5a_independence_check.py` 机械核验，输出 `reports/synthetic_phase5_independence_check.json`。家族设计见 `docs/synthetic_phase5a_family_specs.md`、`docs/synthetic_workflow_generator_spec.md`。
+运行层独立性附录所主张的五条结构性独立准则（独立的模板、词汇、真值、评分器、诱饵）由 `scripts/phase5a_independence_check.py` 机械核验，输出 `reports/synthetic_phase5_independence_check.json`。家族设计见 `docs/synthetic_phase5a_family_specs.md`、`docs/synthetic_workflow_generator_spec.md`。
 
 ## 正文
 
@@ -34,7 +34,7 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | §1，图 1 | 五个支撑 S0 / S1 / S2-M / S2-F / S3 | 框架性论述；它点到的单元格通过下面各行落地 |
 | §3.1，表 1 | 论断资格标准 | 仅论述 —— 这是声明的标准，不是测量 |
 | §3，表 6（附录 A） | 工作实例：4 份随附证据源，两两自洽，且全部 PrimeTime 绿 | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/report_A_role_swap.rpt`、`report_B_role_stale.rpt`、`report_C_role_pvt.rpt`、`evidence_D_role_mismatch.json` |
-| §3 | 294 个候选赋值中恰有一个满足 C1–C5 | 唯一性穷举在 `generators/p14_workflow_handoff_gen.py`；隐藏真值在 `workflow_handoff_0009/hidden/handoff_truth.json` |
+| §3 | 294 个候选赋值中恰有一个满足 K1–K5 | 唯一性穷举在 `generators/p14_workflow_handoff_gen.py`；隐藏真值在 `workflow_handoff_0009/hidden/handoff_truth.json`。**命名：**论文用 **K1–K5** 指这五条*任务约束*；冻结的任务文件把同样五条编号为 C1–C5，与*清晰度组件* C1–C7 相撞 —— 约束 K5（签核对）正是组件 C6 所断言的内容。实验刺激保留其原有编号，因为改写它们会改变测量 |
 | §3 | oracle 如何裁决；两种绝不合并的失败子类型 | `workflow_handoff_0009/hidden/grade_workflow.py` |
 | §3 | Base / BundleS / TypedContract 三个条件 | 各实例 `files/` 的可见集合；组件定义见 `docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md` |
 | §4 | S0 上 Base 1/3 → BundleS 3/3；S1 上方向一致 | `reports/synthetic_p14_phase4w_run1.*`（S0）、`_heldout.*`（S1）、`_run2.*`（重复窗口） |
@@ -46,7 +46,9 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | §5 | +12.5 pp，敏感带 −12.5 至 41.7；符号检验 p=1.0；置换检验 p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
 | §5 | 三实例试点方向相反（−16.7 pp） | `reports/synthetic_phase5d_collection_report.json` |
 | §5，表 2 第 5 行 | S2-F SPICE：Base = BundleS = TypedContract = 1.00 天花板 | `reports/synthetic_phase5c_collection_report.json` |
-| §3、附录 F | 在 169 条已验证配对的轨迹上工具成功信号是**常量**（接受），并接受了全部 82 条语义错绑，因此全部测得判别力都由类型化 oracle 承担；SPICE-5D 为负对照（18/18 正确，oracle 与工具一致） | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
+| §3、附录 G | 在 169 条已验证配对的轨迹上工具成功信号是**常量**（接受），并接受了全部 82 条语义错绑，因此全部测得判别力都由类型化 oracle 承担；SPICE-5D 为负对照（18/18 正确，oracle 与工具一致） | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
+| §4、附录 F | 仅凭 BundleS 自身的披露无法唯一确定 golden assignment：294 个候选中仍存 9–147 个（区间对应两种读法），在 S0 与预先冻结的留出实例上都从不为 1；而带答案的组件 C6 会把 (scenario, corner) 投影压缩到 1。**只**排除了直接公布答案 | `scripts/phase7e_answer_identifiability.py --check` → `reports/synthetic_phase7e_answer_identifiability.json`；回归测试 `tests/test_phase7e_answer_identifiability.py` |
+| §5、附录 C | 前瞻面板结构（事后）：6 个地板受限、1 个天花板受限、5 个具判别力；去掉两个主导实例后（*n*=10）为 −5.0 pp | `scripts/phase7c_claim_statistics.py --check` → `reports/synthetic_p14_claim_statistics.json` 中的 `sta_finite_panel.panel_anatomy` |
 | §6 | 58 条 workflow episode 中有 9 条被排除，因为记录的工具判决并未证明其对应最终提交产物；tuple 相等只能抓到其中 2 条 | 同一 JSON —— `per_episode[].pairing_verified` 与 `exclusion_reason` |
 | §6，表 3 | 七个审计事件 | 每行对应下表一行 |
 | §6 | 模型保管：episode 跨度、快照留存率、逐 episode 传输记录 | `scripts/phase7c_claim_statistics.py`（`resolved_snapshot_retained`、diag-episode 计数）作用于 `reports/evidence/` |
@@ -74,11 +76,15 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 |---|---|---|
 | A | 工作实例的证据源 | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/` |
 | B | 研究 I 逐实例台账；逐单元精确区间；被搁置的合并数值 | `scripts/phase7c_study1_ledger.py` → `reports/synthetic_p14_study1_ledger.json` → `submission/tables/study1_ledger.tex` |
-| C | 前瞻 STA 逐实例表；试点表；冻结的统计流程；事后敏感带 | `reports/synthetic_phase7a_sta72_report.json`、`reports/synthetic_phase5d_collection_report.json`、`submission/tables/sta_pilot.tex` |
-| D | 完整 26 项 Terminal-Bench 编码 | `reports/synthetic_phase7c_terminalbench_audit.md`、`reports/evidence/phase7c_terminalbench/` |
-| E | 冻结点、探索性对确认性、项目账目（58/24/36/72 episode；¥745.29） | `reports/synthetic_p14_phase4z_freeze_manifest.json`、`docs/phase7/phase7a_preregistration.md`，以及 `reports/evidence/` 下的 `prerun_freeze_manifest.json` / `membership_code_manifest.json` |
-| F | 基础设施与保管；前瞻运行前被预检抓到的评分路径缺陷 | `docs/phase7/phase7a_preflight.md`、`docs/phase7/phase7a_sta_bug_audit.md`、`scripts/fullpath_check.py`、`scripts/spice_fullpath_check.py`、`scripts/measurement_control.py`、`scripts/fairness_retry.py` |
-| G | 相对已有工作的定位 | `submission/references.bib` |
+| C | 前瞻 STA 逐实例表；试点表；冻结的统计流程；事后敏感带；**面板结构** | `reports/synthetic_phase7a_sta72_report.json`、`reports/synthetic_phase5d_collection_report.json`、`submission/tables/sta_pilot.tex`，以及 `reports/synthetic_p14_claim_statistics.json` 中的 `sta_finite_panel.panel_anatomy` |
+| D | 什么会改变每一条结论 —— 七条可反驳条件，每个判决一条 | 论述；S0–S1 那一条现在报告附录 F 的结果，而不再是承诺去做 |
+| E | 论断资格标准的完整分层定义 | 仅论述 —— 这是声明的标准，不是测量 |
+| F | 各 treatment 条件的**仅凭披露的答案可唯一确定性** | `scripts/phase7e_answer_identifiability.py --check` → `reports/synthetic_phase7e_answer_identifiability.json`；回归测试 `tests/test_phase7e_answer_identifiability.py` |
+| G | 语义/工具判别力：排除账目与配对敏感性 | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json` |
+| H | 完整 26 项 Terminal-Bench 编码 | `reports/synthetic_phase7c_terminalbench_audit.md`、`reports/evidence/phase7c_terminalbench/` |
+| I | 运行层独立性（五条结构性准则）、冻结点、探索性对确认性、项目账目（58/24/36/72 episode；¥745.29） | `scripts/phase5a_independence_check.py`、`reports/synthetic_p14_phase4z_freeze_manifest.json`、`docs/phase7/phase7a_preregistration.md`，以及 `reports/evidence/` 下的 `prerun_freeze_manifest.json` / `membership_code_manifest.json` |
+| J | 基础设施与保管；前瞻运行前被预检抓到的评分路径缺陷 | `docs/phase7/phase7a_preflight.md`、`docs/phase7/phase7a_sta_bug_audit.md`、`scripts/fullpath_check.py`、`scripts/spice_fullpath_check.py`、`scripts/measurement_control.py`、`scripts/fairness_retry.py` |
+| K | 相对已有工作的定位 | `submission/references.bib` |
 | 伦理声明 | 研究 B（盲法人类构念效度）已预注册但未执行 | `docs/phase7/phase7b_annotation_freeze.md`、`scripts/phase7a_annotation_packets.py` |
 | 可复现性声明 | 冻结清单、排程、保管哈希、逐 episode 证据 | `reports/evidence/`，由 `scripts/frozen_membership_verify.py` 核验 |
 
@@ -93,9 +99,35 @@ Phase-7D 是一项**事后、冻结之后**的派生分析：在实验程序关�
 
 202 条纳入考虑的轨迹中有 33 条被**排除而非填补**：12 条受控对 episode 只以单元计数形式存在，12 条 SPICE-5C episode 没有冻结的工具字段，9 条 workflow episode 未通过判决—产物配对。最后这道门是实质性的——只有当工具判决与语义判决描述同一份最终提交时，两者才可以比较。STA/SPICE 由构造满足这一点（隐藏 runner 在评分时从提交的绑定现场产生工具判决），而 workflow 的智能体在 episode 中途运行证据链，之后仍可修改 `flow_config.json`。`stage2_summary.json` 记录了 `input_hashes["flow_config.json"]`，因此配对可由哈希判定：58 条中有 9 条失败，而 tuple 相等只能抓到其中 2 条——另外 7 条 `(scenario, corner, netlist)` 一致却消费了不同的文件。冻结 grader 早已独立标记了这些（`stage_chain == 0.0`）。
 
+## 如何解读 Phase-7E 结果（v14 的 §4 与附录 F 引用）
+
+Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实验程序关闭之后才确定，未经预注册，完全从实验冻结点及其之前
+已提交的文件重新推导 —— 没有模型调用、没有 EDA 工具运行、没有新 episode。
+
+它只回答一个问题：*只读某个条件所披露的内容、绝不读取任务证据，golden assignment 是否已被唯一确定？*
+
+- **它关闭了什么。** 直接公布答案。BundleS 留下 294 个候选中的 9–147 个，从不为 1，因此 S0/S1 的结果不能用"treatment
+  其实已经把答案写出来了"来解释。探针本身被证明有能力检测披露：组件 **C6** 恰好只在消融设计声明携带它的两个实例
+  （`0010`、`0014`）中被检出，其余十二个都没有，并且在两种读法下都把 (scenario, corner) 投影压缩到 1。一旦该正控制不再
+  触发，`main()` 就以非零码退出 —— 因此不可能用一个已经失灵的探针去报告这个否定结论。
+- **它*没有*关闭什么。** 更微妙的信息泄漏、先验收窄、提示诱发的启发式线索、偶然的词汇相关、模型特异的利用方式。
+  **不要**把它说成"没有泄漏" —— 正确的名称是*直接公布答案*或*答案可唯一确定性*。
+- **这不是等信息量的对照。** BundleS 本来就被*设计*用来降低语义歧义；在最有利于泄漏假设的读法下，它把类型化网格从
+  49 个候选收窄到 9 个。这是一个实质性的信息优势，但仍未到公布答案的程度 —— 这句话的两半必须一起出现。
+- **给出界，而不是机制。** 探针给出的是某个条件信息优势的界。它不识别行为机制，候选数之比也不得被改述为机制 ——
+  在严格读法下 BundleS 相对 Base 根本没有收窄候选集合。
+- **报区间，不报单点。** 9 是最有利于泄漏假设的下界，147 是严格读法的上界。只报 9 会高估 treatment 的收窄程度，
+  只报 147 则会低估。
+
+读取纪律是可执行的，而不是口头承诺：探针只读 `prompt.md`、`spec.md`、`glossary.md` 与
+`public_check_summary.json`；各份 report、`evidence_D`、`prev_signoff`、`flow_config.json`、handoff 清单、网表以及
+`hidden/` 下的一切都会抛出 `ForbiddenRead`。有九个测试断言这些拒绝确实会触发。候选域被断言在全部十四个条件间逐字节
+相同，而 golden 元组通过一个独立的访问器载入，且只在所有存活集合都已确定之后才被调用。
+
 ## 论文*没有*主张什么，以及这在仓库中如何体现
 
-- **S3（同时换模型与换家族）从未测量。** 这里刻意不存在任何报告；`reports/` 中它的缺席本身就是该论断。
+- **S3（同时换模型与换家族）从未测量。** 这里刻意不存在任何报告；`reports/` 中它的缺席本身就是该论断。它被刻意保持未测量：在已经看到 S2-F 结果之后再补这个单元，会让证据阶梯本身变成随结果自适应扩展的东西，而这正是论文自身的标准要防止的做法。成本不是原因 —— 72 个 episode 的 STA 面板只花了 ¥43.56（总额 ¥745.29）。
+- **更微妙的信息泄漏并未被排除。** Phase-7E 只关闭了*直接公布答案*（BundleS 留下 294 中的 9–147 个，从不为 1）。先验收窄、提示诱发的启发式线索、偶然的词汇相关与模型特异的利用方式仍然开放；Base/BundleS 的对照刻意**不是**等信息量比较。
 - **没有向生产级 harness 的迁移结论。** 论文里的 "harness" 指**任务层的信息结构**（§2）—— 提示、可见文件、
   披露包、公开工具反馈、动作面 —— 而不是智能体脚手架。所有 episode 都经由 `scripts/llm_agent_driver.py`
   与 `eda_agentbench/agentic/` 运行，没有测试任何生产级编码智能体。§7 明确写下了这一点，因此"169 条中 82 条"
@@ -114,7 +146,8 @@ scripts/check                                          # 测试 + 结构 + 保�
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
-cd submission && make distclean && make                # 18 页，逐字节可复现
+python3 scripts/phase7e_answer_identifiability.py --check  # 候选域 294；BundleS 9–147，从不为 1
+cd submission && make distclean && make                # 20 页（正文 9 页），逐字节可复现
 python3 scripts/submission_page_limit_check.py         # 正文结束于第 9 页（ICLR 上限 9）
 ```
 
