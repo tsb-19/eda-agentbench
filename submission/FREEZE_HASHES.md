@@ -1,9 +1,12 @@
 # Phase-7E Submission Freeze (v14 — direct-answer disclosure excluded; measurement theory cited)
 
-**Submission HEAD:** `b281137f`. v14 was assembled over two commits — `5ac63be6` added the
+**Submission HEAD:** `f12faba4`. v14 was assembled over four commits: `5ac63be6` added the
 answer-identifiability probe, its regression tests and its report, touching no manuscript file;
-`b281137f` is the manuscript. The hashes below are `b281137f`'s. One further commit records the tag
-and the documentation updates; it touches no build input and rebuilds to the same PDF byte-for-byte.
+`b281137f` is the manuscript change; `be571292` is documentation only; `f12faba4` corrects one
+cross-reference caught by reading the typeset PDF and refreshes the hashes recorded here. **The
+hashes below are `f12faba4`'s** — it is the last commit to touch a build input, so it and not
+`b281137f` is the freeze point. One further commit records the tag and this correction; it touches
+no build input and rebuilds to the same PDF byte-for-byte.
 **Experiment freeze HEAD:** `a89e084` (immutable). **v14 ran no model calls, no EDA tool and no new
 episode, and altered no experimental record.**
 **v13 remains an immutable historical snapshot:** source `64b7f0b8…`, PDF `6f64140d…`, 18 pp, tag
@@ -424,6 +427,15 @@ Historically, for v12: **the manuscript was frozen at v12**, and that freeze poi
 branch `master` and tag `iclr2027-submission-v3` are pushed to the origin remote.
 
 ## Provenance of the frozen points
+
+- `5ac63be6` → the Phase-7E probe, tests and report (no manuscript file). `b281137f` → the v14
+  manuscript. `be571292` → documentation. `f12faba4` → **v14, the freeze point**: the manuscript
+  artifacts and every hash in the v14 section above are that commit's, because it is the last commit
+  to touch a build input. The tag **`iclr2027-submission-v5`** is placed one commit later, on the
+  commit that records it — the same arrangement as v13 (tag on the commit after `c7b3828a`) and v12
+  (tag `iclr2027-submission-v3` on `cc797ffe` while the manuscript froze at `ef1a8d49`), and for the
+  same unavoidable reason: a commit cannot contain the hash of the commit that records its own tag.
+  **`iclr2027-submission-v1`, `-v2`, `-v3` and `-v4` do not move.**
 - `iclr2027-submission-v1` → `3d3e77b` — v5. **Not moved.**
 - `iclr2027-submission-v2` → `5858d843` — v7. **Not moved.**
 - `0e82e59` → v6. `83379da4` → v8. `7c2f9c4f` → v9. `ff9b6b44` → v10. `95128e11` → v11. All untagged.
