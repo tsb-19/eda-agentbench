@@ -192,6 +192,50 @@ arm's S3 reading is withheld:
 If all four cannot be stated truthfully once results exist, arm 2 is reported as having run and its
 S3 reading is withheld. A finding is not upgraded to rescue a framing.
 
+## 5A. Amendment 1 (2026-08-17, before the first analysed episode)
+
+**What changed.** `max_chat_retries` is raised from the frozen **1** to **6**. Nothing else moves:
+instances, conditions, k, blocking, analysis unit, hierarchy, temperature, max_tokens, max_actions,
+episode timeout, concurrency, streaming, request-inactivity timeout and hard deadline all stay as
+§2 states. So the differences from Phase-7A are now **three**: k, backend, and retry budget.
+
+**Why.** The replacement backend throttles. Measured before any analysed episode:
+
+| probe | result |
+|---|---|
+| 20 requests back-to-back | 13/20 ok — **35% failure** |
+| 12 requests at 15 s spacing | 11/12 ok — **8.3% failure** |
+| one full pilot episode | 15 logical requests took **38 physical attempts**; 23 failed; 433 s spent in retry backoff |
+
+The driver backs off `3*2^attempt`, so at the frozen `--max-chat-retries 1` the two attempts land
+3 s apart, inside the throttled regime. A pilot episode died exactly that way after one action. At
+~15 calls per episode most episodes would have terminated as measurement-invalid and the
+2-replacement cap would have stopped the chain inside the first block. At 6 retries the same
+episode completed with `terminal_transport_valid: true`.
+
+**Why this does not weaken the comparison.** A retry re-issues an identical request. It cannot
+change the prompt, the task, the evidence, the tool or the grader, so it cannot change task
+semantics or what a correct binding is. The arbiter remains the sole membership authority and still
+classifies each episode. And this is the project's own rule applied rather than bent: an
+infrastructure timeout or gateway error is measurement-invalid and must **never** be recorded as a
+capability failure. Leaving retries at 1 on a backend that fails 35% of burst requests would have
+recorded a throttle as a model failure — the exact error the rule exists to prevent.
+
+**What it does cost.** Retry backoff dominates wall clock: a measured episode took 660 s, of which
+433 s was sleeping. That is ~40 h per arm rather than the ~14 h the frozen pace implied. It does not
+raise spend — measured cost is ¥0.447/episode, so 216 episodes is ≈¥97.
+
+**Mechanism.** `scripts/phase5c_run.py` passes the flag on the command line and CLI beats env, so
+the run goes through `scripts/chain_executor.py --runner scripts/phase8a_episode_runner.py`, which
+leaves the retry budget env-configurable. chain_executor, episode_arbiter, llm_agent_driver, the p15
+grader and the evaluator all remain pinned and byte-identical; the new per-episode runner decides
+nothing about membership. Going through chain_executor additionally gains `--integrity-manifest`,
+which verifies the canonical tree before the run, after **every** episode, and post-chain.
+
+This amendment is recorded rather than folded into §2 silently: a preregistration that is edited to
+match what was done is not a preregistration. It was decided and committed before the first episode
+that enters the analysis.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.
