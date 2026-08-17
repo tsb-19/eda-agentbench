@@ -1,7 +1,7 @@
 # ICLR 2027 Submission Package (Phase-7D / manuscript v13 — **frozen**)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
-**Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
+**Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE — re-verified against all three official pages on 2026-08-17, unchanged; see the Deadlines section of [FREEZE_HASHES.md](FREEZE_HASHES.md) for the fetch and the AOE↔UTC cross-check.
 
 ## Build
 ```

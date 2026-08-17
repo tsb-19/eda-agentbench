@@ -1,8 +1,10 @@
 # Phase-7D Submission Freeze (v13 — measured result promoted ahead of the framework)
 
-**Submission HEAD:** the commit that last updates this section. v13 was assembled over two commits —
-`1c01670e` reordered the manuscript around the measured result; the second adds the harness-scope
-limitation, its citation, and the mechanical page-limit gate. The hashes below are the second one's.
+**Submission HEAD:** `c7b3828a`. v13 was assembled over two commits — `1c01670e` reordered the
+manuscript around the measured result; `c7b3828a` adds the harness-scope limitation, its citation, and
+the mechanical page-limit gate. The hashes below are `c7b3828a`'s. One further commit records the
+tag `iclr2027-submission-v4` and the deadline re-verification; it touches no build input and rebuilds
+to the same PDF byte-for-byte.
 **Experiment freeze HEAD:** `a89e084` (immutable). **v13 ran no model calls and altered no experimental record.**
 **v12 remains an immutable historical snapshot:** source `82cb22da…`, PDF `bbf948bf…`, 15 pp. Neither is rewritten; v13 is a *new* freeze, not an amendment of v12.
 **Previous freezes:** v12 = the commit that added the section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither of those two tags moves.**
@@ -297,11 +299,21 @@ Unchanged from v8–v11; each is stated in the manuscript as a limitation rather
   the sensitivity band may be read to mean.
 
 ## Freeze status
-**The manuscript is frozen at v12.** The review that produced v12 explicitly ended the structural
-audit, and recorded that the dominant risk has shifted from *unfound defects* to *over-optimization
-reintroducing inconsistency*. Further edits should be made only for a concrete external reason
-(OpenReview formatting, a reviewer request during rebuttal), not for further polish. The freeze point
-is published: branch `master` and tag `iclr2027-submission-v3` are pushed to the origin remote.
+**The manuscript is frozen at v13**, on branch `iclr2027-artifact`, tagged
+`iclr2027-submission-v4`. The v12 freeze below still stands as an immutable historical snapshot; v13
+did not amend it.
+
+The reasoning that closed v12 applies unchanged to v13, and is the reason this section is not
+rewritten with each revision: the structural audit is over, and **the dominant risk is no longer
+unfound defects but over-optimization reintroducing inconsistency.** Further edits should be made
+only for a concrete external reason — OpenReview formatting, a reviewer request during rebuttal, or a
+verified change in the official requirements — not for further polish. Two v13-specific corollaries:
+the manuscript's scientific content is closed, and a *secondhand* report of a changed requirement is
+a reason to re-verify against the official site, not a reason to edit (see Deadlines, below, for the
+case where doing so would have introduced an error).
+
+Historically, for v12: **the manuscript was frozen at v12**, and that freeze point is published —
+branch `master` and tag `iclr2027-submission-v3` are pushed to the origin remote.
 
 ## Provenance of the frozen points
 - `iclr2027-submission-v1` → `3d3e77b` — v5. **Not moved.**
@@ -309,8 +321,52 @@ is published: branch `master` and tag `iclr2027-submission-v3` are pushed to the
 - `0e82e59` → v6. `83379da4` → v8. `7c2f9c4f` → v9. `ff9b6b44` → v10. `95128e11` → v11. All untagged.
   `ef1a8d49` → **v12, the freeze point**, tagged **`iclr2027-submission-v3`** (lightweight, like its
   two predecessors: the repository is public and an annotated tag would write tagger identity into a
-  double-blind submission). This commit records that tag; the manuscript artifacts are unchanged from
-  `ef1a8d49` and their hashes above still hold.
+  double-blind submission). That commit records that tag; the manuscript artifacts are unchanged from
+  `ef1a8d49` and their hashes above still hold. **`iclr2027-submission-v3` does not move either.**
+- `1c01670e` → v13 manuscript reordering. `2295243b` → the page-limit gate. `c7b3828a` → **v13, the
+  freeze point**: the manuscript artifacts and every hash in the v13 section above are that commit's.
+  The tag **`iclr2027-submission-v4`** is placed one commit later, on the commit that records it —
+  the same arrangement as v12, whose tag sits on `cc797ffe` while the manuscript froze at `ef1a8d49`,
+  and for the same reason: a commit cannot contain the hash of the commit that records its own tag.
+  That recording commit touches no build input; it adds the deadline re-verification below, and its
+  rebuilt PDF is byte-identical to `c7b3828a`'s (`6f64140d…`, 283 476 B, 18 pp) — the mechanical proof
+  that recording the tag did not alter the manuscript. Lightweight, for the same anonymity reason as
+  its three predecessors.
 
 ## Deadlines (official ICLR 2027 site)
 - Abstract: September 18, 2026 AOE. Full paper: September 25, 2026 AOE.
+
+**Re-verified 2026-08-17** against the three official pages, fetched directly (server `Date:
+Mon, 17 Aug 2026 08:34:43 GMT`; cache-busted query string plus `Cache-Control: no-cache`, and the
+origin is plain Apache with no CDN `Age`/`X-Cache` header, so this is not a cached copy):
+
+| Source | Text |
+|---|---|
+| `/Conferences/2027/AuthorGuidelines` | "the abstract submission deadline of **Sep 18, 2026 AOE**" / "The full paper submission deadline is **Sep 25, 2026 AOE**." |
+| `/Conferences/2027/CallForPapers` | "Abstract deadline **Sep 18, 2026 AOE**" / "Paper deadline **Sep 25, 2026 AOE**" |
+| `/Conferences/2027/Dates` | "Abstract Deadline **Sep 18 '26** (Anywhere on Earth)" / "Paper Deadline **Sep 25 '26** (Anywhere on Earth)" |
+
+The dates have **not** moved. A secondhand report of a shift to Sep 11 / Sep 16 was checked
+explicitly and appears on none of the three pages (regex over the full extracted text: no match).
+Recorded here so the next recheck does not reopen a settled question from a summarizer's output
+rather than from the site.
+
+Two internal cross-checks agree. `docs/phase7/phase7_synthesis.md` — frozen, sha256-recorded above,
+written 2026-08-11 — states the same deadlines in UTC: abstract 2026-09-19 11:59 UTC, full paper
+2026-09-26 11:59 UTC. AOE is UTC−12, so 2026-09-18 23:59 AOE **is** 2026-09-19 11:59 UTC and
+2026-09-25 23:59 AOE **is** 2026-09-26 11:59 UTC: the same two instants recorded six days apart, in
+two notations, by two independent readings of the site. The same page also re-confirms the page rule
+this build gates on — "At the time of submission, the main text should be 9 pages or fewer."
+
+Re-run the check with no repository state involved:
+
+```bash
+curl -sS -L -H 'Cache-Control: no-cache' "https://iclr.cc/Conferences/2027/Dates?cb=$RANDOM" \
+  | python3 -c "import sys,re,html; t=html.unescape(re.sub(r'(?s)<[^>]+>',' ',sys.stdin.read())); \
+print(re.sub(r'\s+',' ',t)[:0] or [m.strip() for m in re.findall(r'[^ ]*Deadline.{0,40}', re.sub(r'\s+',' ',t))])"
+```
+
+`SOURCE_DATE_EPOCH` in the Makefile is pinned to `1790294400` = 2026-09-25T00:00:00Z, the full-paper
+deadline date. It is a determinism anchor, not a schedule: only its constancy matters, and it is
+therefore *not* a value to chase if a date ever does move — changing it would alter the PDF sha256
+recorded above for no reproducibility benefit. It stays correct as things stand.

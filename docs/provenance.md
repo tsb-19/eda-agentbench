@@ -12,7 +12,7 @@ change. It replaces the benchmark-era status document and absorbs the Phase-6C f
 |---|---|---|
 | **Experiment freeze HEAD** | `a89e084` | *"report(phase5d): TypedContract extension complete 36/36"*. **No experiment, paid model call, or task/model asset beyond this commit contributes to the paper.** Every reported number is re-derived from committed ledgers at or before it. |
 | **Submission HEAD (v12)** | `cc797ffe` (tag `iclr2027-submission-v3`) | manuscript v12. Ahead of `a89e084` by documentation and submission work only — no new experimental result. **Retained as an immutable historical snapshot; not rewritten by v13.** |
-| **Submission HEAD (v13)** | the commit adding the v13 section of `submission/FREEZE_HASHES.md` | manuscript v13, frozen. Promotes the Phase-7D retrospective result ahead of the claim-scope framework, adds four citations and states harness scope as a limitation. **No paid model call, no new episode, no task-semantics change, no derived experimental number moved** — all three generated tables stay byte-identical to v12. |
+| **Submission HEAD (v13)** | `c7b3828a`, published as tag `iclr2027-submission-v4` | manuscript v13, frozen. Promotes the Phase-7D retrospective result ahead of the claim-scope framework, adds four citations and states harness scope as a limitation. **No paid model call, no new episode, no task-semantics change, no derived experimental number moved** — all three generated tables stay byte-identical to v12. |
 
 `iclr2027-artifact`, this branch, is cut from `cc797ffe` and contains no experimental change at
 all: only deletions, documentation, and the two verifier scripts. See
@@ -25,7 +25,7 @@ all: only deletions, documentation, and the two verifier scripts. See
 | `iclr2027-submission-v1` | `3d3e77b7` | v5 |
 | `iclr2027-submission-v2` | `5858d843` | v7 — closed the Study I episode accounting (58 program-primary vs the 70-episode descriptive ledger) |
 | `iclr2027-submission-v3` | `cc797ffe` | v12. Evidence-support claim lattice, symmetric claim qualification, estimand-aligned uncertainty |
-| *(untagged)* | see `FREEZE_HASHES.md` | **v13 — current.** The Phase-7D retrospective audit becomes the leading result: the tool-success signal is constant across 169 pairing-verified frozen trajectories and accepts all 82 semantically wrong bindings, so the typed provenance/authority oracle carries the entire measurement. Interpretation and positioning only. |
+| `iclr2027-submission-v4` | tags the commit recording `c7b3828a` | **v13 — current.** The Phase-7D retrospective audit becomes the leading result: the tool-success signal is constant across 169 pairing-verified frozen trajectories and accepts all 82 semantically wrong bindings, so the typed provenance/authority oracle carries the entire measurement. Interpretation and positioning only. |
 
 ### Why the v12 freeze was reopened
 
