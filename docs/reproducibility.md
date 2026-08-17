@@ -32,7 +32,7 @@ python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -
 python3 scripts/slim_link_check.py
 
 # 4. the manuscript builds, byte for byte
-cd submission && make distclean && make               # 15 pp, 268 459 bytes
+cd submission && make distclean && make               # 18 pp, 283 476 bytes
 ```
 
 `--check` recomputes from `reports/evidence/` and diffs against the committed JSON, exiting

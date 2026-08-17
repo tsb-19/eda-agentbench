@@ -96,6 +96,11 @@ Phase-7D 是一项**事后、冻结之后**的派生分析：在实验程序关�
 ## 论文*没有*主张什么，以及这在仓库中如何体现
 
 - **S3（同时换模型与换家族）从未测量。** 这里刻意不存在任何报告；`reports/` 中它的缺席本身就是该论断。
+- **没有向生产级 harness 的迁移结论。** 论文里的 "harness" 指**任务层的信息结构**（§2）—— 提示、可见文件、
+  披露包、公开工具反馈、动作面 —— 而不是智能体脚手架。所有 episode 都经由 `scripts/llm_agent_driver.py`
+  与 `eda_agentbench/agentic/` 运行，没有测试任何生产级编码智能体。§7 明确写下了这一点，因此"169 条中 82 条"
+  这个占据率只适用于该运行器。**不**依赖脚手架的是判别力结论本身：工具成功字段无法区分角色绑定的正确与错误，
+  这是任务与其 oracle 的性质 —— 这也正是它被表述为基准/评分器层面发现的原因。
 - **没有人类构念验证。** `docs/phase7/phase7b_annotation_freeze.md` 是预注册；不存在标注结果，因为找不到合格的独立标注者，且没有用 LLM 顶替。
 - **模型身份只是提供方别名，不是解析后的快照。** `phase7c_claim_statistics.py` 报告 `resolved_snapshot_retained: false`。论文把这写成自己欠下的局限（第五条 Layer-4 要求），而非已行使的控制。
 - **两个生成器在冻结之后发生了漂移。** `scripts/frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件；均为既有状态，解释见 `docs/frozen_membership_baseline.json`。论文报告的数字来自被钉住的版本。
@@ -109,7 +114,8 @@ scripts/check                                          # 测试 + 结构 + 保�
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
-cd submission && make distclean && make                # 15 页，逐字节可复现
+cd submission && make distclean && make                # 18 页，逐字节可复现
+python3 scripts/submission_page_limit_check.py         # 正文结束于第 9 页（ICLR 上限 9）
 ```
 
 重跑*episode* 是另一回事，本仓库做不到：那需要 PrimeTime 与 HSPICE 以及付费 API，而实验程序已在冻结的实验 HEAD 上永久关闭（见 [`provenance.zh.md`](provenance.zh.md)）。

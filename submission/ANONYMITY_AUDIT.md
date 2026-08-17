@@ -1,8 +1,8 @@
 # Anonymity Audit — manuscript v13 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Re-scanned on the v13 PDF (`ab68b2c0`, 18 pp). v13 promotes the Phase-7D measured
-result ahead of the claim-scope framework and adds three citations; it runs no model calls and alters
-no experimental record.
+**Result: PASS.** Re-scanned on the v13 PDF (`6f64140d`, 18 pp). v13 promotes the Phase-7D measured
+result ahead of the claim-scope framework, adds four citations and a harness-scope limitation; it runs
+no model calls and alters no experimental record.
 
 ## v13 re-scan
 | Surface | Result |
@@ -11,8 +11,9 @@ no experimental record.
 | PDF text: infra leaks (tongsb, /data1, /home, eda-agentbench, harbor-framework, laude-institute, 192.168, tsb@) | **0 matches.** PASS |
 | PDF text: forge identifiers (github, gitlab, tsb-19) | **0 matches.** PASS |
 | LaTeX source + all generated `tables/*.tex` | **0 matches.** PASS |
-| Bibliography | **15** entries (12 carried from v12 + 3 added in v13). The three additions — arXiv:2605.10448, arXiv:2605.11039, arXiv:2607.24054 — were each fetched from arXiv and their title, authors and date read off the record before citing; none is authored by, or identifies, this paper's authors. PASS |
+| Bibliography | **16** entries (12 carried from v12 + 4 added in v13). The four additions — arXiv:2605.10448, arXiv:2605.11039, arXiv:2607.24054, arXiv:2607.22585 — were each fetched from arXiv and their title, authors and date read off the record before citing; none is authored by, or identifies, this paper's authors. PASS |
 | Phase-7D additions (169/82 result, per-stratum counts, exclusion accounting, hash-pairing prose) | Counts and internal phase labels only. Names no host, path, seed, license server or repository. The word "hash" refers to artifact sha256 attestation, not to any identifier. PASS |
+| §7 harness-scope limitation | Says our episodes ran through "our own controlled research runner" and that no production coding agent was tested. Names no runner file, module, host, repository or internal tool. The third-party scaffolds (Goose, OpenCode, OpenHands-SDK) are named only inside the cited public preprint, not in our text. **Discloses a scope limit, not an identity.** PASS |
 | New appendices D, E, F, J | Relocated v12 content plus the Phase-7D accounting; no new external referent. PASS |
 
 ## Prior-version audit (v12) retained below

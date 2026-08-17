@@ -54,7 +54,7 @@ positive) would have produced confident wrong numbers in *any* analysis of the u
 ## Layout
 
 ```
-submission/        the frozen manuscript: main.tex, main.pdf (15 pp), generated tables, freeze hashes
+submission/        the frozen manuscript: main.tex, main.pdf (18 pp), generated tables, freeze hashes
 tasks/             the three semantic-handoff families
   p14_workflow_handoff/   27 instances — Study I (PVT axes, PrimeTime)
   p15_sta_handoff/        Family A — Study II S2-F (provenance DAG, PrimeTime)
@@ -80,7 +80,7 @@ python3 scripts/phase7c_study1_ledger.py    --check    # Study I ledger: 58 + 12
 python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
 python3 scripts/slim_link_check.py                     # no dangling repository references
 
-cd submission && make distclean && make                # 15 pp; byte-reproducible PDF
+cd submission && make distclean && make                # 18 pp; byte-reproducible PDF
 ```
 
 `--check` recomputes from `reports/evidence/` and diffs against the committed output, exiting

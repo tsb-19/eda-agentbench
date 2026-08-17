@@ -87,7 +87,7 @@ scripts/check                                          # 测试 + 结构 + 1065 
 python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
 python3 scripts/phase7c_study1_ledger.py --check       # 58 + 12 = 70 个 episode
 python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
-cd submission && make distclean && make                # 15 页，sha256 不变
+cd submission && make distclean && make                # 18 页，sha256 不变
 ```
 
 以上每一项在第一次删除之前于 `master` 上就是绿的，现在依然是绿的。承重的是保管门禁：它重算运行前清单记录的全部 1065 条 `path → sha256` 钉，并要求计数与 `docs/frozen_membership_baseline.json` 完全一致 —— 包括那 2 处既有不匹配与 9 个被 gitignore 的构建产物，它们被原样带过来，而不是被悄悄清理掉。

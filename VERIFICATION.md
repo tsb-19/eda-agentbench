@@ -8,6 +8,13 @@ and no model call.
 
 Recorded at `dd867c84` on `iclr2027-artifact`, branched from `master@cc797ffe`.
 
+**This is a snapshot, and two of its rows have deliberately moved since.** The branch later took a
+new manuscript freeze (v13), so the PDF row below records v12 (15 pp, `bbf948bf…`) rather than the
+current artifact, and the pytest count has grown with the tests added alongside it. The recorded
+numbers are left as measured — this file's claim is that slimming preserved `master`'s baselines,
+and rewriting its measurements would destroy that claim. Current submission hashes and page counts
+live in [`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md).
+
 ## G1 — frozen membership (`scripts/frozen_membership_verify.py`)
 
 Re-hashes every `path → sha256` pin recorded by the pre-run manifests under `reports/evidence/`

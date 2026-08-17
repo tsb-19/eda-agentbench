@@ -42,7 +42,7 @@
 ## 目录结构
 
 ```
-submission/        冻结的手稿：main.tex、main.pdf（15 页）、生成的表格、冻结哈希
+submission/        冻结的手稿：main.tex、main.pdf（18 页）、生成的表格、冻结哈希
 tasks/             三个语义交接家族
   p14_workflow_handoff/   27 个实例 —— 研究 I（PVT 轴，PrimeTime）
   p15_sta_handoff/        家族 A —— 研究 II S2-F（溯源 DAG，PrimeTime）
@@ -67,7 +67,7 @@ python3 scripts/phase7c_study1_ledger.py    --check    # 研究 I 台账：58 + 
 python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
 python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
 
-cd submission && make distclean && make                # 15 页；逐字节可复现的 PDF
+cd submission && make distclean && make                # 18 页；逐字节可复现的 PDF
 ```
 
 `--check` 从 `reports/evidence/` 重算并与已提交的输出比对，一旦漂移即以非零码退出。论文中没有一张表是手工抄录的：`main.tex` 直接 `\input` 这些脚本的产出。

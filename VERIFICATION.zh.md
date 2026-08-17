@@ -5,6 +5,11 @@
 
 记录于 `dd867c84`（分支 `iclr2027-artifact`），切自 `master@cc797ffe`。
 
+**这是一份快照，其中有两行此后被有意改动。** 分支随后做了一次新的手稿冻结（v13），因此下文的 PDF 行记录的是
+v12（15 页，`bbf948bf…`）而不是当前产物，pytest 计数也随同期新增的测试一起增长。这些数字按当时的测量原样保留
+—— 本文件要主张的是"瘦身没有改变 `master` 的基线"，改写它的测量会毁掉这一主张。当前投稿的哈希与页数见
+[`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md)。
+
 英文版：[VERIFICATION.md](VERIFICATION.md)。
 
 ## G1 —— 冻结成员（`scripts/frozen_membership_verify.py`）

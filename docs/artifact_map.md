@@ -131,6 +131,13 @@ grader flags these independently (`stage_chain == 0.0`).
 
 - **S3 (different model *and* different family) was never measured.** No report exists for it, by
   design. Its absence in `reports/` is the claim.
+- **No production-harness transfer.** "Harness" in the paper means the *task-level information
+  structure* (§2) — prompt, visible files, disclosure bundle, public tool feedback, action surface —
+  not the agent scaffold. Every episode ran through `scripts/llm_agent_driver.py` and
+  `eda_agentbench/agentic/`; no production coding agent was tested. §7 states this, so the 82-of-169
+  occupancy rate is scoped to that runner. What is *not* scaffold-dependent is the discrimination
+  result itself: that a tool-success field cannot separate correct from incorrect role binding is a
+  property of the task and its oracle, which is why it is stated as a benchmark/evaluator finding.
 - **No human construct validation.** `docs/phase7/phase7b_annotation_freeze.md` is a
   preregistration; there are no annotation results, because no qualified independent annotators
   were available and no LLM was substituted.
@@ -151,7 +158,8 @@ scripts/check                                          # tests + structure + cus
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
-cd submission && make distclean && make                # 15 pp, byte-reproducible
+cd submission && make distclean && make                # 18 pp, byte-reproducible
+python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 
 Re-running the *episodes* is a different matter and is not possible from this repository: it needs

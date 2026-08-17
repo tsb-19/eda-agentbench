@@ -27,7 +27,7 @@ python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -
 python3 scripts/slim_link_check.py
 
 # 4. 手稿逐字节可构建
-cd submission && make distclean && make               # 15 页，268 459 字节
+cd submission && make distclean && make               # 18 页，283 476 字节
 ```
 
 `--check` 从 `reports/evidence/` 重算并与已提交的 JSON 比对，一旦漂移即以非零码退出；去掉 `--check` 则改写输出。

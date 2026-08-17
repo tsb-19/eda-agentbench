@@ -1,6 +1,8 @@
 # Phase-7D Submission Freeze (v13 — measured result promoted ahead of the framework)
 
-**Submission HEAD:** the commit that adds this section.
+**Submission HEAD:** the commit that last updates this section. v13 was assembled over two commits —
+`1c01670e` reordered the manuscript around the measured result; the second adds the harness-scope
+limitation, its citation, and the mechanical page-limit gate. The hashes below are the second one's.
 **Experiment freeze HEAD:** `a89e084` (immutable). **v13 ran no model calls and altered no experimental record.**
 **v12 remains an immutable historical snapshot:** source `82cb22da…`, PDF `bbf948bf…`, 15 pp. Neither is rewritten; v13 is a *new* freeze, not an amendment of v12.
 **Previous freezes:** v12 = the commit that added the section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither of those two tags moves.**
@@ -46,7 +48,14 @@ mechanical proof of that last claim.
 - **§2 Positioning** bounds the claim against five works and explicitly disclaims priority over the
   general observation that a reported success can be unearned.
 - **Conclusion** leads with the discrimination result.
-- **Three citations added** (12 → 15), each verified against arXiv before use.
+- **§7 gains a harness-scope limitation.** ``Harness'' in this paper means the *task-level information
+  structure* (§2), not the agent scaffold. Every episode ran through our own controlled research
+  runner, so the 82-of-169 occupancy rate is a property of that scaffold and does not extrapolate to
+  production coding agents; what does not depend on the scaffold is that a tool-success field cannot
+  discriminate role binding, which is a property of the task and its oracle. Cited to arXiv:2607.22585,
+  whose finding is precisely stated: harness choice moved pass rates only 0–8 pp but produced
+  scaffold-specific, largely model-independent *failure fingerprints*.
+- **Four citations added** (12 → 16), each verified against arXiv before use.
 
 ### Page cost, paid by relocation rather than deletion
 
@@ -63,6 +72,14 @@ to state it once:
 
 Compressed in place (no claim removed): §3's lattice paragraph (restated §1), §5's sensitivity-band
 explanation (Appendix C re-derives it more strictly), §7's Discussion, and both custody paragraphs.
+The harness-scope limitation was paid for the same way: §6's *"why the controls materially affected
+interpretation"* paragraph was folded into §7's Discussion, which already carried its point, and four
+sentences that restated a fact stated elsewhere were tightened.
+
+**A layout fact worth recording:** removing text *before* the last float does not shorten the tail —
+the floats simply repack and absorb the space. Only cuts after the final table (here Table 3) move the
+page-9 boundary. Two rounds of word-level trimming earlier in the paper changed the overflow by four
+words; folding one paragraph after Table 3 cleared it.
 
 | | v12 | v13 |
 |---|---|---|
@@ -72,14 +89,19 @@ explanation (Appendix C re-derives it more strictly), §7's Discussion, and both
 | references | p10 | p10 |
 | appendix | A–G, p10–p15 | **A–J, p11–p18** |
 | total | 15 pp | **18 pp** |
-| main-text words | 5741 | 5795 |
+| main-text words | 5805 | 5879 |
+
+Both word counts are measured the same way — every `pdftotext -bbox` word on p1–p9 except the running
+head and the line-number ruler — and both PDFs were measured in the same run, so the +74 is a real
+delta and not a change of method. (An earlier v13 draft of this table recorded 5741/5795 from a
+slightly different furniture filter; the pair above supersedes it.)
 
 ## SHA-256 hashes (frozen artifacts, v13)
 | Artifact | SHA-256 | vs v12 |
 |---|---|---|
-| Source (main.tex) | `cbab56b80c7671b7acf597b7956a7a0008d5170e3d10f626e68c84b21e68c0cf` | changed |
-| Final PDF (main.pdf, 18 pp: 9 main + refs + appendix; 283 205 B) | `ab68b2c0bbc40c570b9e921e063587d177470ecf521adf97a25a7be1dd988119` | changed |
-| Bibliography (references.bib, 15 entries) | `8747c69d47418ae91eb275c736cfbe9fe06d807a05eaf42e35cdf4755f248c97` | changed |
+| Source (main.tex) | `64b7f0b8ff54417087189399667054bedda49f442e666d6c59dddc19113e1916` | changed |
+| Final PDF (main.pdf, 18 pp: 9 main + refs + appendix; 283 476 B) | `6f64140d9ea8f5aa9e95af8a20d112b9cd4cdbe00fbd1e5bccfb21b1778de7c9` | changed |
+| Bibliography (references.bib, 16 entries) | `682dc716b6bb29f1c4e7e8d81ef36d8de903a5e09aebf2451398659baaeec1a6` | changed |
 | Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
 | Generated stat macros (tables/claim_stats.tex) | `5c0b2577d7fb06be9992cf228767e2d5c317065d8dc51f6d679d6de5e5f36615` | **identical** |
 | Generated pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
@@ -93,13 +115,22 @@ and retroactively editing it would break the custody chain it exists to document
 recorded in `docs/artifact_map.md` instead.
 
 **Verification performed for v13:** two independent `make distclean && make` builds give the same PDF
-sha256 (byte-reproducible); 3 pdflatex start banners counted rather than assuming a log exists; main
-text confirmed to end on p9 by locating the `REFERENCES` marker's *offset within* its page, not by
-page-boundary arithmetic — an earlier measurement in this revision read 9 pp when references began
-mid-page with 580 main-text words above them; anonymity re-scanned (PDF metadata empty, 0 infra or
-forge leaks in PDF text, source and generated tables); every number written into the manuscript
-re-checked against the committed Phase-7D JSON; `scripts/check`, both Phase-7C `--check` scripts, the
-Phase-7D `--check` and the repository link check all clean.
+sha256 (byte-reproducible); 3 pdflatex start banners counted rather than assuming a log exists; 0
+Overfull boxes and 0 undefined references or citations in the final pass; anonymity re-scanned (PDF
+metadata empty, 0 infra or forge leaks in PDF text, source and generated tables); every number written
+into the manuscript re-checked against the committed Phase-7D JSON; `scripts/check`, both Phase-7C
+`--check` scripts, the Phase-7D `--check` and the repository link check all clean.
+
+**The page limit is now asserted by code, not by a measurement someone remembered to take.**
+`scripts/submission_page_limit_check.py` locates the `REFERENCES` heading and fails if any main-text
+word is typeset *above* it on the heading's own page — the exact condition ICLR's 9-page rule is about.
+The naive test it replaces ("the heading is on page 10, so the main text is 9 pages") reported 9 pp
+during this very revision while 580 main-text words sat above the heading on page 10. The gate is
+fail-closed: a missing PDF, a missing `pdftotext`, an unlocatable or duplicated heading, an empty
+extraction, or an unrecognised string in the top margin each fail rather than pass quietly. It was
+proven non-vacuous against a deliberately overflowing build (caught: 21 words, 10 pp) and
+cross-validated against the frozen v12 PDF, which it independently confirms at 9 pp. 16 regression
+tests in `tests/test_submission_page_limit.py` require each failure branch to fire.
 
 ---
 

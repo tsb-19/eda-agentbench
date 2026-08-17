@@ -10,7 +10,7 @@
 |---|---|---|
 | **实验冻结 HEAD** | `a89e084` | *"report(phase5d): TypedContract extension complete 36/36"*。**此 commit 之后的任何实验、付费模型调用、任务/模型资产都不对论文有贡献。** 所有报告的数字都是从该 commit 及其之前已提交的台账重新派生的。 |
 | **投稿 HEAD（v12）** | `cc797ffe`（标签 `iclr2027-submission-v3`） | 手稿 v12。相对 `a89e084` 仅多出文档与投稿工作 —— 没有新的实验结果。**作为不可变的历史快照保留；v13 不改写它。** |
-| **投稿 HEAD（v13）** | 添加 `submission/FREEZE_HASHES.md` 中 v13 小节的那个 commit | 手稿 v13，已冻结。把 Phase-7D 的事后结果提到 claim-scope 框架之前，并新增三条引用。**没有付费模型调用、没有新 episode、没有任务语义改动、没有派生实验数字发生移动** —— 三个生成表全部与 v12 逐字节相同。 |
+| **投稿 HEAD（v13）** | 添加 `submission/FREEZE_HASHES.md` 中 v13 小节的那个 commit | 手稿 v13，已冻结。把 Phase-7D 的事后结果提到 claim-scope 框架之前，新增四条引用，并把 harness 适用范围写成一条局限。**没有付费模型调用、没有新 episode、没有任务语义改动、没有派生实验数字发生移动** —— 三个生成表全部与 v12 逐字节相同。 |
 
 本分支 `iclr2027-artifact` 从 `cc797ffe` 切出，完全不含实验改动：只有删除、文档，以及两个核验脚本。见 [`REMOVED.zh.md`](REMOVED.zh.md)。
 
@@ -82,7 +82,7 @@ scripts/check                                          # 测试 + 任务结构 +
 python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
 python3 scripts/phase7c_study1_ledger.py --check       # 58 + 12 = 70
 python3 scripts/phase7c_claim_statistics.py --check     # 12.5 / [-12.5, 41.7] / -16.7
-cd submission && make distclean && make                # 15 页，sha256 不变
+cd submission && make distclean && make                # 18 页，sha256 不变
 ```
 
 `make clean` 刻意保留 `main.pdf`；凡是要拿构建日志作为测量依据的场合，先用 `distclean`。曾有一次 v9 的页数测量是从过期 PDF 上取的，因为 `make` 实际是空操作 —— 这也是门禁要去数 pdflatex 启动横幅、而不是相信"日志存在"的原因。

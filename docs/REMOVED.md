@@ -122,7 +122,7 @@ scripts/check                                          # tests + structure + 106
 python3 scripts/slim_link_check.py                     # no dangling repository references
 python3 scripts/phase7c_study1_ledger.py --check       # 58 + 12 = 70 episodes
 python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
-cd submission && make distclean && make                # 15 pp, sha256 unchanged
+cd submission && make distclean && make                # 18 pp, sha256 unchanged
 ```
 
 Every one of these was green on `master` before the first deletion and is green now. The custody

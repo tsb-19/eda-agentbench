@@ -67,11 +67,20 @@ scripts/check
 Plus, for anything touching reports, scripts or docs:
 
 ```bash
-python3 scripts/phase7c_study1_ledger.py    --check   # 58 + 12 = 70 episodes
-python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -16.7
-python3 scripts/slim_link_check.py                    # no dangling repository references
-cd submission && make distclean && make               # 15 pp, 268 459 bytes
+python3 scripts/phase7c_study1_ledger.py      --check   # 58 + 12 = 70 episodes
+python3 scripts/phase7c_claim_statistics.py   --check   # 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
+python3 scripts/slim_link_check.py                     # no dangling repository references
+cd submission && make distclean && make                # 18 pp, 283 476 bytes
+python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
+
+Never read the main-text page count off page arithmetic. ICLR's 9-page rule is about whether main
+text appears *above* the `REFERENCES` heading on the heading's own page, and the heading can begin
+mid-page: "references are on p10, so the main text is 9 pp" once reported 9 with 580 main-text words
+above them. `submission_page_limit_check.py` asserts the real condition and is fail-closed. Related
+layout fact — trimming text *before* the last float does not shorten the tail; the floats repack and
+absorb it. Only cuts after the final table move the boundary.
 
 **The membership gate is expected to report non-zero counts.** 9 missing files are gitignored
 HSPICE build products; 2 mismatches are generators edited after the phase-5B/5C freeze; 1 multi-sha

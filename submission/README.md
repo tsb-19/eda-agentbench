@@ -20,17 +20,30 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 - References: p10 (outside page limit)
 - Appendix A–J: p11–p18 (outside page limit)
 - **Total PDF: 18 pp**
-- **Measure the main-text page count by locating the `REFERENCES` marker's offset *within* its page, not by page-boundary arithmetic.** During v13 an intermediate state reported "9 pp" because references began on p10 — with 580 words of main text above them on that same page. `pdftotext main.pdf - | ...` and check whether any main-text words precede the marker.
+- **Do not measure the main-text page count by page arithmetic.** The rule is about whether main text
+  appears above the `REFERENCES` heading on the heading's own page — during v13 an intermediate state
+  reported "9 pp" because references began on p10, with 580 words of main text above them on that same
+  page. This is now enforced by code:
+
+  ```bash
+  python3 scripts/submission_page_limit_check.py     # PASS: main text ends on page 9 (limit 9)
+  ```
+
+  It is fail-closed (missing PDF, missing `pdftotext`, unlocatable heading, empty extraction and
+  unexpected top-margin text all fail rather than pass), was proven against a deliberately overflowing
+  build, and independently re-confirms the frozen v12 PDF at 9 pp.
+- **Layout fact:** cuts made *before* the last float do not shorten the tail — the floats repack and
+  absorb the space. Only cuts after the final table (Table 3) move the page-9 boundary.
 
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v12 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
+| main.tex | v13 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
 | tables/sta_pilot.tex | Generated three-instance pilot table |
-| references.bib | 12 REAL verified citations (arXiv primary source; no placeholders) |
+| references.bib | 16 REAL verified citations (arXiv primary source; no placeholders) |
 | iclr2027_conference.sty/.bst | Official ICLR 2027 style |
 | natbib.sty / fancyhdr.sty | Bundled (from official style package) |
 | math_commands.tex | Optional math macros (from official package) |
@@ -60,13 +73,19 @@ patched at rebuttal: the result is a result, not infrastructure; and arXiv:2605.
   submitted artifact; tuple equality would have caught two of nine. Not nine mis-scored episodes —
   the frozen grader already flagged the broken stage chain — but proof that a post hoc paired
   analysis must re-establish pairing rather than assume it.
-- **Three citations added (12 → 15)**, each verified against arXiv before use. v12's decision not to
-  cite concurrent arXiv work is reversed only for these three, which bound what is novel here.
+- **Harness scope stated as a limitation (§7).** "Harness" here is the *task-level information
+  structure* of §2, not the agent scaffold. Every episode ran through our own controlled research
+  runner and no production coding agent was tested, so the 82-of-169 occupancy rate is a property of
+  that scaffold and does not extrapolate. What does not depend on the scaffold: a tool-success field
+  cannot discriminate role binding — that is a property of the task and its oracle.
+- **Four citations added (12 → 16)**, each verified against arXiv before use. v12's decision not to
+  cite concurrent arXiv work is reversed only for these four, which bound what is novel here.
 - **Page cost paid by relocation, not deletion.** Main text was at 9 pp with 0 headroom and the
   additions cost ~770 words. Four blocks moved to appendices intact (falsifiability conditions → D;
-  four-tier definitions → E; concurrent-works prose → J; Phase-7D accounting → F) and duplicated
-  prose was compressed to state things once. **No claim was deleted**, and all three generated tables
-  are byte-identical to v12 — the mechanical proof no derived number moved.
+  four-tier definitions → E; concurrent-works prose → J; Phase-7D accounting → F), one §6 paragraph
+  was folded into §7's Discussion, which already carried its point, and duplicated prose was
+  compressed to state things once. **No claim was deleted**, and all three generated tables are
+  byte-identical to v12 — the mechanical proof no derived number moved.
 - **v12 is not rewritten.** Its source and PDF hashes stay in `FREEZE_HASHES.md` as an immutable
   historical snapshot; v13 is a new freeze.
 
