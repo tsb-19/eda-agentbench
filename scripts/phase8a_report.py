@@ -46,8 +46,72 @@ PERM_MC = 10000
 
 
 def _states():
-    """Every run-state chunk, in execution order. Chunked runs keep a crash cheap."""
+    """Every chain_executor run-state chunk. Chunked runs keep a crash cheap."""
     return sorted((P8A / "evidence").glob("run_state_arm*.json"))
+
+
+def _schedule(arm=1):
+    p = P8A / "evidence" / f"schedule_arm{arm}.json"
+    if not p.is_file():
+        raise SystemExit(f"phase8a_report: missing frozen schedule {p}")
+    return json.loads(p.read_text())
+
+
+def _collect():
+    """Episode records in frozen schedule order, plus the arbiter's exclusions.
+
+    Inclusion is asserted here, not assumed, because a stated rule did not stop an earlier
+    aggregation in this project from collapsing 70 episodes to 54. An episode enters the analysis
+    only if it proves a model was called (non-zero cost AND agentlog custody), left a gradeable
+    artifact, and recorded no error. Everything else is measurement-invalid and is never graded --
+    an infrastructure fault is not a capability failure.
+    """
+    sched = _schedule()
+    included, excluded = [], []
+    for slot in sched["frozen_execution_order"]:
+        trial = f"{slot['task_id']}_r{slot['rep']}"
+        f = EV / trial / "episode.json"
+        if not f.is_file():
+            excluded.append(f"{trial}:not_collected")
+            continue
+        rec = json.loads(f.read_text())
+        why = []
+        if not (rec.get("total_cost") or 0) > 0:
+            why.append("no_cost")
+        if "agentlog.sanitized.json" not in (rec.get("custody") or {}):
+            why.append("no_telemetry_custody")
+        if not (EV / trial / "exception_config.submitted.json").is_file():
+            why.append("no_submitted_artifact")
+        if rec.get("error"):
+            why.append("episode_error")
+        if why:
+            excluded.append(f"{trial}:" + "+".join(why))
+            continue
+        rec.setdefault("condition", slot["condition"])
+        rec.setdefault("rep", slot["rep"])
+        included.append(rec)
+
+    # Spend counts EVERY collected episode, valid or not: a measurement-invalid episode is excluded
+    # from the analysis but it was still paid for, and the budget cap is about money, not validity.
+    spent = 0.0
+    for d in sorted(EV.glob("*/episode.json")):
+        try:
+            spent += float(json.loads(d.read_text()).get("total_cost") or 0.0)
+        except Exception:  # noqa: BLE001
+            pass
+    spent = round(spent, 4)
+    replaced = invalid = 0
+    for s in _states():
+        try:
+            d = json.loads(s.read_text())
+        except Exception:  # noqa: BLE001
+            continue
+        for x in d.get("excluded_invalid_attempts", []):
+            if x.get("reason") == "terminal_invalid_replaced":
+                replaced += 1
+            else:
+                invalid += 1
+    return sched, included, excluded, spent, invalid, replaced
 
 
 def _truth_for(inst):
@@ -89,50 +153,15 @@ def _sign_p(diffs):
 
 
 def build():
-    states = _states()
-    if not states:
-        raise SystemExit("phase8a_report: no run_state_arm*.json under phase8a/evidence/")
-
-    episodes, spent, invalid, aborted, replaced = [], 0.0, 0, 0, 0
-    for s in states:
-        d = json.loads(s.read_text())
-        episodes.extend(d.get("episodes", []))
-        spent += float(d.get("spent") or 0.0)
-        invalid += int(d.get("invalid") or 0)
-        aborted += int(d.get("aborted") or 0)
-        replaced += int(d.get("replaced") or 0)
+    sched, included, excluded_invalid, spent, invalid, replaced = _collect()
 
     per = defaultdict(lambda: defaultdict(list))
-    excluded_invalid = []
-    for e in episodes:
-        if e.get("aborted"):
-            continue
-        # A measurement-invalid episode is NEVER graded. It is not a capability failure.
-        if e.get("measurement_valid") is False:
-            excluded_invalid.append(f"{e.get('trial')}:arbiter_invalid")
-            continue
-        # Nor is an episode with no evidence a model was ever called. When the driver refuses to
-        # start, the untouched workspace still grades (0.5 on a p15 task) and, with no telemetry to
-        # read, the arbiter's fallback reports measurement_valid=true. Every frozen episode carries
-        # classification_source='request_telemetry'. Grading these would let a systemic transport
-        # failure enter the panel as data.
-        cls = (e.get("final") or {}).get("classification") or {}
-        if cls.get("classification_source") != "request_telemetry":
-            excluded_invalid.append(
-                f"{e.get('trial')}:no_telemetry({cls.get('classification_source')})")
-            continue
-        if "agentlog.sanitized.json" not in (e.get("custody") or {}):
-            excluded_invalid.append(f"{e.get('trial')}:no_agentlog_custody")
-            continue
-        trial, tid = e["trial"], e["task_id"]
-        inst = _core_of(tid)
-        f = EV / trial / "exception_config.submitted.json"
-        if not f.is_file():
-            excluded_invalid.append(f"{trial}:no_submitted_artifact")
-            continue
-        sem, subtype = _regrade(json.loads(f.read_text()), _truth_for(inst))
+    for e in included:
+        inst = _core_of(e["task_id"])
+        sub = json.loads((EV / e["trial"] / "exception_config.submitted.json").read_text())
+        sem, subtype = _regrade(sub, _truth_for(inst))
         per[inst][e["condition"]].append({"rep": e["rep"], "sem": sem, "subtype": subtype,
-                                          "trial": trial})
+                                          "trial": e["trial"]})
 
     instances = sorted(i for i in per if i not in PILOTS)
     rows = []
@@ -212,11 +241,11 @@ def build():
             "path": "reports/synthetic_phase7a_sta72_report.json",
             "rule": "report side by side; never sum, average, difference or pool into one n",
         },
-        "n_episodes_collected": len(episodes),
+        "n_episodes_collected": len(included) + len(excluded_invalid),
         "episodes_graded": sum(len(per[i][c]) for i in instances for c in COND),
         "measurement_invalid_excluded": excluded_invalid,
         "spent_cny": round(spent, 4),
-        "invalid": invalid, "aborted": aborted, "replaced": replaced,
+        "measurement_invalid_attempts": invalid, "replaced_attempts": replaced,
         "unit": f"task instance (n={len(instances)}); k reps nested; trajectories are NOT n",
         "k_per_condition_observed": k_used,
         "frozen_hierarchy": {"primary": "BundleS vs Base",
@@ -248,8 +277,9 @@ def _markdown(rep):
     pri = rep["contrast_tally_instance_level"]["primary_BundleS_vs_Base"]
     md = [f"# Phase-8A — STA panel at k={rep['k_per_condition_observed']} on a replacement backend",
           "",
-          f"{rep['episodes_graded']} graded episodes (¥{rep['spent_cny']}, {rep['invalid']} invalid, "
-          f"{rep['replaced']} replacement(s)). **Unit = task instance (n={len(rep['instances'])}); "
+          f"{rep['episodes_graded']} graded episodes (¥{rep['spent_cny']}, "
+          f"{rep['measurement_invalid_attempts']} measurement-invalid attempts, "
+          f"{rep['replaced_attempts']} replaced). **Unit = task instance (n={len(rep['instances'])}); "
           "reps nested; trajectories are NOT n.**",
           "",
           "> **Not poolable with Phase-7A.** Phase-7A ran on `llmapi.paratera.com`, which now returns "

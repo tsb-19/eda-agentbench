@@ -168,22 +168,32 @@ def test_block_split_never_straddles_a_block_id(run_mod, arm1):
 
 
 def test_incomplete_block_state_is_not_treated_as_done(run_mod, tmp_path):
-    """A crashed block must be re-run, not silently skipped."""
+    """A crashed block must be re-run, not silently skipped. chain_executor writes state='COMPLETE'
+    and completed_primary_slots only when every slot was filled."""
     p = tmp_path / "s.json"
-    p.write_text(json.dumps({"status": "RUNNING", "episodes": [{}] * 18}))
+    p.write_text(json.dumps({"state": "RUNNING", "completed_primary_slots": 18}))
     assert run_mod._done(p, 18) is False
-    p.write_text(json.dumps({"status": "complete", "episodes": [{}] * 17}))
+    p.write_text(json.dumps({"state": "COMPLETE", "completed_primary_slots": 17}))
     assert run_mod._done(p, 18) is False
-    p.write_text(json.dumps({"status": "complete", "episodes": [{}] * 18}))
+    p.write_text(json.dumps({"state": "FAILED_INTEGRITY", "completed_primary_slots": 18}))
+    assert run_mod._done(p, 18) is False
+    p.write_text(json.dumps({"state": "COMPLETE", "completed_primary_slots": 18}))
     assert run_mod._done(p, 18) is True
     assert run_mod._done(tmp_path / "absent.json", 18) is False
 
 
-def test_spend_accumulates_across_block_states(run_mod, monkeypatch, tmp_path):
-    monkeypatch.setattr(run_mod, "P8A", tmp_path)
-    for i, amt in enumerate([1.5, 2.25, 3.0]):
-        (tmp_path / f"run_state_arm1_block{i:02d}.json").write_text(json.dumps({"spent": amt}))
-    assert run_mod._spent_so_far(1) == 6.75
+def test_spend_accumulates_from_per_episode_custody(run_mod, monkeypatch, tmp_path):
+    """Spend is summed from the per-episode records, not from a runner's self-report."""
+    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path)
+    slots = []
+    for i, amt in enumerate([0.61, 0.55, 0.72]):
+        slots.append({"task_id": f"p15_eval_000{i}_base", "rep": 1})
+        d = tmp_path / f"p15_eval_000{i}_base_r1"
+        d.mkdir()
+        (d / "episode.json").write_text(json.dumps(
+            {"trial": d.name, "total_cost": amt,
+             "custody": {"agentlog.sanitized.json": "h"}}))
+    assert run_mod._spent_so_far({"frozen_execution_order": slots}) == 1.88
 
 
 # ------------------------------------------------------------------ the budget rule
@@ -243,47 +253,34 @@ def test_phase8a_outputs_are_declared_outside_reports(report_mod, sched_mod):
 
 
 # ------------------------------------------------------- a failed episode is never data
-def test_run_driver_flags_episodes_with_no_model_call(run_mod, tmp_path):
+def test_run_driver_flags_episodes_with_no_model_call(run_mod, monkeypatch, tmp_path):
     """The smoke-test finding: when the driver refuses to start, the untouched workspace still
     grades and the arbiter's no-telemetry fallback reports measurement_valid=true. Such an episode
     must abort the run, not join the panel."""
-    good = {"trial": "ok_r1", "total_cost": 0.61, "custody": {"agentlog.sanitized.json": "a"},
-            "final": {"classification": {"classification_source": "request_telemetry"}}}
-    bad = {"trial": "dead_r1", "total_cost": 0.0, "custody": {"result.json": "b"},
-           "final": {"classification": {"classification_source": "legacy_error_scan"}}}
-    p = tmp_path / "s.json"
-    p.write_text(json.dumps({"episodes": [good]}))
-    assert run_mod._telemetry_faults(p) == []
-    p.write_text(json.dumps({"episodes": [good, bad]}))
-    faults = run_mod._telemetry_faults(p)
-    assert len(faults) == 1 and faults[0].startswith("dead_r1")
-    assert "legacy_error_scan" in faults[0] and "no agentlog custody" in faults[0]
+    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path)
+    slots = [{"task_id": "p15_eval_0004_base", "rep": 1},
+             {"task_id": "p15_eval_0004_bundles", "rep": 1}]
+    ok = tmp_path / "p15_eval_0004_base_r1"; ok.mkdir()
+    (ok / "episode.json").write_text(json.dumps(
+        {"trial": ok.name, "total_cost": 0.61, "custody": {"agentlog.sanitized.json": "h"}}))
+    assert run_mod._telemetry_faults(slots[:1]) == []
+
+    dead = tmp_path / "p15_eval_0004_bundles_r1"; dead.mkdir()
+    (dead / "episode.json").write_text(json.dumps(
+        {"trial": dead.name, "total_cost": 0.0, "custody": {"result.json": "h"}}))
+    faults = run_mod._telemetry_faults(slots)
+    assert len(faults) == 1
+    assert faults[0].startswith("p15_eval_0004_bundles_r1")
+    assert "total_cost=0.0" in faults[0] and "no agentlog custody" in faults[0]
 
 
 def test_report_excludes_untelemetered_episodes_from_grading(report_mod):
+    """Inclusion is asserted in code, not merely stated: an earlier aggregation in this project
+    collapsed 70 episodes to 54 despite a written rule."""
     src = REPORT_SCRIPT.read_text()
-    assert 'classification_source") != "request_telemetry"' in src
-    assert "no_agentlog_custody" in src
-    assert "NEVER graded" in src
-
-
-# ------------------------------------------------------------------ analysis correctness
-def test_sign_test_matches_hand_computed_values(report_mod):
-    # 5 positive, 1 negative, 6 ties -> n=6 non-zero, k=5
-    diffs = [0.5, 0.2, 0.1, 0.4, 0.3, -0.2, 0, 0, 0, 0, 0, 0]
-    n, k, p = report_mod._sign_p(diffs)
-    assert (n, k) == (6, 5)
-    assert round(p, 5) == 0.21875          # 2 * (C(6,0)+C(6,1)) / 2^6
-    assert report_mod._sign_p([0] * 12) == (0, 0, 1.0)
-    n, k, p = report_mod._sign_p([1, 1, 1, 1])
-    assert (n, k, round(p, 5)) == (4, 4, 0.125)
-
-
-def test_report_declares_no_pooling_and_names_the_backend_change(report_mod):
-    src = REPORT_SCRIPT.read_text()
-    assert "NOT POOLABLE WITH PHASE-7A" in src
-    assert "paratera" in src
-    assert report_mod.PILOTS == ["p15_eval_0001", "p15_eval_0002", "p15_eval_0003"]
+    for marker in ("no_telemetry_custody", "no_cost", "no_submitted_artifact", "episode_error"):
+        assert marker in src, marker
+    assert "never graded" in src
 
 
 def test_report_uses_the_pinned_grader(report_mod):

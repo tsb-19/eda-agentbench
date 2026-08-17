@@ -1,23 +1,29 @@
 #!/usr/bin/env python3
-"""Phase-8A execution driver — runs the frozen schedule through the PINNED phase5c_run.py.
+"""Phase-8A execution driver — runs the frozen schedule through the PINNED chain_executor.py.
 
-Why a wrapper at all. `scripts/phase5c_run.py` is the project's paid-run orchestrator: it owns
-custody, the arbiter verdicts, validity-only replacement, the budget ceiling and durable state, and
-it is sha256-pinned, so it is reused byte-identical. But it rebuilds its state from scratch on every
-invocation -- there is no resume. A single 216-episode arm runs ~14 h at the Phase-7A observed pace
-of ~238 s/episode, and a crash at episode 200 would discard all of it.
+Chain of custody, and what is new. Pinned and reused byte-identical:
+  chain_executor.py     schedule iteration, replacement policy, canonical-integrity verification
+                        (pre-run, after every episode, post-chain -> FAILED_INTEGRITY), durable state
+  episode_arbiter.py    sole membership authority: ACCEPT / REPLACE / STOP
+  llm_agent_driver.py   transport, the single retry authority, telemetry
+  the p15 grader + evaluator
+New, and deciding nothing about membership:
+  phase8a_episode_runner.py   runs one episode, writes the two files classify() reads, keeps custody
+  this driver                 which slots are fed, and when the budget says stop
 
-So this driver slices the frozen schedule at its OWN BLOCK BOUNDARIES and runs one block per
-invocation. The schedule is block-major, so running blocks in order and preserving each block's
-internal order reproduces the frozen execution order exactly -- position balance is a within-block
-property and is untouched. A crash now costs at most one block (~70 min), and completed blocks are
-skipped on restart.
+Two reasons this wrapper exists rather than a single chain_executor invocation.
 
-It adds no membership logic. The arbiter remains the sole membership authority; this driver only
-decides which slots are fed and stops when the budget says stop.
+1. Retry budget. The replacement backend throttles (measured 503: 35% back-to-back, 8.3% at 15 s
+   spacing). scripts/phase5c_run.py passes --max-chat-retries 1 on the command line and CLI beats
+   env, so it cannot be raised there; going through chain_executor --runner leaves it configurable.
+   Raised to 6, giving backoff 3/6/12/24/45 s, which reaches the un-throttled regime.
+2. Resume. A 216-episode arm runs ~14 h. Blocks are run one per invocation, so a crash costs at most
+   one block and completed blocks are skipped. The schedule is block-major, so running blocks in
+   order and preserving each block's internal order reproduces the frozen execution order exactly;
+   position balance is a within-block property and is untouched.
 
 Usage:
-  python3 scripts/phase8a_run.py --arm 1 [--budget 200] [--per-slot 0.7] [--dry-run]
+  python3 scripts/phase8a_run.py --arm 1 [--budget 200] [--blocks 3] [--dry-run]
 """
 from __future__ import annotations
 
@@ -32,8 +38,16 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 P8A = REPO / "phase8a" / "evidence"
 BLOCKS = P8A / "blocks"
-RUNNER = REPO / "scripts" / "phase5c_run.py"
-GATEWAY = REPO / "phase8a" / "gateway.env"
+CUSTODY = P8A / "episodes"
+EXECUTOR = REPO / "scripts" / "chain_executor.py"
+EPISODE_RUNNER = REPO / "scripts" / "phase8a_episode_runner.py"
+TRACK = "p15_sta_handoff"
+TOOL_ROOT = "/data1/tongsb/eda-remote-shim/EDA"
+MAX_REPLACEMENTS = 2
+MAX_ACTIONS = 60
+EPISODE_TIMEOUT = 1800
+TEMPERATURE = 0.7
+RETRIES = "6"
 
 
 def _blocks_of(schedule):
@@ -55,144 +69,187 @@ def _state_path(arm, i):
 
 
 def _done(path, n_expected):
-    """A block counts as done only if its state is terminal AND every slot produced a record."""
-    if not path.is_file():
+    """A block is done only if the executor reported COMPLETE for every slot."""
+    if not Path(path).is_file():
         return False
     try:
-        d = json.loads(path.read_text())
+        d = json.loads(Path(path).read_text())
     except Exception:
         return False
-    return d.get("status") in ("complete", "incomplete_collection_budget_stop") and \
-        len(d.get("episodes", [])) >= n_expected
+    return d.get("state") == "COMPLETE" and d.get("completed_primary_slots", 0) >= n_expected
 
 
-def _spent_so_far(arm):
-    total = 0.0
-    for p in sorted(P8A.glob(f"run_state_arm{arm}_block*.json")):
-        try:
-            total += float(json.loads(p.read_text()).get("spent") or 0.0)
-        except Exception:
-            pass
-    return round(total, 4)
+def _episode_records(arm_slots):
+    """Per-episode records written by phase8a_episode_runner, in schedule order."""
+    recs = []
+    for s in arm_slots:
+        f = CUSTODY / f"{s['task_id']}_r{s['rep']}" / "episode.json"
+        if f.is_file():
+            try:
+                recs.append(json.loads(f.read_text()))
+            except Exception:  # noqa: BLE001
+                pass
+    return recs
 
 
-def _telemetry_faults(state_path):
-    """Episodes that the arbiter called valid but that carry NO evidence a model was called.
+def _spent_so_far(schedule):
+    return round(sum(float(r.get("total_cost") or 0.0)
+                     for r in _episode_records(schedule["frozen_execution_order"])), 4)
 
-    A smoke test caught this: when the driver refuses to start (in that case a config entry whose
-    credential was absent), run_single_agentic still grades the untouched workspace -- 0.5 on a p15
-    task -- and no agentlog is written. With no telemetry the arbiter falls back to
-    `legacy_error_scan` and reports measurement_valid=true. Every frozen episode instead carries
-    classification_source='request_telemetry'.
 
-    Left unchecked that turns a systemic failure into a full panel of junk episodes that look
-    collected. An episode with no model call is measurement-invalid by definition; it is certainly
-    not a capability failure. The arbiter is pinned, so the check lives here and it aborts the run
-    rather than continuing to spend.
+def _telemetry_faults(slots):
+    """Episodes carrying no evidence a model was ever called.
+
+    A smoke test caught this: when the driver refuses to start, run_single_agentic still grades the
+    untouched workspace (0.5 on a p15 task) and writes no agentlog. With no telemetry the arbiter
+    falls back to classification_source='legacy_error_scan' and reports measurement_valid=true.
+    Every frozen episode instead carries 'request_telemetry'. Unchecked, a systemic transport failure
+    becomes a full panel of junk episodes that look collected. An episode with no model call is
+    measurement-invalid by definition and is certainly not a capability failure.
     """
     faults = []
-    try:
-        d = json.loads(Path(state_path).read_text())
-    except Exception:
-        return [f"{state_path}: unreadable state"]
-    for e in d.get("episodes", []):
-        if e.get("aborted"):
-            continue
-        cls = (e.get("final") or {}).get("classification") or {}
+    for r in _episode_records(slots):
         why = []
-        if cls.get("classification_source") != "request_telemetry":
-            why.append(f"classification_source={cls.get('classification_source')!r}")
-        if not (e.get("total_cost") or 0) > 0:
-            why.append(f"total_cost={e.get('total_cost')!r}")
-        if "agentlog.sanitized.json" not in (e.get("custody") or {}):
+        if not (r.get("total_cost") or 0) > 0:
+            why.append(f"total_cost={r.get('total_cost')!r}")
+        if "agentlog.sanitized.json" not in (r.get("custody") or {}):
             why.append("no agentlog custody")
         if why:
-            faults.append(f"{e.get('trial')}: " + ", ".join(why))
+            faults.append(f"{r.get('trial')}: " + ", ".join(why))
     return faults
+
+
+def _env(block_file: Path):
+    e = dict(os.environ)
+    # credential: read from .env explicitly so nothing depends on the driver's CWD
+    envf = REPO / ".env"
+    if envf.is_file():
+        for line in envf.read_text().splitlines():
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                k, _, v = line.partition("=")
+                e.setdefault(k.strip(), v.strip().strip("'\""))
+    if not e.get("TR_API_KEY"):
+        raise SystemExit("phase8a_run: TR_API_KEY not provisioned (expected in .env)")
+    # The pinned scripts/_llm_request_worker.py reads the credential from its inherited environment
+    # by a FIXED candidate list (API_KEY, MIMO_API_KEY, OPENAI_API_KEY, LLM_API_KEY). A custom name
+    # never reaches the isolated worker and the request dies as MissingApiKey. Export under a name it
+    # accepts; phase8a/models_arm1.json pins the endpoint with a literal api_base, so which gateway
+    # is in use is never ambiguous.
+    e["API_KEY"] = e["TR_API_KEY"]
+    e.update({
+        "EDA_TOOL_ROOT": TOOL_ROOT,
+        "B04_HOST": e.get("B04_HOST", "tsb@b04"),
+        "EDA_PT_CMD": f"{TOOL_ROOT}/soft2/synopsys/prime/V-2023.12/bin/pt_shell",
+        "EDA_HSPICE_CMD": f"{TOOL_ROOT}/soft2/synopsys/hspice/V-2023.12/hspice/bin/hspice",
+        # thinking models: non-streaming transport censors them mid-reasoning
+        "EDA_BENCH_STREAM_RESPONSES": "1",
+        "EDA_BENCH_PRESERVE_FINAL_WORKSPACE": "1",
+        "EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC": "120",
+        "EDA_BENCH_LLM_REQUEST_DEADLINE_SEC": "300",
+        "EDA_BENCH_MAX_CHAT_RETRIES": RETRIES,
+        "PHASE8A_SCHEDULE": str(block_file),
+        "PHASE8A_MODEL_NAME": "qwen3.7-max",
+    })
+    return e
 
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Run a Phase-8A arm block by block.")
     ap.add_argument("--arm", type=int, required=True, choices=(1, 2))
     ap.add_argument("--budget", type=float, default=200.0, help="hard cumulative cap, CNY")
-    ap.add_argument("--per-slot", type=float, default=0.7,
-                    help="projected CNY/episode used by the runner's stop gate")
+    ap.add_argument("--per-slot", type=float, default=0.7, help="projected CNY/episode for the gate")
+    ap.add_argument("--blocks", type=int, default=None, help="run at most N blocks this invocation")
+    ap.add_argument("--models", default="phase8a/models_arm1.json")
     ap.add_argument("--dry-run", action="store_true", help="plan only; make no model call")
-    args = ap.parse_args()
+    a = ap.parse_args()
 
-    sched_path = P8A / f"schedule_arm{args.arm}.json"
+    sched_path = P8A / f"schedule_arm{a.arm}.json"
     if not sched_path.is_file():
         raise SystemExit(f"phase8a_run: missing frozen schedule {sched_path}")
     schedule = json.loads(sched_path.read_text())
     blocks = _blocks_of(schedule)
+    spent = _spent_so_far(schedule)
 
-    if not args.dry_run and not GATEWAY.is_file():
-        raise SystemExit(
-            f"phase8a_run: missing {GATEWAY}. It must define API_KEY and BASE_URL for the "
-            "replacement backend, and must stay gitignored (it holds a credential).")
-
-    plan = {"arm": args.arm, "model": schedule["model"], "blocks": len(blocks),
-            "episodes": schedule["episodes"], "budget_cny": args.budget,
-            "already_spent_cny": _spent_so_far(args.arm),
-            "block_sizes": sorted({len(b) for _, b in blocks})}
-    print(json.dumps(plan, indent=2), flush=True)
-    if args.dry_run:
+    print(json.dumps({"arm": a.arm, "model": schedule["model"], "blocks": len(blocks),
+                      "episodes": schedule["episodes"], "budget_cny": a.budget,
+                      "already_spent_cny": spent,
+                      "transport": {"max_chat_retries": int(RETRIES), "stream": True,
+                                    "concurrency": 1},
+                      "done_blocks": sum(1 for i, (_, s) in enumerate(blocks)
+                                         if _done(_state_path(a.arm, i), len(s)))}, indent=2),
+          flush=True)
+    if a.dry_run:
         return 0
 
-    BLOCKS.mkdir(parents=True, exist_ok=True)
-    for i, (block_id, slots) in enumerate(blocks):
-        state = _state_path(args.arm, i)
-        if _done(state, len(slots)):
-            print(f"[block {i + 1}/{len(blocks)}] {block_id} already complete -- skipping",
-                  flush=True)
-            continue
+    manifest = P8A / "prerun_manifest.json"
+    if not manifest.is_file():
+        raise SystemExit("phase8a_run: run scripts/phase8a_preflight.py first (no prerun manifest)")
 
-        spent = _spent_so_far(args.arm)
-        remaining_budget = round(args.budget - spent, 4)
-        if remaining_budget <= len(slots) * args.per_slot:
-            print(json.dumps({"stopped": "budget", "at_block": i, "spent_cny": spent,
-                              "remaining_cny": remaining_budget}), flush=True)
+    BLOCKS.mkdir(parents=True, exist_ok=True)
+    (REPO / "runs" / "phase8a").mkdir(parents=True, exist_ok=True)
+    ran = 0
+    for i, (block_id, slots) in enumerate(blocks):
+        state = _state_path(a.arm, i)
+        if _done(state, len(slots)):
+            print(f"[{i + 1}/{len(blocks)}] {block_id} complete -- skip", flush=True)
+            continue
+        if a.blocks is not None and ran >= a.blocks:
+            print(json.dumps({"stopped": "block_limit", "ran": ran}), flush=True)
             break
 
-        bf = BLOCKS / f"arm{args.arm}_block{i:02d}.json"
-        bf.write_text(json.dumps({**{k: v for k, v in schedule.items()
-                                     if k not in ("frozen_execution_order", "flat")},
-                                  "block_id": block_id,
-                                  "frozen_execution_order": slots}, indent=2) + "\n")
+        spent = _spent_so_far(schedule)
+        remaining = round(a.budget - spent, 4)
+        if remaining <= len(slots) * a.per_slot:
+            print(json.dumps({"stopped": "budget", "at_block": i, "spent_cny": spent,
+                              "remaining_cny": remaining}), flush=True)
+            break
 
-        env = dict(os.environ)
-        env.update({
-            "PHASE5_SCHEDULE": str(bf.relative_to(REPO)),
-            "PHASE5_RUNS": "runs/phase8a",
-            "PHASE5_EVIDENCE": "phase8a/evidence/episodes",
-            "PHASE5_STATE": str(state.relative_to(REPO)),
-            "PHASE5_CEILING": str(min(remaining_budget, 1000.0)),
-            "PHASE5_PER_SLOT": str(args.per_slot),
-            "EDA_BENCH_GATEWAY_ENV": str(GATEWAY),
-        })
+        bf = BLOCKS / f"arm{a.arm}_block{i:02d}.json"
+        head = {k: v for k, v in schedule.items() if k not in ("frozen_execution_order", "flat")}
+        bf.write_text(json.dumps({**head, "block_id": block_id, "episodes": len(slots),
+                                  "frozen_execution_order": slots, "flat": slots},
+                                 indent=2) + "\n")
+
+        cmd = [sys.executable, str(EXECUTOR),
+               "--schedule", str(bf), "--models", str(REPO / a.models), "--track", TRACK,
+               "--runner", str(EPISODE_RUNNER), "--model-name", "qwen3.7-max",
+               "--results-prefix", str(REPO / "runs" / "phase8a" / f"a{a.arm}"),
+               "--state", str(state), "--log", str(REPO / "runs" / "phase8a" / f"chain_b{i:02d}.log"),
+               "--max-replacements", str(MAX_REPLACEMENTS), "--max-actions", str(MAX_ACTIONS),
+               "--timeout", str(EPISODE_TIMEOUT), "--temperature", str(TEMPERATURE),
+               "--elicit-confidence", "--integrity-manifest", str(manifest)]
         t0 = time.time()
-        print(f"[block {i + 1}/{len(blocks)}] {block_id}: {len(slots)} slots, "
-              f"budget left ¥{remaining_budget}", flush=True)
-        rc = subprocess.run([sys.executable, str(RUNNER)], env=env, cwd=str(REPO)).returncode
-        print(f"[block {i + 1}/{len(blocks)}] rc={rc} in {round(time.time() - t0)}s "
-              f"cumulative ¥{_spent_so_far(args.arm)}", flush=True)
-        if rc != 0:
-            print(json.dumps({"stopped": "runner_nonzero_exit", "at_block": i, "rc": rc}),
-                  flush=True)
-            return rc
-        faults = _telemetry_faults(state)
+        print(f"[{i + 1}/{len(blocks)}] {block_id}: {len(slots)} slots, budget left ¥{remaining}",
+              flush=True)
+        rc = subprocess.run(cmd, env=_env(bf), cwd=str(REPO)).returncode
+        ran += 1
+        print(f"[{i + 1}/{len(blocks)}] rc={rc} in {round(time.time() - t0)}s "
+              f"cumulative ¥{_spent_so_far(schedule)}", flush=True)
+
+        if rc == 3:
+            print(json.dumps({"stopped": "FAILED_INTEGRITY", "at_block": i,
+                              "note": "the canonical tree was mutated mid-run. Do NOT restore and "
+                                      "continue: find the writer first."}), flush=True)
+            return 3
+        faults = _telemetry_faults(slots)
         if faults:
-            print(json.dumps({"stopped": "telemetry_faults", "at_block": i,
-                              "detail": faults[:6],
+            print(json.dumps({"stopped": "telemetry_faults", "at_block": i, "detail": faults[:6],
                               "note": "episodes with no evidence of a model call are "
-                                      "measurement-invalid; aborting rather than collecting a "
-                                      "panel of junk. Fix the cause, delete this block's state, "
-                                      "and re-run -- completed blocks are skipped."}, indent=2),
+                                      "measurement-invalid; fix the cause, delete this block's "
+                                      "state, re-run. Completed blocks are skipped."}, indent=2),
                   flush=True)
             return 2
+        if rc != 0:
+            print(json.dumps({"stopped": "executor_exit", "at_block": i, "rc": rc,
+                              "note": "rc=2 means the arbiter hit STOP: a slot stayed "
+                                      "measurement-invalid past the replacement cap."}), flush=True)
+            return rc
 
-    print(json.dumps({"arm": args.arm, "spent_cny": _spent_so_far(args.arm),
-                      "budget_cny": args.budget}, indent=2))
+    print(json.dumps({"arm": a.arm, "spent_cny": _spent_so_far(schedule), "budget_cny": a.budget,
+                      "blocks_complete": sum(1 for i, (_, s) in enumerate(blocks)
+                                             if _done(_state_path(a.arm, i), len(s))),
+                      "blocks_total": len(blocks)}, indent=2))
     return 0
 
 

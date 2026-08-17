@@ -1,0 +1,17 @@
+{
+  "_comment": "Phase-8A arm 1. One entry only. api_key_env names an environment variable; the key value is never stored here. The frozen program's gateway (llmapi.paratera.com) now returns 403 for this model, so Phase-8A necessarily runs on a different provider whose model IDs are lowercase (the capitalised form returns HTTP 400). Episodes from this backend are a DIFFERENT measurement and are never pooled with the frozen 72. See docs/phase8a_prereg.md.",
+  "models": [
+    {
+      "name": "qwen3.7-max",
+      "api_key_env": "API_KEY",
+      "api_base": "https://tokenrhythm.studio/v1",
+      "model_id": "qwen3.7-max",
+      "temperature": 0.7,
+      "max_tokens": 32000,
+      "timeout": 300,
+      "price_in_per_m": 12.0,
+      "price_out_per_m": 36.0,
+      "_api_key_env_note": "Must be one of scripts/_llm_request_worker.py's _KEY_ENV_CANDIDATES (API_KEY, MIMO_API_KEY, OPENAI_API_KEY, LLM_API_KEY): that worker is sha256-pinned and reads the credential from its inherited environment by that fixed list, so a custom name like TR_API_KEY never reaches it and the request fails with MissingApiKey. scripts/phase8a_run.py reads the value from TR_API_KEY in .env and exports it as API_KEY. There is no ambiguity about which gateway is used: api_base is a literal below."
+    }
+  ]
+}
