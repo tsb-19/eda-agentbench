@@ -1,0 +1,1097 @@
+{
+  "schema": "p14_answer_identifiability/v1",
+  "analysis_name": "disclosure-only answer-identifiability (direct-answer disclosure probe)",
+  "question": "Reading only what a condition discloses, and never the task evidence, is the golden assignment already pinned to a single candidate?",
+  "what_this_can_and_cannot_show": {
+    "closed_if_survivors_gt_1": "direct answer disclosure / literal answer identifiability --- i.e. the explanation that the treatment simply told the model the answer",
+    "not_closed": "softer information leakage, prior narrowing, prompt-induced heuristic cues, accidental lexical correlation, model-specific exploitation",
+    "bounds_not_mechanism": "the probe bounds a condition's informational advantage; it does not identify the behavioral mechanism, and the survivor ratio must not be restated as one --- under the strict reading BundleS does not shrink the candidate set at all",
+    "provenance": "retrospective, post-freeze, not preregistered; no paid call, no model, no EDA tool, no new episode. Same class as Phase-7D."
+  },
+  "naming": {
+    "K1..K5": "task constraints (this script)",
+    "C1..C7": "clarity-bundle components (this script)",
+    "collision_in_frozen_files": "the frozen task files name both families C1..C5/C1..C7; task constraint C5 (sign-off pair) is what clarity component C6 asserts"
+  },
+  "information_classes": {
+    "A_shared_candidate_universe": {
+      "source": "axis_schema typed-axis domains, key-whitelisted",
+      "condition_invariant": true,
+      "verified_identical_across_conditions": 14
+    },
+    "B_treatment_disclosure": [
+      "prompt.md",
+      "files/spec.md",
+      "files/glossary.md",
+      "files/public_check_summary.json"
+    ],
+    "C_forbidden": [
+      "report_A_role_swap.rpt",
+      "report_B_role_stale.rpt",
+      "report_C_role_pvt.rpt",
+      "evidence_D_role_mismatch.json",
+      "prev_signoff.log",
+      "timing_report.rpt",
+      "evidence_manifest.json",
+      "stage2_summary.json",
+      "flow_config.json",
+      "handoff_manifest.json",
+      "netlist_v1.v",
+      "netlist_v2.v",
+      "constraints.sdc",
+      "hidden/*",
+      "solution/*"
+    ],
+    "golden_use": "loaded only after every survivor set was computed; used solely to report membership and uniqueness, never to narrow"
+  },
+  "readings": {
+    "strict": "a constraint counts as disclosed only if its value content is stated",
+    "generous": "the leakage-favourable reading: additionally grants the typed-axis membership table to conditions disclosing canonical labels + disjointness + the PVT rule, and clock identity from the declared v2 interface --- more than the treatment's own files provide",
+    "how_to_report": "as a bracket. Quoting only the generous bound overstates how much the treatment narrows; quoting only the strict bound understates it."
+  },
+  "headline": {
+    "omega": 294,
+    "base_S0": {
+      "strict": 147,
+      "generous": 49
+    },
+    "bundleS_S0": {
+      "strict": 147,
+      "generous": 9
+    },
+    "base_S1_heldout": {
+      "strict": 147,
+      "generous": 49
+    },
+    "bundleS_S1_heldout": {
+      "strict": 147,
+      "generous": 9
+    },
+    "positive_control_V9_base_plus_C6": {
+      "strict": 3,
+      "generous": 1
+    },
+    "positive_control_full_bundle_with_C6": {
+      "strict": 1,
+      "generous": 1
+    },
+    "bundleS_S0_bracket": {
+      "low_leakage_favorable": 9,
+      "high_strict": 147
+    },
+    "bundleS_S1_bracket": {
+      "low_leakage_favorable": 9,
+      "high_strict": 147
+    },
+    "base_S0_bracket": {
+      "low_leakage_favorable": 49,
+      "high_strict": 147
+    },
+    "golden_uniquely_identified_under_any_BundleS_reading": false,
+    "positive_control_detects_C6": true,
+    "positive_control_basis": "C6 publishes the sign-off role pair, so the invariant required under BOTH readings is uniqueness of the (scenario, corner) projection, which holds for V9 and the full bundle and fails for both BundleS arms. Whether C6 also pins the FULL assignment is reading-dependent: V9 leaves 3 under the strict reading because the clock is not value-stated there, and 1 under the generous reading; the full bundle is unique under both. The control does not require full-assignment uniqueness and must not be reported as if it did."
+  },
+  "conditions": [
+    {
+      "instance": "workflow_handoff_0009",
+      "condition": "Base(0009)",
+      "paper_role": "S0 baseline",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0015",
+      "condition": "BundleS",
+      "paper_role": "S0 treatment (primary)",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K3",
+          "K4"
+        ],
+        "omega": 294,
+        "survivors": 9,
+        "survivors_scenario_corner_projection": 9,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0011",
+      "condition": "Base(0011)",
+      "paper_role": "S1 held-out baseline",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0017",
+      "condition": "Held(0017)",
+      "paper_role": "S1 held-out treatment (primary)",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K3",
+          "K4"
+        ],
+        "omega": 294,
+        "survivors": 9,
+        "survivors_scenario_corner_projection": 9,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0010",
+      "condition": "Full bundle(0010)",
+      "paper_role": "positive control: bundle WITH C6",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": true,
+          "k5_asserted_pair": [
+            "slow",
+            "func"
+          ]
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K5"
+        ],
+        "omega": 294,
+        "survivors": 1,
+        "survivors_scenario_corner_projection": 1,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": true,
+        "scenario_corner_uniquely_identified": true
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": true,
+          "k5_asserted_pair": [
+            "slow",
+            "func"
+          ]
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K3",
+          "K4",
+          "K5"
+        ],
+        "omega": 294,
+        "survivors": 1,
+        "survivors_scenario_corner_projection": 1,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": true,
+        "scenario_corner_uniquely_identified": true
+      },
+      "c6_present": true,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0014",
+      "condition": "V9",
+      "paper_role": "positive control: Base + C6 only",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": true,
+          "k5_asserted_pair": [
+            "slow",
+            "func"
+          ]
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K5"
+        ],
+        "omega": 294,
+        "survivors": 3,
+        "survivors_scenario_corner_projection": 1,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": true
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": true,
+          "k5_asserted_pair": [
+            "slow",
+            "func"
+          ]
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K5"
+        ],
+        "omega": 294,
+        "survivors": 1,
+        "survivors_scenario_corner_projection": 1,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": true,
+        "scenario_corner_uniquely_identified": true
+      },
+      "c6_present": true,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0013",
+      "condition": "V1",
+      "paper_role": "full bundle minus C6",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K3",
+          "K4"
+        ],
+        "omega": 294,
+        "survivors": 9,
+        "survivors_scenario_corner_projection": 9,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0016",
+      "condition": "BundleD",
+      "paper_role": "disclosure variant",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/public_check_summary.json"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": true,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0018",
+      "condition": "Schema",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": true,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2",
+          "K3",
+          "K4"
+        ],
+        "omega": 294,
+        "survivors": 9,
+        "survivors_scenario_corner_projection": 9,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0019",
+      "condition": "Contract",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0020",
+      "condition": "C1",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": true,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": false,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0021",
+      "condition": "C24",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0022",
+      "condition": "C2",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": false,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    },
+    {
+      "instance": "workflow_handoff_0023",
+      "condition": "C4",
+      "paper_role": "component arm",
+      "strict": {
+        "reading": "strict",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1"
+        ],
+        "omega": 294,
+        "survivors": 147,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "generous": {
+        "reading": "generous",
+        "files_read": [
+          "prompt.md",
+          "files/spec.md",
+          "files/glossary.md"
+        ],
+        "disclosure": {
+          "k1_netlist_family_stated": true,
+          "k1_excluded_netlist": "netlist_v1.v",
+          "k2_coverage_anchor_present": false,
+          "k2_v2_interface_declared": true,
+          "k2_interface_clock": "clk_main",
+          "k34_membership_explicitly_withheld": true,
+          "k34_canonical_labels": false,
+          "k34_axis_disjointness_stated": true,
+          "k34_pvt_rule_stated": true,
+          "k34_role_semantics_disclosed": false,
+          "k5_c6_signoff_pair_asserted": false,
+          "k5_asserted_pair": null
+        },
+        "constraints_disclosed": [
+          "K1",
+          "K2"
+        ],
+        "omega": 294,
+        "survivors": 49,
+        "survivors_scenario_corner_projection": 49,
+        "golden_in_survivors": true,
+        "golden_uniquely_identified": false,
+        "scenario_corner_uniquely_identified": false
+      },
+      "c6_present": false,
+      "c6_matches_design": true
+    }
+  ]
+}
