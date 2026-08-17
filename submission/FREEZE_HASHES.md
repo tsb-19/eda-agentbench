@@ -1,3 +1,108 @@
+# Phase-7D Submission Freeze (v13 — measured result promoted ahead of the framework)
+
+**Submission HEAD:** the commit that adds this section.
+**Experiment freeze HEAD:** `a89e084` (immutable). **v13 ran no model calls and altered no experimental record.**
+**v12 remains an immutable historical snapshot:** source `82cb22da…`, PDF `bbf948bf…`, 15 pp. Neither is rewritten; v13 is a *new* freeze, not an amendment of v12.
+**Previous freezes:** v12 = the commit that added the section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 = `83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged `iclr2027-submission-v1`. **Neither of those two tags moves.**
+
+## Why v13 exists
+
+Two reasons, both external to the manuscript's own argument:
+
+1. **A post-freeze derived analysis turned the grading substrate into a measured result.** The typed
+   provenance/authority oracle was always the paper's scoring basis, but its *contribution to
+   measurement* had never been quantified. Phase-7D pairs each frozen episode's semantic verdict with
+   its family's own pre-existing tool-success field and finds the tool signal **constant** across all
+   169 retained trajectories, accepting all **82** semantically wrong bindings. That is a result, not
+   infrastructure, and it belongs ahead of the claim-scope framework.
+2. **The related-work landscape moved before the v12 freeze and v12 did not reflect it.** arXiv:2605.10448
+   (2026-05-11) studies whether stored evidence supports a claimed outcome — published *before* the v12
+   freeze and uncited by it. Two further 2026 works (arXiv:2605.11039 argument-level provenance with
+   role-specific authority contracts; arXiv:2607.24054 auditing success provenance) sit close enough
+   that omitting them would misstate what is novel here. Submitting a v12 whose positioning is known
+   to be incomplete is worse than producing a recorded v13.
+
+**No experiment was added, no task semantics changed, no episode re-run, no derived experimental
+number moved.** All three generated tables are byte-identical to v12 (verified below), which is the
+mechanical proof of that last claim.
+
+### What changed
+
+- **Abstract** now opens with the measured result under four load-bearing qualifiers that must not be
+  trimmed for concision — *our* (not agent benchmarks generally), *deliberately tool-green* (a
+  property of the construction), *retrospective audit* (not preregistered), *hash-verified pairing*
+  (why 169 and not 202). The claim-scope framework follows as the third sentence rather than the first.
+- **§1** opens on the problem (a valid tool answer to the wrong question) before the framework.
+- **Contributions reordered:** (1) semantically attested evaluation, with the 169/82 result; (2) the
+  two never-collapsed binding-failure subtypes; (3) the claim-scope framework and qualification
+  standard, now carrying the transfer study; (4) measurement validity, restated as *a verdict must be
+  bound to the artifact it judges, and an oracle inherits the custody of its reference standard*.
+- **§3** gains the retrospective result, explicitly labelled post-freeze, with the two readings it does
+  not license stated inline.
+- **§6** gains *"A verdict is only about the artifact it can be shown to describe"* — 9 of 58 historical
+  workflow runs excluded because the recorded tool verdict did not attest the final submitted artifact,
+  where tuple equality would have caught two of nine. Positioned immediately before the reference-standard
+  custody paragraph, so the two read as one principle at two levels.
+- **§2 Positioning** bounds the claim against five works and explicitly disclaims priority over the
+  general observation that a reported success can be unearned.
+- **Conclusion** leads with the discrimination result.
+- **Three citations added** (12 → 15), each verified against arXiv before use.
+
+### Page cost, paid by relocation rather than deletion
+
+Main text was at the 9-page limit with **0 headroom**, and the additions cost ~770 words. No claim was
+deleted. Four blocks moved to appendices intact, and prose that stated something twice was compressed
+to state it once:
+
+| Moved to appendix | From | Now |
+|---|---|---|
+| the seven "what would change each conclusion" conditions | §7 | App. D |
+| full four-tier qualification definitions | §3.1 | App. E |
+| three closest concurrent works + transfer-dimension literature | §2 | App. J |
+| per-stratum table, exclusions, pairing sensitivity | §3 | App. F |
+
+Compressed in place (no claim removed): §3's lattice paragraph (restated §1), §5's sensitivity-band
+explanation (Appendix C re-derives it more strictly), §7's Discussion, and both custody paragraphs.
+
+| | v12 | v13 |
+|---|---|---|
+| main text | 9 pp (p1–p9) | **9 pp (p1–p9)** |
+| submission headroom (limit 9) | 0 pp | **0 pp** |
+| rebuttal headroom (limit 10) | 1 pp | 1 pp |
+| references | p10 | p10 |
+| appendix | A–G, p10–p15 | **A–J, p11–p18** |
+| total | 15 pp | **18 pp** |
+| main-text words | 5741 | 5795 |
+
+## SHA-256 hashes (frozen artifacts, v13)
+| Artifact | SHA-256 | vs v12 |
+|---|---|---|
+| Source (main.tex) | `cbab56b80c7671b7acf597b7956a7a0008d5170e3d10f626e68c84b21e68c0cf` | changed |
+| Final PDF (main.pdf, 18 pp: 9 main + refs + appendix; 283 205 B) | `ab68b2c0bbc40c570b9e921e063587d177470ecf521adf97a25a7be1dd988119` | changed |
+| Bibliography (references.bib, 15 entries) | `8747c69d47418ae91eb275c736cfbe9fe06d807a05eaf42e35cdf4755f248c97` | changed |
+| Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
+| Generated stat macros (tables/claim_stats.tex) | `5c0b2577d7fb06be9992cf228767e2d5c317065d8dc51f6d679d6de5e5f36615` | **identical** |
+| Generated pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
+| Phase-7D analysis (reports/synthetic_phase7d_semantic_proxy_gap.json) | `e0370a04ba6de10554b8caada29507ec27c0775b8558633d4a2b31c46fb8aa28` | new |
+| Phase-7D generator (scripts/phase7d_semantic_proxy_gap.py) | `b0e4600edc92b4ea7d849087e76c2d3af51c68e02c3c3db6c59a9b2fa17f25ac` | new |
+| Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
+
+The three generated tables being byte-identical is the mechanical proof that **no derived experimental
+number moved in v13**. The claim-evidence matrix is likewise untouched: it is a frozen Phase-7 record,
+and retroactively editing it would break the custody chain it exists to document. The v13 claim is
+recorded in `docs/artifact_map.md` instead.
+
+**Verification performed for v13:** two independent `make distclean && make` builds give the same PDF
+sha256 (byte-reproducible); 3 pdflatex start banners counted rather than assuming a log exists; main
+text confirmed to end on p9 by locating the `REFERENCES` marker's *offset within* its page, not by
+page-boundary arithmetic — an earlier measurement in this revision read 9 pp when references began
+mid-page with 580 main-text words above them; anonymity re-scanned (PDF metadata empty, 0 infra or
+forge leaks in PDF text, source and generated tables); every number written into the manuscript
+re-checked against the committed Phase-7D JSON; `scripts/check`, both Phase-7C `--check` scripts, the
+Phase-7D `--check` and the repository link check all clean.
+
+---
+
 # Phase-7C Submission Freeze (v12 — notation cleanup; framework frozen)
 
 **Submission HEAD:** the commit that adds this file.
@@ -71,6 +176,7 @@ main text stays 9 pp, Conclusion still ends on p9, References still begin on p10
 | total | 15 pp | 15 pp |
 
 ## SHA-256 hashes (frozen artifacts, v12)
+
 | Artifact | SHA-256 |
 |---|---|
 | Source (main.tex) | 82cb22da00f74fa751f008060abebc419de29f599a560fc0d49fa07c2c95b473 |

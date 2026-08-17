@@ -2,7 +2,7 @@
 
 # 产物地图 —— 论文每个论断到生成它的文件
 
-本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 v12，已冻结的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
+本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 v13，已冻结的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
 
 论文中没有任何数字是手工抄录的。两个派生表脚本读取冻结的逐 episode 记录并生成 LaTeX，由 `main.tex` 直接 `\input`，因此表格不可能与记录脱节：
 
@@ -46,6 +46,8 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | §5 | +12.5 pp，敏感带 −12.5 至 41.7；符号检验 p=1.0；置换检验 p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
 | §5 | 三实例试点方向相反（−16.7 pp） | `reports/synthetic_phase5d_collection_report.json` |
 | §5，表 2 第 5 行 | S2-F SPICE：Base = BundleS = TypedContract = 1.00 天花板 | `reports/synthetic_phase5c_collection_report.json` |
+| §3、附录 F | 在 169 条已验证配对的轨迹上工具成功信号是**常量**（接受），并接受了全部 82 条语义错绑，因此全部测得判别力都由类型化 oracle 承担；SPICE-5D 为负对照（18/18 正确，oracle 与工具一致） | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
+| §6 | 58 条 workflow episode 中有 9 条被排除，因为记录的工具判决并未证明其对应最终提交产物；tuple 相等只能抓到其中 2 条 | 同一 JSON —— `per_episode[].pairing_verified` 与 `exclusion_reason` |
 | §6，表 3 | 七个审计事件 | 每行对应下表一行 |
 | §6 | 模型保管：episode 跨度、快照留存率、逐 episode 传输记录 | `scripts/phase7c_claim_statistics.py`（`resolved_snapshot_retained`、diag-episode 计数）作用于 `reports/evidence/` |
 | §6 | Terminal-Bench 2.0→2.1：1 直接 / 21 部分 / 4 在外；采样层 0 | `scripts/phase7c_tb21_audit.py`、`scripts/phase7a_terminalbench_audit.py`、`reports/synthetic_phase7c_terminalbench_audit.md`、`reports/evidence/phase7c_terminalbench/`（冻结量表 + PR-53 快照） |
@@ -80,13 +82,9 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | 伦理声明 | 研究 B（盲法人类构念效度）已预注册但未执行 | `docs/phase7/phase7b_annotation_freeze.md`、`scripts/phase7a_annotation_packets.py` |
 | 可复现性声明 | 冻结清单、排程、保管哈希、逐 episode 证据 | `reports/evidence/`，由 `scripts/frozen_membership_verify.py` 核验 |
 
-## 冻结稿未引用的派生分析
+## 如何解读 Phase-7D 结果（v13 的 §3 与 §6 引用）
 
-`submission/` 冻结在手稿 v12，因此在该次冻结之后新增的分析记录在这里，而不进入上面的表格。它同样只从实验冻结点及其之前已提交的记录重新推导——没有模型调用、没有 EDA 工具运行、没有新 episode。
-
-| 分析 | 确立了什么 | 位置 |
-|---|---|---|
-| 语义/工具判别力（Phase 7D） | 在 169 条已验证配对的冻结轨迹上，家族自身的工具成功信号是**常量**（接受）——包括全部 **82** 条语义错绑——因此它对语义正确性毫无判别力，所测得的全部判别力都来自类型化来源/权限 oracle。SPICE-5D 是负对照：18/18 语义正确，oracle 与工具完全一致，说明 oracle 不会机械地制造分歧。 | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
+Phase-7D 是一项**事后、冻结之后**的派生分析：在实验程序关闭之后才确定，未经预注册，完全从实验冻结点及其之前已提交的记录重新推导——没有模型调用、没有 EDA 工具运行、没有新 episode。手稿在每处出现时都如此标注，任何对它的转述也必须如此。
 
 有两件事必须随这个数字一起传递，且两者都写在 JSON 内部，而不是只留在正文里：
 

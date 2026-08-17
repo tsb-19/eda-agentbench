@@ -11,7 +11,8 @@ change. It replaces the benchmark-era status document and absorbs the Phase-6C f
 | | Commit | Meaning |
 |---|---|---|
 | **Experiment freeze HEAD** | `a89e084` | *"report(phase5d): TypedContract extension complete 36/36"*. **No experiment, paid model call, or task/model asset beyond this commit contributes to the paper.** Every reported number is re-derived from committed ledgers at or before it. |
-| **Submission HEAD** | `cc797ffe` (tag `iclr2027-submission-v3`) | manuscript v12, frozen. Ahead of `a89e084` by documentation and submission work only — no new experimental result. |
+| **Submission HEAD (v12)** | `cc797ffe` (tag `iclr2027-submission-v3`) | manuscript v12. Ahead of `a89e084` by documentation and submission work only — no new experimental result. **Retained as an immutable historical snapshot; not rewritten by v13.** |
+| **Submission HEAD (v13)** | the commit adding the v13 section of `submission/FREEZE_HASHES.md` | manuscript v13, frozen. Promotes the Phase-7D retrospective result ahead of the claim-scope framework and adds three citations. **No paid model call, no new episode, no task-semantics change, no derived experimental number moved** — all three generated tables stay byte-identical to v12. |
 
 `iclr2027-artifact`, this branch, is cut from `cc797ffe` and contains no experimental change at
 all: only deletions, documentation, and the two verifier scripts. See
@@ -23,7 +24,22 @@ all: only deletions, documentation, and the two verifier scripts. See
 |---|---|---|
 | `iclr2027-submission-v1` | `3d3e77b7` | v5 |
 | `iclr2027-submission-v2` | `5858d843` | v7 — closed the Study I episode accounting (58 program-primary vs the 70-episode descriptive ledger) |
-| `iclr2027-submission-v3` | `cc797ffe` | **v12 — final.** Evidence-support claim lattice, symmetric claim qualification, estimand-aligned uncertainty |
+| `iclr2027-submission-v3` | `cc797ffe` | v12. Evidence-support claim lattice, symmetric claim qualification, estimand-aligned uncertainty |
+| *(untagged)* | see `FREEZE_HASHES.md` | **v13 — current.** The Phase-7D retrospective audit becomes the leading result: the tool-success signal is constant across 169 pairing-verified frozen trajectories and accepts all 82 semantically wrong bindings, so the typed provenance/authority oracle carries the entire measurement. Interpretation and positioning only. |
+
+### Why the v12 freeze was reopened
+
+A freeze exists so a version can be returned to exactly, not so that nothing may follow it. Two
+things made v13 the more defensible option. First, the Phase-7D audit turned the paper's own
+grading substrate into a measured result — the typed oracle was always the scoring basis, but its
+contribution to measurement had never been quantified. Second, `arXiv:2605.10448` was public
+before the v12 freeze and uncited by it, so submitting v12 would have meant shipping a positioning
+known to be incomplete. v12's source and PDF hashes remain recorded and its PDF still rebuilds
+byte-identically from its own commit; v13 is a new freeze, not an amendment.
+
+**Phase-7D is labelled retrospective and post-freeze everywhere it appears**, in the manuscript and
+in [`artifact_map.md`](artifact_map.md). It is not presented as a preregistered analysis, because it
+is not one.
 
 ## Experiments are permanently closed
 
@@ -110,7 +126,7 @@ scripts/check                                          # tests + task structure 
 python3 scripts/slim_link_check.py                     # no dangling repository references
 python3 scripts/phase7c_study1_ledger.py --check       # 58 + 12 = 70
 python3 scripts/phase7c_claim_statistics.py --check     # 12.5 / [-12.5, 41.7] / -16.7
-cd submission && make distclean && make                # 15 pp, sha256 unchanged
+cd submission && make distclean && make                # 18 pp, sha256 unchanged
 ```
 
 `make clean` deliberately keeps `main.pdf`; use `distclean` before any build whose log you intend

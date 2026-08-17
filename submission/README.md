@@ -1,4 +1,4 @@
-# ICLR 2027 Submission Package (Phase-7C / manuscript v12 — **frozen**)
+# ICLR 2027 Submission Package (Phase-7D / manuscript v13 — **frozen**)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
 **Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE.
@@ -18,8 +18,9 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Page boundaries
 - **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
 - References: p10 (outside page limit)
-- Appendix A–G: p10–p15 (outside page limit)
-- **Total PDF: 15 pp**
+- Appendix A–J: p11–p18 (outside page limit)
+- **Total PDF: 18 pp**
+- **Measure the main-text page count by locating the `REFERENCES` marker's offset *within* its page, not by page-boundary arithmetic.** During v13 an intermediate state reported "9 pp" because references began on p10 — with 580 words of main text above them on that same page. `pdftotext main.pdf - | ...` and check whether any main-text words precede the marker.
 
 ## Contents
 | File | Purpose |
@@ -36,6 +37,38 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v13 (Phase-7D: measured result promoted ahead of the framework; **no paid calls, no experimental record altered, no derived number moved**)
+v12's abstract opened on the claim-scope framework — a method of description — while the paper's
+sharpest concrete result sat unquantified in its own grading substrate. Phase-7D quantifies it, and
+v13 reorders the paper around it. Two reasons the v12 freeze was reopened deliberately rather than
+patched at rebuttal: the result is a result, not infrastructure; and arXiv:2605.10448 was public
+*before* the v12 freeze and uncited by it.
+- **The measured result.** Pairing each frozen episode's semantic verdict with its family's own
+  pre-existing tool-success field, the tool signal is **constant** (accept) across all **169**
+  pairing-verified trajectories, accepting all **82** semantically wrong bindings. Against semantic
+  correctness it therefore has zero empirical discrimination, and the typed oracle carries the whole
+  measurement. SPICE-5D is the negative control (18/18 correct, oracle and tool agreeing).
+- **Four load-bearing qualifiers in the abstract's first sentence** — *our*, *deliberately
+  tool-green*, *retrospective audit*, *hash-verified pairing*. Do not trim any of them for concision:
+  without them the sentence reads as a general claim about agent evaluation, which the data does not
+  support.
+- **Contributions reordered** to (1) semantically attested evaluation, (2) the two binding-failure
+  subtypes, (3) claim-scope framework + qualification standard carrying the transfer study,
+  (4) measurement validity as *verdict-to-artifact binding + reference-standard custody*.
+- **9 of 58 workflow episodes excluded** because the recorded tool verdict did not attest the final
+  submitted artifact; tuple equality would have caught two of nine. Not nine mis-scored episodes —
+  the frozen grader already flagged the broken stage chain — but proof that a post hoc paired
+  analysis must re-establish pairing rather than assume it.
+- **Three citations added (12 → 15)**, each verified against arXiv before use. v12's decision not to
+  cite concurrent arXiv work is reversed only for these three, which bound what is novel here.
+- **Page cost paid by relocation, not deletion.** Main text was at 9 pp with 0 headroom and the
+  additions cost ~770 words. Four blocks moved to appendices intact (falsifiability conditions → D;
+  four-tier definitions → E; concurrent-works prose → J; Phase-7D accounting → F) and duplicated
+  prose was compressed to state things once. **No claim was deleted**, and all three generated tables
+  are byte-identical to v12 — the mechanical proof no derived number moved.
+- **v12 is not rewritten.** Its source and PDF hashes stay in `FREEZE_HASHES.md` as an immutable
+  historical snapshot; v13 is a new freeze.
 
 ## v12 (fifth reviewer-standard read — **structural audit closed; manuscript frozen**)
 No conceptual, statistical or evidence-to-claim objection remains at reject level; the review ended

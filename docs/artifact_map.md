@@ -3,7 +3,7 @@
 # Artifact map — every paper claim to the files that produce it
 
 This document exists so a reader arriving from the paper can locate the evidence for any claim
-without guessing. Section and table numbers refer to `submission/main.tex` (manuscript v12, the
+without guessing. Section and table numbers refer to `submission/main.tex` (manuscript v13, the
 frozen ICLR 2027 submission; build it with `cd submission && make`).
 
 Nothing in the paper is a transcribed number. The two derived-table scripts read the frozen
@@ -58,6 +58,8 @@ Family designs: `docs/synthetic_phase5a_family_specs.md`,
 | §5 | +12.5 pp, sensitivity band −12.5 to 41.7; sign test p=1.0; permutation p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
 | §5 | the 3-instance pilot reversed direction (−16.7 pp) | `reports/synthetic_phase5d_collection_report.json` |
 | §5, Table 2 row 5 | S2-F SPICE: Base = BundleS = TypedContract = 1.00 ceiling | `reports/synthetic_phase5c_collection_report.json` |
+| §3, App. F | the tool-success signal is **constant** (accept) over 169 pairing-verified trajectories, accepting all 82 semantically wrong bindings, so the typed oracle carries all measured discrimination; SPICE-5D is the negative control (18/18 correct, oracle and tool agreeing) | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`; regression `tests/test_phase7d_semantic_proxy_gap.py` |
+| §6 | 9 of 58 workflow episodes excluded because the recorded tool verdict did not attest the final submitted artifact; tuple equality would have caught 2 of the 9 | same JSON — `per_episode[].pairing_verified` and `exclusion_reason` |
 | §6, Table 3 | the seven audit incidents | one row each, below |
 | §6 | model custody: episode span, snapshot retention, per-episode transport records | `scripts/phase7c_claim_statistics.py` (`resolved_snapshot_retained`, diag-episode counts) over `reports/evidence/` |
 | §6 | Terminal-Bench 2.0→2.1: 1 direct / 21 partial / 4 outside; sampling 0 | `scripts/phase7c_tb21_audit.py`, `scripts/phase7a_terminalbench_audit.py`, `reports/synthetic_phase7c_terminalbench_audit.md`, `reports/evidence/phase7c_terminalbench/` (frozen rubric + PR-53 snapshots) |
@@ -95,15 +97,12 @@ been rewritten by a component of the test harness rather than by the remote tool
 | Ethics | Study B (blinded human construct validity) preregistered but unexecuted | `docs/phase7/phase7b_annotation_freeze.md`, `scripts/phase7a_annotation_packets.py` |
 | Reproducibility | frozen manifests, schedules, custody hashes, per-episode evidence | `reports/evidence/`, verified by `scripts/frozen_membership_verify.py` |
 
-## Derived analyses not cited by the frozen manuscript
+## How to read the Phase-7D result (cited by §3 and §6 of v13)
 
-`submission/` is frozen at manuscript v12, so an analysis added after that freeze is recorded here
-rather than in the tables above. It is still re-derived from records committed at or before the
-experiment freeze — no model call, no EDA tool run, no new episode.
-
-| Analysis | What it establishes | Where |
-|---|---|---|
-| semantic/tool discrimination (Phase 7D) | On 169 pairing-verified frozen trajectories the family's own tool-success signal is **constant** (accept) — including on all **82** semantically wrong bindings — so it discriminates semantic correctness not at all, and all measured discrimination comes from the typed provenance/authority oracle. SPICE-5D is the negative control: 18/18 semantically correct, oracle and tool agree, so the oracle does not mechanically manufacture disagreement. | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`; regression `tests/test_phase7d_semantic_proxy_gap.py` |
+Phase-7D is a **retrospective, post-freeze** derived analysis: specified after the experimental
+program closed, not preregistered, re-derived entirely from records committed at or before the
+experiment freeze — no model call, no EDA tool run, no new episode. The manuscript labels it as such
+wherever it appears, and so must any summary of it.
 
 Two things must travel with that number, and both are recorded inside the JSON rather than left to
 prose:
