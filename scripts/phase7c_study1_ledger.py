@@ -28,8 +28,12 @@ Two consequences worth stating, because both differ from the earlier Phase-4Z ag
     contrast is not directionally interpretable — the frozen report says so and the manuscript
     repeats it — but its episodes are valid paid primary measurements and belong in a failure
     taxonomy. Interpretability of a contrast is not a membership criterion.
-  * Phase-4W Run-1 (the C6 ablation, V1/V9) is *included*. It has no preserved per-episode
-    directory, so its submitted tuples are read from its frozen report JSON.
+  * Phase-4W Run-1 (the C6 ablation, V1/V9) is *included*. Its submitted tuples are read from its
+    frozen report JSON rather than from a preserved episode directory. Preserved directories for
+    its six episodes do exist under ``reports/evidence/p14_phase4w_run1/`` (each carrying
+    ``flow_config.submitted.json`` and ``result.json``); the report is used because it is the
+    frozen deliverable of that phase, and the two agree. Do not read this branch as evidence that
+    the directories are absent --- ``scripts/phase7d_semantic_proxy_gap.py`` reads them.
 
 This supersedes, for manuscript purposes, the ``Table 2`` aggregation in
 ``scripts/phase4z_figures_tables.py``. That script keys cells by ``(label, model)`` in a dict, so
