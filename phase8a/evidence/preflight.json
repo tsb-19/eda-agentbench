@@ -1,0 +1,68 @@
+{
+  "schema": "phase8a_preflight/v1",
+  "model_calls_made": 0,
+  "metadata_listings_made": 1,
+  "gates": {
+    "clean_tree": true,
+    "prereg_bilingual_present": true,
+    "canonical_hashes_match": true,
+    "schedule_216_balanced_reproduces": true,
+    "agent_facing_commands_resolve": true,
+    "PT_health_fullpath": true,
+    "PT_version_matches_frozen": true,
+    "gateway_env_present": true,
+    "runner_entry_resolves_to_replacement_backend": true,
+    "backend_serves_the_runner_model": true,
+    "writable_runs_phase8a": true,
+    "writable_phase8a_evidence_episodes": true,
+    "hidden_evidence_isolation": true,
+    "frozen_intact_frozen_membership": true,
+    "frozen_intact_phase7c_study1_ledger": true,
+    "frozen_intact_phase7c_claim_statistics": true,
+    "frozen_intact_phase7d_semantic_proxy_gap": true,
+    "frozen_intact_phase7e_answer_identifiability": true,
+    "no_phase8a_artifact_under_reports": true,
+    "ALL_PASS": true
+  },
+  "detail": {
+    "dirty_paths": [],
+    "clean_tree_exempt": [
+      "phase8a/evidence/preflight.json",
+      "phase8a/evidence/prerun_manifest.json"
+    ],
+    "prereg_sha256": {
+      "docs/phase8a_prereg.md": "121ced17c2cfcb2903d7d6de0b4736523c8ee07a4ee01ef7dc962dfc06dd8435",
+      "docs/phase8a_prereg.zh.md": "ecc6c14b7f50d5de4c882478824add910babc0d43afb5646cfadebf2cce94579"
+    },
+    "schedule_sha256": "6541200c62a9090f13c19fbc1a2f69d2edac438550557736b1b602675aff072c",
+    "run_public_resolved": "36/36",
+    "PT_version": {
+      "live": "S-2021.06-SP5",
+      "frozen_record": "S-2021.06-SP5"
+    },
+    "runner_model_resolution": {
+      "runner": "scripts/phase5c_run.py",
+      "hardcoded_model_name": "Qwen3.7-Max",
+      "resolved_api_base": "https://tokenrhythm.studio/v1",
+      "resolved_model_id": "qwen3.7-max",
+      "temperature": 0.7,
+      "max_tokens": 32000,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 36.0
+      },
+      "credential_env": "API_KEY",
+      "gateway_file": "phase8a/gateway.env"
+    },
+    "backend": {
+      "credential_present": true,
+      "http": 200,
+      "served": {
+        "deepseek-v4-pro": true,
+        "qwen3.7-max": true
+      }
+    },
+    "frozen_endpoint_note": "the frozen endpoint llmapi.paratera.com no longer entitles this account to these models (403); Phase-8A episodes are therefore a different measurement and are never pooled with the frozen 72 -- see docs/phase8a_prereg.md section 1.1",
+    "phase8a_strays_under_reports": []
+  }
+}
