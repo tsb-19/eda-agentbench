@@ -114,11 +114,36 @@ def test_reps_must_be_divisible_by_three(sched_mod):
 
 
 def test_schedule_is_deterministic_and_reproduces(sched_mod, arm1):
-    assert sched_mod.build(arm1["model"], 6, 1) == arm1
+    """The DESIGN must reproduce byte-for-byte. code_commit_at_freeze_base is excluded because the
+    freeze commit necessarily lands after the schedule is generated -- comparing it would make
+    --check fail on every subsequent commit, which is a broken gate, not a detected mutation."""
+    rebuilt = sched_mod.build(arm1["model"], 6, 1)
+    drop = "code_commit_at_freeze_base"
+    assert {k: v for k, v in rebuilt.items() if k != drop} == \
+           {k: v for k, v in arm1.items() if k != drop}
     rc = subprocess.run([sys.executable, str(SCHED_SCRIPT), "--model", arm1["model"],
                          "--reps", "6", "--arm", "1", "--check"],
                         capture_output=True, text=True, cwd=str(REPO)).returncode
     assert rc == 0
+
+
+def test_freeze_base_stamp_is_a_real_commit(arm1):
+    stamp = arm1["code_commit_at_freeze_base"]
+    assert len(stamp) == 40 and all(c in "0123456789abcdef" for c in stamp)
+    r = subprocess.run(["git", "cat-file", "-t", stamp], capture_output=True, text=True,
+                       cwd=str(REPO))
+    assert r.stdout.strip() == "commit", f"{stamp} is not a commit in this repository"
+
+
+def test_check_detects_a_mutated_schedule(sched_mod, arm1, tmp_path, monkeypatch):
+    """--check must fail on a tampered design, or it certifies nothing."""
+    tampered = dict(arm1)
+    tampered["flat"] = arm1["flat"][:-1]          # drop one slot
+    monkeypatch.setattr(sched_mod, "OUT", tmp_path)
+    (tmp_path / "schedule_arm1.json").write_text(json.dumps(tampered, indent=2) + "\n")
+    monkeypatch.setattr("sys.argv", ["s", "--model", arm1["model"], "--reps", "6",
+                                     "--arm", "1", "--check"])
+    assert sched_mod.main() == 1
 
 
 def test_schedule_declares_it_is_not_poolable(arm1):

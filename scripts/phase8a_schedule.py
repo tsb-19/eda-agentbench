@@ -153,10 +153,31 @@ def main() -> int:
         if not target.exists():
             print(f"FAIL: {target} missing", file=sys.stderr)
             return 1
-        if target.read_text(encoding="utf-8") != blob:
-            print(f"FAIL: {target} does not reproduce", file=sys.stderr)
+        try:
+            committed = json.loads(target.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            print(f"FAIL: {target} is not valid JSON", file=sys.stderr)
             return 1
-        print(json.dumps({"ok": True, "arm": args.arm, "episodes": manifest["episodes"]}))
+        # `code_commit_at_freeze_base` records WHICH code state the schedule was frozen against.
+        # It is a recorded fact, not a reproducible one: the freeze commit necessarily lands after
+        # the schedule is generated, so comparing it would make --check fail on every later commit.
+        # Everything that defines the DESIGN must reproduce exactly; the stamp is only required to
+        # be a well-formed commit id.
+        stamp = committed.get("code_commit_at_freeze_base", "")
+        if not (isinstance(stamp, str) and len(stamp) == 40
+                and all(c in "0123456789abcdef" for c in stamp)):
+            print(f"FAIL: code_commit_at_freeze_base is not a commit id: {stamp!r}",
+                  file=sys.stderr)
+            return 1
+        lhs = {k: v for k, v in committed.items() if k != "code_commit_at_freeze_base"}
+        rhs = {k: v for k, v in manifest.items() if k != "code_commit_at_freeze_base"}
+        if lhs != rhs:
+            differing = sorted(k for k in set(lhs) | set(rhs) if lhs.get(k) != rhs.get(k))
+            print(f"FAIL: {target} does not reproduce; fields differ: {differing}",
+                  file=sys.stderr)
+            return 1
+        print(json.dumps({"ok": True, "arm": args.arm, "episodes": manifest["episodes"],
+                          "code_commit_at_freeze_base": stamp[:8]}))
         return 0
 
     OUT.mkdir(parents=True, exist_ok=True)
