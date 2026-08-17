@@ -13,8 +13,8 @@ Gates, all fail-closed:
    5. all 36 agent-facing run_public.sh commands resolve (12 instances x 3 conditions);
    6. PrimeTime health/full-path control passes on the real tool, and its version matches the
       version recorded in the frozen custody records (apparatus drift check);
-   7. the entry the PINNED runner resolves points at the replacement backend, the gateway
-      credential file exists, and the backend serves that exact model ID;
+   7. the single-entry arm models config resolves to the replacement backend, its credential
+      env name is one the pinned request worker actually reads, and the backend serves that ID;
    8. run-state + custody destinations writable;
    9. hidden evaluator evidence is unreachable from the agent workspace;
   10. the frozen membership baseline and all four frozen analyses are untouched;
@@ -49,10 +49,10 @@ HS_CMD = f"{TOOL_ROOT}/soft2/synopsys/hspice/V-2023.12/hspice/bin/hspice"
 # The PrimeTime build the frozen episodes ran on (recorded 495x under reports/evidence/).
 FROZEN_PT_VERSION = "S-2021.06-SP5"
 CONDITIONS = {"Base": "base", "BundleS": "bundles", "TypedContract": "typedcontract"}
-RUNNER_MODEL_NAME = "Qwen3.7-Max"   # hardcoded in the pinned scripts/phase5c_run.py:46
-INFO_MODELS = ("Qwen3.7-Max-TR", "DeepSeek-V4-Pro-TR")  # informational duplicates
 TR_BASE = "https://tokenrhythm.studio/v1"
-GATEWAY = REPO / "phase8a" / "gateway.env"
+ARM_MODELS = "phase8a/models_arm1.json"
+# scripts/_llm_request_worker.py:37 _KEY_ENV_CANDIDATES (pinned)
+WORKER_KEY_ENVS = ("API_KEY", "MIMO_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
 P8A = REPO / "phase8a" / "evidence"
 OUT = P8A / "preflight.json"
 
@@ -209,43 +209,47 @@ def main() -> int:
     gates["PT_version_matches_frozen"] = (ver == FROZEN_PT_VERSION)
     detail["PT_version"] = {"live": ver, "frozen_record": FROZEN_PT_VERSION}
 
-    # 7. the entry the PINNED runner will actually resolve, plus backend liveness.
-    # scripts/phase5c_run.py hardcodes MODEL_NAME='Qwen3.7-Max', so checking any other entry would
-    # verify something the run does not use.
-    cfg_path = REPO / "configs/baseline_models.json"
+    # 7. the entry the run will ACTUALLY resolve, plus backend liveness.
+    # Phase-8A goes through chain_executor --runner (see docs/phase8a_prereg.md): the models config
+    # is phase8a/models_arm1.json, a single entry so one slot cannot fan out across five models.
+    # Checking configs/baseline_models.json here would verify something the run does not use.
+    cfg_path = REPO / ARM_MODELS
     cfg = json.loads(cfg_path.read_text()) if cfg_path.is_file() else {"models": []}
-    by_name = {m.get("name"): m for m in cfg.get("models", [])}
-    envd = _dotenv()
-    gw = {}
-    if GATEWAY.is_file():
-        for line in GATEWAY.read_text().splitlines():
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, _, v = line.partition("=")
-                gw[k.strip()] = v.strip().strip("'\"")
-
-    spec = by_name.get(RUNNER_MODEL_NAME, {})
-    resolved_base = spec.get("api_base") or (
-        gw.get(spec.get("api_base_env", ""), "").rstrip("/") + spec.get("api_base_suffix", ""))
+    entries = [m for m in cfg.get("models", []) if not str(m.get("name", "")).startswith("_")]
+    gates["arm_models_config_has_exactly_one_entry"] = (len(entries) == 1)
+    spec = entries[0] if entries else {}
     model_id = spec.get("model_id", "")
-    gates["gateway_env_present"] = bool(gw.get("API_KEY") and gw.get("BASE_URL"))
-    gates["runner_entry_resolves_to_replacement_backend"] = (resolved_base == TR_BASE
-                                                             and bool(model_id))
+    key_env = spec.get("api_key_env", "")
+    envd = _dotenv()
+    gates["runner_entry_resolves_to_replacement_backend"] = (
+        spec.get("api_base") == TR_BASE and bool(model_id))
+    # The pinned _llm_request_worker.py reads the credential by a FIXED candidate list; a custom
+    # name never reaches the isolated worker and the request dies as MissingApiKey.
+    gates["credential_env_name_is_one_the_worker_reads"] = key_env in WORKER_KEY_ENVS
+    gates["credential_value_available"] = bool(os.environ.get("TR_API_KEY")
+                                               or envd.get("TR_API_KEY"))
     detail["runner_model_resolution"] = {
-        "runner": "scripts/phase5c_run.py",
-        "hardcoded_model_name": RUNNER_MODEL_NAME,
-        "resolved_api_base": resolved_base,
-        "resolved_model_id": model_id,
+        "executor": "scripts/chain_executor.py (pinned)",
+        "episode_runner": "scripts/phase8a_episode_runner.py",
+        "models_config": ARM_MODELS,
+        "name": spec.get("name"),
+        "api_base": spec.get("api_base"),
+        "model_id": model_id,
+        "api_key_env": key_env,
+        "credential_source": ".env TR_API_KEY, exported as API_KEY by phase8a_run.py",
         "temperature": spec.get("temperature"),
         "max_tokens": spec.get("max_tokens"),
         "rates_cny_per_M": {"input": spec.get("price_in_per_m"),
                             "output": spec.get("price_out_per_m")},
-        "credential_env": spec.get("api_key_env"),
-        "gateway_file": str(GATEWAY.relative_to(REPO)),
+        "transport": {"max_chat_retries": 6, "stream_responses": True,
+                      "request_inactivity_timeout_sec": 120, "hard_request_deadline_sec": 300,
+                      "deviation": "max_chat_retries raised from the frozen 1; the backend returns "
+                                   "503 on 35% of back-to-back requests and a measured episode "
+                                   "needed 38 physical attempts for 15 logical requests. Transport "
+                                   "only: retries re-issue an identical request and the arbiter "
+                                   "still decides validity."},
     }
-
-    wanted = sorted({model_id} | {by_name[n]["model_id"] for n in INFO_MODELS if n in by_name})
-    backend = _backend_serves([m for m in wanted if m])
+    backend = _backend_serves([model_id] if model_id else [])
     gates["backend_serves_the_runner_model"] = bool(
         backend.get("http") == 200 and backend.get("served", {}).get(model_id) is True)
     detail["backend"] = backend
@@ -253,7 +257,6 @@ def main() -> int:
         "the frozen endpoint llmapi.paratera.com no longer entitles this account to these models "
         "(403); Phase-8A episodes are therefore a different measurement and are never pooled with "
         "the frozen 72 -- see docs/phase8a_prereg.md section 1.1")
-    _ = envd
 
     # 8. destinations writable
     for d in ("runs/phase8a", "phase8a/evidence/episodes"):
