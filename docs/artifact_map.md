@@ -95,6 +95,39 @@ been rewritten by a component of the test harness rather than by the remote tool
 | Ethics | Study B (blinded human construct validity) preregistered but unexecuted | `docs/phase7/phase7b_annotation_freeze.md`, `scripts/phase7a_annotation_packets.py` |
 | Reproducibility | frozen manifests, schedules, custody hashes, per-episode evidence | `reports/evidence/`, verified by `scripts/frozen_membership_verify.py` |
 
+## Derived analyses not cited by the frozen manuscript
+
+`submission/` is frozen at manuscript v12, so an analysis added after that freeze is recorded here
+rather than in the tables above. It is still re-derived from records committed at or before the
+experiment freeze — no model call, no EDA tool run, no new episode.
+
+| Analysis | What it establishes | Where |
+|---|---|---|
+| semantic/tool discrimination (Phase 7D) | On 169 pairing-verified frozen trajectories the family's own tool-success signal is **constant** (accept) — including on all **82** semantically wrong bindings — so it discriminates semantic correctness not at all, and all measured discrimination comes from the typed provenance/authority oracle. SPICE-5D is the negative control: 18/18 semantically correct, oracle and tool agree, so the oracle does not mechanically manufacture disagreement. | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`; regression `tests/test_phase7d_semantic_proxy_gap.py` |
+
+Two things must travel with that number, and both are recorded inside the JSON rather than left to
+prose:
+
+- **Scope.** These families are *constructed* so that a wrong binding stays tool-green. A
+  false-accept rate of 1.0 therefore shows the construction working as specified and quantifies its
+  cost to measurement; it is **not** an estimate of false-accept prevalence in agent benchmarks
+  generally. The strata are reported separately and never pooled — they span stages, conditions,
+  models and run windows and are not one sampling frame. What is non-trivial is behavioural, not
+  definitional: real agents actually entered the tool-green-but-wrong region 82 times.
+- **Δ is not a second finding.** Because the tool signal is constant,
+  `Δ = S_tool − S_semantic ≡ 1 − S_semantic`. Δ is emitted for the appendix only.
+
+33 of the 202 considered trajectories are **excluded rather than imputed**: 12 controlled-pair
+episodes exist only as cell counts, 12 SPICE-5C episodes have no frozen tool component, and 9
+workflow episodes fail verdict-to-artifact pairing. That last gate is substantive — a tool verdict
+may only be compared with a semantic verdict when both describe the same final submission.
+STA/SPICE satisfy this by construction (the hidden runner produces the tool verdict at grading time
+from the submitted binding), but a workflow agent runs its evidence chain mid-episode and may edit
+`flow_config.json` afterwards. `stage2_summary.json` records `input_hashes["flow_config.json"]`, so
+pairing is decided by hash: 9 of 58 fail, and tuple equality would have caught only 2 of the 9 —
+the other 7 agree on `(scenario, corner, netlist)` while consuming a different file. The frozen
+grader flags these independently (`stage_chain == 0.0`).
+
 ## What the paper does *not* claim, and where that shows in the tree
 
 - **S3 (different model *and* different family) was never measured.** No report exists for it, by
@@ -118,6 +151,7 @@ records with no EDA tool, no network and no model call:
 scripts/check                                          # tests + structure + custody pins
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
+python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
 cd submission && make distclean && make                # 15 pp, byte-reproducible
 ```
 

@@ -80,6 +80,21 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | 伦理声明 | 研究 B（盲法人类构念效度）已预注册但未执行 | `docs/phase7/phase7b_annotation_freeze.md`、`scripts/phase7a_annotation_packets.py` |
 | 可复现性声明 | 冻结清单、排程、保管哈希、逐 episode 证据 | `reports/evidence/`，由 `scripts/frozen_membership_verify.py` 核验 |
 
+## 冻结稿未引用的派生分析
+
+`submission/` 冻结在手稿 v12，因此在该次冻结之后新增的分析记录在这里，而不进入上面的表格。它同样只从实验冻结点及其之前已提交的记录重新推导——没有模型调用、没有 EDA 工具运行、没有新 episode。
+
+| 分析 | 确立了什么 | 位置 |
+|---|---|---|
+| 语义/工具判别力（Phase 7D） | 在 169 条已验证配对的冻结轨迹上，家族自身的工具成功信号是**常量**（接受）——包括全部 **82** 条语义错绑——因此它对语义正确性毫无判别力，所测得的全部判别力都来自类型化来源/权限 oracle。SPICE-5D 是负对照：18/18 语义正确，oracle 与工具完全一致，说明 oracle 不会机械地制造分歧。 | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
+
+有两件事必须随这个数字一起传递，且两者都写在 JSON 内部，而不是只留在正文里：
+
+- **适用范围。** 这些家族本就被*构造*成"错绑仍然工具通过"。因此 1.0 的误接受率表明构造按规格生效，并量化了它对测量的代价；它**不是**对智能体基准中误接受普遍程度的估计。各分层分别报告、从不合并——它们跨越阶段、条件、模型与运行窗口，并不构成同一个抽样框。真正非平凡的部分是行为性的而非定义性的：真实智能体确实 82 次进入了"工具通过但语义错误"的区域。
+- **Δ 不是第二个发现。** 因为工具信号恒定，`Δ = S_tool − S_semantic ≡ 1 − S_semantic`。Δ 仅供附录使用。
+
+202 条纳入考虑的轨迹中有 33 条被**排除而非填补**：12 条受控对 episode 只以单元计数形式存在，12 条 SPICE-5C episode 没有冻结的工具字段，9 条 workflow episode 未通过判决—产物配对。最后这道门是实质性的——只有当工具判决与语义判决描述同一份最终提交时，两者才可以比较。STA/SPICE 由构造满足这一点（隐藏 runner 在评分时从提交的绑定现场产生工具判决），而 workflow 的智能体在 episode 中途运行证据链，之后仍可修改 `flow_config.json`。`stage2_summary.json` 记录了 `input_hashes["flow_config.json"]`，因此配对可由哈希判定：58 条中有 9 条失败，而 tuple 相等只能抓到其中 2 条——另外 7 条 `(scenario, corner, netlist)` 一致却消费了不同的文件。冻结 grader 早已独立标记了这些（`stage_chain == 0.0`）。
+
 ## 论文*没有*主张什么，以及这在仓库中如何体现
 
 - **S3（同时换模型与换家族）从未测量。** 这里刻意不存在任何报告；`reports/` 中它的缺席本身就是该论断。
@@ -95,6 +110,7 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 scripts/check                                          # 测试 + 结构 + 保管钉
 python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
+python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
 cd submission && make distclean && make                # 15 页，逐字节可复现
 ```
 
