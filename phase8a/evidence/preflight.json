@@ -3,15 +3,17 @@
   "model_calls_made": 0,
   "metadata_listings_made": 1,
   "gates": {
-    "clean_tree": true,
+    "clean_tree": false,
     "prereg_bilingual_present": true,
     "canonical_hashes_match": true,
     "schedule_216_balanced_reproduces": true,
     "agent_facing_commands_resolve": true,
     "PT_health_fullpath": true,
     "PT_version_matches_frozen": true,
-    "gateway_env_present": true,
+    "arm_models_config_has_exactly_one_entry": true,
     "runner_entry_resolves_to_replacement_backend": true,
+    "credential_env_name_is_one_the_worker_reads": true,
+    "credential_value_available": true,
     "backend_serves_the_runner_model": true,
     "writable_runs_phase8a": true,
     "writable_phase8a_evidence_episodes": true,
@@ -22,10 +24,12 @@
     "frozen_intact_phase7d_semantic_proxy_gap": true,
     "frozen_intact_phase7e_answer_identifiability": true,
     "no_phase8a_artifact_under_reports": true,
-    "ALL_PASS": true
+    "ALL_PASS": false
   },
   "detail": {
-    "dirty_paths": [],
+    "dirty_paths": [
+      "M phase8a/evidence/preflight.json"
+    ],
     "clean_tree_exempt": [
       "phase8a/evidence/preflight.json",
       "phase8a/evidence/prerun_manifest.json"
@@ -41,24 +45,32 @@
       "frozen_record": "S-2021.06-SP5"
     },
     "runner_model_resolution": {
-      "runner": "scripts/phase5c_run.py",
-      "hardcoded_model_name": "Qwen3.7-Max",
-      "resolved_api_base": "https://tokenrhythm.studio/v1",
-      "resolved_model_id": "qwen3.7-max",
+      "executor": "scripts/chain_executor.py (pinned)",
+      "episode_runner": "scripts/phase8a_episode_runner.py",
+      "models_config": "phase8a/models_arm1.json",
+      "name": "qwen3.7-max",
+      "api_base": "https://tokenrhythm.studio/v1",
+      "model_id": "qwen3.7-max",
+      "api_key_env": "API_KEY",
+      "credential_source": ".env TR_API_KEY, exported as API_KEY by phase8a_run.py",
       "temperature": 0.7,
       "max_tokens": 32000,
       "rates_cny_per_M": {
         "input": 12.0,
         "output": 36.0
       },
-      "credential_env": "API_KEY",
-      "gateway_file": "phase8a/gateway.env"
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300,
+        "deviation": "max_chat_retries raised from the frozen 1; the backend returns 503 on 35% of back-to-back requests and a measured episode needed 38 physical attempts for 15 logical requests. Transport only: retries re-issue an identical request and the arbiter still decides validity."
+      }
     },
     "backend": {
       "credential_present": true,
       "http": 200,
       "served": {
-        "deepseek-v4-pro": true,
         "qwen3.7-max": true
       }
     },
