@@ -242,6 +242,31 @@ def test_phase8a_outputs_are_declared_outside_reports(report_mod, sched_mod):
         assert f"{REPO}/reports" not in str(p)
 
 
+# ------------------------------------------------------- a failed episode is never data
+def test_run_driver_flags_episodes_with_no_model_call(run_mod, tmp_path):
+    """The smoke-test finding: when the driver refuses to start, the untouched workspace still
+    grades and the arbiter's no-telemetry fallback reports measurement_valid=true. Such an episode
+    must abort the run, not join the panel."""
+    good = {"trial": "ok_r1", "total_cost": 0.61, "custody": {"agentlog.sanitized.json": "a"},
+            "final": {"classification": {"classification_source": "request_telemetry"}}}
+    bad = {"trial": "dead_r1", "total_cost": 0.0, "custody": {"result.json": "b"},
+           "final": {"classification": {"classification_source": "legacy_error_scan"}}}
+    p = tmp_path / "s.json"
+    p.write_text(json.dumps({"episodes": [good]}))
+    assert run_mod._telemetry_faults(p) == []
+    p.write_text(json.dumps({"episodes": [good, bad]}))
+    faults = run_mod._telemetry_faults(p)
+    assert len(faults) == 1 and faults[0].startswith("dead_r1")
+    assert "legacy_error_scan" in faults[0] and "no agentlog custody" in faults[0]
+
+
+def test_report_excludes_untelemetered_episodes_from_grading(report_mod):
+    src = REPORT_SCRIPT.read_text()
+    assert 'classification_source") != "request_telemetry"' in src
+    assert "no_agentlog_custody" in src
+    assert "NEVER graded" in src
+
+
 # ------------------------------------------------------------------ analysis correctness
 def test_sign_test_matches_hand_computed_values(report_mod):
     # 5 positive, 1 negative, 6 ties -> n=6 non-zero, k=5

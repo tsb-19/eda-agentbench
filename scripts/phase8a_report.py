@@ -109,7 +109,20 @@ def build():
             continue
         # A measurement-invalid episode is NEVER graded. It is not a capability failure.
         if e.get("measurement_valid") is False:
-            excluded_invalid.append(e.get("trial"))
+            excluded_invalid.append(f"{e.get('trial')}:arbiter_invalid")
+            continue
+        # Nor is an episode with no evidence a model was ever called. When the driver refuses to
+        # start, the untouched workspace still grades (0.5 on a p15 task) and, with no telemetry to
+        # read, the arbiter's fallback reports measurement_valid=true. Every frozen episode carries
+        # classification_source='request_telemetry'. Grading these would let a systemic transport
+        # failure enter the panel as data.
+        cls = (e.get("final") or {}).get("classification") or {}
+        if cls.get("classification_source") != "request_telemetry":
+            excluded_invalid.append(
+                f"{e.get('trial')}:no_telemetry({cls.get('classification_source')})")
+            continue
+        if "agentlog.sanitized.json" not in (e.get("custody") or {}):
+            excluded_invalid.append(f"{e.get('trial')}:no_agentlog_custody")
             continue
         trial, tid = e["trial"], e["task_id"]
         inst = _core_of(tid)

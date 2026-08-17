@@ -76,6 +76,41 @@ def _spent_so_far(arm):
     return round(total, 4)
 
 
+def _telemetry_faults(state_path):
+    """Episodes that the arbiter called valid but that carry NO evidence a model was called.
+
+    A smoke test caught this: when the driver refuses to start (in that case a config entry whose
+    credential was absent), run_single_agentic still grades the untouched workspace -- 0.5 on a p15
+    task -- and no agentlog is written. With no telemetry the arbiter falls back to
+    `legacy_error_scan` and reports measurement_valid=true. Every frozen episode instead carries
+    classification_source='request_telemetry'.
+
+    Left unchecked that turns a systemic failure into a full panel of junk episodes that look
+    collected. An episode with no model call is measurement-invalid by definition; it is certainly
+    not a capability failure. The arbiter is pinned, so the check lives here and it aborts the run
+    rather than continuing to spend.
+    """
+    faults = []
+    try:
+        d = json.loads(Path(state_path).read_text())
+    except Exception:
+        return [f"{state_path}: unreadable state"]
+    for e in d.get("episodes", []):
+        if e.get("aborted"):
+            continue
+        cls = (e.get("final") or {}).get("classification") or {}
+        why = []
+        if cls.get("classification_source") != "request_telemetry":
+            why.append(f"classification_source={cls.get('classification_source')!r}")
+        if not (e.get("total_cost") or 0) > 0:
+            why.append(f"total_cost={e.get('total_cost')!r}")
+        if "agentlog.sanitized.json" not in (e.get("custody") or {}):
+            why.append("no agentlog custody")
+        if why:
+            faults.append(f"{e.get('trial')}: " + ", ".join(why))
+    return faults
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Run a Phase-8A arm block by block.")
     ap.add_argument("--arm", type=int, required=True, choices=(1, 2))
@@ -145,6 +180,16 @@ def main() -> int:
             print(json.dumps({"stopped": "runner_nonzero_exit", "at_block": i, "rc": rc}),
                   flush=True)
             return rc
+        faults = _telemetry_faults(state)
+        if faults:
+            print(json.dumps({"stopped": "telemetry_faults", "at_block": i,
+                              "detail": faults[:6],
+                              "note": "episodes with no evidence of a model call are "
+                                      "measurement-invalid; aborting rather than collecting a "
+                                      "panel of junk. Fix the cause, delete this block's state, "
+                                      "and re-run -- completed blocks are skipped."}, indent=2),
+                  flush=True)
+            return 2
 
     print(json.dumps({"arm": args.arm, "spent_cny": _spent_so_far(args.arm),
                       "budget_cny": args.budget}, indent=2))
