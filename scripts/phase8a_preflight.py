@@ -137,11 +137,19 @@ def _backend_serves(models_needed) -> dict:
 def main() -> int:
     gates, detail = {}, {}
 
-    # 1. clean tree
+    # 1. clean tree.
+    # The two paths this preflight itself writes are excluded, otherwise the gate can never pass
+    # twice: run 1 creates them, so run 2 sees a dirty tree and refuses. This is a narrow,
+    # inspectable exemption for THIS run's own deterministic outputs -- unlike an exemption in
+    # frozen_membership_verify.py, which would hide foreign pins inside the frozen scan region.
+    # Every other path, tracked or untracked, still fails the gate.
+    OWN_OUTPUTS = {"phase8a/evidence/preflight.json", "phase8a/evidence/prerun_manifest.json"}
     st = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
                         capture_output=True, text=True).stdout.strip()
-    gates["clean_tree"] = (st == "")
-    detail["dirty_paths"] = st.splitlines()[:10]
+    dirty = [ln for ln in st.splitlines() if ln[3:].strip().strip('"') not in OWN_OUTPUTS]
+    gates["clean_tree"] = (dirty == [])
+    detail["dirty_paths"] = dirty[:10]
+    detail["clean_tree_exempt"] = sorted(OWN_OUTPUTS)
 
     # 2. preregistration present in both languages, hashed
     prereg = REPO / "docs/phase8a_prereg.md"

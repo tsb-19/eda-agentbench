@@ -218,6 +218,17 @@ def test_no_phase8a_artifact_anywhere_under_reports():
     assert strays == [], f"these would pollute the frozen pin count: {strays}"
 
 
+def test_clean_tree_gate_exempts_only_its_own_outputs():
+    """The preflight writes two custody files, so without an exemption the gate could never pass
+    twice. The exemption must cover EXACTLY those two paths -- widening it would let real
+    uncommitted code through on the way to spending money."""
+    src = (REPO / "scripts/phase8a_preflight.py").read_text()
+    assert 'OWN_OUTPUTS = {"phase8a/evidence/preflight.json", ' \
+           '"phase8a/evidence/prerun_manifest.json"}' in src
+    # and it must be a subtraction from git status, not a replacement of it
+    assert 'git", "-C", str(REPO), "status", "--porcelain"' in src
+
+
 def test_frozen_membership_baseline_is_unchanged():
     r = subprocess.run([sys.executable, "scripts/frozen_membership_verify.py",
                         "--expect", "docs/frozen_membership_baseline.json"],
