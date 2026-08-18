@@ -1,0 +1,102 @@
+{
+  "schema_version": "1.0.0",
+  "task_id": "p15_eval_0014",
+  "track": "p15_sta_handoff",
+  "mode": "agentic",
+  "total_score": 0.5,
+  "objective_score": 0.35,
+  "explanation_score": 0.15,
+  "max_possible": 1.0,
+  "passed": true,
+  "passing_threshold": 0.5,
+  "evaluation_time_sec": 39.65937352180481,
+  "components": [
+    {
+      "name": "provenance_attested",
+      "weight": 0.3,
+      "raw_score": 0.0,
+      "weighted_score": 0.0,
+      "details": "check=False",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "coverage_cell_consistent",
+      "weight": 0.2,
+      "raw_score": 0.0,
+      "weighted_score": 0.0,
+      "details": "check=False",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "check_view_legal",
+      "weight": 0.1,
+      "raw_score": 1.0,
+      "weighted_score": 0.1,
+      "details": "check=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "pt_signoff_green",
+      "weight": 0.1,
+      "raw_score": 1.0,
+      "weighted_score": 0.1,
+      "details": "check=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "not_masking",
+      "weight": 0.15,
+      "raw_score": 1.0,
+      "weighted_score": 0.15,
+      "details": "check=True",
+      "tool_output_snippet": null
+    },
+    {
+      "name": "explanation",
+      "weight": 0.15,
+      "raw_score": 1.0,
+      "weighted_score": 0.15,
+      "details": "no structured explanation required",
+      "tool_output_snippet": null
+    }
+  ],
+  "anti_cheat": {
+    "forbidden_files_modified": false,
+    "checked_files": [
+      "design.v",
+      "constraints.sdc",
+      "run_public.sh",
+      "run_public.tcl",
+      "tiny.db",
+      "tiny.lib",
+      "signoff_intent_truth.json",
+      "grade_sta_handoff.py",
+      "run_hidden.sh"
+    ],
+    "hash_mismatches": [],
+    "tcl_injection": [],
+    "hidden_shadows": []
+  },
+  "resource_usage": {
+    "wall_time_sec": 39.66
+  },
+  "metadata": {
+    "difficulty": "hard",
+    "data_type": "flow_synthetic",
+    "tool": [
+      "pt"
+    ],
+    "version": "1.0.0",
+    "agent_cmd": "python3 \"/data1/tongsb/eda-agentbench/scripts/llm_agent_driver.py\" --model \"qwen3.7-max\" --models \"/data1/tongsb/eda-agentbench/phase8a/models_arm1.json\" --max-actions 60 --temperature 0.7 --stream-responses 1 --request-timeout-sec 120 --request-deadline-sec 300 --max-chat-retries 6 --log \"/data1/tongsb/eda-agentbench/runs/phase8a/a1_8A_sta:p15_eval_0014:Qwen3.7-Max-TR_BundleS_13_a1/results/qwen3.7-max/p15_sta_handoff/p15_eval_0014_bundles.agentlog.json\" --elicit-confidence",
+    "agent_exit_code": 0,
+    "agent_timed_out": false
+  },
+  "reliability": {
+    "confidence_decision": "",
+    "format_ok": null,
+    "protocol_status": "ok",
+    "overconfident_wrong": false,
+    "underconfident_correct": false,
+    "abstained": false
+  }
+}
