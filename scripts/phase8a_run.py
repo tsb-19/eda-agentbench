@@ -39,6 +39,9 @@ REPO = Path(__file__).resolve().parents[1]
 P8A = REPO / "phase8a" / "evidence"
 BLOCKS = P8A / "blocks"
 CUSTODY = P8A / "episodes"
+# A block aborted mid-way is re-executed whole, and its first pass is ARCHIVED here rather than
+# deleted. It leaves the analysis; it does not leave the ledger. See _aborted_spend.
+ABORTED = P8A / "aborted"
 EXECUTOR = REPO / "scripts" / "chain_executor.py"
 EPISODE_RUNNER = REPO / "scripts" / "phase8a_episode_runner.py"
 TRACK = "p15_sta_handoff"
@@ -92,9 +95,26 @@ def _episode_records(arm_slots):
     return recs
 
 
+def _aborted_spend():
+    """Money paid for episodes of an aborted block pass, archived out of the analysis tree.
+
+    The budget cap is about money, not validity. A discarded pass was still billed, so leaving it out
+    would let the gate authorise a block the account cannot actually afford -- the understatement
+    grows with every abort. Archive layout: aborted/<pass>/<trial>/episode.json.
+    """
+    tot = 0.0
+    for f in sorted(Path(ABORTED).glob("*/*/episode.json")):
+        try:
+            tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
+        except Exception:  # noqa: BLE001
+            pass
+    return round(tot, 4)
+
+
 def _spent_so_far(schedule):
     return round(sum(float(r.get("total_cost") or 0.0)
-                     for r in _episode_records(schedule["frozen_execution_order"])), 4)
+                     for r in _episode_records(schedule["frozen_execution_order"]))
+                 + _aborted_spend(), 4)
 
 
 def _telemetry_faults(slots):
@@ -158,7 +178,12 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Run a Phase-8A arm block by block.")
     ap.add_argument("--arm", type=int, required=True, choices=(1, 2))
     ap.add_argument("--budget", type=float, default=200.0, help="hard cumulative cap, CNY")
-    ap.add_argument("--per-slot", type=float, default=0.7, help="projected CNY/episode for the gate")
+    # Measured, not guessed: block 00's 18 episodes cost ¥17.3237, i.e. ¥0.962/episode -- 2.15x the
+    # ¥0.447 Amendment 1 projected, because _cost() bills every retried attempt's prompt and this
+    # backend throttles. A per-slot figure BELOW the real rate makes the gate authorise a block the
+    # budget cannot cover, so the default tracks the measurement. See prereg Amendment 2.
+    ap.add_argument("--per-slot", type=float, default=0.962,
+                    help="projected CNY/episode for the gate (measured block-00 mean)")
     ap.add_argument("--blocks", type=int, default=None, help="run at most N blocks this invocation")
     ap.add_argument("--models", default="phase8a/models_arm1.json")
     ap.add_argument("--dry-run", action="store_true", help="plan only; make no model call")
@@ -174,6 +199,8 @@ def main() -> int:
     print(json.dumps({"arm": a.arm, "model": schedule["model"], "blocks": len(blocks),
                       "episodes": schedule["episodes"], "budget_cny": a.budget,
                       "already_spent_cny": spent,
+                      "of_which_aborted_passes_cny": _aborted_spend(),
+                      "per_slot_projection_cny": a.per_slot,
                       "transport": {"max_chat_retries": int(RETRIES), "stream": True,
                                     "concurrency": 1},
                       "done_blocks": sum(1 for i, (_, s) in enumerate(blocks)

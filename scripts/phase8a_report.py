@@ -36,6 +36,10 @@ from grade_sta_handoff import grade  # noqa: E402  (PINNED grader, reused byte-i
 
 P8A = REPO / "phase8a"
 EV = P8A / "evidence" / "episodes"
+# A block aborted mid-way is re-executed whole and its first pass archived here. It MUST sit outside
+# EV: `EV/*/episode.json` is the grading glob, so an archive nested inside it would be re-graded and
+# the same trial would enter the analysis twice -- once from the discarded pass, once from the re-run.
+ABORTED = P8A / "evidence" / "aborted"
 OUT_JSON = P8A / "reports" / "phase8a_sta_report.json"
 OUT_MD = P8A / "reports" / "phase8a_sta_report.md"
 COND = ["Base", "BundleS", "TypedContract"]
@@ -55,6 +59,24 @@ def _schedule(arm=1):
     if not p.is_file():
         raise SystemExit(f"phase8a_report: missing frozen schedule {p}")
     return json.loads(p.read_text())
+
+
+def _aborted_spend():
+    """Money paid for the episodes of an aborted block pass, archived out of the analysis tree.
+
+    Block 01's first pass was aborted mid-way by a provider 502 window and the block was re-executed
+    whole (prereg Amendment 2). Those episodes are discarded from the ANALYSIS -- a discarded pass is
+    not evidence -- but they are not discarded from the LEDGER. Prereg section 4 requires the summed
+    episode cost to equal the reported total; if the archive silently dropped out, that identity
+    would still print as true while understating what the account actually paid.
+    """
+    tot = 0.0
+    for f in sorted(ABORTED.glob("*/*/episode.json")):
+        try:
+            tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
+        except Exception:  # noqa: BLE001
+            pass
+    return round(tot, 4)
 
 
 def _collect():
@@ -93,13 +115,15 @@ def _collect():
 
     # Spend counts EVERY collected episode, valid or not: a measurement-invalid episode is excluded
     # from the analysis but it was still paid for, and the budget cap is about money, not validity.
+    # The same reasoning extends to an aborted block pass -- see _aborted_spend.
     spent = 0.0
     for d in sorted(EV.glob("*/episode.json")):
         try:
             spent += float(json.loads(d.read_text()).get("total_cost") or 0.0)
         except Exception:  # noqa: BLE001
             pass
-    spent = round(spent, 4)
+    aborted_spend = _aborted_spend()
+    spent = round(spent + aborted_spend, 4)
     replaced = invalid = 0
     for s in _states():
         try:
@@ -111,7 +135,7 @@ def _collect():
                 replaced += 1
             else:
                 invalid += 1
-    return sched, included, excluded, spent, invalid, replaced
+    return sched, included, excluded, spent, invalid, replaced, aborted_spend
 
 
 def _truth_for(inst):
@@ -153,7 +177,7 @@ def _sign_p(diffs):
 
 
 def build():
-    sched, included, excluded_invalid, spent, invalid, replaced = _collect()
+    sched, included, excluded_invalid, spent, invalid, replaced, aborted_spend = _collect()
 
     per = defaultdict(lambda: defaultdict(list))
     for e in included:
@@ -245,6 +269,7 @@ def build():
         "episodes_graded": sum(len(per[i][c]) for i in instances for c in COND),
         "measurement_invalid_excluded": excluded_invalid,
         "spent_cny": round(spent, 4),
+        "spent_on_aborted_block_passes_cny": round(aborted_spend, 4),
         "measurement_invalid_attempts": invalid, "replaced_attempts": replaced,
         "unit": f"task instance (n={len(instances)}); k reps nested; trajectories are NOT n",
         "k_per_condition_observed": k_used,

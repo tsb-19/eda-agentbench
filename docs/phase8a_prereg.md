@@ -236,6 +236,89 @@ This amendment is recorded rather than folded into §2 silently: a preregistrati
 match what was done is not a preregistration. It was decided and committed before the first episode
 that enters the analysis.
 
+## 5B. Amendment 2 (2026-08-18, before the next analysed episode)
+
+**Nothing in the design moves.** Instances, conditions, k, blocking, analysis unit, statistical
+hierarchy, episode parameters, transport and the ¥200 cap are all exactly as §2 and §5A state. This
+amendment records one corrected measurement and one execution rule, both fixed in advance.
+
+### 5B.1 The per-episode cost was underestimated by 2.15x
+
+§5A projected **¥0.447/episode** from a single pilot. Block 00 — the first complete block, 18
+episodes on `p15_eval_0004` — measured:
+
+| | measured |
+|---|---|
+| block 00, 18 episodes | **¥17.3244** |
+| per episode | **¥0.962** |
+| by condition (mean) | Base ¥1.272, BundleS ¥0.742, TypedContract ¥0.873 |
+
+The cause is retry billing. `phase8a_episode_runner._cost` sums every entry in
+`request_telemetry`, and each retried attempt re-sends the whole prompt, so the retry budget
+Amendment 1 raised to 6 is itself the multiplier. Amendment 1 asserted that retries "do not raise
+spend"; on measurement that was wrong, and the estimate is superseded here rather than quietly
+replaced.
+
+### 5B.2 Consequence: the cap is unchanged, so the panel may stop short of 12 instances
+
+At ¥0.962/episode the full arm projects to **12 x ¥17.3244 = ¥207.9**, above the cap. §2.3 says stop,
+and stopping is what happens: **the ¥200 cap stays**, and arm 1 runs as many whole blocks as it buys.
+Projected from the measured rate:
+
+```
+spent to date            ¥17.884   (block 00, plus block 01's aborted pass -- see 5B.3)
+blocks still affordable   10        gate: start a block only if remaining > 18 x ¥0.962
+panel delivered           n = 11    p15_eval_0004 .. p15_eval_0014
+instance not run          p15_eval_0015
+projected final spend    ~¥191.1   leaving ~¥8.9, i.e. below §2.2's ¥10 holdback
+arm 2                     NOT RUN, and reported as not run
+```
+
+**Which instance is dropped was decided before any episode ran.** The block order is the frozen,
+seeded schedule (`seed 20260818`, instance-ascending `p15_eval_0004 .. p15_eval_0015`), so the cap
+truncates the *tail of a fixed list*, never a set chosen after seeing results. That is the whole
+point of recording this now: an n=11 panel accepted in advance on arithmetic is a power limit, while
+an n=11 panel selected afterwards would be the outcome-adaptive practice §5 exists to prevent.
+
+The primary sign test is reported at whatever n the cap delivers, with n stated. No k is reduced to
+buy the twelfth instance: k=6 is the entire reason this study exists, and trading it for breadth
+would reintroduce exactly the k=2 coarseness §1.2 diagnoses.
+
+`scripts/phase8a_run.py --per-slot` now defaults to the measured ¥0.962 rather than a guessed ¥0.7.
+A projection below the true rate would let the gate authorise a block the budget cannot cover, so the
+gate is cap-protecting only if it is fed the measurement.
+
+### 5B.3 An aborted block pass is discarded whole, and re-executed whole
+
+Block 01 (`p15_eval_0005`) aborted after 2 of 18 slots: the provider returned `502` on three
+consecutive attempts at `Base/pos1` and the arbiter correctly reached STOP. That is a
+measurement-invalid infrastructure fault, not a capability failure, and the block is re-run.
+
+`chain_executor.py` restarts a block at position 0 and `phase8a_episode_runner.py` overwrites a
+trial's custody directory, so a plain re-run would overwrite `p15_eval_0005_typedcontract_r1` — an
+episode that had completed **validly**. Overwriting a valid episode is the shape of retrying away a
+valid score, which this program forbids. The rule, fixed here:
+
+1. An aborted pass is **archived**, not deleted, under `phase8a/evidence/aborted/<pass>/`, together
+   with its `chain_executor` run state.
+2. The block is then re-executed **whole**, in frozen order, as a single pass. Nothing is kept
+   selectively from the aborted pass — the discard is all-or-nothing and therefore cannot depend on
+   any episode's score.
+3. The archived pass leaves the **analysis** and stays in the **ledger**: its ¥0.5597 counts against
+   the cap (`_aborted_spend` in both `phase8a_run.py` and `phase8a_report.py`), because §4 requires
+   summed episode cost to equal the reported total, and money paid is money paid.
+4. The archive must sit outside `phase8a/evidence/episodes/`, whose `*/episode.json` glob is the
+   grading glob. Nested inside it, the same trial would be graded twice — once from the discarded
+   pass and once from the re-run.
+5. The three `502` attempts stay visible to the report as measurement-invalid: the aborted run state
+   is retained as `run_state_arm1_block01_attempt1.json`, which `phase8a_report._states()` still
+   globs. An outage that vanished from the record would understate how much infrastructure noise this
+   backend produced.
+
+Point 2 is the part that matters for interpretation. The alternative — keeping the one valid episode
+and resuming at position 1 — wastes nothing, but it makes the keep/discard boundary fall between two
+episodes whose scores were already known. Discarding the pass whole removes that discretion.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.

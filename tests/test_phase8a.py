@@ -185,6 +185,10 @@ def test_incomplete_block_state_is_not_treated_as_done(run_mod, tmp_path):
 def test_spend_accumulates_from_per_episode_custody(run_mod, monkeypatch, tmp_path):
     """Spend is summed from the per-episode records, not from a runner's self-report."""
     monkeypatch.setattr(run_mod, "CUSTODY", tmp_path)
+    # Isolate the scheduled-slot sum from the archived-pass sum, which this asserts nothing about;
+    # test_aborted_attempt_spend_still_counts_against_the_cap covers the two together. Without this
+    # the assertion silently tracks whatever aborted passes happen to exist in the real evidence tree.
+    monkeypatch.setattr(run_mod, "ABORTED", tmp_path / "no_aborted_passes")
     slots = []
     for i, amt in enumerate([0.61, 0.55, 0.72]):
         slots.append({"task_id": f"p15_eval_000{i}_base", "rep": 1})
@@ -274,6 +278,45 @@ def test_run_driver_flags_episodes_with_no_model_call(run_mod, monkeypatch, tmp_
     assert "total_cost=0.0" in faults[0] and "no agentlog custody" in faults[0]
 
 
+def test_aborted_attempt_spend_still_counts_against_the_cap(run_mod, report_mod, monkeypatch,
+                                                            tmp_path):
+    """An aborted block's episodes are discarded from the ANALYSIS but not from the LEDGER.
+
+    Block 01 was aborted mid-way by a provider 502 window and re-executed whole. Its first pass is
+    archived under evidence/aborted/ rather than deleted. That money was still paid, and the cap is
+    about money, not validity -- so if the archive dropped out of the spend total, both the budget
+    gate and the reported total would understate real spend, and prereg section 4's "summed episode
+    cost must equal the reported total" would be false while looking true.
+    """
+    for mod, root in ((run_mod, tmp_path / "run"), (report_mod, tmp_path / "rep")):
+        ab = root / "aborted" / "block01_attempt1" / "p15_eval_0005_typedcontract_r1"
+        ab.mkdir(parents=True)
+        (ab / "episode.json").write_text(json.dumps({"trial": ab.name, "total_cost": 0.5597}))
+        monkeypatch.setattr(mod, "ABORTED", root / "aborted")
+        assert mod._aborted_spend() == 0.5597
+
+    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path / "cust")
+    (tmp_path / "cust" / "p15_eval_0006_base_r1").mkdir(parents=True)
+    (tmp_path / "cust" / "p15_eval_0006_base_r1" / "episode.json").write_text(
+        json.dumps({"trial": "p15_eval_0006_base_r1", "total_cost": 1.0}))
+    monkeypatch.setattr(run_mod, "ABORTED", tmp_path / "run" / "aborted")
+    slots = [{"task_id": "p15_eval_0006_base", "rep": 1}]
+    assert run_mod._spent_so_far({"frozen_execution_order": slots}) == 1.5597
+
+
+def test_aborted_archive_is_never_graded(report_mod):
+    """The archive must sit outside evidence/episodes/, so _collect() cannot reach it.
+
+    evidence/episodes/*/episode.json is the grading and spend glob. An archive nested one level
+    deeper inside it would be silently re-graded as a live episode -- the same trial would then
+    appear twice, once from the aborted pass and once from the re-run.
+    """
+    assert report_mod.ABORTED.name == "aborted"
+    assert report_mod.ABORTED.parent == report_mod.EV.parent
+    assert report_mod.ABORTED != report_mod.EV
+    assert report_mod.ABORTED not in report_mod.EV.parents
+
+
 def test_report_excludes_untelemetered_episodes_from_grading(report_mod):
     """Inclusion is asserted in code, not merely stated: an earlier aggregation in this project
     collapsed 70 episodes to 54 despite a written rule."""
@@ -314,3 +357,35 @@ def test_prereg_answers_the_s3_objection():
     assert "main.tex:325" in txt
     assert "outcome-adaptive" in txt
     assert "withheld" in txt
+
+
+@pytest.mark.parametrize("doc", [PREREG, PREREG_ZH])
+def test_amendments_are_appended_never_folded_into_the_design(doc):
+    """Each amendment is its own numbered section in BOTH languages.
+
+    A preregistration edited to match what was done is not a preregistration. Amendment 1 raised the
+    retry budget; Amendment 2 corrects the per-episode cost estimate and fixes the aborted-block
+    rule. Section 2 must still read as it did before either.
+    """
+    txt = doc.read_text()
+    assert "Amendment 1" in txt or "修正案 1" in txt
+    assert "Amendment 2" in txt or "修正案 2" in txt
+    assert "k = 6" in txt or "k = 6" in txt.replace("k=6", "k = 6")
+
+
+def test_amendment2_pre_commits_the_smaller_panel_before_seeing_more_results(run_mod):
+    """The cost correction must be recorded as a constraint accepted in ADVANCE.
+
+    Measured spend is ~2x the Amendment-1 estimate, so the unchanged Y200 cap can no longer buy all
+    12 instances. Deciding that after seeing which instances came out favourably would be the
+    outcome-adaptive practice this program exists to prevent; deciding it before is just arithmetic.
+    So the amendment must name the measured rate, keep the cap, and say the panel may stop short.
+    """
+    txt = PREREG.read_text()
+    assert "0.962" in txt, "the measured per-episode cost must be named"
+    assert "0.447" in txt, "the superseded Amendment-1 estimate must stay visible"
+    assert "cap is unchanged" in txt or "cap stays" in txt
+    assert "stop short" in txt or "fewer than 12" in txt
+    # the runner's gate must be able to enforce it: a per-slot projection knob, and a stop-on-budget
+    src = RUN_SCRIPT.read_text()
+    assert "--per-slot" in src and '"stopped": "budget"' in src
