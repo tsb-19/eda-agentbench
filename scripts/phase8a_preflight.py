@@ -134,19 +134,45 @@ def _backend_serves(models_needed) -> dict:
             "served": {m: (m in ids) for m in models_needed}}
 
 
+# The two paths this preflight itself writes are excluded from the clean-tree gate, otherwise the gate
+# can never pass twice: run 1 creates them, so run 2 sees a dirty tree and refuses. This is a narrow,
+# inspectable exemption for THIS run's own deterministic outputs -- unlike an exemption in
+# frozen_membership_verify.py, which would hide foreign pins inside the frozen scan region.
+# Every other path, tracked or untracked, still fails the gate.
+OWN_OUTPUTS = {"phase8a/evidence/preflight.json", "phase8a/evidence/prerun_manifest.json"}
+
+
+def _dirty_paths(porcelain: str, own_outputs=OWN_OUTPUTS):
+    """Porcelain lines that are NOT this run's own two outputs.
+
+    Split before stripping, and never strip the whole blob. `git status --porcelain` emits
+    `XY<space>PATH`, and for an unstaged modification X is itself a SPACE -- so `stdout.strip()`
+    decapitates the FIRST line's status field, `ln[3:]` then eats a path character
+    ("hase8a/evidence/preflight.json"), and whichever exempt path happens to be listed first can
+    never match. That is how this gate came to block on its own output while reporting a mangled
+    path: the exemption had never actually fired, it had only ever been unnecessary because the tree
+    was already clean. Exercised by
+    tests/test_phase8a.py::test_clean_tree_gate_parses_porcelain_rather_than_a_stripped_blob.
+    """
+    out = []
+    for ln in porcelain.splitlines():
+        if not ln.strip():
+            continue
+        path = ln[3:].strip().strip('"')
+        if " -> " in path:          # `R  old -> new`: the destination is what is dirty
+            path = path.split(" -> ", 1)[1].strip().strip('"')
+        if path not in own_outputs:
+            out.append(ln)
+    return out
+
+
 def main() -> int:
     gates, detail = {}, {}
 
-    # 1. clean tree.
-    # The two paths this preflight itself writes are excluded, otherwise the gate can never pass
-    # twice: run 1 creates them, so run 2 sees a dirty tree and refuses. This is a narrow,
-    # inspectable exemption for THIS run's own deterministic outputs -- unlike an exemption in
-    # frozen_membership_verify.py, which would hide foreign pins inside the frozen scan region.
-    # Every other path, tracked or untracked, still fails the gate.
-    OWN_OUTPUTS = {"phase8a/evidence/preflight.json", "phase8a/evidence/prerun_manifest.json"}
+    # 1. clean tree. See _dirty_paths for the exemption and why it is parsed line by line.
     st = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
-                        capture_output=True, text=True).stdout.strip()
-    dirty = [ln for ln in st.splitlines() if ln[3:].strip().strip('"') not in OWN_OUTPUTS]
+                        capture_output=True, text=True).stdout
+    dirty = _dirty_paths(st)
     gates["clean_tree"] = (dirty == [])
     detail["dirty_paths"] = dirty[:10]
     detail["clean_tree_exempt"] = sorted(OWN_OUTPUTS)

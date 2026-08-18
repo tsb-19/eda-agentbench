@@ -57,6 +57,11 @@ def report_mod():
 
 
 @pytest.fixture(scope="module")
+def preflight_mod():
+    return _load(REPO / "scripts/phase8a_preflight.py", "p8a_preflight")
+
+
+@pytest.fixture(scope="module")
 def arm1():
     assert ARM1.is_file(), "generate the arm-1 schedule before running these tests"
     return json.loads(ARM1.read_text())
@@ -241,6 +246,36 @@ def test_clean_tree_gate_exempts_only_its_own_outputs():
            '"phase8a/evidence/prerun_manifest.json"}' in src
     # and it must be a subtraction from git status, not a replacement of it
     assert 'git", "-C", str(REPO), "status", "--porcelain"' in src
+
+
+def test_clean_tree_gate_parses_porcelain_rather_than_a_stripped_blob(preflight_mod):
+    """The exemption has to survive porcelain's leading space, and it did not.
+
+    `git status --porcelain` emits `XY<space>PATH`, and for an unstaged modification X is itself a
+    SPACE. Stripping the whole stdout before splitting decapitates the FIRST line's status field, so
+    ln[3:] eats a path character ('hase8a/evidence/preflight.json') and the first path listed can
+    never match OWN_OUTPUTS. The gate then blocks forever on its own output while printing a mangled
+    path, and the documented exemption is a fiction -- it only ever 'passed' when the tree happened
+    to be clean already. Grepping the source could not catch that; this exercises it.
+    """
+    dp = preflight_mod._dirty_paths
+    both = (" M phase8a/evidence/preflight.json\n"
+            " M phase8a/evidence/prerun_manifest.json\n")
+    assert dp(both) == [], "both own outputs must be exempt regardless of line order"
+    assert dp(" M phase8a/evidence/prerun_manifest.json\n"
+              " M phase8a/evidence/preflight.json\n") == []
+    # staged, and untracked, forms of the same two paths
+    assert dp("M  phase8a/evidence/preflight.json\n") == []
+    assert dp("?? phase8a/evidence/preflight.json\n") == []
+    # anything else still fails the gate, and is reported with its status intact
+    real = dp(" M scripts/llm_agent_driver.py\n M phase8a/evidence/preflight.json\n")
+    assert real == [" M scripts/llm_agent_driver.py"]
+    assert dp(" M docs/phase8a_prereg.md\n") == [" M docs/phase8a_prereg.md"]
+    # a rename is dirty at its destination
+    assert dp('R  a.py -> phase8a/evidence/preflight.json\n') == []
+    assert dp('R  phase8a/evidence/preflight.json -> b.py\n') == \
+        ['R  phase8a/evidence/preflight.json -> b.py']
+    assert dp("") == [] and dp("\n") == []
 
 
 def test_frozen_membership_baseline_is_unchanged():
