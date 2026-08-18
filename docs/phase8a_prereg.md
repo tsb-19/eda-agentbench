@@ -319,6 +319,73 @@ Point 2 is the part that matters for interpretation. The alternative — keeping
 and resuming at position 1 — wastes nothing, but it makes the keep/discard boundary fall between two
 episodes whose scores were already known. Discarding the pass whole removes that discretion.
 
+## 5C. Amendment 3 (2026-08-18, before the next analysed episode)
+
+**Nothing in the design changes.** Instances, conditions, k, blocking, analysis unit, statistical
+hierarchy, episode parameters, transport settings and the ¥200 cap are all exactly as §2, §5A and §5B
+state them. What is recorded here is why arm 1 halted, one measurement fact about billing, and the
+application of an existing rule to a second occurrence.
+
+### 5C.1 The binding constraint was the backend's balance, not the ¥200 cap
+
+Arm 1 halted during block 02 (`p15_eval_0006`) with **¥164.07 of the cap unspent**. The provider
+returned HTTP `402 {"code":"INSUFFICIENT_BALANCE","message":"余额不足"}` on three consecutive attempts
+at `Base/pos12`. The driver classified it `non_retryable_http` and therefore spent no retry on it; the
+arbiter reached STOP at the 2-replacement cap, as designed. Every attempt is recorded
+`measurement_valid: false`, `classification_source: request_telemetry` — infrastructure, never
+capability.
+
+A sweep of all 17 model IDs the backend serves returned `402` for 15, `503 SERVICE_BUSY` for 2, and
+`200` for none, while `GET /v1/models` still returned `200` with the full list. The credential was
+valid; the account was empty. The exhaustion was **account-level, not per-model**, so no cheaper model
+on the same backend was a fallback.
+
+This is recorded as a measurement fact, not a result. **§2.2's ¥200 cap was never the operative stop
+rule.** What stopped arm 1 was a backend running out of money while the budget gate reported ¥164.07
+available. Note what the ledger figure is and is not: ¥35.9287 is denominated at the **frozen** rates
+(¥12/M in, ¥36/M out) so that it stays comparable with the frozen 72 episodes — it is not the
+provider's billing statement. The account emptied at ¥35.93 frozen-rate-equivalent, so either this
+backend's true rates exceed the frozen ones or the account never held ¥200. The backend exposes no
+balance endpoint (6 probed, all 404), so the two cannot be distinguished. The ¥200 figure is an upper
+bound on **our ledger**, not a claim about purchasable capacity — and §5B.2's projection of an n=11
+panel truncated by the cap is superseded on the facts, exactly as §5B.1 superseded §5A's cost claim.
+The projections stay where they are; the outcomes are recorded beside them.
+
+### 5C.2 `max_tokens` does not bound the reasoning channel
+
+A liveness probe sent with `max_tokens: 1` drew **309 completion tokens** from `qwen3.7-max`, 295 of
+them `reasoning_tokens`. The parameter bounds the visible completion, not the billed reasoning
+channel. This changes no episode setting — §2 keeps `max_tokens` 32000 — but it removes `max_tokens`
+as a cost bound and is part of why the balance drained ahead of the ledger's projection. The liveness
+probes cost ~¥0.011 at frozen rates; they are probes, not episodes, and enter no analysis.
+
+### 5C.3 The balance was restored, arm 1 resumes, and block 02 is archived under 5B.3
+
+On 2026-08-18 the account was topped up: `qwen3.7-max` and `deepseek-v4-pro` both return `200`. Arm 1
+resumes at block 02 under the unchanged design and the unchanged cap. The resumption crosses a
+top-up boundary on the serving side; that is not an apparatus change — same endpoint, same model ID,
+same rates in our ledger — but it is recorded, because §1.1's whole point is that quiet changes on
+the serving side are the hazard this program has to be able to see.
+
+Block 02 completed 12 of 18 primary slots before the `402`. It is an aborted pass, and **§5B.3
+applies to it verbatim**: archived whole to `phase8a/evidence/aborted/block02_attempt1/`, re-executed
+whole in frozen order, its **¥7.2848 kept in the ledger**, its run state retained as
+`run_state_arm1_block02_attempt1.json` so the three `402` attempts stay countable as
+measurement-invalid. No new rule is added here. An existing rule is applied to a second occurrence,
+which is the entire point of having fixed it before it was needed.
+
+One episode of that pass, `p15_eval_0006_base_r5`, is the third `402` attempt. It left a **gradeable
+workspace scoring 0.5 with `total_cost` 0.0** — a score with no evidence of a model call behind it.
+`phase8a_report.py:101` already excludes zero-cost episodes from grading, and `phase8a_run.py`'s
+guard halted the chain on it rather than walking further into a dead backend. A 0.5 produced without
+a model call is precisely what must never reach an analysis.
+
+The ledger invariant holds across the archive: ¥17.3244 (block 00) + ¥10.7598 (block 01) live,
+plus ¥0.5597 + ¥7.2848 archived, = **¥35.9287** — unchanged by the move.
+
+Because the backend is purchasable again, §2.2's cost-only gate on arm 2 becomes live again once arm
+1 finishes. It is evaluated then, on cost alone, and reported however it resolves.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.

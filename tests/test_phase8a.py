@@ -405,6 +405,7 @@ def test_amendments_are_appended_never_folded_into_the_design(doc):
     txt = doc.read_text()
     assert "Amendment 1" in txt or "修正案 1" in txt
     assert "Amendment 2" in txt or "修正案 2" in txt
+    assert "Amendment 3" in txt or "修正案 3" in txt
     assert "k = 6" in txt or "k = 6" in txt.replace("k=6", "k = 6")
 
 
@@ -424,3 +425,61 @@ def test_amendment2_pre_commits_the_smaller_panel_before_seeing_more_results(run
     # the runner's gate must be able to enforce it: a per-slot projection knob, and a stop-on-budget
     src = RUN_SCRIPT.read_text()
     assert "--per-slot" in src and '"stopped": "budget"' in src
+
+
+def test_amendment3_records_that_the_cap_was_never_the_binding_constraint():
+    """Arm 1 was stopped by the backend's balance, not by the preregistered Y200 cap.
+
+    This is the amendment's whole point, and it is the kind of fact a preregistration is easiest to
+    quietly lose: the cap READ as the operative stop rule for two amendments, and it never was one.
+    Assert the cause is named in provider terms (402 / INSUFFICIENT_BALANCE), that the amendment says
+    so plainly, and -- the discipline that matters -- that the two superseded projections stay
+    visible rather than being edited into agreement with the outcome.
+
+    Whitespace is normalised before matching: these are assertions about prose, and prose in this
+    repository is hard-wrapped, so a claim must not pass or fail on where a line break happens to
+    land.
+    """
+    txt = " ".join(PREREG.read_text().split())
+    assert "402" in txt and "INSUFFICIENT_BALANCE" in txt, "name the provider's own verdict"
+    assert "never the operative stop rule" in txt
+    assert "164.07" in txt, "the unspent headroom is the evidence the cap did not bind"
+    # superseded estimates must remain readable: 0.447 (Amdt 1) and the n=11 projection (Amdt 2)
+    assert "0.447" in txt and "n = 11" in txt
+    # the ledger figure must be labelled as frozen-rate-denominated, not as a provider bill
+    assert "billing statement" in txt
+
+
+def test_amendment3_applies_the_existing_abort_rule_rather_than_writing_a_new_one():
+    """Block 02 aborted the same way block 01 did, so 5B.3 must be APPLIED, not re-legislated.
+
+    A rule that gets rewritten each time it fires is not a rule. The second occurrence is the test of
+    the first: same archive location, same whole-block re-execution, same money kept in the ledger,
+    same run state left glob-visible so the invalid attempts stay countable.
+    """
+    for doc in (PREREG, PREREG_ZH):
+        txt = doc.read_text()
+        assert "block02_attempt1" in txt, f"{doc.name}: name the archive destination"
+        assert "run_state_arm1_block02_attempt1.json" in txt, f"{doc.name}: keep the state visible"
+        assert "5B.3" in txt, f"{doc.name}: cite the rule being applied"
+    # and the ledger must survive the move: 17.3244 + 10.7598 live + 0.5597 + 7.2848 archived
+    txt = PREREG.read_text()
+    assert "35.9287" in txt
+    assert abs((17.3244 + 10.7598 + 0.5597 + 7.2848) - 35.9287) < 1e-9
+
+
+def test_aborted_spend_generalises_past_the_first_archived_pass(run_mod, tmp_path, monkeypatch):
+    """_aborted_spend must sum EVERY archived pass, not just the one it was written for.
+
+    There are now two. A glob that happened to match one pass would have looked correct for a week
+    and then silently dropped block 02's Y7.2848 out of the cap arithmetic.
+    """
+    root = tmp_path / "aborted"
+    for pas, trial, cost in (("block01_attempt1", "p15_eval_0005_typedcontract_r1", 0.5597),
+                             ("block02_attempt1", "p15_eval_0006_base_r1", 0.7145),
+                             ("block02_attempt1", "p15_eval_0006_bundles_r1", 0.5000)):
+        d = root / pas / trial
+        d.mkdir(parents=True)
+        (d / "episode.json").write_text(json.dumps({"trial": trial, "total_cost": cost}))
+    monkeypatch.setattr(run_mod, "ABORTED", root)
+    assert run_mod._aborted_spend() == 1.7742

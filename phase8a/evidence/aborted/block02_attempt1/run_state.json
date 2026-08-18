@@ -1,0 +1,60 @@
+{
+  "state": "FAILED",
+  "started_at": "2026-08-18T05:17:56Z",
+  "executor_finished_at": "2026-08-18T06:18:54Z",
+  "executor_exit_code": 2,
+  "expected_primary_slots": 18,
+  "completed_primary_slots": 12,
+  "excluded_invalid_attempts": [
+    {
+      "slot": "block8A_sta:p15_eval_0006:Qwen3.7-Max-TR:Base/pos12",
+      "attempt": 1,
+      "reason": "terminal_invalid_replaced",
+      "classification": {
+        "terminal_transport_valid": false,
+        "recovered_transport_degradation": true,
+        "recovered_failed_attempts": 1,
+        "recovered_hard_deadlines": 0,
+        "workspace_gradeable": true,
+        "task_wall_hard_kill": false,
+        "measurement_valid": false,
+        "classification_source": "request_telemetry",
+        "error": "RuntimeError: chat attempt failed: category=non_retryable_http exc=ProviderHTTPError status=402"
+      }
+    },
+    {
+      "slot": "block8A_sta:p15_eval_0006:Qwen3.7-Max-TR:Base/pos12",
+      "attempt": 2,
+      "reason": "terminal_invalid_replaced",
+      "classification": {
+        "terminal_transport_valid": false,
+        "recovered_transport_degradation": false,
+        "recovered_failed_attempts": 0,
+        "recovered_hard_deadlines": 0,
+        "workspace_gradeable": true,
+        "task_wall_hard_kill": false,
+        "measurement_valid": false,
+        "classification_source": "request_telemetry",
+        "error": "RuntimeError: chat attempt failed: category=non_retryable_http exc=ProviderHTTPError status=402"
+      }
+    },
+    {
+      "slot": "block8A_sta:p15_eval_0006:Qwen3.7-Max-TR:Base/pos12",
+      "attempt": 3,
+      "reason": "terminal_invalid_after_cap",
+      "classification": {
+        "terminal_transport_valid": false,
+        "recovered_transport_degradation": false,
+        "recovered_failed_attempts": 0,
+        "recovered_hard_deadlines": 0,
+        "workspace_gradeable": true,
+        "task_wall_hard_kill": false,
+        "measurement_valid": false,
+        "classification_source": "request_telemetry",
+        "error": "RuntimeError: chat attempt failed: category=non_retryable_http exc=ProviderHTTPError status=402"
+      }
+    }
+  ],
+  "report_pending": true,
+  "note": "orchestration metadata only; never read by the arbiter or any membership logic"
+}
