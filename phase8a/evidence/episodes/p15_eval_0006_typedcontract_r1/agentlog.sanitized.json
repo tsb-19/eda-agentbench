@@ -1,0 +1,237 @@
+{
+  "model": "qwen3.7-max",
+  "task_id": "p15_eval_0006",
+  "track": "p15_sta_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "cat typed_contract.json 2>/dev/null || echo \"NOT FOUND\"; ls -la",
+      "rc": 0,
+      "out": "{\n  \"schema\": \"p15_typed_contract/v1\",\n  \"typed_axes\": {\n    \"intent_class\": {\n      \"type\": \"enum\",\n      \"domain\": [\n        \"functional_close\",\n        \"cdc_isolate\",\n        \"reset_exempt\",\n        \"scan_override\"\n      ]\n    },\n    \"target_partition\": {\n      \"type\": \"enum\",\n      \"domain\": [\n        \"cdc\",\n        \"reset\",\n        \"scan\",\n        \"core\"\n      ]\n    },\n    \"check_mode\": {\n      \"type\": \"enum\",\n      \"domain\": [\n        \"setup\",\n        \"hold\",\n        \"both\"\n      ]\n    }\n  },\n  \"disjoint_axes\": true,\n  \"authority_sources\": {\n    \"intent_class\": \"intent.md\",\n    \"target_partition\": \"cdc_report|reset_report|scan_section\",\n    \"check_mode\": \"coverage matrix\"\n  },\n  \"provenance_precedence\": [\n    \"INT(primary)\",\n    \"CDC/RST/SCN(primary)\",\n    \"COV(derived)\",\n    \"PRIOR(none/decoy)\"\n  ],\n  \"procedure\": \"Bind each role from its attesting primary/derived authority; tool signs green regardless, so correctness is provenance-attested.\"\n}\ntotal 1796\ndrwxrwxr-x    2 tongsb tongsb    4096 Aug  8 07:38 .\ndrwxrwxrwt 4948 root   root   1740800 Aug 18 13:20 ..\n-rw-rw-r--    1 tongsb tongsb    1003 Aug  8 07:38 build_applied_sdc.py\n-rw-rw-r--    1 tongsb tongsb     104 Aug  8 07:38 cdc_report.rpt\n-rw-rw-r--    1 tongsb tongsb     217 Aug  8 07:38 constraints.sdc\n-rw-rw-r--    1 tongsb tongsb    1206 Aug  8 07:38 design.v\n-rw-rw-r--    1 tongsb tongsb     224 Aug  8 07:38 exception_config.json\n-rw-rw-r--    1 tongsb tongsb     272 Aug  8 07:38 intent_exception.json\n-rw-r"
+    },
+    {
+      "type": "run",
+      "cmd": "cat intent.md; echo \"---\"; cat cdc_report.rpt; echo \"---\"; cat reset_report.rpt; echo \"---\"; cat scan_section.md; echo \"---\"; cat exception_config.json; echo \"---\"; cat intent_exception.json; echo \"---\"; cat signoff.log",
+      "rc": 0,
+      "out": "# Timing intent (authority: INT, primary)\nThe block's timing intent is **functional_close**.\n (canonical typed roles: intent_class/target_partition/check_mode)\n---\n# CDC crossing report (authority: CDC, primary)\nClock-domain crossing identified at partition: **cdc**.\n---\n# Reset-domain report (authority: RST, primary)\nReset exemption applies to partition: **reset**.\n---\n# Scan mode section (authority: SCN, primary)\nScan override applies to partition: **scan**.\n---\n{\n  \"_comment\": \"STA exception binding (editable). Ships a plausible-but-wrong binding; repair to the provenance-attested binding.\",\n  \"intent_class\": \"scan_override\",\n  \"target_partition\": \"reset\",\n  \"check_mode\": \"both\"\n}\n---\n{\n  \"intent_exception\": {\n    \"cdc_isolate\": {\n      \"type\": \"false_path\"\n    },\n    \"reset_exempt\": {\n      \"type\": \"false_path\"\n    },\n    \"scan_override\": {\n      \"type\": \"multicycle\",\n      \"cycles\": 2\n    },\n    \"functional_close\": {\n      \"type\": \"none\"\n    }\n  }\n}\n---\n# Prior signoff log (NON-AUTHORITATIVE, stale)\nPrior run attested: intent=scan_override partition=reset view=both.\n(This is a decoy; lower precedence than the primary authorities above.)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat run_public.sh; echo \"===\"; cat run_public.tcl; echo \"===\"; cat build_applied_sdc.py; echo \"===\"; cat partition_pins.json; echo \"===\"; cat constraints.sdc",
+      "rc": 0,
+      "out": "#!/bin/bash\n# Public feedback runner (iterate as much as you like). Translates your exception_config\n# binding to an SDC exception, then reports real PrimeTime timing + active exceptions.\nSCRIPT_DIR=\"$(cd \"$(dirname \"$0\")\" && pwd)\"; cd \"$SCRIPT_DIR\"\nPT_CMD=\"${EDA_PT_CMD:-pt_shell}\"\nif ! command -v \"$PT_CMD\" >/dev/null 2>&1; then echo \"SKIP: pt_shell not found (EDA_PT_CMD=$PT_CMD)\"; exit 0; fi\nPY_CMD=\"${EDA_PY_CMD:-python3}\"\n\"$PY_CMD\" build_applied_sdc.py\n\"$PT_CMD\" -f run_public.tcl 2>&1\nexit 0\n===\n# Public feedback: agent_applied.sdc is built by run_public.sh (build_applied_sdc.py);\n# show real PrimeTime timing + active exceptions. FEEDBACK, not a verdict.\nread_db tiny.db\nset link_path \"* tiny.db\"\nread_verilog design.v\nlink_design p15_sta_top\nread_sdc agent_applied.sdc\nputs \"=== SETUP VIOLATIONS (worst 10) ===\"\nreport_timing -delay_type max -nworst 10 -slack_lesser_than 0.0\nputs \"=== TIMING EXCEPTIONS IN EFFECT ===\"\nreport_exceptions\nputs \"PUBLIC_DONE\"\nexit\n===\n# Public: translate exception_config.json (+ partition_pins.json + intent_exception.json)\n# into agent_applied.sdc. Deterministic; same logic run_public and run_hidden use.\nimport json\ncfg = json.load(open(\"exception_config.json\"))\npins = json.load(open(\"partition_pins.json\"))[\"partition_pins\"]\niexc = json.load(open(\"intent_exception.json\"))[\"intent_exception\"]\nbase = open(\"constraints.sdc\").read().splitlines()\nlines = [l for l in base]\nintent = cfg.get(\"intent_class\"); part = cfg.get(\"target_partition\")\nexc = iexc.get"
+    },
+    {
+      "type": "write",
+      "file": "exception_config.json",
+      "bytes": 225
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers.\n\n Inclusivity & Diversity - Visit SolvNetPlus to read the \"Synopsys Statement on\n            Inclusivity and Diversity\" (Refer to article 000036315 at\n                        https://solvnetplus.synopsys.com)\n# Public feedback: agent_applied.sdc is built by run_public.sh (build_applied_sdc.py);\n# show real PrimeTime timing + active exceptions. FEEDBACK, not a verdict.\nread_db tiny.db\nLoading db file '/tmp/eda_agent_o9_d8uiq/tiny.db'\n1\nset link_path \"* tiny.db\"\n* tiny.db\nread_verilog design.v\n1\nlink_design p15_sta_top\nLoading verilog file '/tmp/eda_agent_o9_d8uiq/"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 14863,
+    "completion_tokens": 2803,
+    "reasoning_tokens": 2251
+  },
+  "finished": true,
+  "edited": [
+    "exception_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030442.027,
+          "end_ts": 1787030444.427,
+          "elapsed_s": 2.4,
+          "termination": "normal_exit",
+          "worker_pid": 3572684,
+          "body_sha256": "e00e153cd248",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.806,
+      "stream_duration_s": 1.2008,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030444.432,
+          "end_ts": 1787030447.213,
+          "elapsed_s": 2.781,
+          "termination": "normal_exit",
+          "worker_pid": 3572727,
+          "body_sha256": "73e78e017a9f",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0,
+      "time_to_first_answer_s": 1.0412,
+      "stream_duration_s": 1.9775,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030447.226,
+          "end_ts": 1787030466.593,
+          "elapsed_s": 19.367,
+          "termination": "normal_exit",
+          "worker_pid": 3572756,
+          "body_sha256": "e9f2b75d2923",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 17.7521,
+      "stream_duration_s": 18.5295,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030466.6,
+          "end_ts": 1787030485.053,
+          "elapsed_s": 18.453,
+          "termination": "normal_exit",
+          "worker_pid": 3572899,
+          "body_sha256": "cab2f7120ff7",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 13.5267,
+      "stream_duration_s": 17.3227,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030485.053,
+          "end_ts": 1787030486.764,
+          "elapsed_s": 1.711,
+          "termination": "normal_exit",
+          "worker_pid": 3573070,
+          "body_sha256": "48af4ed7d615",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.3186,
+      "stream_duration_s": 0.5202,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787030500.688,
+          "end_ts": 1787030512.742,
+          "elapsed_s": 12.054,
+          "termination": "normal_exit",
+          "worker_pid": 3573272,
+          "body_sha256": "8c3e4a84f9c2",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 6.8051,
+      "stream_duration_s": 10.7921,
+      "finish_reason": "stop",
+      "served_model": "qwen3.7-max"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 6,
+    "total_physical_attempts": 6,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}
