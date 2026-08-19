@@ -466,6 +466,104 @@ Defects 2 and 3 are the same mistake in two places — an arm-scoped quantity wr
 so is the `--models` default corrected earlier. That is worth naming: the failure mode of adding a
 second arm is not new logic, it is old logic that silently assumed there was only ever one.
 
+## 5E. Amendment 5 (2026-08-19, before arm 2's first analysed episode)
+
+Arm 2 began at 03:31:01Z and stopped inside its first block. This amendment records the outage, the
+two accounting defects it exposed, and — before the outcome is known — the rule for what happens if
+the backend does not come back.
+
+### 5E.1 A provider authentication outage, evidenced against an unbilled endpoint
+
+Block 00 completed 2 of 6 slots and then failed all three attempts at `Base/pos2`, each exhausting
+all 6 chat retries, on
+`503 {"code":"SERVICE_BUSY","message":"API Key 鉴权服务暂时不可用，请稍后重试"}`. The arbiter
+reached STOP at the 2-replacement cap, as designed. This is measurement-invalid — an infrastructure
+fault, never a capability failure — and no retry of any *score* is involved.
+
+The attribution is checked, not accepted. This backend has already produced two different terminal
+faults: a transient `502` window (block 01) and `402 INSUFFICIENT_BALANCE` (block 02). The balance
+outage is the dangerous look-alike, and during it `GET /v1/models` still returned `200` with the full
+list, because listing models is not billed. Here `GET /v1/models` returns `503` with the same
+authentication message. **An outage that blocks an unbilled endpoint cannot be a balance condition.**
+The provider's error string is its account of itself; the unbilled canary is the evidence.
+
+Nor is it ordinary throttling: the measured rate that motivated the raised retry budget (35%
+back-to-back, 8.3% at 15 s spacing) is a per-request rate that 6 retries with 3/6/12/24/45 s backoff
+reaches past. All 6 failed, three attempts running, across 29 minutes.
+
+The pass is archived whole to `phase8a/evidence/aborted/arm2_block00_attempt1/` under §5B.3 and the
+block will be re-executed whole. Two of its three episodes were valid, and one of them is this arm's
+only 1.0 so far — which is exactly why the discard rule may not be decided now.
+
+Recovery is monitored by polling the **unbilled** `GET /v1/models` every 4 minutes, and a recovery is
+only accepted after 5 consecutive 1-token chat probes at 15 s spacing return `200`. One `200` is not
+a recovery; polling the free endpoint means waiting costs nothing.
+
+### 5E.2 What the telemetry guard caught
+
+`p15_eval_0004_base_r1` was written to custody with `total_cost: 0.0`, `error: null`, and
+**`total_score: 0.5`**. No model was called; `run_single_agentic` grades whatever is in the workspace,
+and an untouched p15 workspace scores 0.5.
+
+Unguarded, this arm would have recorded a provider auth outage as a mid-range capability score for
+DeepSeek on instance 0004 under Base. Because replacements cluster during an outage, one bad hour
+becomes a column of plausible scores that look collected. `_telemetry_faults` refuses to continue
+past an episode with no evidence of a model call; that is why this stopped at block 00 and not at
+block 12. The guard did the work the run was supposed to make it do.
+
+### 5E.3 Defect: money paid for a replaced attempt left the ledger
+
+A replacement re-runs the *same slot* under the *same trial name*, so
+`<custody>/<trial>/episode.json` is overwritten. Only the last attempt's cost survives. Measured
+here: `Base/pos2` attempt 1 cost **¥0.5468**, then two ¥0 attempts overwrote it, so the custody tree
+reported ¥0 for a slot that was billed.
+
+This loosens the cap exactly when that is most harmful. Replacements are caused by provider faults,
+faults arrive in clusters, and each cluster erases more recorded spend — so the ¥200 cap slackens
+during precisely the hours when money is being spent for no data. A cap that stops binding under load
+is not a cap.
+
+`scripts/phase8a_run.py` now harvests every superseded attempt's cost from the chain log into
+`phase8a/evidence/replaced_attempt_ledger.json` immediately after each pass returns — before any
+early exit, because a failing pass is the pass that replaced the most attempts. Both
+`_program_spend()` and the per-arm `_spent_so_far()` count it, and
+`phase8a_report.py` reports it as `spent_on_replaced_attempts_cny`. The pinned `chain_executor.py` is
+not modified; it already logs every attempt's cost, and the driver reads it.
+
+**Arm 1's figure is 0.0, and that is a gap, not a measurement.** Arm 1 had 6 replaced attempts, in
+the aborted passes of blocks 01 and 02. Their per-attempt costs are irrecoverable: the ledger did not
+exist, and each block's chain log was overwritten by its own re-run. The archived evidence bounds it
+— block 02's three `402`s each failed in ~1.25 s with no billable call, and both slots' surviving
+episodes record ¥0 — so the unrecorded amount is at most about ¥1.1 at that block's measured rate,
+and probably ¥0. It is reported as a bound rather than folded into the total, because a number
+invented to close an identity is worse than an acknowledged gap.
+
+### 5E.4 Defect: the chain log was not arm-scoped
+
+The executor log path was `runs/phase8a/chain_b<NN>.log`, with no arm in it, so arm 2's block 00
+overwrote arm 1's. That log was the only per-attempt cost record for arm 1's block 00 — the defect
+destroyed the very evidence §5E.3's ledger harvests. Arm 1 block 00 happened to have no replaced
+attempt, so nothing was actually lost; that was luck. Now `chain_a<arm>_b<NN>.log`, and the archived
+copy of a discarded pass's log is committed into the archive, because `runs/` is gitignored.
+
+This is the **fourth** instance of one mistake: `--models`, the custody tree, the budget default, and
+now the log path — each an arm-scoped quantity written as a global. The pattern is stable enough to
+state as a rule: when a study grows a second arm, audit every path and every default that was written
+while there was only one, because none of them will fail loudly.
+
+### 5E.5 What this amendment does not change
+
+- **k stays 2.** The gate ran once, on cost only, before arm 2's first episode (§5D.1). An outage is
+  not a reason to revisit it, in either direction.
+- **No valid score is retried.** Every exclusion here is transport telemetry with no model call.
+- **Arm 2 is still the last cell.** It is not extended, re-scoped, or supplemented in response to
+  what block 00 showed.
+- **If the backend does not return, arm 2 is reported as incomplete — never as a smaller arm.**
+  Blocks are instances, so a subset of blocks is a subset of *instances*, not a reduced k. Arm 1
+  observed bidirectional instance-level heterogeneity, so analysing whichever instances happened to
+  run before an outage would let the provider's downtime choose the sample. In that case the report
+  states the blocks completed and draws no condition contrast from them.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.

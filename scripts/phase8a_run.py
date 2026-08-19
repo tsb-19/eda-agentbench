@@ -54,14 +54,104 @@ RETRIES = "6"
 
 PROGRAM_CAP = 200.0
 
+# Money paid for an attempt the arbiter REPLACED. Such an attempt leaves no trace in the custody
+# tree: phase8a_episode_runner writes `<custody>/<task_id>_r<rep>/episode.json`, the replacement
+# re-runs the SAME slot under the SAME trial name, and so overwrites it. Only the last attempt's cost
+# survives, and every earlier attempt's cost silently leaves the ledger.
+#
+# Measured, not hypothetical: arm 2 block 00 paid ¥0.5468 for Base/pos2 attempt 1, then two 503
+# attempts costing ¥0 overwrote it, so the tree reports ¥0 for a slot that cost ¥0.5468.
+#
+# This matters most exactly when it is hardest to notice. Replacements are caused by provider faults,
+# faults arrive in clusters, and each cluster erases more spend -- so the cap loosens precisely during
+# an outage, which is when a run is burning money for no data. A cap that stops binding under load is
+# not a cap. The chain log records every attempt's cost, so the driver harvests it into a durable
+# record here; the executor is pinned and is not modified to do it.
+ATTEMPT_LEDGER = P8A / "replaced_attempt_ledger.json"
+
+
+def _ledger_entries():
+    if not ATTEMPT_LEDGER.is_file():
+        return []
+    try:
+        return json.loads(ATTEMPT_LEDGER.read_text()).get("entries") or []
+    except Exception:  # noqa: BLE001
+        return []
+
+
+def _ledger_spend(model_name: str | None = None) -> float:
+    """Spend on replaced attempts, optionally for one model only.
+
+    float(), not just round(): sum([]) is the INT 0, so an existing-but-unmatched ledger printed `0`
+    where a missing one printed `0.0` -- the same state serialized two ways.
+    """
+    return float(round(sum(float(e.get("cost_cny") or 0.0) for e in _ledger_entries()
+                          if model_name is None or e.get("model_name") == model_name), 4))
+
+
+def _harvest_replaced_attempts(arm: int, block_i: int, block_id: str, model_name: str,
+                               log_path: Path):
+    """Record the cost of every attempt superseded in the pass that just ran.
+
+    chain_executor writes one `{"trial": ..., "cost": ...}` line per ATTEMPT. Grouped by trial in
+    order, the final line is the attempt whose episode.json survives in custody; all earlier lines are
+    money paid for episodes that no longer exist anywhere. Called once per pass, immediately after the
+    executor returns, so entries accumulate rather than being recomputed -- a re-run of an archived
+    block genuinely paid again, and both passes belong in the ledger.
+    """
+    if not log_path.is_file():
+        return []
+    order, seen = [], {}
+    for line in log_path.read_text(errors="replace").splitlines():
+        line = line.strip()
+        if not line.startswith('{"trial":'):
+            continue
+        try:
+            rec = json.loads(line)
+        except Exception:  # noqa: BLE001
+            continue
+        t = rec.get("trial")
+        if t not in seen:
+            seen[t] = []
+            order.append(t)
+        seen[t].append(round(float(rec.get("cost") or 0.0), 4))
+
+    stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    # Recorded defensively: this runs AFTER the money is spent, so a path shape it did not expect must
+    # not be able to throw and lose the ledger entry. Provenance is worth less than the amount.
+    try:
+        src = str(log_path.resolve().relative_to(REPO))
+    except ValueError:
+        src = str(log_path)
+    new = []
+    for t in order:
+        costs = seen[t]
+        for k, c in enumerate(costs[:-1], start=1):   # every attempt but the surviving one
+            new.append({"arm": arm, "block": block_i, "block_id": block_id, "trial": t,
+                        "attempt": k, "of_attempts": len(costs), "cost_cny": c,
+                        "model_name": model_name, "recorded_at": stamp,
+                        "source_log": src,
+                        "why": "superseded by a replacement; its episode.json was overwritten"})
+    if not new:
+        return []
+    ATTEMPT_LEDGER.parent.mkdir(parents=True, exist_ok=True)
+    ATTEMPT_LEDGER.write_text(json.dumps(
+        {"schema": "phase8a_replaced_attempt_ledger/v1",
+         "note": "Cost of attempts the arbiter replaced. These episodes exist in NO custody tree -- "
+                 "the replacement overwrote them -- so this is the only record that the money was "
+                 "spent. Counts against the ¥200 program cap; enters no analysis, carries no score.",
+         "entries": _ledger_entries() + new}, indent=2) + "\n")
+    return new
+
 
 def _program_spend() -> float:
-    """Every ¥ this study has paid, wherever the episode landed.
+    """Every ¥ this study has paid, wherever the episode landed -- or failed to land.
 
     Money paid is money paid (prereg section 5B.3 rule 3), so this counts live episodes of EVERY arm,
     archived aborted passes, and the arm-2 cost probe alike. The probe's custody deliberately sits
     outside the grading glob so it can never become a panel point -- but it must still be inside the
-    SPEND glob, or the cap silently grows by whatever the probe cost.
+    SPEND glob, or the cap silently grows by whatever the probe cost. Replaced attempts have no
+    episode.json at all, so they are added from the ledger; see ATTEMPT_LEDGER.
     """
     tot = 0.0
     for f in sorted(P8A.rglob("episode.json")):
@@ -69,7 +159,7 @@ def _program_spend() -> float:
             tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
         except Exception:  # noqa: BLE001
             pass
-    return round(tot, 4)
+    return round(tot + _ledger_spend(), 4)
 
 
 def _custody(arm: int) -> Path:
@@ -151,9 +241,14 @@ def _aborted_spend(model_name: str | None = None):
 
 
 def _spent_so_far(schedule, custody: Path, model_name: str):
+    """This arm's own spend: surviving episodes + its archived passes + its replaced attempts.
+
+    All three are money this arm paid, so all three bind its budget. Attributed by the model recorded
+    against the spend rather than by which tree it sits in.
+    """
     return round(sum(float(r.get("total_cost") or 0.0)
                      for r in _episode_records(schedule["frozen_execution_order"], custody))
-                 + _aborted_spend(model_name), 4)
+                 + _aborted_spend(model_name) + _ledger_spend(model_name), 4)
 
 
 def _telemetry_faults(slots, custody: Path):
@@ -271,6 +366,7 @@ def main() -> int:
                       "program_cap_cny": PROGRAM_CAP,
                       "custody": str(custody.relative_to(REPO)),
                       "of_which_aborted_passes_cny": _aborted_spend(model_name),
+                      "of_which_replaced_attempts_cny": _ledger_spend(model_name),
                       "per_slot_projection_cny": a.per_slot,
                       "transport": {"max_chat_retries": int(RETRIES), "stream": True,
                                     "concurrency": 1},
@@ -318,11 +414,17 @@ def main() -> int:
                                   "frozen_execution_order": slots, "flat": slots},
                                  indent=2) + "\n")
 
+        # Arm-scoped, like the state file and the custody tree. Unscoped, arm 2 block 00 overwrote
+        # arm 1's chain_b00.log -- and that log is the ONLY per-attempt cost record for its pass, so
+        # the fourth instance of "an arm-scoped quantity written as a global" destroyed the very
+        # evidence the new ledger harvests. Arm 1 block 00 happened to have no replaced attempt, so
+        # nothing was lost; that was luck, not design.
+        chain_log = REPO / "runs" / "phase8a" / f"chain_a{a.arm}_b{i:02d}.log"
         cmd = [sys.executable, str(EXECUTOR),
                "--schedule", str(bf), "--models", str(REPO / a.models), "--track", TRACK,
                "--runner", str(EPISODE_RUNNER), "--model-name", model_name,
                "--results-prefix", str(REPO / "runs" / "phase8a" / f"a{a.arm}"),
-               "--state", str(state), "--log", str(REPO / "runs" / "phase8a" / f"chain_b{i:02d}.log"),
+               "--state", str(state), "--log", str(chain_log),
                "--max-replacements", str(MAX_REPLACEMENTS), "--max-actions", str(MAX_ACTIONS),
                "--timeout", str(EPISODE_TIMEOUT), "--temperature", str(TEMPERATURE),
                "--elicit-confidence", "--integrity-manifest", str(manifest)]
@@ -331,6 +433,13 @@ def main() -> int:
               flush=True)
         rc = subprocess.run(cmd, env=_env(bf, model_name, custody), cwd=str(REPO)).returncode
         ran += 1
+        # Before any early return below: a replaced attempt's cost must be banked even when the pass
+        # then fails, because a failing pass is exactly the pass that replaced the most attempts.
+        harvested = _harvest_replaced_attempts(a.arm, i, block_id, model_name, chain_log)
+        if harvested:
+            print(json.dumps({"replaced_attempt_spend_recorded": len(harvested),
+                              "cny": round(sum(e["cost_cny"] for e in harvested), 4),
+                              "into": str(ATTEMPT_LEDGER.relative_to(REPO))}), flush=True)
         print(f"[{i + 1}/{len(blocks)}] rc={rc} in {round(time.time() - t0)}s "
               f"cumulative ¥{_spent_so_far(schedule, custody, model_name)}", flush=True)
 

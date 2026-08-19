@@ -760,8 +760,19 @@ def test_program_spend_counts_the_cost_probe(run_mod):
     assert probe_total > 0
     r = subprocess.run([sys.executable, str(RUN_SCRIPT), "--arm", "1", "--dry-run"],
                        capture_output=True, text=True, cwd=str(REPO))
-    # From arm 1's point of view the probe is "the rest of Phase-8A", and it must appear there.
-    assert json.loads(r.stdout)["spent_by_the_rest_of_phase8a_cny"] == probe_total
+    rest = json.loads(r.stdout)["spent_by_the_rest_of_phase8a_cny"]
+
+    # From arm 1's point of view "the rest of Phase-8A" is the probe PLUS everything arm 2 has paid:
+    # its live episodes, its archived aborted passes, and its replaced attempts. This asserted
+    # equality with the probe alone while arm 2 had spent nothing, which made it accidentally true;
+    # the composition is the actual property, so state it and let each part be non-zero or not.
+    ev = REPO / "phase8a/evidence"
+    arm2_live = sum(json.loads(f.read_text()).get("total_cost") or 0.0
+                    for f in (ev / "episodes_arm2").glob("*/episode.json"))
+    arm2_aborted = run_mod._aborted_spend("deepseek-v4-pro")
+    arm2_replaced = run_mod._ledger_spend("deepseek-v4-pro")
+    assert rest == round(probe_total + arm2_live + arm2_aborted + arm2_replaced, 4)
+    assert rest >= probe_total, "the probe must never drop out of the spend glob"
 
 
 def test_report_states_and_outputs_are_arm_scoped(report_mod):
@@ -864,3 +875,146 @@ def test_the_custody_gate_checks_separation_not_name_uniqueness(preflight_mod):
         "the overlap is expected; if it ever reaches 0 the trees or the naming changed"
     assert d["gates"]["arm_custody_tree_is_disjoint_from_other_arms"] is True
     assert d["gates"]["arm_custody_holds_only_this_arms_episodes"] is True
+
+
+# ------------------------------------------------- replaced-attempt spend (Amendment 5, section 5E.3)
+def test_replaced_attempt_cost_is_harvested_from_the_chain_log(run_mod, monkeypatch, tmp_path):
+    """A replacement overwrites the previous attempt's episode.json, so its cost vanishes from the
+    custody tree. Measured in arm 2 block 00: attempt 1 cost ¥0.5468, then two ¥0 attempts overwrote
+    it and the tree reported ¥0 for a billed slot. The chain log is the only per-attempt cost record.
+    """
+    monkeypatch.setattr(run_mod, "ATTEMPT_LEDGER", tmp_path / "ledger.json")
+    log = tmp_path / "chain_a2_b00.log"
+    log.write_text(
+        '[executor] run: ...\n'
+        '{"trial": "t_bundles_r1", "total_score": 1.0, "cost": 0.8669, "error": null}\n'
+        '[arbiter] ... -> ACCEPT\n'
+        '{"trial": "t_base_r1", "total_score": 0.5, "cost": 0.5468, "error": null}\n'
+        '[arbiter] ... -> REPLACE\n'
+        '{"trial": "t_base_r1", "total_score": 0.5, "cost": 0.0, "error": null}\n'
+        '[arbiter] ... -> REPLACE\n'
+        '{"trial": "t_base_r1", "total_score": 0.5, "cost": 0.0, "error": null}\n'
+        '[arbiter] ... -> STOP\n')
+    new = run_mod._harvest_replaced_attempts(2, 0, "blk", "deepseek-v4-pro", log)
+
+    # only the SUPERSEDED attempts: the last attempt's episode.json survives in custody
+    assert [e["attempt"] for e in new] == [1, 2]
+    assert run_mod._ledger_spend("deepseek-v4-pro") == 0.5468
+    # the accepted single-attempt trial is not a replacement and must not be double counted
+    assert all(e["trial"] == "t_base_r1" for e in new)
+    # attributed by model, so one arm never inherits another's replaced spend
+    assert run_mod._ledger_spend("qwen3.7-max") == 0.0
+
+
+def test_replaced_attempt_spend_binds_both_the_program_cap_and_the_arm_budget(run_mod, monkeypatch,
+                                                                             tmp_path):
+    """Money paid is money paid. Replacements are caused by provider faults and faults cluster, so
+    without this the cap slackens exactly during the hours that spend money for no data.
+    """
+    monkeypatch.setattr(run_mod, "P8A", tmp_path)
+    monkeypatch.setattr(run_mod, "ABORTED", tmp_path / "aborted")
+    monkeypatch.setattr(run_mod, "ATTEMPT_LEDGER", tmp_path / "ledger.json")
+    (tmp_path / "ledger.json").write_text(json.dumps({"entries": [
+        {"cost_cny": 0.5468, "model_name": "deepseek-v4-pro"},
+        {"cost_cny": 0.0, "model_name": "deepseek-v4-pro"}]}))
+    live = tmp_path / "episodes_arm2" / "p15_eval_0004_bundles_r1"
+    live.mkdir(parents=True)
+    (live / "episode.json").write_text(json.dumps({"total_cost": 0.8669}))
+
+    assert run_mod._program_spend() == round(0.8669 + 0.5468, 4)
+    slots = [{"task_id": "p15_eval_0004_bundles", "rep": 1}]
+    assert run_mod._spent_so_far({"frozen_execution_order": slots},
+                                 tmp_path / "episodes_arm2", "deepseek-v4-pro") == 1.4137
+
+
+def test_the_harvest_happens_before_every_early_exit(run_mod):
+    """A failing pass is the pass that replaced the most attempts, so harvesting after the failure
+    checks would lose exactly the spend that matters most. Asserted on source order because the
+    ordering, not the function, is the property.
+    """
+    src = (REPO / "scripts/phase8a_run.py").read_text()
+    harvest = src.index("harvested = _harvest_replaced_attempts(")
+    for marker in ('"stopped": "FAILED_INTEGRITY"', '"stopped": "telemetry_faults"',
+                   '"stopped": "executor_exit"'):
+        assert harvest < src.index(marker), f"harvest must precede {marker}"
+
+
+def test_the_chain_log_path_is_arm_scoped(run_mod):
+    """Unscoped, arm 2 block 00 overwrote arm 1's chain_b00.log -- destroying the only per-attempt
+    cost record for that pass, i.e. the very evidence the ledger harvests. Fourth instance of an
+    arm-scoped quantity written as a global, after --models, the custody tree and the budget default.
+    """
+    src = (REPO / "scripts/phase8a_run.py").read_text()
+    assert 'f"chain_a{a.arm}_b{i:02d}.log"' in src
+    assert 'f"chain_b{i:02d}.log"' not in src
+
+
+def test_arm1_replaced_attempt_gap_is_reported_as_a_bound_not_as_zero():
+    """Arm 1's ledger figure is 0.0 because the ledger did not exist then, not because nothing was
+    paid. Reporting the gap as a bound is the honest form; inventing a number to close the identity
+    would be worse than admitting it.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "a gap, not a measurement" in en and "缺口，不是一次测量" in zh
+    assert "at most about ¥1.1" in en and "最多约 ¥1.1" in zh
+
+
+def test_report_surfaces_replaced_attempt_spend(report_mod):
+    src = (REPO / "scripts/phase8a_report.py").read_text()
+    assert "spent_on_replaced_attempts_cny" in src
+    # Path from the module, never as a literal: a "phase8a/reports/..." string in this file reads to
+    # scripts/slim_link_check.py as a repo-root `reports/...` reference and is reported as dangling.
+    r = report_mod._out(1)[0]
+    if r.is_file():
+        assert "spent_on_replaced_attempts_cny" in json.loads(r.read_text())
+
+
+# ------------------------------------------------------ the outage record (Amendment 5, section 5E)
+def test_amendment5_attributes_the_outage_against_an_unbilled_endpoint():
+    """The dangerous look-alike is balance exhaustion, which on this backend left GET /v1/models
+    returning 200 because listing models is unbilled. Here it returns 503 too. That is the evidence;
+    the provider's own error string is only its account of itself.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "An outage that blocks an unbilled endpoint cannot be a balance condition" in en
+    assert "不可能是余额问题" in zh
+    assert "SERVICE_BUSY" in en and "SERVICE_BUSY" in zh
+
+
+def test_amendment5_fixes_the_partial_arm_rule_before_the_outcome_is_known():
+    """Blocks are instances, so a subset of blocks is a subset of INSTANCES, not a smaller k. With
+    bidirectional instance-level heterogeneity observed in arm 1, analysing whichever instances ran
+    before an outage would let provider downtime choose the sample.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "reported as incomplete" in en and "never as a smaller arm" in en
+    assert "报告为不完整" in zh and "绝不报告为一个更小的臂" in zh
+    assert "draws no condition contrast" in en
+
+
+def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
+    """The pass stopped by the 503 outage must not sit in episodes_arm2/, whose */episode.json glob
+    is the grading glob, and its phantom 0.5 must not be gradeable.
+    """
+    arch = REPO / "phase8a/evidence/aborted/arm2_block00_attempt1"
+    if not arch.is_dir():
+        pytest.skip("arm 2 block 00 has not been archived")
+    trials = sorted(p.name for p in arch.glob("p15_eval_*"))
+    assert trials == ["p15_eval_0004_base_r1", "p15_eval_0004_bundles_r1",
+                      "p15_eval_0004_typedcontract_r1"]
+    graded = REPO / "phase8a/evidence/episodes_arm2"
+    for t in trials:
+        assert not (graded / t).exists(), f"{t} is still in the grading tree"
+    # the phantom: no model call, yet a score, which is why the pass was stopped rather than trusted
+    ep = json.loads((arch / "p15_eval_0004_base_r1" / "episode.json").read_text())
+    assert (ep.get("total_cost") or 0) == 0 and ep.get("total_score") == 0.5
+    # both languages, and the per-attempt cost record preserved out of gitignored runs/
+    assert (arch / "ABORTED.md").is_file() and (arch / "ABORTED.zh.md").is_file()
+    assert (arch / "chain_log_arm2_block00.log").is_file()
+    # the run state stays at the evidence path so the three 503 attempts remain countable
+    assert (REPO / "phase8a/evidence/run_state_arm2_block00_attempt1.json").is_file()
+    assert not (REPO / "phase8a/evidence/run_state_arm2_block00.json").exists(), \
+        "the re-run must write a fresh state, not resume the aborted one"

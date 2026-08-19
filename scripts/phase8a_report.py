@@ -97,6 +97,28 @@ def _aborted_spend(model_name: str):
     return round(tot, 4)
 
 
+def _replaced_attempt_spend(model_name: str):
+    """Money paid for attempts the arbiter replaced, which survive in no custody tree at all.
+
+    A replacement re-runs the same slot under the same trial name, so it overwrites the previous
+    attempt's episode.json. `_aborted_spend` reaches into the archive for a discarded PASS; this
+    reaches into the ledger for a discarded ATTEMPT, which has nowhere else to be. Written by
+    scripts/phase8a_run.py from the chain log, which records every attempt's cost.
+    """
+    p = P8A / "evidence" / "replaced_attempt_ledger.json"
+    if not p.is_file():
+        return 0.0
+    try:
+        entries = json.loads(p.read_text()).get("entries") or []
+    except Exception:  # noqa: BLE001
+        return 0.0
+    # float(), not just round(): sum([]) is the INT 0, so an existing-but-unmatched ledger serialized
+    # as `0` while a missing one serialized as `0.0` -- the same state, two byte strings, and --check
+    # failing on a difference that is not a difference.
+    return float(round(sum(float(e.get("cost_cny") or 0.0) for e in entries
+                           if e.get("model_name") == model_name), 4))
+
+
 def _collect(arm: int):
     """Episode records in frozen schedule order, plus the arbiter's exclusions.
 
@@ -142,7 +164,8 @@ def _collect(arm: int):
         except Exception:  # noqa: BLE001
             pass
     aborted_spend = _aborted_spend(ARM_MODEL_NAME[arm])
-    spent = round(spent + aborted_spend, 4)
+    replaced_spend = _replaced_attempt_spend(ARM_MODEL_NAME[arm])
+    spent = round(spent + aborted_spend + replaced_spend, 4)
     replaced = invalid = 0
     for s in _states(arm):
         try:
@@ -154,7 +177,7 @@ def _collect(arm: int):
                 replaced += 1
             else:
                 invalid += 1
-    return sched, included, excluded, spent, invalid, replaced, aborted_spend
+    return sched, included, excluded, spent, invalid, replaced, aborted_spend, replaced_spend
 
 
 def _truth_for(inst):
@@ -196,7 +219,8 @@ def _sign_p(diffs):
 
 
 def build(arm: int = 1):
-    sched, included, excluded_invalid, spent, invalid, replaced, aborted_spend = _collect(arm)
+    (sched, included, excluded_invalid, spent, invalid, replaced, aborted_spend,
+     replaced_spend) = _collect(arm)
     ev = _ev(arm)
 
     per = defaultdict(lambda: defaultdict(list))
@@ -292,6 +316,9 @@ def build(arm: int = 1):
         "measurement_invalid_excluded": excluded_invalid,
         "spent_cny": round(spent, 4),
         "spent_on_aborted_block_passes_cny": round(aborted_spend, 4),
+        # Attempts the arbiter replaced. Their episode.json was overwritten by the replacement,
+        # so unlike an aborted pass they exist in no tree; the ledger is the only record.
+        "spent_on_replaced_attempts_cny": round(replaced_spend, 4),
         "measurement_invalid_attempts": invalid, "replaced_attempts": replaced,
         "unit": f"task instance (n={len(instances)}); k reps nested; trajectories are NOT n",
         "k_per_condition_observed": k_used,
