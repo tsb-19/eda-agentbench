@@ -564,6 +564,139 @@ while there was only one, because none of them will fail loudly.
   run before an outage would let the provider's downtime choose the sample. In that case the report
   states the blocks completed and draws no condition contrast from them.
 
+## 5F. Amendment 6 (2026-08-19, before arm 2's first analysed episode)
+
+Block 00 was re-executed after the outage and this time finished 6 of 6 slots. It is still not data.
+The telemetry guard stopped the arm again, and the cause was ours, not the provider's. This amendment
+records the defect, the money it hid, the rule it forced into the open, and — before the re-run — the
+procedure for deciding whether arm 2 is affordable at all.
+
+### 5F.1 Defect: the episode record was written before the driver had finished
+
+`eda_agentbench/agentic/runner.py` snapshots and grades the agent workspace the moment the agent
+command returns, and `scripts/llm_agent_driver.py` writes its `--log` as its **last** statement. In
+this pass the command returned while the driver was still working. The evidence is on disk and is not
+an inference: for `p15_eval_0004_base_r2` the graded result was written at 14:32:45 local and the
+driver's own 51 270-byte log at 14:34:02 — 77 seconds later, with 34 actions, 33 logical requests, 13
+recovered transport failures and a final action of `deadline`.
+
+The race has two faces, and this one block produced both.
+
+- **No log yet.** `phase8a_episode_runner` found nothing at the log path, wrote
+  `{"error": "driver produced no log"}`, and derived a cost of **¥0** from it. The workspace had been
+  graded while the agent was still editing it, so the recorded `total_score: 0.5` is not the agent's
+  answer.
+- **A previous pass's log.** Run directories are keyed by `(block, condition, position, attempt)` and
+  are **reused** when a block is re-run whole, so the archived pass's log was still sitting at the
+  path. `Base/pos2` attempt 1 was therefore charged the archived pass's cost (¥0.5468 against a true
+  ¥2.2849) **and classified on the archived pass's 503s**.
+
+The second is the graver one. That attempt scored **1.0**, and it was replaced as measurement-invalid
+on the strength of a fault recorded in a different, already-archived run. A replacement decision — the
+mechanism that decides which episodes enter the panel — was made from stale evidence. Its replacement
+scored 0.5. Nothing here was score-driven: `episode_arbiter.classify_episode` never receives a score.
+But it is now demonstrated, in this study's own data, that **scores move under re-run**, which is
+precisely why §5B.3's keep/discard boundary may never be drawn between episodes whose scores are known.
+
+Both faces are one mistake, and it is the same one twice already corrected elsewhere in this program:
+**absence of evidence recorded as evidence of absence.** No log became cost zero; no telemetry became
+no fault. It fires when the driver overruns, and the driver overruns when transport is degraded — so
+the accounting fails hardest in exactly the hours that spend the most money for the least data.
+
+Fixed at source in `scripts/phase8a_episode_runner.py`: the log path is cleared before the driver
+starts, so no predecessor's log is readable; and the shell is held open until this attempt's log
+appears, so grading stays behind the agent. Arm 1 was checked and is clean — 216 of 216 episodes carry
+a real log and a non-zero cost, and all 220 attempt directories show the log written before the
+result. The defect is confined to arm 2 block 00.
+
+### 5F.2 What it cost, and how the figure was recovered
+
+The pass booked **¥6.0690** and truly cost **¥11.0465** — understated by **¥4.9775, or 62%**. Arm 2's
+recorded spend moves ¥8.0182 → ¥12.9957 and the program total ¥133.8411 → **¥138.8186 of ¥200**.
+
+This is a correction, not an estimate. Every attempt's own `*.agentlog.json` survives with its `usage`
+block, and `scripts/phase8a_cost_reconcile.py` recomputes each cost with the *same* `_cost()` the
+runner would have used had it read the log at the right moment; `--check` reproduces it from the
+artifacts on disk. Unlike §5E.3's arm-1 gap, nothing here has to be left as a bound.
+
+Two deliberate choices. **No `episode.json` is rewritten** — the original records stand, wrong figures
+included, and the correction is a separate entry carrying the per-attempt breakdown, because a
+discrepancy a reader can still see is worth more than a total that quietly agrees with itself. And the
+correction is booked in the existing replaced-attempt ledger rather than a new one, because it is the
+same category — money paid that no surviving `episode.json` accounts for — so it binds the ¥200 cap
+through machinery that already exists and is already tested.
+
+The ledger also gained a **pass identity**. A block is re-run whole, so `(arm, block, trial, attempt)`
+repeats across passes and cannot distinguish two real payments from one banked twice — and both the
+driver and the archive step harvest. A cap inflated by phantom spend ends the study early just as
+surely as one deflated by missing spend lets it overrun.
+
+### 5F.3 The arbiter fails open, and the fix belongs in the unpinned layer
+
+`episode_arbiter.py` is pinned and must stay byte-identical. With no `transport_summary` it falls back
+to scanning the error string for a terminal marker; `"driver produced no log"` carries none, so it
+concluded `terminal_transport_valid: true` and **ACCEPTED** a phantom at cost ¥0 with score 0.5. That
+is how the episode reached the grading tree.
+
+The authority is not changed. The unpinned runner now reports the fault in the vocabulary the
+authority already reads: `malformed_worker_result`, one of `TERMINAL_MARKERS`, and the truthful name
+for an isolated attempt path that did not return a well-formed result. The prose after the token says
+exactly what was observed, so the category cannot overstate the evidence. The classification turns on
+**the absence of a readable log**, which is observed independently of the outcome; a test asserts that
+the branch never reads the score, so it cannot become a way to retry away a valid one.
+
+`malformed_worker_result` is deliberately **not** an infrastructure-fault marker for archiving
+purposes. A driver that fails to deliver a result is ours to fix, not the provider's to be excused for.
+
+### 5F.4 §5B.3 extended: a COMPLETE pass containing a phantom is discarded whole
+
+§5B.3 was written for a block **stopped part-way**. This pass finished 6 of 6 and was still unusable.
+The rule extends, because the reasoning is identical: keeping the five sound episodes and re-running
+only the sixth would put the keep/discard boundary between episodes whose scores are already known,
+which is the shape of retrying away a valid score. All-or-nothing cannot depend on any episode's score.
+§5F.1 removes the last doubt that this is hypothetical.
+
+So: **a pass is archived whole when it is stopped part-way, or when it completes but contains an
+episode with no evidence of a model call.** `phase8a_archive_pass.py` now refuses only a pass that is
+COMPLETE *and* clean, and the phantom test is deliberately cost/error-based, never score-based.
+
+A pass may carry both a real infrastructure fault and a harness fault — this one did, surviving a
+genuine 503 and then being ruined by the race. Reading validity off the 503 alone would file a code
+defect under "the provider was flaky" and re-run straight back into it, so a phantom now disarms
+`--require-transport-fault` unless the phantom's own error names a transport category.
+
+### 5F.5 The cost premise moved: how affordability is decided, fixed before the re-run
+
+The §2.2 gate returned k₂ = 2 from a probe rate of **¥0.5009** per episode measured on instances 0001
+and 0002. Block 00's true costs give **¥1.4603** per surviving episode on instance 0004. At the probe
+rate the full 72 episodes cost ¥36 and fit; at block 00's rate they cost ¥105 and do not, against
+¥61.18 remaining. The gap is entirely Base on this instance (¥2.94 and ¥3.24, versus ¥0.44–0.47 for
+BundleS) — and in the probe Base was the *cheapest* condition. One instance, measured by the broken
+instrument described above, cannot settle which is representative.
+
+The procedure, fixed now, before the re-run and before any outcome from it is seen:
+
+1. Block 00 is re-executed whole on the fixed runner. It must be re-run in any case.
+2. Its per-episode cost `r′` is recomputed from the driver logs, pooled with the probe's six episodes.
+3. The **frozen §2.2 formula is re-applied unchanged** to the remaining program budget. If the full 72
+   episodes fit, arm 2 runs to completion. If they do not, **arm 2 does not run**, and is reported as
+   the one preregistered cell that could not be filled within budget.
+
+This re-check cannot lower a standard, and that is why it is permitted. k is already at the floor of
+the preregistered ladder, and §5E.5 forbids a partial arm, so the only two answers the check can
+return are *run the whole arm* or *do not run it*. It can never return a smaller one. Cost is also not
+the dependent variable — but note that cost is **not** independent of condition here, which is exactly
+why no instance may ever be selected for execution on the basis of what it costs.
+
+### 5F.6 What this amendment does not change
+
+- **k stays 2.** §5F.5 re-checks affordability, never the design.
+- **No valid score is retried.** Every exclusion turns on a missing log or missing telemetry, observed
+  without reference to any score.
+- **Arm 2 is still the last cell**, and the experimental programme ends when it does — whether it runs
+  to completion or is reported unaffordable.
+- **§5E.5 stands unchanged.** A partial arm 2 yields no condition contrast.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.

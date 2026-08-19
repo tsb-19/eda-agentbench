@@ -33,6 +33,7 @@ import json
 import os
 import shutil
 import sys
+import time
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[1]
@@ -52,6 +53,18 @@ RETRIES = os.environ.get("EDA_BENCH_MAX_CHAT_RETRIES", "6")
 REQ_TIMEOUT = os.environ.get("EDA_BENCH_LLM_REQUEST_TIMEOUT_SEC", "120")
 REQ_DEADLINE = os.environ.get("EDA_BENCH_LLM_REQUEST_DEADLINE_SEC", "300")
 RATE_IN_DEFAULT, RATE_OUT_DEFAULT = 12.0, 36.0
+# How long to wait for the driver's log after the agent command's own process has exited.
+# The driver writes --log as its LAST statement, so the log appearing is the signal that the driver
+# has finished; and run_single_agentic snapshots and grades the agent workspace the instant the agent
+# command returns. In arm 2 block 00 the command returned while the driver was still working -- the
+# log landed 77 s later, the workspace was graded while the agent was still editing it, and the
+# episode was recorded at cost 0.0 with no telemetry, which the arbiter (seeing no recorded fault)
+# ACCEPTED. 300 s is the driver's own hard per-request deadline, so a straggling isolated request
+# worker cannot outlive it by much. Waiting costs nothing except on episodes that would otherwise be
+# graded mid-flight, and those are worth more than the wait.
+LOG_SETTLE_SEC = int(os.environ.get("PHASE8A_LOG_SETTLE_SEC", "300"))
+# Seconds to keep re-parsing a log that exists but does not yet parse (a part-written file).
+_PARSE_SETTLE_TRIES = 10
 
 
 def _sha16(p: Path) -> str:
@@ -158,16 +171,31 @@ def main() -> int:
     results_base.mkdir(parents=True, exist_ok=True)
     logp = results_base / f"{task_id}.agentlog.json"
 
+    # Delete any log an earlier pass left at this path. Run directories are named by
+    # (block, condition, position, attempt) and are REUSED when a block is re-run whole, so a stale
+    # log sits exactly where this attempt's log will go. Arm 2 block 00 read the archived pass's log
+    # and recorded ITS cost (¥0.5468, against a true ¥2.2849) and ITS 503 telemetry as this attempt's
+    # -- and that borrowed telemetry is what drove the arbiter to REPLACE an attempt that had scored
+    # 1.0. Deleting first is also what makes the wait below test THIS attempt's log instead of
+    # returning immediately on a predecessor's.
+    logp.unlink(missing_ok=True)
+
     # Deterministic runs_root so `preserved/` is findable. run_agentic_baseline.py uses a random
     # tempfile.mkdtemp(), which would leave the submitted artifact unlocatable for re-grading.
     runs_root = RUNS / f"{task_id}_r{rep}"
 
-    agent_cmd = (f'python3 "{DRIVER}" --model "{a.model_name}" --models "{models_abs}" '
-                 f'--max-actions {a.max_actions} --temperature {a.temperature} '
-                 f'--stream-responses 1 --request-timeout-sec {REQ_TIMEOUT} '
-                 f'--request-deadline-sec {REQ_DEADLINE} --max-chat-retries {RETRIES} '
-                 f'--log "{logp}"'
-                 + (" --elicit-confidence" if a.elicit_confidence else ""))
+    driver_cmd = (f'python3 "{DRIVER}" --model "{a.model_name}" --models "{models_abs}" '
+                  f'--max-actions {a.max_actions} --temperature {a.temperature} '
+                  f'--stream-responses 1 --request-timeout-sec {REQ_TIMEOUT} '
+                  f'--request-deadline-sec {REQ_DEADLINE} --max-chat-retries {RETRIES} '
+                  f'--log "{logp}"'
+                  + (" --elicit-confidence" if a.elicit_confidence else ""))
+    # Hold the shell open until this attempt's log exists, so grading stays behind the agent (see
+    # LOG_SETTLE_SEC). The driver's exit code is captured and re-raised, or a driver failure would be
+    # hidden behind the wait loop's own success.
+    agent_cmd = (f'{driver_cmd}; rc=$?; '
+                 f'for _ in $(seq 1 {LOG_SETTLE_SEC}); do [ -s "{logp}" ] && break; sleep 1; done; '
+                 f'exit $rc')
 
     score = None
     err = None
@@ -178,6 +206,40 @@ def main() -> int:
     except Exception as e:  # noqa: BLE001
         runs_dir, timed_out, err = None, False, f"{type(e).__name__}: {e}"
 
+    # Settle the log before anything reads it. The shell wrapper already waited for it to appear;
+    # this covers the residual window in which the driver's write_text() is only part-way through --
+    # a truncated file parses as nothing, and the cost would come out 0.0 with no sign of trouble.
+    agentlog = None
+    for _ in range(_PARSE_SETTLE_TRIES):
+        if logp.is_file():
+            try:
+                agentlog = json.loads(logp.read_text())
+                break
+            except Exception:  # noqa: BLE001
+                pass
+        time.sleep(1)
+    # Checked BEFORE `result` is assembled, because result.json is one of the two files
+    # chain_executor.classify() reads: a fault that is not in it is a fault the arbiter cannot see.
+    # An unreadable log is not a free episode. "No evidence of a model call" and "an episode that
+    # cost nothing" are different claims, and only the first one is true here.
+    #
+    # `malformed_worker_result` is one of episode_arbiter.TERMINAL_MARKERS, and it is the truthful
+    # name for this: the isolated attempt path did not return a well-formed result. The arbiter is
+    # PINNED and fails OPEN on a missing log -- with no transport_summary it takes the legacy path,
+    # scans this error string for a marker, and without one it concludes terminal_valid=True and
+    # ACCEPTS. That is how a phantom episode entered arm 2 block 00 at cost 0.0 with score 0.5. The
+    # marker is how the unpinned layer reports a fault to the pinned authority; the prose after it
+    # says exactly what was observed, so the category token cannot overstate the evidence.
+    #
+    # This branch never reads `score`. The condition is the absence of a readable log, which is
+    # observed independently of the outcome, so it cannot become a way to retry away a valid score.
+    if agentlog is None:
+        agentlog = {}
+        err = err or (f"malformed_worker_result: driver produced no readable log within "
+                      f"{LOG_SETTLE_SEC}s of the agent command exiting; this episode's cost and "
+                      "transport telemetry are unknown, not zero")
+        logp.write_text(json.dumps({"error": err}, indent=2) + "\n")
+
     # The two files chain_executor.classify() reads. Shape mirrors phase5c_run.py's arbiter input.
     result = {"total_score": score.total_score if score is not None else None,
               "agent": {"timed_out": timed_out},
@@ -185,15 +247,8 @@ def main() -> int:
     if err:
         result["error"] = err
     (results_base / f"{task_id}.json").write_text(json.dumps(result, indent=2) + "\n")
-    if not logp.is_file():
-        logp.write_text(json.dumps({"error": err or "driver produced no log"}, indent=2) + "\n")
 
     # Per-episode custody, keyed by trial exactly as Phase-7A's evidence tree is.
-    agentlog = {}
-    try:
-        agentlog = json.loads(logp.read_text())
-    except Exception:  # noqa: BLE001
-        pass
     rin, rout = _rates(models_abs, a.model_name)
     trial = f"{task_id}_r{rep}"
     ev = CUSTODY / trial

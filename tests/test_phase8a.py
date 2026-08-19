@@ -996,8 +996,13 @@ def test_amendment5_fixes_the_partial_arm_rule_before_the_outcome_is_known():
 
 
 def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
-    """The pass stopped by the 503 outage must not sit in episodes_arm2/, whose */episode.json glob
-    is the grading glob, and its phantom 0.5 must not be gradeable.
+    """The pass stopped by the 503 outage must not be gradeable, and its phantom 0.5 must not count.
+
+    Originally this asserted that the three trial names were ABSENT from episodes_arm2/. That
+    encoded a transient state, not the invariant: §5B.3 requires the block to be re-run WHOLE, and a
+    re-run legitimately repopulates those exact names -- so the assertion started failing the moment
+    the rule was obeyed. The durable property is that an archived pass lives OUTSIDE the custody
+    glob, so no trial is ever counted twice: once from the abandoned pass and once from the re-run.
     """
     arch = REPO / "phase8a/evidence/aborted/arm2_block00_attempt1"
     if not arch.is_dir():
@@ -1005,9 +1010,12 @@ def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
     trials = sorted(p.name for p in arch.glob("p15_eval_*"))
     assert trials == ["p15_eval_0004_base_r1", "p15_eval_0004_bundles_r1",
                       "p15_eval_0004_typedcontract_r1"]
-    graded = REPO / "phase8a/evidence/episodes_arm2"
+    custody = REPO / "phase8a/evidence/episodes_arm2"
+    assert custody not in arch.parents, "an archive nested in the custody tree would double-count"
+    graded = [p.parent.name for p in custody.glob("*/episode.json")]
+    assert len(graded) == len(set(graded)), f"a trial appears twice in the grading glob: {graded}"
     for t in trials:
-        assert not (graded / t).exists(), f"{t} is still in the grading tree"
+        assert not list(custody.glob(f"*/{t}/episode.json")), f"{t} archive is inside the glob"
     # the phantom: no model call, yet a score, which is why the pass was stopped rather than trusted
     ep = json.loads((arch / "p15_eval_0004_base_r1" / "episode.json").read_text())
     assert (ep.get("total_cost") or 0) == 0 and ep.get("total_score") == 0.5
@@ -1016,8 +1024,6 @@ def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
     assert (arch / "chain_log_arm2_block00.log").is_file()
     # the run state stays at the evidence path so the three 503 attempts remain countable
     assert (REPO / "phase8a/evidence/run_state_arm2_block00_attempt1.json").is_file()
-    assert not (REPO / "phase8a/evidence/run_state_arm2_block00.json").exists(), \
-        "the re-run must write a fresh state, not resume the aborted one"
 
 
 # ------------------------------------------- archiving an aborted pass (prereg 5B.3, automated)
@@ -1087,3 +1093,233 @@ def test_archive_script_makes_no_model_call():
     for forbidden in ("TR_API_KEY", "API_KEY", "api_base", "chat/completions",
                       "EDA_BENCH_MAX_CHAT_RETRIES"):
         assert forbidden not in src, f"{forbidden} has no business in the archive path"
+
+
+# ------------------------------------------------------- the agent-log race (arm 2 block 00)
+# run_single_agentic snapshots and grades the agent workspace the moment the agent command returns,
+# and llm_agent_driver writes --log as its LAST statement. In arm 2 block 00 the command returned
+# while the driver was still working: one episode was graded mid-edit and recorded at cost 0.0 with
+# no telemetry, and a second was charged another pass's cost and classified on another pass's 503s.
+
+
+@pytest.fixture(scope="module")
+def runner_mod():
+    return _load(REPO / "scripts/phase8a_episode_runner.py", "p8a_runner")
+
+
+def test_a_stale_agent_log_cannot_be_attributed_to_a_later_attempt():
+    """Run directories are keyed by (block, condition, position, attempt) and are REUSED when a block
+    is re-run whole, so a previous pass's log sits exactly where this attempt's log will go. Arm 2
+    block 00 read it and recorded the archived pass's cost (¥0.5468 against a true ¥2.2849) AND its
+    503 telemetry -- and that borrowed telemetry is what drove the arbiter to REPLACE an attempt
+    that had scored 1.0. Asserted on source order: clearing must precede the run.
+    """
+    src = (REPO / "scripts/phase8a_episode_runner.py").read_text()
+    assert src.index("logp.unlink(missing_ok=True)") < src.index("run_single_agentic("), \
+        "the log path must be cleared BEFORE the driver runs, or a predecessor's log is readable"
+
+
+def test_grading_waits_for_this_attempts_agent_log(runner_mod):
+    """The wait is the whole fix: it holds the shell open until the driver has written its log, so
+    the workspace is never snapshotted while the agent is still editing it. The driver's exit code
+    must survive the wait, or a driver failure hides behind the loop's own success.
+    """
+    src = (REPO / "scripts/phase8a_episode_runner.py").read_text()
+    assert "rc=$?" in src and "exit $rc" in src, "the driver's exit code must be preserved"
+    assert 'for _ in $(seq 1 {LOG_SETTLE_SEC}); do [ -s "{logp}" ] && break; sleep 1; done' in src
+    assert runner_mod.LOG_SETTLE_SEC >= 300, \
+        "must cover the driver's own hard per-request deadline; observed lateness was 77 s and 94 s"
+
+
+def test_a_missing_agent_log_is_measurement_invalid_not_a_free_episode():
+    """The arbiter is PINNED and fails OPEN here: with no transport_summary it scans the error string
+    for a terminal marker, and the shipped stub ("driver produced no log") carries none, so it
+    concluded terminal_valid=True and ACCEPTED a phantom at cost 0.0 with score 0.5. The unpinned
+    layer must report the fault in the vocabulary the authority reads.
+    """
+    sys.path.insert(0, str(REPO / "scripts"))
+    import episode_arbiter as arb
+
+    src = (REPO / "scripts/phase8a_episode_runner.py").read_text()
+    assert "malformed_worker_result: driver produced no readable log" in src
+    assert "malformed_worker_result" in arb.TERMINAL_MARKERS, \
+        "the marker must be one the pinned arbiter actually recognises"
+
+    graded = {"total_score": 0.5, "agent": {"timed_out": False}}
+    shipped = arb.classify_episode(graded, {"error": "driver produced no log"})
+    assert shipped["measurement_valid"] is True, "documents the fail-open that let the phantom in"
+    assert arb.replacement_decision(shipped, 1) == "ACCEPT"
+
+    fixed = arb.classify_episode(graded, {"error": "malformed_worker_result: driver produced no "
+                                                   "readable log within 300s"})
+    assert fixed["measurement_valid"] is False
+    assert arb.replacement_decision(fixed, 1) == "REPLACE"
+
+
+def test_the_missing_log_branch_never_consults_the_score():
+    """An episode is invalidated for the ABSENCE OF A READABLE LOG, which is observed independently
+    of the outcome. If the branch could see the score, it would be a way to retry away a valid one.
+    """
+    src = (REPO / "scripts/phase8a_episode_runner.py").read_text()
+    start = src.index("if agentlog is None:")
+    end = src.index("# The two files chain_executor.classify() reads")
+    branch = src[start:end]
+    assert "score" not in branch, "the invalidation condition must not depend on the outcome"
+
+
+def test_arm1_custody_carries_no_phantom_episode():
+    """Arm 1 predates the fix and is complete, so this is a check on the evidence, not the code: if
+    the race had touched it, the arm-1 report's 216 graded episodes and ¥122.8175 would be wrong.
+    Every episode must carry a real agent log and a cost that was actually derived from one.
+    """
+    tree = REPO / "phase8a/evidence/episodes"
+    eps = sorted(tree.glob("*/episode.json"))
+    if not eps:
+        pytest.skip("arm-1 custody tree not present")
+    bad = []
+    for f in eps:
+        d = json.loads(f.read_text())
+        log = f.parent / "agentlog.sanitized.json"
+        if float(d.get("total_cost") or 0.0) <= 0.0:
+            bad.append((f.parent.name, "zero cost"))
+        elif log.is_file() and log.stat().st_size < 200:
+            bad.append((f.parent.name, f"stub log ({log.stat().st_size} B)"))
+    assert not bad, f"phantom episodes in arm-1 custody: {bad[:5]}"
+
+
+# --------------------------------------------- banking a pass exactly once, and at its true cost
+def test_the_ledger_does_not_double_count_one_passs_replaced_attempt(run_mod, tmp_path,
+                                                                     monkeypatch):
+    """A block is re-run WHOLE, so (arm, block, trial, attempt) repeats across passes and cannot say
+    whether two identical rows are two payments or one banked twice. The driver harvests after every
+    pass AND phase8a_archive_pass harvests when the pass is archived, so without a pass identity the
+    second call silently doubles the charge -- and a cap inflated by phantom spend ends the study
+    early just as surely as one deflated by missing spend lets it overrun.
+    """
+    log = tmp_path / "chain.log"
+    log.write_text('{"trial": "t_r1", "total_score": 1.0, "cost": 0.5}\n'
+                   '{"trial": "t_r1", "total_score": 0.5, "cost": 2.0}\n')
+    monkeypatch.setattr(run_mod, "ATTEMPT_LEDGER", tmp_path / "ledger.json")
+
+    first = run_mod._harvest_replaced_attempts(2, 0, "blk", "m", log, "PASS-A")
+    assert [e["cost_cny"] for e in first] == [0.5], "only the superseded attempt is banked"
+    again = run_mod._harvest_replaced_attempts(2, 0, "blk", "m", log, "PASS-A")
+    assert again == [], "the same pass must not be banked twice"
+    assert run_mod._ledger_spend("m") == 0.5
+
+    # a genuine re-run of the same block really did pay again, and must be counted
+    other = run_mod._harvest_replaced_attempts(2, 0, "blk", "m", log, "PASS-B")
+    assert [e["cost_cny"] for e in other] == [0.5]
+    assert run_mod._ledger_spend("m") == 1.0
+
+
+def test_cost_reconcile_recomputes_from_the_driver_log_not_from_an_estimate():
+    """The correction is not an estimate: every attempt's own agentlog.json survives with its usage
+    block, so the true cost is recomputed with the SAME _cost() the runner would have used had it
+    read the log at the right moment. --check must reproduce it from the artifacts on disk.
+    """
+    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_cost_reconcile.py"),
+                        "--arm", "2", "--block", "0", "--check"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert '"check": "PASS"' in r.stdout
+
+
+def test_cost_reconcile_excludes_another_passs_leftover_attempt_dirs():
+    """Run dirs are keyed by (block, condition, position, attempt) and REUSED, so globbing a block's
+    dirs also returns attempts an earlier pass left behind. Counting them would charge this pass for
+    money the archived pass already accounts for -- the same stale-artifact-at-a-reused-path fault
+    the script exists to correct. Exclusions are listed, never silently dropped.
+    """
+    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_cost_reconcile.py"),
+                        "--arm", "2", "--block", "0"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    assert r.returncode == 0, r.stdout + r.stderr
+    d = json.loads(r.stdout)
+    assert d["attempts_booked"] == d["attempts_with_a_driver_log"], \
+        "every booked attempt, and only those, must be recomputed"
+    assert d["excluded_as_another_passs_leftovers"], "the known leftover must be reported, not hidden"
+
+
+def test_a_phantom_disarms_the_transport_fault_flag(tmp_path):
+    """A pass can both survive a real 503 AND be ruined by a harness race -- this one did. Reading
+    validity off the 503 alone would file a code defect under 'the provider was flaky' and re-run
+    straight into it. `malformed_worker_result`, which the runner emits for a missing log, is
+    deliberately not a transport category: a driver that fails to deliver a result is ours to fix.
+    """
+    mod = _load(REPO / "scripts/phase8a_archive_pass.py", "p8a_archive")
+    assert not any(m in "malformed_worker_result" for m in mod.TRANSPORT_MARKERS), \
+        "a missing driver log must never read as an infrastructure fault"
+    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
+                        "--arm", "2", "--block", "0", "--require-transport-fault", "--dry-run"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    # block 00 is archived now, so there is no live state to refuse over; the guard is asserted on
+    # the recorded pass instead, which is the artifact that must keep telling the truth.
+    st = REPO / "phase8a/evidence/aborted/arm2_block00_attempt2/run_state.json"
+    if st.is_file():
+        errs, is_transport = mod._transport_evidence(json.loads(st.read_text()))
+        assert is_transport, "the 503 it survived really was a transport fault"
+    assert r.returncode in (0, 2)
+
+
+def test_arm2_block00_second_pass_is_archived_at_its_true_cost():
+    """The pass booked ¥6.069 and really cost ¥11.0465. The shortfall must be in the ledger, and the
+    original episode.json records must still say what they said -- a discrepancy you can still see
+    is worth more than a total that quietly agrees with itself.
+    """
+    arch = REPO / "phase8a/evidence/aborted/arm2_block00_attempt2"
+    if not arch.is_dir():
+        pytest.skip("arm 2 block 00 second pass has not been archived")
+    ep = json.loads((arch / "p15_eval_0004_base_r2" / "episode.json").read_text())
+    assert (ep.get("total_cost") or 0) == 0, "the original record is preserved, wrong figure included"
+    led = json.loads((REPO / "phase8a/evidence/replaced_attempt_ledger.json").read_text())
+    corr = [e for e in led["entries"] if e.get("kind") == "understated_cost_correction"
+            and e.get("arm") == 2 and e.get("block") == 0]
+    assert len(corr) == 1, "exactly one correction, or the cap is charged twice"
+    assert corr[0]["cost_cny"] == 4.9775 and corr[0]["true_cny"] == 11.0465
+    assert (arch / "ABORTED.md").is_file() and (arch / "ABORTED.zh.md").is_file()
+
+
+def test_amendment6_records_the_race_as_a_harness_fault_in_both_languages():
+    """The outage amendments blamed the provider on evidence (an unbilled endpoint was also down).
+    This one must blame us, on evidence, with the same specificity -- otherwise the record reads as
+    three provider faults in three days when the third was ours.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "5F. Amendment 6" in en and "5F. 修正案 6" in zh
+    # the cause named, not merely "a bug"
+    assert "writes its `--log` as its **last** statement" in en
+    assert "absence of evidence recorded as evidence of absence" in en
+    # the stale-log face, which drove a replacement of an attempt that had scored 1.0
+    assert "scores move under re-run" in en and "分数会在重跑下移动" in zh
+    # arm 1 cleared explicitly, since its report is already published
+    assert "216 of 216" in en and "216 个 episode 全部带有真实日志与非零成本" in zh
+
+
+def test_amendment6_fixes_the_affordability_procedure_before_the_rerun():
+    """The probe said arm 2 fits (¥36) and the one real block said it does not (¥105). The rule for
+    deciding between them has to be written down BEFORE the re-run produces the number that decides
+    it -- and it must be a rule that cannot shrink the design, only run it or not.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "frozen §2.2 formula is re-applied unchanged" in en
+    assert "**arm 2 does not run**" in en
+    assert "It can never return a smaller one." in en
+    assert "它永远不可能返回一个更小的臂" in zh
+    # cost correlates with condition here, so cost may never select instances
+    assert "no instance may ever be selected for execution on the basis of what it costs" in en
+
+
+def test_amendment6_extends_the_discard_rule_to_a_complete_but_contaminated_pass():
+    """§5B.3 covered a pass STOPPED part-way. A pass that finishes 6/6 and contains a phantom is the
+    same problem, and the extension must be stated rather than improvised at the keyboard.
+    """
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "or when it completes but contains an episode with no evidence of a model call" in en
+    assert "在完成但含有" in zh and "整体废弃" in zh
+    src = (REPO / "scripts/phase8a_archive_pass.py").read_text()
+    assert "def _phantom_episodes" in src
+    assert "Deliberately NOT score-based" in src, "the discard criterion may never read a score"

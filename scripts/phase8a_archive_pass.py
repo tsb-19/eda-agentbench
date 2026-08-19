@@ -10,9 +10,11 @@ stranding an arm mid-block, and every hand-run archive is a chance to forget one
 at which point either a phantom episode stays gradeable or paid money leaves the ledger.
 
 What it does, in order:
-  1. refuses if the pass is COMPLETE (nothing to archive) or if the fault was not an infrastructure
-     fault -- see --require-transport-fault, the discriminator that keeps this from papering over a
-     code bug;
+  1. refuses if there is nothing to archive -- a COMPLETE pass in which every episode carries
+     evidence of a model call -- or, under --require-transport-fault, if the fault was not an
+     infrastructure fault. That flag is the discriminator that keeps this from papering over a code
+     bug, and it earned its keep: it refused arm 2 block 00's second pass, which turned out to be a
+     harness race rather than an outage;
   2. moves every collected trial of the block out of the arm's custody tree;
   3. copies the run state, and renames the live one to <name>_attempt<K>.json so the report still
      counts the invalid attempts and the re-run writes a fresh state;
@@ -60,6 +62,27 @@ def _transport_evidence(state: dict):
     return errs, is_transport
 
 
+def _phantom_episodes(custody, trials):
+    """Collected episodes carrying no evidence of a model call, or a recorded error.
+
+    Deliberately NOT score-based. A pass is contaminated because an episode has no evidence behind
+    it -- zero cost, or an error the runner recorded -- and that is observable without looking at
+    what anything scored. Were the criterion a score, archiving would become a way to re-roll an
+    outcome someone did not like.
+    """
+    out = []
+    for t in trials:
+        p = custody / t / "episode.json"
+        if not p.is_file():
+            continue
+        d = json.loads(p.read_text())
+        if float(d.get("total_cost") or 0.0) <= 0.0:
+            out.append((t, "no evidence of a model call (total_cost 0)"))
+        elif d.get("error"):
+            out.append((t, str(d["error"])[:120]))
+    return out
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Archive an aborted Phase-8A block pass.")
     ap.add_argument("--arm", type=int, required=True, choices=(1, 2))
@@ -76,18 +99,6 @@ def main() -> int:
         print(json.dumps({"nothing_to_archive": str(live_state.relative_to(REPO))}))
         return 0
     state = json.loads(live_state.read_text())
-    if state.get("state") == "COMPLETE":
-        print(json.dumps({"refused": "pass is COMPLETE", "block": a.block}))
-        return 1
-
-    errs, is_transport = _transport_evidence(state)
-    if a.require_transport_fault and not is_transport:
-        print(json.dumps({"refused": "fault is not demonstrably a transport fault",
-                          "errors": errs[:4],
-                          "note": "an infrastructure fault may be archived and re-run; a harness "
-                                  "fault must be fixed. Investigate before spending again."},
-                         indent=2))
-        return 2
 
     # which attempt number this archive is
     k = 1
@@ -103,6 +114,40 @@ def main() -> int:
     block_id, slots = blocks[a.block]
     trials = [f"{s['task_id']}_r{s['rep']}" for s in slots]
     present = [t for t in trials if (custody / t / "episode.json").is_file()]
+
+    # A COMPLETE pass may still be unusable. Arm 2 block 00's second pass finished 6/6 and contained
+    # a phantom: run_single_agentic graded the workspace while the driver was still editing it, so
+    # the episode was recorded at cost 0.0 with no telemetry and the (pinned, fail-open) arbiter
+    # ACCEPTED it. §5B.3 was written for a pass STOPPED part-way and does not name this case;
+    # Amendment 6 extends it, because the reasoning is identical and here it is not hypothetical.
+    # In this very block a replacement moved a recorded score from 1.0 to 0.5, so scores demonstrably
+    # move under re-run -- which is exactly why the keep/discard boundary may not be drawn between
+    # episodes whose scores are already known. All-or-nothing, or nothing.
+    phantoms = _phantom_episodes(custody, trials)
+    if state.get("state") == "COMPLETE" and not phantoms:
+        print(json.dumps({"refused": "pass is COMPLETE and every episode carries evidence of a "
+                                     "model call — there is nothing to archive",
+                          "block": a.block}))
+        return 1
+
+    errs, is_transport = _transport_evidence(state)
+    # A phantom is NOT evidence of a transport fault, and a pass can carry both: this one survived a
+    # real 503 (correctly replaced) and was then ruined by a harness race. Reading validity off the
+    # 503 alone would file a code defect under "the provider was flaky" and re-run straight back into
+    # it -- so a phantom disarms the flag unless its OWN recorded error names a transport category.
+    # `malformed_worker_result`, which the runner now emits for a missing log, deliberately is not
+    # one of those categories: the driver failing to deliver a result is ours to fix, not theirs.
+    unexplained = [p for p in phantoms if not any(m in p[1] for m in TRANSPORT_MARKERS)]
+    if a.require_transport_fault and (not is_transport or unexplained):
+        print(json.dumps({"refused": "fault is not demonstrably a transport fault",
+                          "errors": errs[:4],
+                          "phantom_episodes": phantoms,
+                          "phantoms_not_explained_by_transport": unexplained,
+                          "note": "an infrastructure fault may be archived and re-run; a harness "
+                                  "fault must be fixed. Investigate before spending again."},
+                         indent=2))
+        return 2
+
     costs = {t: float(json.loads((custody / t / "episode.json").read_text()).get("total_cost") or 0.0)
              for t in present}
     chain_log = REPO / "runs" / "phase8a" / f"chain_a{a.arm}_b{a.block:02d}.log"
@@ -110,6 +155,7 @@ def main() -> int:
     plan = {"arm": a.arm, "block": a.block, "block_id": block_id, "attempt": k,
             "archive": str(dest.relative_to(REPO)), "episodes": len(present),
             "episode_spend_cny": round(sum(costs.values()), 4),
+            "pass_state": state.get("state"), "phantom_episodes": phantoms,
             "fault_is_transport": is_transport, "errors": errs[:3],
             "chain_log_present": chain_log.is_file()}
     print(json.dumps(plan, indent=2), flush=True)
@@ -137,13 +183,24 @@ def main() -> int:
     if len(named) != 1:
         raise SystemExit(f"phase8a_archive_pass: models_arm{a.arm}.json must hold exactly one entry")
     model_name = named[0]["name"]
+    # Idempotent by pass: the driver harvests immediately after every pass, so by the time a pass is
+    # archived its replaced attempts are normally already banked and this call adds nothing. It stays
+    # as the backstop for a pass whose driver was killed before it could harvest -- and `pass_id`
+    # (the pass's own started_at) is what keeps the backstop from becoming a double charge.
     harvested = R._harvest_replaced_attempts(a.arm, a.block, block_id, model_name,
-                                             archived_log or chain_log)
+                                             archived_log or chain_log,
+                                             str(state.get("started_at") or ""))
     replaced_cny = round(sum(e["cost_cny"] for e in harvested), 4)
 
     stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     rows = "\n".join(f"{t}/{' ' * max(1, 34 - len(t))}¥{round(costs[t], 4)}" for t in present)
-    reason = a.reason or (errs[0] if errs else "see run_state.json")
+    # When a COMPLETE pass is archived, the cause of the archive is the phantom, not whatever
+    # transport fault the pass also happened to survive. Naming the 503 here would file a harness
+    # defect under "the provider was flaky", which is the misattribution this whole record exists to
+    # prevent (docs/incident_golden_corruption.md: a monitor inherits the custody of its standard).
+    reason = a.reason or (
+        f"pass COMPLETE but contaminated: {phantoms[0][0]} — {phantoms[0][1]}" if phantoms
+        else (errs[0] if errs else "see run_state.json"))
     (dest / "ABORTED.md").write_text(f"""**English | [中文](ABORTED.zh.md)**
 
 # Aborted pass — arm {a.arm}, block {a.block:02d} (`{block_id}`), attempt {k}

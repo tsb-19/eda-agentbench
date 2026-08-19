@@ -1,6 +1,4 @@
 {
-  "schema": "phase8a_replaced_attempt_ledger/v1",
-  "note": "Cost of attempts the arbiter replaced. These episodes exist in NO custody tree -- the replacement overwrote them -- so this is the only record that the money was spent. Counts against the \u00a5200 program cap; enters no analysis, carries no score.",
   "entries": [
     {
       "arm": 2,
@@ -14,7 +12,9 @@
       "recorded_at": "2026-08-19T04:12:40Z",
       "source_log": "phase8a/evidence/aborted/arm2_block00_attempt1/chain_log_arm2_block00.log",
       "why": "superseded by a replacement; its episode.json was overwritten",
-      "reconstructed": "harvested after the fact from the archived chain log; this pass ran before the ledger existed. Every later pass is harvested by phase8a_run.py immediately after the executor returns."
+      "reconstructed": "harvested after the fact from the archived chain log; this pass ran before the ledger existed. Every later pass is harvested by phase8a_run.py immediately after the executor returns.",
+      "pass_id": "2026-08-19T03:31:01Z",
+      "pass_id_backfilled": "added after the fact from the run state whose chain log this entry names; the amount is unchanged"
     },
     {
       "arm": 2,
@@ -28,7 +28,74 @@
       "recorded_at": "2026-08-19T04:12:40Z",
       "source_log": "phase8a/evidence/aborted/arm2_block00_attempt1/chain_log_arm2_block00.log",
       "why": "superseded by a replacement; its episode.json was overwritten",
-      "reconstructed": "harvested after the fact from the archived chain log; this pass ran before the ledger existed. Every later pass is harvested by phase8a_run.py immediately after the executor returns."
+      "reconstructed": "harvested after the fact from the archived chain log; this pass ran before the ledger existed. Every later pass is harvested by phase8a_run.py immediately after the executor returns.",
+      "pass_id": "2026-08-19T03:31:01Z",
+      "pass_id_backfilled": "added after the fact from the run state whose chain log this entry names; the amount is unchanged"
+    },
+    {
+      "arm": 2,
+      "block": 0,
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "trial": "p15_eval_0004_base_r1",
+      "attempt": 1,
+      "of_attempts": 2,
+      "cost_cny": 0.5468,
+      "model_name": "deepseek-v4-pro",
+      "recorded_at": "2026-08-19T06:32:45Z",
+      "source_log": "runs/phase8a/chain_a2_b00.log",
+      "why": "superseded by a replacement; its episode.json was overwritten",
+      "pass_id": "2026-08-19T04:36:39Z",
+      "pass_id_backfilled": "added after the fact from the run state whose chain log this entry names; the amount is unchanged"
+    },
+    {
+      "kind": "understated_cost_correction",
+      "arm": 2,
+      "block": 0,
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "model_name": "deepseek-v4-pro",
+      "cost_cny": 4.9775,
+      "booked_cny": 6.069,
+      "true_cny": 11.0465,
+      "recorded_at": "2026-08-19T08:07:02Z",
+      "source": "runs/phase8a/chain_a2_b00.log",
+      "breakdown": [
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_Base_2_a1",
+          "true_cny": 2.2849,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_Base_2_a2",
+          "true_cny": 2.9422,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_Base_5_a1",
+          "true_cny": 3.2394,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_BundleS_0_a1",
+          "true_cny": 0.4673,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_BundleS_3_a1",
+          "true_cny": 0.4374,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_TypedContract_1_a1",
+          "true_cny": 0.538,
+          "note": null
+        },
+        {
+          "attempt_dir": "a2_8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR_TypedContract_4_a1",
+          "true_cny": 1.1373,
+          "note": null
+        }
+      ],
+      "why": "phase8a_episode_runner read the agent log before the driver had written it: one attempt was charged a predecessor pass's cost and one was charged nothing at all. Recomputed from each attempt's own driver log with the same _cost() the runner uses. The original episode.json records are deliberately left unchanged."
     }
   ]
 }

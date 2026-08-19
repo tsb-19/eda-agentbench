@@ -89,8 +89,23 @@ def _ledger_spend(model_name: str | None = None) -> float:
                           if model_name is None or e.get("model_name") == model_name), 4))
 
 
+def _pass_id(state_path: Path) -> str:
+    """Identity of one pass over a block: the moment chain_executor started it.
+
+    Needed because a block is re-run WHOLE on failure, so (arm, block, trial, attempt) repeats across
+    passes and cannot say whether two identical rows are two real payments or one payment banked
+    twice. The driver harvests after every pass and phase8a_archive_pass harvests again when the pass
+    is archived; without this they would double-count, and a cap inflated by phantom spend stops the
+    study early just as surely as one deflated by missing spend lets it overrun.
+    """
+    try:
+        return str(json.loads(state_path.read_text()).get("started_at") or "")
+    except Exception:  # noqa: BLE001
+        return ""
+
+
 def _harvest_replaced_attempts(arm: int, block_i: int, block_id: str, model_name: str,
-                               log_path: Path):
+                               log_path: Path, pass_id: str = ""):
     """Record the cost of every attempt superseded in the pass that just ran.
 
     chain_executor writes one `{"trial": ..., "cost": ...}` line per ATTEMPT. Grouped by trial in
@@ -124,12 +139,16 @@ def _harvest_replaced_attempts(arm: int, block_i: int, block_id: str, model_name
     except ValueError:
         src = str(log_path)
     new = []
+    already = {(e.get("arm"), e.get("block"), e.get("trial"), e.get("attempt"), e.get("pass_id"))
+               for e in _ledger_entries()}
     for t in order:
         costs = seen[t]
         for k, c in enumerate(costs[:-1], start=1):   # every attempt but the surviving one
+            if pass_id and (arm, block_i, t, k, pass_id) in already:
+                continue                              # this pass's payment is already banked
             new.append({"arm": arm, "block": block_i, "block_id": block_id, "trial": t,
                         "attempt": k, "of_attempts": len(costs), "cost_cny": c,
-                        "model_name": model_name, "recorded_at": stamp,
+                        "model_name": model_name, "recorded_at": stamp, "pass_id": pass_id,
                         "source_log": src,
                         "why": "superseded by a replacement; its episode.json was overwritten"})
     if not new:
@@ -435,7 +454,8 @@ def main() -> int:
         ran += 1
         # Before any early return below: a replaced attempt's cost must be banked even when the pass
         # then fails, because a failing pass is exactly the pass that replaced the most attempts.
-        harvested = _harvest_replaced_attempts(a.arm, i, block_id, model_name, chain_log)
+        harvested = _harvest_replaced_attempts(a.arm, i, block_id, model_name, chain_log,
+                                               _pass_id(state))
         if harvested:
             print(json.dumps({"replaced_attempt_spend_recorded": len(harvested),
                               "cny": round(sum(e["cost_cny"] for e in harvested), 4),

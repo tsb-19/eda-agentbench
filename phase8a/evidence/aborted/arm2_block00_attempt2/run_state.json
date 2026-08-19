@@ -1,0 +1,28 @@
+{
+  "state": "COMPLETE",
+  "started_at": "2026-08-19T04:36:39Z",
+  "executor_finished_at": "2026-08-19T06:32:45Z",
+  "executor_exit_code": 0,
+  "expected_primary_slots": 6,
+  "completed_primary_slots": 6,
+  "excluded_invalid_attempts": [
+    {
+      "slot": "block8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR:Base/pos2",
+      "attempt": 1,
+      "reason": "terminal_invalid_replaced",
+      "classification": {
+        "terminal_transport_valid": false,
+        "recovered_transport_degradation": true,
+        "recovered_failed_attempts": 6,
+        "recovered_hard_deadlines": 0,
+        "workspace_gradeable": true,
+        "task_wall_hard_kill": false,
+        "measurement_valid": false,
+        "classification_source": "request_telemetry",
+        "error": "RuntimeError: chat attempt failed: category=retryable_http exc=ProviderHTTPError status=503"
+      }
+    }
+  ],
+  "report_pending": true,
+  "note": "orchestration metadata only; never read by the arbiter or any membership logic"
+}
