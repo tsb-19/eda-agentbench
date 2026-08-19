@@ -62,6 +62,11 @@ def preflight_mod():
 
 
 @pytest.fixture(scope="module")
+def probe_mod():
+    return _load(REPO / "scripts/phase8a_cost_probe.py", "p8a_probe")
+
+
+@pytest.fixture(scope="module")
 def arm1():
     assert ARM1.is_file(), "generate the arm-1 schedule before running these tests"
     return json.loads(ARM1.read_text())
@@ -483,3 +488,126 @@ def test_aborted_spend_generalises_past_the_first_archived_pass(run_mod, tmp_pat
         (d / "episode.json").write_text(json.dumps({"trial": trial, "total_cost": cost}))
     monkeypatch.setattr(run_mod, "ABORTED", root)
     assert run_mod._aborted_spend() == 1.7742
+
+
+# ------------------------------------------------------------------ arm 2's cost-only gate
+@pytest.mark.parametrize("spent,rate,expected_k", [
+    (122.8175, 0.100, 6),      # 216 x 0.10 = ¥21.6 inside ¥67.18 -> full k
+    (122.8175, 0.311, 6),      # exactly at the k=6 threshold (67.1825 / 216)
+    (122.8175, 0.312, 4),      # a fen over it and k=6 is gone
+    (122.8175, 0.500, 2),      # 144 x 0.50 = ¥72 does not fit; 72 x 0.50 = ¥36 does
+    (122.8175, 1.000, None),   # nothing affordable -> arm 2 is not run
+])
+def test_cost_probe_k2_matches_the_frozen_formula(probe_mod, spent, rate, expected_k):
+    """The implementation must agree with the preregistered arithmetic, at the boundary too.
+
+    The boundary cases are the point. A gate that rounds in its own favour at r = 0.311 buys a k it
+    cannot pay for, and the failure surfaces only when the account empties mid-arm -- which is
+    exactly how arm 1 ended (prereg 5C.1).
+    """
+    k2, remaining, _ = probe_mod.k2_from(rate, spent)
+    assert k2 == expected_k
+    assert remaining == round(200.0 - spent - 10.0, 4)
+
+
+def test_cost_probe_gate_also_respects_the_hard_cap_including_its_own_spend(probe_mod):
+    """Section 2.2's formula predates the probe, so it does not subtract the probe's own money.
+    Section 2.3's ¥200 cap does cover it, so the implementation checks both and the stricter binds.
+
+    The arithmetic turns out to make that cross-check unreachable, and saying so is the point of the
+    test. The formula holds back ¥10 and section 2.2 caps the probe at ¥3, so
+    spent + probe + need <= spent + 10 + (190 - spent) = 200 always. A conflict needs probe > 10.
+    So the cross-check can never veto a legitimately-run probe -- it is belt and braces, not a second
+    opinion, and nobody should later "discover" it as dead code and delete it.
+
+    Both halves are asserted: it stays silent while the probe honours its ceiling, and it does fire
+    if the ceiling is ever breached.
+    """
+    spent, rate = 128.0, 0.4
+    # within the ¥3 ceiling: the formula alone decides, the hard cap never disagrees
+    for probe in (0.0, 1.5, 3.0, probe_mod.HOLDBACK):
+        bare, _, _ = probe_mod.k2_from(rate, spent)
+        withp, _, detail = probe_mod.k2_from(rate, spent, probe)
+        assert withp == bare == 4
+        assert all(d["fits_prereg_formula"] == d["fits_hard_200_cap"]
+                   for d in detail if d["fits_prereg_formula"])
+    # breach the ceiling and the cross-check earns its keep
+    k, _, detail = probe_mod.k2_from(rate, spent, 15.0)
+    assert k == 2, "a probe past the holdback must cost arm 2 a step of k"
+    row4 = next(d for d in detail if d["k"] == 4)
+    assert row4["fits_prereg_formula"] is True and row4["fits_hard_200_cap"] is False
+
+
+def test_cost_probe_writes_outside_the_grading_glob(probe_mod, report_mod):
+    """Probe custody must not be reachable by the analysis glob.
+
+    evidence/episodes/*/episode.json is what _collect() grades and what spend sums. Six DeepSeek
+    probe episodes landing there would enter arm 1's panel as if they were Qwen panel data -- a
+    different model, a different arm and instances the design excludes, all silently pooled.
+    """
+    probe = probe_mod.PROBE_CUSTODY.resolve()
+    graded = report_mod.EV.resolve() / "episodes"
+    assert graded not in probe.parents and probe != graded
+    assert "cost_probe" in probe.name
+
+
+def test_cost_probe_runs_only_pilot_instances(probe_mod):
+    """Belt and braces: even if a probe episode reached the grader it could not become a panel point.
+
+    Section 2 excludes p15_eval_0001..0003 from the primary analysis, and the arm-1 report lists them
+    in pilot_instances_excluded_from_primary. The probe draws from that set only.
+    """
+    pilots = {"p15_eval_0001", "p15_eval_0002", "p15_eval_0003"}
+    assert set(probe_mod.PROBE_INSTANCES) <= pilots
+    assert set(probe_mod.PROBE_INSTANCES) & set(f"p15_eval_{i:04d}" for i in range(4, 16)) == set()
+
+
+def test_cost_probe_cannot_read_a_score(probe_mod):
+    """A cost gate that can see an outcome is not a cost gate.
+
+    Asserted on the source rather than by mocking, because the guarantee is 'this code has no path to
+    a score at all', which a behavioural test on one call path would not establish.
+    """
+    src = (REPO / "scripts/phase8a_cost_probe.py").read_text()
+    for forbidden in ("total_score", "semantic_binding", "_regrade", "grade_sta_handoff"):
+        assert forbidden not in src.split('"""')[2], f"the probe must not reference {forbidden}"
+
+
+def test_cost_probe_enforces_its_own_spending_ceiling(probe_mod):
+    """Section 2.2 says the probe spends <¥3. A stated limit the code does not enforce is not one."""
+    src = (REPO / "scripts/phase8a_cost_probe.py").read_text()
+    assert "--max-probe-cny" in src and "probe_ceiling" in src
+    assert "max_probe_cny" in src
+
+
+def test_arm_selects_its_own_models_config(run_mod):
+    """--models must follow --arm, not default to arm 1's file.
+
+    Running arm 2 under models_arm1.json would resolve the runner's entry BY NAME to qwen3.7-max, so
+    the S3 arm would have measured the S2-F model while billing at Qwen's output rate. The arm is not
+    a flag anyone should have to remember to change.
+    """
+    src = RUN_SCRIPT.read_text()
+    assert 'f"phase8a/models_arm{a.arm}.json"' in src
+    assert '"--model-name", model_name' in src
+    assert '"PHASE8A_MODEL_NAME": model_name' in src
+    # and the single-entry rule must be enforced wherever the name is resolved
+    assert "must hold exactly one model entry" in src
+
+
+def test_arm2_models_config_is_single_entry_and_uses_frozen_deepseek_rates():
+    """Denominate arm 2's ledger exactly as arm 1's and the frozen 72: comparability needs one unit.
+
+    reports/evidence/*/frozen_config.json records DeepSeek-V4-Pro at input 12 / output 24 CNY per 1M.
+    Section 2.2 notes the provider may bill a cheaper tier; pinning the frozen rate means this ledger
+    can overstate real spend, which is the safe direction for a cap.
+    """
+    cfg = json.loads((REPO / "phase8a/models_arm2.json").read_text())
+    entries = [m for m in cfg["models"] if not str(m.get("name", "")).startswith("_")]
+    assert len(entries) == 1
+    e = entries[0]
+    assert e["model_id"] == "deepseek-v4-pro"
+    assert e["api_base"] == "https://tokenrhythm.studio/v1"
+    assert (e["price_in_per_m"], e["price_out_per_m"]) == (12.0, 24.0)
+    assert e["api_key_env"] in ("API_KEY", "MIMO_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
+    assert "sk-" not in json.dumps(cfg), "no credential value may be stored in a config"

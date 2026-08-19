@@ -139,7 +139,7 @@ def _telemetry_faults(slots):
     return faults
 
 
-def _env(block_file: Path):
+def _env(block_file: Path, model_name: str):
     e = dict(os.environ)
     # credential: read from .env explicitly so nothing depends on the driver's CWD
     envf = REPO / ".env"
@@ -169,7 +169,7 @@ def _env(block_file: Path):
         "EDA_BENCH_LLM_REQUEST_DEADLINE_SEC": "300",
         "EDA_BENCH_MAX_CHAT_RETRIES": RETRIES,
         "PHASE8A_SCHEDULE": str(block_file),
-        "PHASE8A_MODEL_NAME": "qwen3.7-max",
+        "PHASE8A_MODEL_NAME": model_name,
     })
     return e
 
@@ -185,9 +185,25 @@ def main() -> int:
     ap.add_argument("--per-slot", type=float, default=0.962,
                     help="projected CNY/episode for the gate (measured block-00 mean)")
     ap.add_argument("--blocks", type=int, default=None, help="run at most N blocks this invocation")
-    ap.add_argument("--models", default="phase8a/models_arm1.json")
+    # Default follows the arm rather than pinning arm 1's file. Arm 2 running under arm 1's models
+    # config would have silently billed DeepSeek episodes at Qwen's output rate and, worse, sent
+    # --model-name qwen3.7-max to a runner that resolves the entry BY NAME -- so the S3 arm would
+    # have measured the S2-F model. An arm is not a flag you remember to change.
+    ap.add_argument("--models", default=None,
+                    help="models config; defaults to phase8a/models_arm{arm}.json")
     ap.add_argument("--dry-run", action="store_true", help="plan only; make no model call")
     a = ap.parse_args()
+    if a.models is None:
+        a.models = f"phase8a/models_arm{a.arm}.json"
+
+    # The runner resolves its model entry by NAME, so the name must come from the config that is
+    # actually being used -- never from a literal in this file.
+    cfg = json.loads((REPO / a.models).read_text())
+    entries = [m for m in cfg.get("models", []) if not str(m.get("name", "")).startswith("_")]
+    if len(entries) != 1:
+        raise SystemExit(f"phase8a_run: {a.models} must hold exactly one model entry, "
+                         f"found {len(entries)} -- one slot must not fan out across models")
+    model_name = entries[0]["name"]
 
     sched_path = P8A / f"schedule_arm{a.arm}.json"
     if not sched_path.is_file():
@@ -240,7 +256,7 @@ def main() -> int:
 
         cmd = [sys.executable, str(EXECUTOR),
                "--schedule", str(bf), "--models", str(REPO / a.models), "--track", TRACK,
-               "--runner", str(EPISODE_RUNNER), "--model-name", "qwen3.7-max",
+               "--runner", str(EPISODE_RUNNER), "--model-name", model_name,
                "--results-prefix", str(REPO / "runs" / "phase8a" / f"a{a.arm}"),
                "--state", str(state), "--log", str(REPO / "runs" / "phase8a" / f"chain_b{i:02d}.log"),
                "--max-replacements", str(MAX_REPLACEMENTS), "--max-actions", str(MAX_ACTIONS),
@@ -249,7 +265,7 @@ def main() -> int:
         t0 = time.time()
         print(f"[{i + 1}/{len(blocks)}] {block_id}: {len(slots)} slots, budget left ¥{remaining}",
               flush=True)
-        rc = subprocess.run(cmd, env=_env(bf), cwd=str(REPO)).returncode
+        rc = subprocess.run(cmd, env=_env(bf, model_name), cwd=str(REPO)).returncode
         ran += 1
         print(f"[{i + 1}/{len(blocks)}] rc={rc} in {round(time.time() - t0)}s "
               f"cumulative ¥{_spent_so_far(schedule)}", flush=True)
