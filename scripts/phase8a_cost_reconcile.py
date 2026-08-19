@@ -154,8 +154,18 @@ def main() -> int:
     print(json.dumps(report, indent=2))
 
     entries = R._ledger_entries()
+    # Keyed by PASS, not by block. A block is re-run whole, so (arm, block) alone would match the
+    # correction already recorded for an earlier pass and silently skip a later pass's shortfall --
+    # the same "a re-run repeats the key" trap that made the ledger need a pass identity at all.
+    pass_id = R._pass_id(REPO / "phase8a" / "evidence"
+                         / f"run_state_arm{a.arm}_block{a.block:02d}.json")
+    if not pass_id:
+        cands = sorted((REPO / "phase8a" / "evidence").glob(
+            f"run_state_arm{a.arm}_block{a.block:02d}_attempt*.json"))
+        pass_id = R._pass_id(cands[-1]) if cands else ""
     prior = [e for e in entries
-             if e.get("kind") == KIND and e.get("arm") == a.arm and e.get("block") == a.block]
+             if e.get("kind") == KIND and e.get("arm") == a.arm and e.get("block") == a.block
+             and e.get("pass_id") == pass_id]
 
     if a.check:
         if delta <= 0:
@@ -183,6 +193,7 @@ def main() -> int:
     entries.append({
         "kind": KIND,
         "arm": a.arm, "block": a.block, "block_id": block_id, "model_name": model_name,
+        "pass_id": pass_id,
         "cost_cny": delta,
         "booked_cny": booked_total, "true_cny": true_total,
         "recorded_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
