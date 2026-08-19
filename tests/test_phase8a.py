@@ -1018,3 +1018,72 @@ def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
     assert (REPO / "phase8a/evidence/run_state_arm2_block00_attempt1.json").is_file()
     assert not (REPO / "phase8a/evidence/run_state_arm2_block00.json").exists(), \
         "the re-run must write a fresh state, not resume the aborted one"
+
+
+# ------------------------------------------- archiving an aborted pass (prereg 5B.3, automated)
+def test_archive_refuses_a_pass_whose_fault_is_not_a_transport_fault(tmp_path):
+    """The discriminator that keeps automation honest.
+
+    A telemetry stop can mean the provider died, or that something in the harness stopped calling the
+    model. Only the first is an infrastructure fault that 5B.3 lets us archive and re-run; archiving
+    the second would hide a code defect behind a ledger entry and re-run straight into it.
+    """
+    ev = REPO / "phase8a/evidence"
+    state = ev / "run_state_arm2_block07.json"
+    assert not state.exists(), "test would clobber a real run state"
+    try:
+        state.write_text(json.dumps({"state": "FAILED", "completed_primary_slots": 1,
+                                     "expected_primary_slots": 6, "executor_exit_code": 2,
+                                     "excluded_invalid_attempts": [
+                                         {"classification": {"error": "ValueError: grader crashed"}}]}))
+        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
+                            "--arm", "2", "--block", "7", "--require-transport-fault", "--dry-run"],
+                           capture_output=True, text=True, cwd=str(REPO))
+        assert r.returncode == 2, r.stdout
+        assert "not demonstrably a transport fault" in r.stdout
+
+        state.write_text(json.dumps({"state": "FAILED", "completed_primary_slots": 1,
+                                     "expected_primary_slots": 6, "executor_exit_code": 2,
+                                     "excluded_invalid_attempts": [
+                                         {"classification": {"error": "chat attempt failed: "
+                                          "category=retryable_http exc=ProviderHTTPError "
+                                          "status=503"}}]}))
+        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
+                            "--arm", "2", "--block", "7", "--require-transport-fault", "--dry-run"],
+                           capture_output=True, text=True, cwd=str(REPO))
+        assert r.returncode == 0, r.stdout
+        assert json.loads(r.stdout)["fault_is_transport"] is True
+    finally:
+        state.unlink(missing_ok=True)
+
+
+def test_archive_refuses_a_complete_pass():
+    """A COMPLETE pass is data, not a discard candidate. Archiving one would remove valid episodes
+    from the panel -- the mirror image of retrying away a valid score."""
+    ev = REPO / "phase8a/evidence"
+    state = ev / "run_state_arm2_block08.json"
+    assert not state.exists(), "test would clobber a real run state"
+    try:
+        state.write_text(json.dumps({"state": "COMPLETE", "completed_primary_slots": 6,
+                                     "expected_primary_slots": 6, "executor_exit_code": 0}))
+        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
+                            "--arm", "2", "--block", "8", "--dry-run"],
+                           capture_output=True, text=True, cwd=str(REPO))
+        assert r.returncode == 1 and "COMPLETE" in r.stdout
+    finally:
+        state.unlink(missing_ok=True)
+
+
+def test_archive_script_makes_no_model_call():
+    """It is custody plumbing. A script that could spend money while tidying up after an outage would
+    be the worst possible place for a paid call.
+
+    Checked on capability, not on vocabulary: an earlier version of this test grepped for
+    "chain_executor" and failed on the sentence explaining why a block restarts at position 0. A test
+    that a comment can break tests the comment.
+    """
+    src = (REPO / "scripts/phase8a_archive_pass.py").read_text()
+    assert "import subprocess" not in src, "the archive path cannot launch anything"
+    for forbidden in ("TR_API_KEY", "API_KEY", "api_base", "chat/completions",
+                      "EDA_BENCH_MAX_CHAT_RETRIES"):
+        assert forbidden not in src, f"{forbidden} has no business in the archive path"
