@@ -3,10 +3,10 @@
   "model_calls_made": 0,
   "metadata_listings_made": 1,
   "gates": {
-    "clean_tree": true,
+    "clean_tree": false,
     "prereg_bilingual_present": true,
     "canonical_hashes_match": true,
-    "schedule_216_balanced_reproduces": true,
+    "schedule_at_authorized_k_balanced_reproduces": true,
     "agent_facing_commands_resolve": true,
     "PT_health_fullpath": true,
     "PT_version_matches_frozen": true,
@@ -16,7 +16,9 @@
     "credential_value_available": true,
     "backend_serves_the_runner_model": true,
     "writable_runs_phase8a": true,
-    "writable_phase8a_evidence_episodes": true,
+    "writable_phase8a_evidence_episodes_arm2": true,
+    "arm_custody_holds_only_this_arms_episodes": true,
+    "arm_custody_tree_is_disjoint_from_other_arms": true,
     "hidden_evidence_isolation": true,
     "frozen_intact_frozen_membership": true,
     "frozen_intact_phase7c_study1_ledger": true,
@@ -24,19 +26,31 @@
     "frozen_intact_phase7d_semantic_proxy_gap": true,
     "frozen_intact_phase7e_answer_identifiability": true,
     "no_phase8a_artifact_under_reports": true,
-    "ALL_PASS": true
+    "ALL_PASS": false
   },
   "detail": {
-    "dirty_paths": [],
+    "arm": 2,
+    "dirty_paths": [
+      " M scripts/phase8a_preflight.py"
+    ],
     "clean_tree_exempt": [
       "phase8a/evidence/preflight.json",
       "phase8a/evidence/prerun_manifest.json"
     ],
     "prereg_sha256": {
-      "docs/phase8a_prereg.md": "bdb0513c83404688bf18208b7780a77fdc55edd1888182eb3c8618b3205ca852",
-      "docs/phase8a_prereg.zh.md": "8e0991ac74be1c71144c7cf063ec1cf23d3d46ac6dc04ba69b0a2311bb4dfa09"
+      "docs/phase8a_prereg.md": "99876049c716e2b9f454def51a06ed1ad7f500d6e740709d30573321c32ba2f0",
+      "docs/phase8a_prereg.zh.md": "a54a917df3a67e3432a5a801bea3a6fb509378293a05a6660c883e1ed22e599b"
     },
-    "schedule_sha256": "6541200c62a9090f13c19fbc1a2f69d2edac438550557736b1b602675aff072c",
+    "schedule": {
+      "path": "phase8a/evidence/schedule_arm2.json",
+      "authorized_k": 2,
+      "authority": "docs/phase8a_prereg.md section 2.2 cost gate: measured r=\u00a50.5009/episode -> k2=2",
+      "schedule_k": 2,
+      "expected_episodes": 72,
+      "schedule_episodes": 72,
+      "model_tag": "DeepSeek-V4-Pro-TR",
+      "sha256": "d82593f75ae357945a42088cd78c360d9f52220bf4484fcd9ca477643b095506"
+    },
     "run_public_resolved": "36/36",
     "PT_version": {
       "live": "S-2021.06-SP5",
@@ -45,17 +59,17 @@
     "runner_model_resolution": {
       "executor": "scripts/chain_executor.py (pinned)",
       "episode_runner": "scripts/phase8a_episode_runner.py",
-      "models_config": "phase8a/models_arm1.json",
-      "name": "qwen3.7-max",
+      "models_config": "phase8a/models_arm2.json",
+      "name": "deepseek-v4-pro",
       "api_base": "https://tokenrhythm.studio/v1",
-      "model_id": "qwen3.7-max",
+      "model_id": "deepseek-v4-pro",
       "api_key_env": "API_KEY",
       "credential_source": ".env TR_API_KEY, exported as API_KEY by phase8a_run.py",
       "temperature": 0.7,
       "max_tokens": 32000,
       "rates_cny_per_M": {
         "input": 12.0,
-        "output": 36.0
+        "output": 24.0
       },
       "transport": {
         "max_chat_retries": 6,
@@ -69,10 +83,21 @@
       "credential_present": true,
       "http": 200,
       "served": {
-        "qwen3.7-max": true
+        "deepseek-v4-pro": true
       }
     },
     "frozen_endpoint_note": "the frozen endpoint llmapi.paratera.com no longer entitles this account to these models (403); Phase-8A episodes are therefore a different measurement and are never pooled with the frozen 72 -- see docs/phase8a_prereg.md section 1.1",
+    "custody": {
+      "tree": "phase8a/evidence/episodes_arm2",
+      "expected_model_name": "deepseek-v4-pro",
+      "episodes_present": 0,
+      "foreign_episodes": [],
+      "other_arm_trees": [
+        "phase8a/evidence/episodes"
+      ],
+      "planned_trial_names_also_used_by_another_arm": 72,
+      "overlap_is_safe_because": "trial names are <task_id>_r<rep> and rep restarts at 1 per arm, so arm 2's k=2 names are a subset of arm 1's k=6 names. Sharing one tree would have overwritten them; the trees are disjoint, so the overlap is inert. Never 'fix' this by renaming trials -- arm 1's tree is already written and its names are recorded in its committed report."
+    },
     "phase8a_strays_under_reports": []
   }
 }

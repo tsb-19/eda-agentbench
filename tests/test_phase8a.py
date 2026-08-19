@@ -840,3 +840,27 @@ def test_amendment4_states_that_k2_costs_the_arm_its_resolution():
     assert "not a powered test" in en
     assert "0, 0.5 or 1" in en and "0、0.5 或 1" in zh
     assert "last unfilled cell" in en and "尚未填写" in zh
+
+
+def test_the_custody_gate_checks_separation_not_name_uniqueness(preflight_mod):
+    """A first attempt at this gate asserted that arm 2's planned trial names appear under no other
+    arm's tree. That can never hold: `rep` restarts at 1 per arm, so arm 2's k=2 names are a SUBSET
+    of arm 1's k=6 names -- all 72 of them. The overlap is the hazard, and disjoint trees are what
+    make it inert. A gate that demands unique names would either block arm 2 forever or invite
+    someone to rename trials that arm 1 has already written and reported.
+    """
+    src = (REPO / "scripts/phase8a_preflight.py").read_text()
+    assert "arm_custody_tree_is_disjoint_from_other_arms" in src
+    assert "planned_trials_collide_with_no_other_arm" not in src
+
+    pf = REPO / "phase8a/evidence/preflight.json"
+    if not pf.is_file():
+        pytest.skip("preflight has not run")
+    d = json.loads(pf.read_text())
+    if d.get("detail", {}).get("arm") != 2:
+        pytest.skip("last preflight was not arm 2")
+    c = d["detail"]["custody"]
+    assert c["planned_trial_names_also_used_by_another_arm"] == 72, \
+        "the overlap is expected; if it ever reaches 0 the trees or the naming changed"
+    assert d["gates"]["arm_custody_tree_is_disjoint_from_other_arms"] is True
+    assert d["gates"]["arm_custody_holds_only_this_arms_episodes"] is True

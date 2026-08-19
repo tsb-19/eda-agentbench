@@ -370,14 +370,27 @@ def main() -> int:
     detail["custody"] = {"tree": str(custody.relative_to(REPO)), "expected_model_name": want_model,
                          "episodes_present": len(list(custody.glob("*/episode.json"))),
                          "foreign_episodes": foreign[:10]}
-    # A second, independent statement of the same property: the names this arm WILL write must not
-    # already exist under another arm's tree. Checked against the schedule rather than inferred.
+    # The property that actually protects the data is TREE SEPARATION, not name uniqueness. The
+    # planned names DO collide with arm 1's -- all 72 of them -- because `rep` restarts at 1 in every
+    # arm. That overlap is the hazard; separate trees are what neutralise it. So the gate checks that
+    # this arm's tree is disjoint from every other arm's (neither equal to, nor nested inside, nor
+    # containing one), and the overlap count is reported as detail so the reason the separation is
+    # load-bearing stays visible instead of looking like an arbitrary directory convention.
     other = sorted(d for d in (REPO / "phase8a" / "evidence").glob("episodes*")
-                   if d.is_dir() and d != custody)
+                   if d.is_dir() and d.resolve() != custody.resolve())
+    cr = custody.resolve()
+    disjoint = all(o.resolve() != cr and cr not in o.resolve().parents
+                   and o.resolve() not in cr.parents for o in other)
+    gates["arm_custody_tree_is_disjoint_from_other_arms"] = disjoint
     planned = {f"{sl['task_id']}_r{sl['rep']}" for sl in sd.get("frozen_execution_order", [])}
-    collide = sorted({f"{o.name}/{n}" for o in other for n in planned if (o / n).is_dir()})
-    gates["planned_trials_collide_with_no_other_arm"] = (collide == [])
-    detail["custody"]["would_overwrite"] = collide[:10]
+    overlap = sorted({n for o in other for n in planned if (o / n).is_dir()})
+    detail["custody"]["other_arm_trees"] = [str(o.relative_to(REPO)) for o in other]
+    detail["custody"]["planned_trial_names_also_used_by_another_arm"] = len(overlap)
+    detail["custody"]["overlap_is_safe_because"] = (
+        "trial names are <task_id>_r<rep> and rep restarts at 1 per arm, so arm 2's k=2 names are a "
+        "subset of arm 1's k=6 names. Sharing one tree would have overwritten them; the trees are "
+        "disjoint, so the overlap is inert. Never 'fix' this by renaming trials -- arm 1's tree is "
+        "already written and its names are recorded in its committed report.")
 
     # 9. hidden-evidence isolation
     t = subprocess.run([sys.executable, "-m", "pytest",
