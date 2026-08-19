@@ -386,6 +386,86 @@ plus ¥0.5597 + ¥7.2848 archived, = **¥35.9287** — unchanged by the move.
 Because the backend is purchasable again, §2.2's cost-only gate on arm 2 becomes live again once arm
 1 finishes. It is evaluated then, on cost alone, and reported however it resolves.
 
+## 5D. Amendment 4 (2026-08-19, before arm 2's first analysed episode)
+
+**Nothing in the design changes.** Instances, conditions, blocking, analysis unit, statistical
+hierarchy, episode parameters, transport settings and the ¥200 cap are exactly as §2 states them.
+What is recorded here is the outcome of §2.2's cost gate, one deviation, and three defects found and
+fixed before arm 2 could spend anything.
+
+### 5D.1 The gate ran, and it returned k2 = 2
+
+The 6-episode probe (`p15_eval_0001`, `p15_eval_0002`, all three conditions each, pilots only)
+measured **r = ¥0.5009/episode** for `deepseek-v4-pro`. §2.2's formula, applied verbatim:
+
+| k | episodes | 12·3·k·r | ≤ ¥67.1825 remaining? |
+|---|---|---|---|
+| 6 | 216 | ¥108.1944 | no |
+| 4 | 144 | ¥72.1296 | **no, by ¥4.95** |
+| 2 | 72 | ¥36.0648 | yes |
+
+**k2 = 2. Arm 2 runs at k=2**, 72 episodes, projected ¥36.06 against ¥74.18 of headroom.
+
+k=4 deserves its own sentence, because it is the rung where a preregistration either binds or does
+not. It fits under the hard ¥200 cap (projected total ¥197.95) and fails only §2.2's formula, which
+reserves ¥10 for replacements. Spending that holdback would have bought k=4 outright. It was not
+spent. A gate that yields to a ¥4.95 shortfall is not a gate, and the whole reason k2 was made a
+function of a measured quantity was so that this decision would not be mine to make after seeing how
+close it came.
+
+### 5D.2 The probe overran its own ceiling by ¥0.0054
+
+§2.2 says the probe spends `<¥3`. It spent **¥3.0054** — 0.18% over. The ceiling is checked *between*
+blocks, so a block already in flight cannot be stopped: block 1 ended at ¥1.3626, under the limit,
+which authorised block 2, and block 2 cost ¥1.6428. A between-block check can always overshoot by up
+to one block's cost; per-episode granularity or a ¥2 trigger would have held, and neither was in
+place. It changes no decision (the hard-cap total moves from ¥161.882 to ¥161.888) and it is recorded
+as a deviation rather than rounded to the stated figure. The gate's own output carries
+`"within_ceiling": false`.
+
+### 5D.3 What k=2 costs this arm, stated plainly
+
+Phase-8A exists because Phase-7A ran at k=2, where a per-instance rate can only be 0, 0.5 or 1 — the
+coarseness that produced 6 floor instances, 1 ceiling instance and only 5 informative contrasts.
+**Arm 2 at k=2 returns to exactly that granularity.** It is therefore not a powered test of anything
+and will not be reported as one. It is the last unfilled cell of the preregistered scope — one
+prospective panel on a second model — and its result is descriptive at that resolution whether it
+comes out positive, negative or mixed. §3's limits apply to it unchanged and with more force.
+
+### 5D.4 Three defects fixed before arm 2's first episode
+
+None of these had produced a wrong number yet; all three were on the path arm 2 was about to take.
+
+1. **The k ladder below 6 was not executable.** `phase8a_schedule.py` refused any k not divisible by
+   3, so k=4 and k=2 — two of §2.2's three preregistered values — could never have been generated. The
+   guard's stated reason ("position balance is defined over thirds") was also wrong: blocks are `reps`
+   concatenated permutations, so every consecutive *triple* is a permutation at any k, and the
+   per-third count is implied whenever k is divisible by 3. The guard now admits exactly the
+   preregistered ladder {6, 4, 2} and nothing else — tighter than before, since it previously waved
+   through k=3 and k=9. Arm 1's committed schedule still reproduces byte-for-byte.
+
+2. **Arm 2 would have overwritten 72 of arm 1's 216 episodes.** A trial directory is
+   `<task_id>_r<rep>` and `rep` restarts at 1 in each arm, so arm 2 at k=2 generates precisely the 72
+   names arm 1 wrote at reps 1–2. Both arms wrote `phase8a/evidence/episodes/`. Arm 2 would have
+   replaced a third of arm 1's panel with a different model's episodes, and `phase8a_report.py`'s
+   single `episodes/*/episode.json` glob would have graded the mixture as one arm — **§1.1's "a
+   different backend is a different measurement, never pooled" broken by filename rather than by
+   argument, with a report that still looked normal.** Arms now write separate trees; preflight
+   proves the property by reading each episode's own `model_name` rather than trusting its path, and
+   separately checks that the names an arm is about to write exist under no other arm.
+
+3. **The cap was a flag rather than a property.** `--budget` defaulted to ¥200 while the spend it is
+   compared against counts only the invoking arm's own episodes. For arm 1, the only spender, those
+   were the same number. For arm 2 they differ by everything already paid, so the default would have
+   authorised a second ¥200 on top of the first. The default is now `200 −` all other Phase-8A spend,
+   which is ¥74.1771 for arm 2 and includes the cost probe: the probe's custody sits outside the
+   *grading* glob so it can never become a panel point, but it must sit inside the *spend* glob, or
+   the cap silently grows by whatever it cost.
+
+Defects 2 and 3 are the same mistake in two places — an arm-scoped quantity written as a global — and
+so is the `--models` default corrected earlier. That is worth naming: the failure mode of adding a
+second arm is not new logic, it is old logic that silently assumed there was only ever one.
+
 ## 6. Execution order
 
 1. Freeze commit: this document, the schedules, the scripts and their tests, on a clean tree.

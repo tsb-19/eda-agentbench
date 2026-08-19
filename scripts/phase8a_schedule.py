@@ -47,6 +47,18 @@ CONDITIONS = ["Base", "BundleS", "TypedContract"]
 TRACK = "p15_sta_handoff"
 SEED_BASE = 20260817
 GROUP = len(CONDITIONS)  # 3 -- one full permutation per group
+# The preregistered k ladder, docs/phase8a_prereg.md section 2.2. k is fixed ONCE per arm before that
+# arm's first paid episode: arm 1 at 6, arm 2 at whatever the cost gate returns from this set.
+#
+# This replaces an earlier `reps % 3 == 0` guard whose stated reason -- "position balance is defined
+# over thirds" -- was wrong in both directions. Blocks are built as `reps` concatenated permutations,
+# so EVERY consecutive triple is a permutation; that is the finer property and it holds for any reps.
+# The per-third count is implied by it whenever reps % 3 == 0, and is the only part needing
+# divisibility. So the old guard refused k=4 and k=2 -- two of the three preregistered values, which
+# is why the ladder below 6 had never once been generated -- while admitting k=3 and k=9, which were
+# never preregistered at all. Constraining k to the ladder is strictly tighter for the values that
+# matter and makes an adaptive k unrepresentable rather than merely forbidden in prose.
+PREREG_K = (6, 4, 2)
 
 
 def _templates():
@@ -95,8 +107,9 @@ def _head():
 
 
 def build(model: str, reps: int, arm: int):
-    if reps % GROUP:
-        raise SystemExit(f"--reps must be a multiple of {GROUP} for position balance, got {reps}")
+    if reps not in PREREG_K:
+        raise SystemExit(f"--reps must be one of the preregistered k values {PREREG_K}, got {reps}; "
+                         f"k is chosen before an arm's first paid episode, never after seeing one")
     rng = random.Random(SEED_BASE + arm)
     flat, n_balanced, blocks = [], 0, 0
     for tid, *_ in SPECS.STA12_SPECS:
@@ -116,9 +129,12 @@ def build(model: str, reps: int, arm: int):
         "blocks": blocks,
         "episodes": len(flat),
         "episodes_per_block": reps * GROUP,
-        "method": "seeded blocked randomization; each block is `reps` concatenated permutations of "
-                  "the 3 conditions, so every condition appears exactly once per consecutive triple "
-                  "and exactly reps/3 times in each third of the block",
+        # The per-third clause is only TRUE when reps is divisible by 3, so it is only claimed then.
+        # For reps=6 this reproduces the arm-1 string byte-for-byte, which --check requires.
+        "method": ("seeded blocked randomization; each block is `reps` concatenated permutations of "
+                   "the 3 conditions, so every condition appears exactly once per consecutive triple"
+                   + (" and exactly reps/3 times in each third of the block"
+                      if reps % GROUP == 0 else "")),
         "position_balance_all_blocks": (n_balanced == blocks),
         "code_commit_at_freeze_base": _head(),
         "analysis_unit": "task instance (n=12); repetitions nested; paired Base/BundleS/"

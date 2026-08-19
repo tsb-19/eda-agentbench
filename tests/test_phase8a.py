@@ -117,10 +117,54 @@ def test_every_block_is_position_balanced(arm1):
         assert [s["position_in_block"] for s in slots] == list(range(18))
 
 
-def test_reps_must_be_divisible_by_three(sched_mod):
-    """Position balance is defined over thirds; k=5 cannot be balanced and must be refused."""
+@pytest.mark.parametrize("bad", [5, 3, 1, 0, 7])
+def test_reps_must_be_a_preregistered_k(sched_mod, bad):
+    """k must come from the prereg's ladder {6,4,2}, not merely be divisible by 3.
+
+    The predecessor of this test asserted `reps % 3 == 0` and justified it as "position balance is
+    defined over thirds". That reason was false: a block is `reps` concatenated permutations, so every
+    consecutive TRIPLE is a permutation for any reps, and k=5 is balanced in that sense. The guard's
+    real effect was to refuse k=4 and k=2 -- two of the three preregistered values -- while waving
+    through k=3 and k=9, which were never preregistered. Tying the guard to the ladder refuses more,
+    not less, and makes an adaptive k impossible to express rather than only forbidden in prose.
+    """
     with pytest.raises(SystemExit):
-        sched_mod.build("Qwen3.7-Max-TR", 5, 1)
+        sched_mod.build("Qwen3.7-Max-TR", bad, 1)
+
+
+@pytest.mark.parametrize("k", [6, 4, 2])
+def test_every_preregistered_k_generates_a_balanced_schedule(sched_mod, k):
+    """All three rungs of the ladder must be executable BEFORE the cost gate picks one.
+
+    Arm 1 ran at k=6, so k=4 and k=2 were never generated and their refusal stayed invisible until
+    the arm-2 gate returned k=2. A preregistered contingency that the code cannot build is not a
+    contingency. This test exercises every rung so the next one is never discovered at execution time.
+    """
+    m = sched_mod.build("DeepSeek-V4-Pro-TR", k, 2)
+    assert m["position_balance_all_blocks"] is True
+    assert m["blocks"] == 12 and m["episodes"] == 12 * 3 * k
+    assert m["episodes_per_block"] == 3 * k
+    # Position balance, re-derived here rather than trusted from the flag the generator set.
+    for bid in {s["block_id"] for s in m["flat"]}:
+        conds = [s["condition"] for s in m["flat"] if s["block_id"] == bid]
+        assert len(conds) == 3 * k
+        for g in range(k):                       # every consecutive triple is a full permutation
+            assert sorted(conds[g * 3:(g + 1) * 3]) == sorted(sched_mod.CONDITIONS)
+        for c in sched_mod.CONDITIONS:           # hence equal totals
+            assert conds.count(c) == k
+
+
+def test_the_per_third_claim_is_only_made_when_it_is_true(sched_mod):
+    """The `method` string is part of the frozen record, so it may not assert a false property.
+
+    'exactly reps/3 times in each third' is meaningless at k=2 and k=4. It must appear at k=6 (where
+    arm 1's committed schedule already carries it, and --check would fail if it moved) and vanish
+    below."""
+    assert "each third" in sched_mod.build("Qwen3.7-Max-TR", 6, 1)["method"]
+    for k in (4, 2):
+        m = sched_mod.build("DeepSeek-V4-Pro-TR", k, 2)
+        assert "each third" not in m["method"]
+        assert "once per consecutive triple" in m["method"]
 
 
 def test_schedule_is_deterministic_and_reproduces(sched_mod, arm1):
@@ -194,7 +238,6 @@ def test_incomplete_block_state_is_not_treated_as_done(run_mod, tmp_path):
 
 def test_spend_accumulates_from_per_episode_custody(run_mod, monkeypatch, tmp_path):
     """Spend is summed from the per-episode records, not from a runner's self-report."""
-    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path)
     # Isolate the scheduled-slot sum from the archived-pass sum, which this asserts nothing about;
     # test_aborted_attempt_spend_still_counts_against_the_cap covers the two together. Without this
     # the assertion silently tracks whatever aborted passes happen to exist in the real evidence tree.
@@ -207,7 +250,7 @@ def test_spend_accumulates_from_per_episode_custody(run_mod, monkeypatch, tmp_pa
         (d / "episode.json").write_text(json.dumps(
             {"trial": d.name, "total_cost": amt,
              "custody": {"agentlog.sanitized.json": "h"}}))
-    assert run_mod._spent_so_far({"frozen_execution_order": slots}) == 1.88
+    assert run_mod._spent_so_far({"frozen_execution_order": slots}, tmp_path, "qwen3.7-max") == 1.88
 
 
 # ------------------------------------------------------------------ the budget rule
@@ -291,7 +334,11 @@ def test_frozen_membership_baseline_is_unchanged():
 
 
 def test_phase8a_outputs_are_declared_outside_reports(report_mod, sched_mod):
-    for p in (report_mod.OUT_JSON, report_mod.OUT_MD, report_mod.EV, sched_mod.OUT):
+    paths = [sched_mod.OUT]
+    for arm in (1, 2):                      # every arm's outputs, not just the one that ran first
+        paths.extend(report_mod._out(arm))
+        paths.append(report_mod._ev(arm))
+    for p in paths:
         assert "phase8a" in str(p)
         assert f"{REPO}/reports" not in str(p)
 
@@ -301,18 +348,17 @@ def test_run_driver_flags_episodes_with_no_model_call(run_mod, monkeypatch, tmp_
     """The smoke-test finding: when the driver refuses to start, the untouched workspace still
     grades and the arbiter's no-telemetry fallback reports measurement_valid=true. Such an episode
     must abort the run, not join the panel."""
-    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path)
     slots = [{"task_id": "p15_eval_0004_base", "rep": 1},
              {"task_id": "p15_eval_0004_bundles", "rep": 1}]
     ok = tmp_path / "p15_eval_0004_base_r1"; ok.mkdir()
     (ok / "episode.json").write_text(json.dumps(
         {"trial": ok.name, "total_cost": 0.61, "custody": {"agentlog.sanitized.json": "h"}}))
-    assert run_mod._telemetry_faults(slots[:1]) == []
+    assert run_mod._telemetry_faults(slots[:1], tmp_path) == []
 
     dead = tmp_path / "p15_eval_0004_bundles_r1"; dead.mkdir()
     (dead / "episode.json").write_text(json.dumps(
         {"trial": dead.name, "total_cost": 0.0, "custody": {"result.json": "h"}}))
-    faults = run_mod._telemetry_faults(slots)
+    faults = run_mod._telemetry_faults(slots, tmp_path)
     assert len(faults) == 1
     assert faults[0].startswith("p15_eval_0004_bundles_r1")
     assert "total_cost=0.0" in faults[0] and "no agentlog custody" in faults[0]
@@ -331,17 +377,18 @@ def test_aborted_attempt_spend_still_counts_against_the_cap(run_mod, report_mod,
     for mod, root in ((run_mod, tmp_path / "run"), (report_mod, tmp_path / "rep")):
         ab = root / "aborted" / "block01_attempt1" / "p15_eval_0005_typedcontract_r1"
         ab.mkdir(parents=True)
-        (ab / "episode.json").write_text(json.dumps({"trial": ab.name, "total_cost": 0.5597}))
+        (ab / "episode.json").write_text(json.dumps({"trial": ab.name, "total_cost": 0.5597,
+                                                     "model_name": "qwen3.7-max"}))
         monkeypatch.setattr(mod, "ABORTED", root / "aborted")
-        assert mod._aborted_spend() == 0.5597
+        assert mod._aborted_spend("qwen3.7-max") == 0.5597
 
-    monkeypatch.setattr(run_mod, "CUSTODY", tmp_path / "cust")
     (tmp_path / "cust" / "p15_eval_0006_base_r1").mkdir(parents=True)
     (tmp_path / "cust" / "p15_eval_0006_base_r1" / "episode.json").write_text(
         json.dumps({"trial": "p15_eval_0006_base_r1", "total_cost": 1.0}))
     monkeypatch.setattr(run_mod, "ABORTED", tmp_path / "run" / "aborted")
     slots = [{"task_id": "p15_eval_0006_base", "rep": 1}]
-    assert run_mod._spent_so_far({"frozen_execution_order": slots}) == 1.5597
+    assert run_mod._spent_so_far({"frozen_execution_order": slots},
+                                 tmp_path / "cust", "qwen3.7-max") == 1.5597
 
 
 def test_aborted_archive_is_never_graded(report_mod):
@@ -352,9 +399,11 @@ def test_aborted_archive_is_never_graded(report_mod):
     appear twice, once from the aborted pass and once from the re-run.
     """
     assert report_mod.ABORTED.name == "aborted"
-    assert report_mod.ABORTED.parent == report_mod.EV.parent
-    assert report_mod.ABORTED != report_mod.EV
-    assert report_mod.ABORTED not in report_mod.EV.parents
+    for arm in (1, 2):                      # true for every arm's tree, not only arm 1's
+        ev = report_mod._ev(arm)
+        assert report_mod.ABORTED.parent == ev.parent
+        assert report_mod.ABORTED != ev
+        assert report_mod.ABORTED not in ev.parents
 
 
 def test_report_excludes_untelemetered_episodes_from_grading(report_mod):
@@ -411,6 +460,7 @@ def test_amendments_are_appended_never_folded_into_the_design(doc):
     assert "Amendment 1" in txt or "修正案 1" in txt
     assert "Amendment 2" in txt or "修正案 2" in txt
     assert "Amendment 3" in txt or "修正案 3" in txt
+    assert "Amendment 4" in txt or "修正案 4" in txt
     assert "k = 6" in txt or "k = 6" in txt.replace("k=6", "k = 6")
 
 
@@ -546,8 +596,13 @@ def test_cost_probe_writes_outside_the_grading_glob(probe_mod, report_mod):
     different model, a different arm and instances the design excludes, all silently pooled.
     """
     probe = probe_mod.PROBE_CUSTODY.resolve()
-    graded = report_mod.EV.resolve() / "episodes"
-    assert graded not in probe.parents and probe != graded
+    # Every arm's grading tree, and the real one: the predecessor of this line built
+    # `EV / "episodes"` -- i.e. evidence/episodes/episodes, a path that has never existed -- so the
+    # containment assertion below could not fail no matter where the probe wrote.
+    for arm in (1, 2):
+        graded = report_mod._ev(arm).resolve()
+        assert graded.name in ("episodes", f"episodes_arm{arm}")
+        assert graded not in probe.parents and probe != graded
     assert "cost_probe" in probe.name
 
 
@@ -611,3 +666,177 @@ def test_arm2_models_config_is_single_entry_and_uses_frozen_deepseek_rates():
     assert (e["price_in_per_m"], e["price_out_per_m"]) == (12.0, 24.0)
     assert e["api_key_env"] in ("API_KEY", "MIMO_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
     assert "sk-" not in json.dumps(cfg), "no credential value may be stored in a config"
+
+
+# ------------------------------------------------------------- arms are separate measurements
+def test_arms_write_to_separate_custody_trees(run_mod, report_mod):
+    """The runner and the grader must agree, per arm, on where episodes live.
+
+    If they ever disagree, the driver's budget gate reads one tree while the report grades another --
+    a study that spends against one ledger and reports from a different one.
+    """
+    for arm in (1, 2):
+        assert run_mod._custody(arm) == report_mod._ev(arm)
+    assert run_mod._custody(1) != run_mod._custody(2)
+    assert run_mod._custody(1).name == "episodes", "arm 1's tree must not move; it is already written"
+
+
+def test_arm2_trial_names_would_have_overwritten_arm1(run_mod):
+    """The hazard that made separate trees necessary, asserted rather than described.
+
+    A trial directory is `<task_id>_r<rep>` and `rep` restarts at 1 in every arm. Arm 1 ran k=6 and
+    wrote reps 1..6; arm 2 runs k=2 and writes reps 1..2 -- the SAME 72 names. In one shared tree,
+    arm 2 would have silently overwritten 72 of arm 1's 216 episodes with a different model's, and
+    phase8a_report.py's single `episodes/*/episode.json` glob would have graded the mixture as one
+    arm. The prereg's "different backend is a different measurement, never pooled" rule would have
+    been broken by filename rather than by argument.
+
+    This test is deliberately phrased as "the names DO collide", so it keeps passing (and keeps
+    documenting the reason) as long as the two trees stay apart.
+    """
+    a1 = json.loads((REPO / "phase8a/evidence/schedule_arm1.json").read_text())
+    a2p = REPO / "phase8a/evidence/schedule_arm2.json"
+    if not a2p.is_file():
+        pytest.skip("arm-2 schedule not generated yet")
+    a2 = json.loads(a2p.read_text())
+    n1 = {f"{s['task_id']}_r{s['rep']}" for s in a1["flat"]}
+    n2 = {f"{s['task_id']}_r{s['rep']}" for s in a2["flat"]}
+    assert n2 <= n1, "every arm-2 trial name is also an arm-1 trial name"
+    assert len(n2) == 72
+    # ... which is harmless ONLY because the trees are different.
+    assert run_mod._custody(1) != run_mod._custody(2)
+
+
+def test_aborted_spend_is_attributed_to_the_arm_that_paid_it(run_mod, report_mod, tmp_path,
+                                                             monkeypatch):
+    """An arm may not inherit another arm's discarded spend.
+
+    Attribution is by the episode's own `model_name`, not by where the archive directory sits: a
+    path is a weaker key than the record of which model was actually billed.
+    """
+    arch = tmp_path / "aborted"
+    for name, model, cost in (("p0/t1", "qwen3.7-max", 1.5), ("p0/t2", "deepseek-v4-pro", 2.25),
+                              ("p1/t3", "qwen3.7-max", 0.25)):
+        d = arch / name
+        d.mkdir(parents=True)
+        (d / "episode.json").write_text(json.dumps({"model_name": model, "total_cost": cost}))
+    monkeypatch.setattr(run_mod, "ABORTED", arch)
+    monkeypatch.setattr(report_mod, "ABORTED", arch)
+    for mod in (run_mod, report_mod):
+        assert mod._aborted_spend("qwen3.7-max") == 1.75
+        assert mod._aborted_spend("deepseek-v4-pro") == 2.25
+    assert run_mod._aborted_spend(None) == 4.0, "no model filter still totals the whole archive"
+
+
+def test_budget_default_is_the_arm_share_not_the_whole_cap(run_mod):
+    """¥200 is the PROGRAM's cap, and _spent_so_far counts only the arm's own episodes.
+
+    Defaulting --budget to 200 for arm 2 would therefore have authorised a second ¥200 on top of
+    everything arm 1 and the cost probe already spent. The cap belongs to the program.
+    """
+    assert run_mod.PROGRAM_CAP == 200.0
+    spend = run_mod._program_spend()
+    assert spend > 0, "phase8a has spent real money; a zero here means the glob stopped matching"
+    r = subprocess.run([sys.executable, str(RUN_SCRIPT), "--arm", "2", "--dry-run"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    assert r.returncode == 0, r.stderr
+    d = json.loads(r.stdout)
+    assert d["program_cap_cny"] == 200.0
+    assert d["budget_cny"] < 100.0, "arm 2 may not be handed the whole cap again"
+    assert round(d["budget_cny"] + d["spent_by_the_rest_of_phase8a_cny"], 4) == 200.0
+
+
+def test_program_spend_counts_the_cost_probe(run_mod):
+    """The probe's custody sits OUTSIDE the grading glob so it can never become a panel point.
+
+    It must nonetheless sit INSIDE the spend glob: money paid is money paid (prereg 5B.3 rule 3), and
+    a probe excluded from the ledger would quietly enlarge the cap by whatever it cost.
+    """
+    probe = REPO / "phase8a/evidence/cost_probe_arm2"
+    if not probe.is_dir():
+        pytest.skip("cost probe has not run")
+    probe_total = round(sum(json.loads(f.read_text()).get("total_cost") or 0.0
+                            for f in probe.glob("*/episode.json")), 4)
+    assert probe_total > 0
+    r = subprocess.run([sys.executable, str(RUN_SCRIPT), "--arm", "1", "--dry-run"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    # From arm 1's point of view the probe is "the rest of Phase-8A", and it must appear there.
+    assert json.loads(r.stdout)["spent_by_the_rest_of_phase8a_cny"] == probe_total
+
+
+def test_report_states_and_outputs_are_arm_scoped(report_mod):
+    """Arm 2's report may not charge itself arm 1's invalid attempts, nor overwrite arm 1's file."""
+    assert report_mod._out(1)[0].name == "phase8a_sta_report.json"
+    assert report_mod._out(2)[0].name == "phase8a_sta_report_arm2.json"
+    assert report_mod._out(1)[0] != report_mod._out(2)[0]
+    s1 = {p.name for p in report_mod._states(1)}
+    s2 = {p.name for p in report_mod._states(2)}
+    assert s1 and all(n.startswith("run_state_arm1") for n in s1)
+    assert not (s1 & s2)
+
+
+def test_preflight_reads_k_from_the_cost_gate_and_fails_closed(preflight_mod, tmp_path,
+                                                               monkeypatch):
+    """Arm 1's k is in the prereg text; arm 2's is only knowable from the measured probe.
+
+    Reading it from the gate's own output is what makes "no adaptive k" checkable: a schedule built
+    at any other k cannot pass preflight. With no gate output there is no authority, so arm 2 must be
+    refused rather than defaulted.
+    """
+    k, src = preflight_mod._authorized_k(1)
+    assert k == 6 and "prereg" in src
+
+    gate = preflight_mod._cost_gate_path()
+    if gate.is_file():
+        k2, src2 = preflight_mod._authorized_k(2)
+        assert k2 == json.loads(gate.read_text())["k2"]
+        assert k2 in (6, 4, 2), "k2 must come from the preregistered ladder"
+        assert "cost gate" in src2
+
+    monkeypatch.setattr(preflight_mod, "REPO", tmp_path)   # no gate output at all
+    k3, src3 = preflight_mod._authorized_k(2)
+    assert k3 is None and "MISSING" in src3
+
+
+def test_preflight_is_arm_aware_in_every_path_that_names_an_arm(preflight_mod):
+    """One forgotten literal is enough to preflight arm 1 while running arm 2."""
+    src = (REPO / "scripts/phase8a_preflight.py").read_text()
+    assert "ARM_MODELS_FMT" in src and "models_arm1.json" not in src.split("phase8a/README.md")[-1]
+    assert preflight_mod.ARM_MODEL_TAG == {1: "Qwen3.7-Max-TR", 2: "DeepSeek-V4-Pro-TR"}
+    assert preflight_mod.ARM_MODEL_NAME == {1: "qwen3.7-max", 2: "deepseek-v4-pro"}
+
+
+def test_amendment4_records_the_gate_outcome_and_the_ceiling_overrun(probe_mod):
+    """The amendment must agree with the gate's machine-readable output, in both languages.
+
+    Prose in this repository is hard-wrapped, so claims are matched against whitespace-normalised
+    text: a statement must not pass or fail on where a line break happens to land.
+    """
+    gate = probe_mod.REPO / "phase8a" / "reports" / "phase8a_arm2_cost_gate.json"
+    if not gate.is_file():
+        pytest.skip("cost gate has not run")
+    g = json.loads(gate.read_text())
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+
+    assert g["k2"] == 2
+    assert str(g["probe"]["measured_rate_cny_per_episode"]) in en
+    assert str(g["probe"]["spend_cny"]) in en and str(g["probe"]["spend_cny"]) in zh
+    # The overrun is recorded as a deviation, not rounded away to the stated "<¥3".
+    assert g["probe"]["within_ceiling"] is False
+    assert "within_ceiling" in en and "0.0054" in en and "0.0054" in zh
+    # k=4's near-miss is named, and the holdback was not spent to reach it.
+    assert "4.95" in en and "4.95" in zh
+    for k in g["arithmetic"]["candidates"]:
+        if k["k"] == 4:
+            assert k["fits_hard_200_cap"] is True and k["fits_prereg_formula"] is False
+
+
+def test_amendment4_states_that_k2_costs_the_arm_its_resolution():
+    """k=2 is the granularity Phase-8A existed to escape. The record must say so before the run,
+    not discover it in the discussion afterwards."""
+    en = " ".join(PREREG.read_text().split())
+    zh = " ".join(PREREG_ZH.read_text().split())
+    assert "not a powered test" in en
+    assert "0, 0.5 or 1" in en and "0、0.5 或 1" in zh
+    assert "last unfilled cell" in en and "尚未填写" in zh

@@ -1,0 +1,56 @@
+{
+  "schema": "phase8a_arm2_cost_gate/v1",
+  "preregistration": "docs/phase8a_prereg.md \u00a72.2",
+  "gate_reads": "cost only -- no score, rate, contrast or any analysis output",
+  "probe": {
+    "episodes": 6,
+    "spend_cny": 3.0054,
+    "measured_rate_cny_per_episode": 0.5009,
+    "ceiling_cny": 3.0,
+    "within_ceiling": false,
+    "instances": [
+      "p15_eval_0001",
+      "p15_eval_0002"
+    ],
+    "excluded_from_all_analysis": true
+  },
+  "arithmetic": {
+    "cap_cny": 200.0,
+    "spent_arm1_cny": 122.8175,
+    "holdback_cny": 10.0,
+    "remaining_cny": 67.1825,
+    "formula": "k2 = max k in {6,4,2} with 12*3*k*r <= 200 - spent_arm1 - 10",
+    "candidates": [
+      {
+        "k": 6,
+        "episodes": 216,
+        "projected_arm2_cny": 108.1944,
+        "fits_prereg_formula": false,
+        "projected_total_cny": 234.0173,
+        "fits_hard_200_cap": false,
+        "affordable": false
+      },
+      {
+        "k": 4,
+        "episodes": 144,
+        "projected_arm2_cny": 72.1296,
+        "fits_prereg_formula": false,
+        "projected_total_cny": 197.9525,
+        "fits_hard_200_cap": true,
+        "affordable": false
+      },
+      {
+        "k": 2,
+        "episodes": 72,
+        "projected_arm2_cny": 36.0648,
+        "fits_prereg_formula": true,
+        "projected_total_cny": 161.8877,
+        "fits_hard_200_cap": true,
+        "affordable": true
+      }
+    ]
+  },
+  "k2": 2,
+  "decision": "RUN arm 2 at k=2",
+  "rate_denomination": "frozen DeepSeek-V4-Pro rates, input 12 / output 24 CNY per 1M, as recorded in reports/evidence/*/frozen_config.json. This is a comparability unit, NOT the provider's bill -- see \u00a75C.1"
+}

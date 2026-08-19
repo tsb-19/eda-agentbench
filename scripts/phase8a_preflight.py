@@ -9,7 +9,9 @@ Gates, all fail-closed:
    1. canonical tree clean (git status);
    2. the preregistration exists in BOTH languages and its sha256 is recorded;
    3. freeze + verify a prerun canonical-integrity manifest at HEAD;
-   4. the frozen arm-1 schedule is present, 216 episodes, position-balanced, and reproduces;
+   4. the arm's frozen schedule is present, at the k that arm is AUTHORIZED to run (arm 1: 6, from
+      the prereg text; arm 2: k2, read from the cost gate's own output), position-balanced, and
+      reproduces -- so k cannot be nudged after an arm's episodes start landing;
    5. all 36 agent-facing run_public.sh commands resolve (12 instances x 3 conditions);
    6. PrimeTime health/full-path control passes on the real tool, and its version matches the
       version recorded in the frozen custody records (apparatus drift check);
@@ -28,6 +30,7 @@ count (1065 -> 1979 when first tried) and mask a real mismatch. See phase8a/READ
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import os
@@ -50,7 +53,13 @@ HS_CMD = f"{TOOL_ROOT}/soft2/synopsys/hspice/V-2023.12/hspice/bin/hspice"
 FROZEN_PT_VERSION = "S-2021.06-SP5"
 CONDITIONS = {"Base": "base", "BundleS": "bundles", "TypedContract": "typedcontract"}
 TR_BASE = "https://tokenrhythm.studio/v1"
-ARM_MODELS = "phase8a/models_arm1.json"
+# Per-arm, never a literal in a gate. An arm running under the other arm's config would bill one
+# model's rates for another model's episodes; see the same defect fixed in phase8a_run.py.
+ARM_MODELS_FMT = "phase8a/models_arm{arm}.json"
+ARM_MODEL_TAG = {1: "Qwen3.7-Max-TR", 2: "DeepSeek-V4-Pro-TR"}
+# The `name` each arm's runner resolves, as recorded in every episode.json -- the key used to prove
+# an arm's custody tree holds only that arm's episodes.
+ARM_MODEL_NAME = {1: "qwen3.7-max", 2: "deepseek-v4-pro"}
 # scripts/_llm_request_worker.py:37 _KEY_ENV_CANDIDATES (pinned)
 WORKER_KEY_ENVS = ("API_KEY", "MIMO_API_KEY", "OPENAI_API_KEY", "LLM_API_KEY")
 P8A = REPO / "phase8a" / "evidence"
@@ -166,8 +175,47 @@ def _dirty_paths(porcelain: str, own_outputs=OWN_OUTPUTS):
     return out
 
 
+def _cost_gate_path() -> Path:
+    """Where scripts/phase8a_cost_probe.py writes arm 2's k2. Assembled from parts, not as one
+    literal: a single "phase8a/reports/..." string reads as a repo-root `reports/...` reference to
+    scripts/slim_link_check.py, and reports/ is the frozen scan region this study stays out of."""
+    return REPO / "phase8a" / "reports" / "phase8a_arm2_cost_gate.json"
+
+
+def _authorized_k(arm: int):
+    """The k this arm MAY run at, and the authority for it. Returns (k, source).
+
+    Arm 1: 6, fixed in the preregistration text before any paid call.
+    Arm 2: whatever scripts/phase8a_cost_probe.py wrote to the cost-gate report -- k2 is a function
+    of measured ¥/episode, so it is not knowable in advance and must be read from the gate's own
+    output rather than passed in by whoever launches the run.
+
+    Reading it here is what turns "no adaptive k" from a promise into a gate: a schedule generated at
+    any other k cannot pass preflight, so k cannot be nudged upward after an arm's episodes start
+    landing. It also fails closed when the probe has not run -- no gate output, no arm 2.
+    """
+    if arm == 1:
+        return 6, "docs/phase8a_prereg.md section 2: fixed before any paid episode"
+    g = _cost_gate_path()
+    if not g.is_file():
+        return None, f"MISSING {g.relative_to(REPO)} -- run scripts/phase8a_cost_probe.py first"
+    try:
+        d = json.loads(g.read_text())
+    except Exception as e:  # noqa: BLE001
+        return None, f"unreadable cost gate: {type(e).__name__}"
+    k2 = d.get("k2")
+    r = (d.get("probe") or {}).get("measured_rate_cny_per_episode")
+    return k2, (f"docs/phase8a_prereg.md section 2.2 cost gate: measured r=¥{r}/episode -> k2={k2}"
+                if k2 else "cost gate returned k2=null: arm 2 is NOT RUN")
+
+
 def main() -> int:
+    ap = argparse.ArgumentParser(description="Phase-8A preflight for one arm (no model calls).")
+    ap.add_argument("--arm", type=int, default=1, choices=(1, 2))
+    a = ap.parse_args()
+    arm_models = ARM_MODELS_FMT.format(arm=a.arm)
     gates, detail = {}, {}
+    detail["arm"] = a.arm
 
     # 1. clean tree. See _dirty_paths for the exemption and why it is parsed line by line.
     st = subprocess.run(["git", "-C", str(REPO), "status", "--porcelain"],
@@ -201,17 +249,27 @@ def main() -> int:
     (P8A / "prerun_manifest.json").write_text(json.dumps(manifest, indent=2) + "\n")
     gates["canonical_hashes_match"] = bool(ok)
 
-    # 4. frozen schedule present, correct size, balanced, reproduces
-    sched = P8A / "schedule_arm1.json"
+    # 4. frozen schedule present, at the AUTHORIZED k, balanced, reproduces
+    k_auth, k_src = _authorized_k(a.arm)
+    tag = ARM_MODEL_TAG[a.arm]
+    sched = P8A / f"schedule_arm{a.arm}.json"
     sd = json.loads(sched.read_text()) if sched.is_file() else {}
+    expected_eps = (len(SPECS.STA12_SPECS) * len(CONDITIONS) * k_auth) if k_auth else None
     rc = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_schedule.py"),
-                         "--model", "Qwen3.7-Max-TR", "--reps", "6", "--arm", "1", "--check"],
+                         "--model", tag, "--reps", str(k_auth or 0),
+                         "--arm", str(a.arm), "--check"],
                         capture_output=True, text=True, cwd=str(REPO)).returncode
-    gates["schedule_216_balanced_reproduces"] = (
-        sd.get("episodes") == 216 and sd.get("blocks") == 12
-        and sd.get("reps_per_condition") == 6
+    gates["schedule_at_authorized_k_balanced_reproduces"] = bool(
+        k_auth and sd.get("episodes") == expected_eps and sd.get("blocks") == 12
+        and sd.get("reps_per_condition") == k_auth and sd.get("model") == tag
         and sd.get("position_balance_all_blocks") is True and rc == 0)
-    detail["schedule_sha256"] = _sha(sched) if sched.is_file() else None
+    detail["schedule"] = {"path": str(sched.relative_to(REPO)),
+                          "authorized_k": k_auth, "authority": k_src,
+                          "schedule_k": sd.get("reps_per_condition"),
+                          "expected_episodes": expected_eps,
+                          "schedule_episodes": sd.get("episodes"),
+                          "model_tag": sd.get("model"),
+                          "sha256": _sha(sched) if sched.is_file() else None}
 
     # 5. all 36 agent-facing commands resolve
     need = resolved = 0
@@ -237,9 +295,9 @@ def main() -> int:
 
     # 7. the entry the run will ACTUALLY resolve, plus backend liveness.
     # Phase-8A goes through chain_executor --runner (see docs/phase8a_prereg.md): the models config
-    # is phase8a/models_arm1.json, a single entry so one slot cannot fan out across five models.
+    # is phase8a/models_arm<N>.json, a single entry so one slot cannot fan out across five models.
     # Checking configs/baseline_models.json here would verify something the run does not use.
-    cfg_path = REPO / ARM_MODELS
+    cfg_path = REPO / arm_models
     cfg = json.loads(cfg_path.read_text()) if cfg_path.is_file() else {"models": []}
     entries = [m for m in cfg.get("models", []) if not str(m.get("name", "")).startswith("_")]
     gates["arm_models_config_has_exactly_one_entry"] = (len(entries) == 1)
@@ -257,7 +315,7 @@ def main() -> int:
     detail["runner_model_resolution"] = {
         "executor": "scripts/chain_executor.py (pinned)",
         "episode_runner": "scripts/phase8a_episode_runner.py",
-        "models_config": ARM_MODELS,
+        "models_config": arm_models,
         "name": spec.get("name"),
         "api_base": spec.get("api_base"),
         "model_id": model_id,
@@ -284,10 +342,42 @@ def main() -> int:
         "(403); Phase-8A episodes are therefore a different measurement and are never pooled with "
         "the frozen 72 -- see docs/phase8a_prereg.md section 1.1")
 
-    # 8. destinations writable
-    for d in ("runs/phase8a", "phase8a/evidence/episodes"):
+    # 8. destinations writable, and this arm's custody tree is uncontaminated.
+    #
+    # The contamination gate is not hypothetical. A trial directory is `<task_id>_r<rep>` and `rep`
+    # restarts at 1 in every arm, so arm 2 at k=2 generates exactly the 72 names arm 1 already wrote
+    # at reps 1-2. Had both arms shared `evidence/episodes/`, arm 2 would have overwritten a third of
+    # arm 1's panel with a different model's episodes and phase8a_report.py would have graded the
+    # mixture through one glob as a single arm -- the prereg's "different backend, different
+    # measurement, never pooled" rule broken by filename. Arms now write separate trees; this gate
+    # proves it held, by reading each episode's OWN record of which model it paid for rather than
+    # trusting the directory it sits in.
+    custody = REPO / "phase8a" / "evidence" / ("episodes" if a.arm == 1
+                                               else f"episodes_arm{a.arm}")
+    for d in ("runs/phase8a", str(custody.relative_to(REPO))):
         (REPO / d).mkdir(parents=True, exist_ok=True)
         gates[f"writable_{d.replace('/', '_')}"] = os.access(REPO / d, os.W_OK)
+    want_model = ARM_MODEL_NAME[a.arm]
+    foreign = []
+    for f in sorted(custody.glob("*/episode.json")):
+        try:
+            got = json.loads(f.read_text()).get("model_name")
+        except Exception:  # noqa: BLE001
+            got = "unreadable"
+        if got != want_model:
+            foreign.append(f"{f.parent.name}:{got}")
+    gates["arm_custody_holds_only_this_arms_episodes"] = (foreign == [])
+    detail["custody"] = {"tree": str(custody.relative_to(REPO)), "expected_model_name": want_model,
+                         "episodes_present": len(list(custody.glob("*/episode.json"))),
+                         "foreign_episodes": foreign[:10]}
+    # A second, independent statement of the same property: the names this arm WILL write must not
+    # already exist under another arm's tree. Checked against the schedule rather than inferred.
+    other = sorted(d for d in (REPO / "phase8a" / "evidence").glob("episodes*")
+                   if d.is_dir() and d != custody)
+    planned = {f"{sl['task_id']}_r{sl['rep']}" for sl in sd.get("frozen_execution_order", [])}
+    collide = sorted({f"{o.name}/{n}" for o in other for n in planned if (o / n).is_dir()})
+    gates["planned_trials_collide_with_no_other_arm"] = (collide == [])
+    detail["custody"]["would_overwrite"] = collide[:10]
 
     # 9. hidden-evidence isolation
     t = subprocess.run([sys.executable, "-m", "pytest",

@@ -38,7 +38,6 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 P8A = REPO / "phase8a" / "evidence"
 BLOCKS = P8A / "blocks"
-CUSTODY = P8A / "episodes"
 # A block aborted mid-way is re-executed whole, and its first pass is ARCHIVED here rather than
 # deleted. It leaves the analysis; it does not leave the ledger. See _aborted_spend.
 ABORTED = P8A / "aborted"
@@ -51,6 +50,40 @@ MAX_ACTIONS = 60
 EPISODE_TIMEOUT = 1800
 TEMPERATURE = 0.7
 RETRIES = "6"
+
+
+PROGRAM_CAP = 200.0
+
+
+def _program_spend() -> float:
+    """Every ¥ this study has paid, wherever the episode landed.
+
+    Money paid is money paid (prereg section 5B.3 rule 3), so this counts live episodes of EVERY arm,
+    archived aborted passes, and the arm-2 cost probe alike. The probe's custody deliberately sits
+    outside the grading glob so it can never become a panel point -- but it must still be inside the
+    SPEND glob, or the cap silently grows by whatever the probe cost.
+    """
+    tot = 0.0
+    for f in sorted(P8A.rglob("episode.json")):
+        try:
+            tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
+        except Exception:  # noqa: BLE001
+            pass
+    return round(tot, 4)
+
+
+def _custody(arm: int) -> Path:
+    """Where this arm's episodes live. Arm 1 keeps the original tree; later arms get their own.
+
+    This is not tidiness. A trial directory is named `<task_id>_r<rep>` and `rep` restarts at 1 in
+    every arm, so arm 2 at k=2 writes EXACTLY the names arm 1 wrote at reps 1 and 2 -- all 72 of
+    them, verified against the generated schedule. One shared tree would therefore have overwritten
+    72 of arm 1's 216 episodes with a different model's episodes, and left phase8a_report.py grading
+    the mixture through a single `episodes/*/episode.json` glob as though it were one arm. The
+    preregistration's "a different backend is a different measurement, never pooled" rule would have
+    been broken by filename rather than by argument, and the report would have looked normal.
+    """
+    return P8A / ("episodes" if arm == 1 else f"episodes_arm{arm}")
 
 
 def _blocks_of(schedule):
@@ -82,11 +115,11 @@ def _done(path, n_expected):
     return d.get("state") == "COMPLETE" and d.get("completed_primary_slots", 0) >= n_expected
 
 
-def _episode_records(arm_slots):
+def _episode_records(arm_slots, custody: Path):
     """Per-episode records written by phase8a_episode_runner, in schedule order."""
     recs = []
     for s in arm_slots:
-        f = CUSTODY / f"{s['task_id']}_r{s['rep']}" / "episode.json"
+        f = custody / f"{s['task_id']}_r{s['rep']}" / "episode.json"
         if f.is_file():
             try:
                 recs.append(json.loads(f.read_text()))
@@ -95,7 +128,7 @@ def _episode_records(arm_slots):
     return recs
 
 
-def _aborted_spend():
+def _aborted_spend(model_name: str | None = None):
     """Money paid for episodes of an aborted block pass, archived out of the analysis tree.
 
     The budget cap is about money, not validity. A discarded pass was still billed, so leaving it out
@@ -105,19 +138,25 @@ def _aborted_spend():
     tot = 0.0
     for f in sorted(Path(ABORTED).glob("*/*/episode.json")):
         try:
-            tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
+            d = json.loads(f.read_text())
+            # Attribute by the model actually recorded, not by where the archive sits: an arm must
+            # not inherit another arm's discarded spend, and directory naming is a weaker key than
+            # the episode's own record of which model it paid for.
+            if model_name is not None and d.get("model_name") != model_name:
+                continue
+            tot += float(d.get("total_cost") or 0.0)
         except Exception:  # noqa: BLE001
             pass
     return round(tot, 4)
 
 
-def _spent_so_far(schedule):
+def _spent_so_far(schedule, custody: Path, model_name: str):
     return round(sum(float(r.get("total_cost") or 0.0)
-                     for r in _episode_records(schedule["frozen_execution_order"]))
-                 + _aborted_spend(), 4)
+                     for r in _episode_records(schedule["frozen_execution_order"], custody))
+                 + _aborted_spend(model_name), 4)
 
 
-def _telemetry_faults(slots):
+def _telemetry_faults(slots, custody: Path):
     """Episodes carrying no evidence a model was ever called.
 
     A smoke test caught this: when the driver refuses to start, run_single_agentic still grades the
@@ -128,7 +167,7 @@ def _telemetry_faults(slots):
     measurement-invalid by definition and is certainly not a capability failure.
     """
     faults = []
-    for r in _episode_records(slots):
+    for r in _episode_records(slots, custody):
         why = []
         if not (r.get("total_cost") or 0) > 0:
             why.append(f"total_cost={r.get('total_cost')!r}")
@@ -139,7 +178,7 @@ def _telemetry_faults(slots):
     return faults
 
 
-def _env(block_file: Path, model_name: str):
+def _env(block_file: Path, model_name: str, custody: Path):
     e = dict(os.environ)
     # credential: read from .env explicitly so nothing depends on the driver's CWD
     envf = REPO / ".env"
@@ -170,6 +209,9 @@ def _env(block_file: Path, model_name: str):
         "EDA_BENCH_MAX_CHAT_RETRIES": RETRIES,
         "PHASE8A_SCHEDULE": str(block_file),
         "PHASE8A_MODEL_NAME": model_name,
+        # Explicit even for arm 1, where it equals the runner's default: which tree an arm writes to
+        # is a correctness property, not something to leave to a default that another arm shares.
+        "PHASE8A_CUSTODY": str(custody),
     })
     return e
 
@@ -177,7 +219,13 @@ def _env(block_file: Path, model_name: str):
 def main() -> int:
     ap = argparse.ArgumentParser(description="Run a Phase-8A arm block by block.")
     ap.add_argument("--arm", type=int, required=True, choices=(1, 2))
-    ap.add_argument("--budget", type=float, default=200.0, help="hard cumulative cap, CNY")
+    # Default is this ARM'S SHARE of the program cap, not the whole cap. Arm 1 was the only spender,
+    # so "cumulative" and "arm 1's own" were the same number and a literal 200 was harmless. For arm 2
+    # they differ by everything already spent (arm 1 + the cost probe), and _spent_so_far counts only
+    # the arm's own episodes -- so a default of 200 would have authorised arm 2 to spend a second
+    # ¥200 on top of the first. The cap belongs to the program; it is not a flag to remember.
+    ap.add_argument("--budget", type=float, default=None,
+                    help="cap on THIS ARM's spend, CNY; default = 200 minus all other Phase-8A spend")
     # Measured, not guessed: block 00's 18 episodes cost ¥17.3237, i.e. ¥0.962/episode -- 2.15x the
     # ¥0.447 Amendment 1 projected, because _cost() bills every retried attempt's prompt and this
     # backend throttles. A per-slot figure BELOW the real rate makes the gate authorise a block the
@@ -210,12 +258,19 @@ def main() -> int:
         raise SystemExit(f"phase8a_run: missing frozen schedule {sched_path}")
     schedule = json.loads(sched_path.read_text())
     blocks = _blocks_of(schedule)
-    spent = _spent_so_far(schedule)
+    custody = _custody(a.arm)
+    spent = _spent_so_far(schedule, custody, model_name)
+    other_spend = round(_program_spend() - spent, 4)
+    if a.budget is None:
+        a.budget = round(PROGRAM_CAP - other_spend, 4)
 
     print(json.dumps({"arm": a.arm, "model": schedule["model"], "blocks": len(blocks),
                       "episodes": schedule["episodes"], "budget_cny": a.budget,
                       "already_spent_cny": spent,
-                      "of_which_aborted_passes_cny": _aborted_spend(),
+                      "spent_by_the_rest_of_phase8a_cny": other_spend,
+                      "program_cap_cny": PROGRAM_CAP,
+                      "custody": str(custody.relative_to(REPO)),
+                      "of_which_aborted_passes_cny": _aborted_spend(model_name),
                       "per_slot_projection_cny": a.per_slot,
                       "transport": {"max_chat_retries": int(RETRIES), "stream": True,
                                     "concurrency": 1},
@@ -230,7 +285,16 @@ def main() -> int:
         raise SystemExit("phase8a_run: run scripts/phase8a_preflight.py first (no prerun manifest)")
 
     BLOCKS.mkdir(parents=True, exist_ok=True)
+    custody.mkdir(parents=True, exist_ok=True)
     (REPO / "runs" / "phase8a").mkdir(parents=True, exist_ok=True)
+    # Fail closed on cross-arm contamination. An episode carrying another model's name in this arm's
+    # tree means the custody separation has already failed, and the report would grade a mixture.
+    foreign = sorted(f.parent.name for f in custody.glob("*/episode.json")
+                     if (json.loads(f.read_text()).get("model_name") or model_name) != model_name)
+    if foreign:
+        raise SystemExit(f"phase8a_run: {len(foreign)} episode(s) in {custody.name} were run by a "
+                         f"different model than {model_name} (e.g. {foreign[:3]}). Arms are separate "
+                         f"measurements and are never pooled; resolve before spending.")
     ran = 0
     for i, (block_id, slots) in enumerate(blocks):
         state = _state_path(a.arm, i)
@@ -241,7 +305,7 @@ def main() -> int:
             print(json.dumps({"stopped": "block_limit", "ran": ran}), flush=True)
             break
 
-        spent = _spent_so_far(schedule)
+        spent = _spent_so_far(schedule, custody, model_name)
         remaining = round(a.budget - spent, 4)
         if remaining <= len(slots) * a.per_slot:
             print(json.dumps({"stopped": "budget", "at_block": i, "spent_cny": spent,
@@ -265,17 +329,17 @@ def main() -> int:
         t0 = time.time()
         print(f"[{i + 1}/{len(blocks)}] {block_id}: {len(slots)} slots, budget left ¥{remaining}",
               flush=True)
-        rc = subprocess.run(cmd, env=_env(bf, model_name), cwd=str(REPO)).returncode
+        rc = subprocess.run(cmd, env=_env(bf, model_name, custody), cwd=str(REPO)).returncode
         ran += 1
         print(f"[{i + 1}/{len(blocks)}] rc={rc} in {round(time.time() - t0)}s "
-              f"cumulative ¥{_spent_so_far(schedule)}", flush=True)
+              f"cumulative ¥{_spent_so_far(schedule, custody, model_name)}", flush=True)
 
         if rc == 3:
             print(json.dumps({"stopped": "FAILED_INTEGRITY", "at_block": i,
                               "note": "the canonical tree was mutated mid-run. Do NOT restore and "
                                       "continue: find the writer first."}), flush=True)
             return 3
-        faults = _telemetry_faults(slots)
+        faults = _telemetry_faults(slots, custody)
         if faults:
             print(json.dumps({"stopped": "telemetry_faults", "at_block": i, "detail": faults[:6],
                               "note": "episodes with no evidence of a model call are "
@@ -289,7 +353,9 @@ def main() -> int:
                                       "measurement-invalid past the replacement cap."}), flush=True)
             return rc
 
-    print(json.dumps({"arm": a.arm, "spent_cny": _spent_so_far(schedule), "budget_cny": a.budget,
+    print(json.dumps({"arm": a.arm,
+                      "spent_cny": _spent_so_far(schedule, custody, model_name),
+                      "budget_cny": a.budget,
                       "blocks_complete": sum(1 for i, (_, s) in enumerate(blocks)
                                              if _done(_state_path(a.arm, i), len(s))),
                       "blocks_total": len(blocks)}, indent=2))

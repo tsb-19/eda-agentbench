@@ -35,13 +35,22 @@ sys.path.insert(0, str(REPO / "generators" / "p15_sta_handoff"))
 from grade_sta_handoff import grade  # noqa: E402  (PINNED grader, reused byte-identical)
 
 P8A = REPO / "phase8a"
-EV = P8A / "evidence" / "episodes"
+# Per arm. `rep` restarts at 1 in every arm, so a shared tree would let arm 2's k=2 episodes
+# overwrite arm 1's reps 1-2 and leave this grader pooling two backends through one glob -- the exact
+# thing the prereg's "not poolable" rule forbids, arriving by filename. See phase8a_run.py::_custody.
+def _ev(arm: int) -> Path:
+    return P8A / "evidence" / ("episodes" if arm == 1 else f"episodes_arm{arm}")
+
+
+ARM_MODEL_NAME = {1: "qwen3.7-max", 2: "deepseek-v4-pro"}
 # A block aborted mid-way is re-executed whole and its first pass archived here. It MUST sit outside
 # EV: `EV/*/episode.json` is the grading glob, so an archive nested inside it would be re-graded and
 # the same trial would enter the analysis twice -- once from the discarded pass, once from the re-run.
 ABORTED = P8A / "evidence" / "aborted"
-OUT_JSON = P8A / "reports" / "phase8a_sta_report.json"
-OUT_MD = P8A / "reports" / "phase8a_sta_report.md"
+def _out(arm: int):
+    suffix = "" if arm == 1 else f"_arm{arm}"
+    return (P8A / "reports" / f"phase8a_sta_report{suffix}.json",
+            P8A / "reports" / f"phase8a_sta_report{suffix}.md")
 COND = ["Base", "BundleS", "TypedContract"]
 PILOTS = ["p15_eval_0001", "p15_eval_0002", "p15_eval_0003"]
 PHASE7A = REPO / "reports" / "synthetic_phase7a_sta72_report.json"
@@ -49,19 +58,23 @@ PERM_SEED = 20260817
 PERM_MC = 10000
 
 
-def _states():
-    """Every chain_executor run-state chunk. Chunked runs keep a crash cheap."""
-    return sorted((P8A / "evidence").glob("run_state_arm*.json"))
+def _states(arm: int):
+    """This arm's chain_executor run-state chunks. Chunked runs keep a crash cheap.
+
+    Scoped to the arm: a glob over `run_state_arm*.json` would charge arm 1's invalid and replaced
+    attempts to arm 2's report, and vice versa.
+    """
+    return sorted((P8A / "evidence").glob(f"run_state_arm{arm}*.json"))
 
 
-def _schedule(arm=1):
+def _schedule(arm: int):
     p = P8A / "evidence" / f"schedule_arm{arm}.json"
     if not p.is_file():
         raise SystemExit(f"phase8a_report: missing frozen schedule {p}")
     return json.loads(p.read_text())
 
 
-def _aborted_spend():
+def _aborted_spend(model_name: str):
     """Money paid for the episodes of an aborted block pass, archived out of the analysis tree.
 
     Block 01's first pass was aborted mid-way by a provider 502 window and the block was re-executed
@@ -73,13 +86,18 @@ def _aborted_spend():
     tot = 0.0
     for f in sorted(ABORTED.glob("*/*/episode.json")):
         try:
-            tot += float(json.loads(f.read_text()).get("total_cost") or 0.0)
+            d = json.loads(f.read_text())
+            # Attributed by the model the episode actually recorded, not by archive path: an arm must
+            # not inherit another arm's discarded spend.
+            if d.get("model_name") != model_name:
+                continue
+            tot += float(d.get("total_cost") or 0.0)
         except Exception:  # noqa: BLE001
             pass
     return round(tot, 4)
 
 
-def _collect():
+def _collect(arm: int):
     """Episode records in frozen schedule order, plus the arbiter's exclusions.
 
     Inclusion is asserted here, not assumed, because a stated rule did not stop an earlier
@@ -88,11 +106,12 @@ def _collect():
     artifact, and recorded no error. Everything else is measurement-invalid and is never graded --
     an infrastructure fault is not a capability failure.
     """
-    sched = _schedule()
+    sched = _schedule(arm)
+    ev = _ev(arm)
     included, excluded = [], []
     for slot in sched["frozen_execution_order"]:
         trial = f"{slot['task_id']}_r{slot['rep']}"
-        f = EV / trial / "episode.json"
+        f = ev / trial / "episode.json"
         if not f.is_file():
             excluded.append(f"{trial}:not_collected")
             continue
@@ -102,7 +121,7 @@ def _collect():
             why.append("no_cost")
         if "agentlog.sanitized.json" not in (rec.get("custody") or {}):
             why.append("no_telemetry_custody")
-        if not (EV / trial / "exception_config.submitted.json").is_file():
+        if not (ev / trial / "exception_config.submitted.json").is_file():
             why.append("no_submitted_artifact")
         if rec.get("error"):
             why.append("episode_error")
@@ -117,15 +136,15 @@ def _collect():
     # from the analysis but it was still paid for, and the budget cap is about money, not validity.
     # The same reasoning extends to an aborted block pass -- see _aborted_spend.
     spent = 0.0
-    for d in sorted(EV.glob("*/episode.json")):
+    for d in sorted(ev.glob("*/episode.json")):
         try:
             spent += float(json.loads(d.read_text()).get("total_cost") or 0.0)
         except Exception:  # noqa: BLE001
             pass
-    aborted_spend = _aborted_spend()
+    aborted_spend = _aborted_spend(ARM_MODEL_NAME[arm])
     spent = round(spent + aborted_spend, 4)
     replaced = invalid = 0
-    for s in _states():
+    for s in _states(arm):
         try:
             d = json.loads(s.read_text())
         except Exception:  # noqa: BLE001
@@ -176,13 +195,14 @@ def _sign_p(diffs):
     return n, k, min(p, 1.0)
 
 
-def build():
-    sched, included, excluded_invalid, spent, invalid, replaced, aborted_spend = _collect()
+def build(arm: int = 1):
+    sched, included, excluded_invalid, spent, invalid, replaced, aborted_spend = _collect(arm)
+    ev = _ev(arm)
 
     per = defaultdict(lambda: defaultdict(list))
     for e in included:
         inst = _core_of(e["task_id"])
-        sub = json.loads((EV / e["trial"] / "exception_config.submitted.json").read_text())
+        sub = json.loads((ev / e["trial"] / "exception_config.submitted.json").read_text())
         sem, subtype = _regrade(sub, _truth_for(inst))
         per[inst][e["condition"]].append({"rep": e["rep"], "sem": sem, "subtype": subtype,
                                           "trial": e["trial"]})
@@ -253,6 +273,8 @@ def build():
     k_used = sorted({r[f"{c}_k"] for r in rows for c in COND})
     report = {
         "schema": "phase8a_sta_report/v1",
+        "arm": arm,
+        "model_name": ARM_MODEL_NAME[arm],
         "study": "Phase-8A STA power expansion on a replacement backend",
         "preregistration": "docs/phase8a_prereg.md",
         "backend": {
@@ -354,25 +376,28 @@ def _markdown(rep):
 
 def main() -> int:
     ap = argparse.ArgumentParser(description="Phase-8A instance-level report (no model calls).")
+    ap.add_argument("--arm", type=int, default=1, choices=(1, 2),
+                    help="which arm to report; each arm has its own custody tree and its own report")
     ap.add_argument("--check", action="store_true", help="verify the committed report reproduces")
     args = ap.parse_args()
 
-    rep = build()
+    out_json, out_md = _out(args.arm)
+    rep = build(args.arm)
     blob = json.dumps(rep, indent=2) + "\n"
     if args.check:
-        if not OUT_JSON.is_file():
-            print(f"FAIL: {OUT_JSON} missing", file=sys.stderr)
+        if not out_json.is_file():
+            print(f"FAIL: {out_json} missing", file=sys.stderr)
             return 1
-        if OUT_JSON.read_text(encoding="utf-8") != blob:
-            print(f"FAIL: {OUT_JSON} does not reproduce", file=sys.stderr)
+        if out_json.read_text(encoding="utf-8") != blob:
+            print(f"FAIL: {out_json} does not reproduce", file=sys.stderr)
             return 1
-        print(json.dumps({"ok": True, "graded": rep["episodes_graded"],
+        print(json.dumps({"ok": True, "arm": args.arm, "graded": rep["episodes_graded"],
                           "spent_cny": rep["spent_cny"]}))
         return 0
 
-    OUT_JSON.parent.mkdir(parents=True, exist_ok=True)
-    OUT_JSON.write_text(blob, encoding="utf-8")
-    OUT_MD.write_text(_markdown(rep), encoding="utf-8")
+    out_json.parent.mkdir(parents=True, exist_ok=True)
+    out_json.write_text(blob, encoding="utf-8")
+    out_md.write_text(_markdown(rep), encoding="utf-8")
     print(json.dumps({k: rep[k] for k in (
         "condition_mean_rates_over_instances_descriptive", "contrast_tally_instance_level",
         "primary_sign_test", "primary_permutation_sensitivity", "spent_cny")}, indent=2))
