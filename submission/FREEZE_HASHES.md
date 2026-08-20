@@ -112,14 +112,37 @@ The main text was already at 9 pp with no slack, so these additions were paid fo
 §5–§7 prose whose full form is in Appendices G and J. No result, number, caveat or limitation was
 removed. Measured behaviour worth recording for the next revision: cuts *before* the last main-text
 float change the reference boundary by nothing at all, and moving a paragraph across that float
-changes it by nothing either — only deletions after the final float move it, at roughly two words cut
-per word of overflow recovered.
+changes it by nothing either — only deletions after the final float move it.
+
+### The final wording pass
+
+One further review raised the cross-batch concordance sentence in §7, which carried `post hoc;
+nothing pooled` but not the third boundary the appendix states. Two words were changed and one added:
+the structure "largely did not" move rather than "did not" (10 of 12 instances agree in class, not
+12), and the parenthetical now reads `post hoc; nothing pooled; not a backend comparison`, matching
+the Appendix C table caption verbatim so the two read as one claim. In §5 the same over-reach was
+corrected in the other direction: "the bidirectional heterogeneity is therefore not *plausibly* an
+artifact of low repetition" became **not *wholly*** — at k=6, 7 of 36 cells still disagree with
+themselves, so repetition noise is bounded, not eliminated. What the evidence supports is that the
+heterogeneity cannot be attributed entirely to single-trajectory noise; what it does not support is
+that noise has been excluded.
+
+**A correction to the layout note above.** The claimed exchange rate of "two words cut per word of
+overflow recovered" is wrong, and following it here failed: 14 words cut out of six post-float
+paragraphs recovered exactly one word of overflow. The unit is the **typeset line**, not the word.
+Cutting words from the middle of a paragraph only reflows it; the boundary moves only when a
+paragraph loses a line, so the cost of a cut is set by how short that paragraph's last line already
+is — a paragraph ending 20 characters into its final line yields a whole line for a 21-character cut,
+while one ending 84 characters in costs four times as much. The cheapest lever here was neither
+prose nor position but the **last float's caption**, which wrapped four characters onto a second
+line; shortening it by seven freed a full line at no cost to any claim. Measure `pdftotext -layout`
+line lengths before cutting, not word counts.
 
 ## SHA-256 hashes (frozen artifacts, v15)
 | Artifact | SHA-256 | vs v14 |
 |---|---|---|
-| Source (main.tex) | `a9b36bb2c43a6996a6dd096ef48b8d17568af979624edbf661dae6b189838fc7` | changed |
-| Final PDF (main.pdf, 22 pp: 9 main + refs + appendix; 317 283 B) | `a863fc1cabe265c3f426089e49979560c206b77fa96fc5c2023773613abc5d8b` | changed |
+| Source (main.tex) | `eab406fa413db880ec9db51e97b478eda1fd241024889fc51e35b33e556bf568` | changed |
+| Final PDF (main.pdf, 22 pp: 9 main + refs + appendix; 317 223 B) | `50bb158bb5daba006c90ca29c37fb81ab09dbc7e78b75da1784914f3405457d7` | changed |
 | Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
 | Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
 | Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |

@@ -80,7 +80,7 @@ python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool
 python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9-147, never 1
 python3 scripts/phase8a_claim_statistics.py --check     # k=6: -2.8 / [-31.9, 26.4]; 7-of-36; 10-of-12
 python3 scripts/slim_link_check.py                     # no dangling repository references
-cd submission && make distclean && make                # 22 pp, 317 283 bytes
+cd submission && make distclean && make                # 22 pp, 317 223 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 
