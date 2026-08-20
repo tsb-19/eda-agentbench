@@ -1,6 +1,6 @@
 # Arm-2 Disclosure Freeze (v16 — the quarantined S3 trajectories are disclosed, and never analysed)
 
-**Submission HEAD:** `PENDING` — the manuscript artifacts and every hash in this section are that
+**Submission HEAD:** `c8503f22` — the manuscript artifacts and every hash in this section are that
 commit's, because it is the last commit to touch a build input. The commit recording this line
 touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12–v15
 used and for the same unavoidable reason: a commit cannot contain its own successor's hash.
