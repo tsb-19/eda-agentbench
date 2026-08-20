@@ -2,7 +2,7 @@
 
 # 产物地图 —— 论文每个论断到生成它的文件
 
-本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 **v15**，当前的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
+本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 **v16**，当前的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
 v14 是一个冻结的历史点，可凭 `submission/FREEZE_HASHES.md` 中记录的 commit 与哈希逐字节恢复；下文若某一行引用的是
 v14 的节号，会明确写出。
 
@@ -131,7 +131,7 @@ Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实
 
 ## 论文*没有*主张什么，以及这在仓库中如何体现
 
-- **S3（同时换模型与换家族）从未测量，其后又被判定为「未执行」。** 这是两个不同的理由，不可混为一谈。在原实验程序中，它没有在已经看到 S2-F 结果之后被补上，因为「看到不利结果再扩展证据」正是论文自身标准要防止的、随结果自适应的做法；成本不是那个程序的约束（其 72 个 episode 的 STA 面板只花了 ¥43.56，总额 ¥745.29）。随后 Phase-8A 正式预注册了一个 S3 实验臂，并在任何结果存在之前就把成本门控固定成公式，而门控拒绝了它（`ARM2_NOT_RUN`）。上限之下的余额被刻意不用于跑一个更浅的版本。**两个理由都不产生效应方向** —— S3 是未测试，而不是负结果；这里刻意不存在任何报告。
+- **S3（同时换模型与换家族）从未测量，其后又被判定为「未执行」。** 这是两个不同的理由，不可混为一谈。在原实验程序中，它没有在已经看到 S2-F 结果之后被补上，因为「看到不利结果再扩展证据」正是论文自身标准要防止的、随结果自适应的做法；成本不是那个程序的约束（其 72 个 episode 的 STA 面板只花了 ¥43.56，总额 ¥745.29）。随后 Phase-8A 正式预注册了一个 S3 实验臂，并在任何结果存在之前就把成本门控固定成公式，而门控拒绝了它（`ARM2_NOT_RUN`）。上限之下的余额被刻意不用于跑一个更浅的版本。**两个理由都不产生效应方向** —— S3 是未测试，而不是负结果；这里刻意不存在任何报告。**那一格上确实存在 72 条 episode**，而这个区分很重要：它们是在门控判定被提交**之后**、在隔离状态下生成的，不是那个预注册实验臂，而且**它们的条件对比从未被计算过**。详见下方 Phase-8A 一节。
 - **更微妙的信息泄漏并未被排除。** Phase-7E 只关闭了*直接公布答案*（BundleS 留下 294 中的 9–147 个，从不为 1）。先验收窄、提示诱发的启发式线索、偶然的词汇相关与模型特异的利用方式仍然开放；Base/BundleS 的对照刻意**不是**等信息量比较。
 - **没有向生产级 harness 的迁移结论。** 论文里的 "harness" 指**任务层的信息结构**（§2）—— 提示、可见文件、
   披露包、公开工具反馈、动作面 —— 而不是智能体脚手架。所有 episode 都经由 `scripts/llm_agent_driver.py`
@@ -145,7 +145,7 @@ Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实
 ## Phase-8A —— 高重复的 S2-F 面板（v15 中的 S2-F 主要证据）
 
 Phase-8A 用**完全相同的冻结 12 实例 STA 设计、k=6** 重跑了一次，因为每格只跑两次无法确定该格自身的取值。
-在**手稿 v15 中它是 S2-F 的主要证据**，而先前 k=2 的面板保留为促使把 k 提高的更早的前瞻研究。它在 v14 冻结
+**自手稿 v15 起它就是 S2-F 的主要证据**，而先前 k=2 的面板保留为促使把 k 提高的更早的前瞻研究。它在 v14 冻结
 之后执行，因此 **v14 并未引用它**；v14 仍可凭其记录的 commit 与哈希逐字节恢复（见 `submission/FREEZE_HASHES.md`）。
 
 两个批次**绝不汇合**：没有任何量跨批次求和、求均值或求差，两者的 episode 数不相加，也不存在 k=8 的面板。
@@ -160,6 +160,9 @@ Phase-8A 用**完全相同的冻结 12 实例 STA 设计、k=6** 重跑了一次
 | **在这个粒度上重复不是可选项**（§5；§6 讨论）。36 个（实例, 条件）单元中有 7 个，其 6 次完全相同的重复彼此不一致；`p15_eval_0013` 的 Base 是 6 次中的 3 次。用单条轨迹去估计这样一个单元，估的是该单元并不具有的取值 | 同一 JSON 的 `within_cell_replication_stability`；逐次布尔值见 `phase8a_sta_report.json` |
 | **把 k 提高反而让组成带变宽而非变窄**（§5；附录 C）。k=6 为 −31.9 至 +26.4，k=2 为 −12.5 至 +41.7：把各单元解析清楚之后，实例级差值变大了，而重抽样扰动的正是这些差值。重复深度与面板组成是两条互相独立的限制 | 两个统计脚本的 `--check`；两条带由同一个函数 `instance_resampling_band` 计算 |
 | **S3 未被执行，因为它没有通过预注册的成本门控**（§1 图 1；表 2 末行；附录 D）。Arm 2（`deepseek-v4-pro`）**未运行**。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；最便宜的合格方案预计 ¥57.97，而 ¥200 上限下仅剩 ¥44.53，故 {6,4,2} 中无一合格 → `ARM2_NOT_RUN`。有一个 block 执行了（按 §5F.5 的要求，用来确定 r′），报告时**不给出任何条件对比**（§5E.5）。未曾运行的实验臂没有效应方向：这不是零结果，也不是负结果 | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；那个 block 见 `phase8a/reports/` 中的 `phase8a_sta_report_arm2.md` |
+| **S3 那一格上存在 72 条被隔离的 episode，且从未被分析**（附录 D；附录 I 账目）。它们在门控判定被提交之后、应操作者要求生成，整个写入面被重定向到已被 gitignore 的 `runs/` 之下，因此没有任何已提交记录或 `--check` 能看到它们。12 实例 × 3 条件 × k=2，12/12 个 block 完成，0 次无效，¥45.1143。**条件对比从未被计算过**：记录器只打开 `episode.json` 与 `SHA256SUMS`，丢弃 `total_score`/`semantic_binding`，并在测试中被置于一个"打开禁止路径即抛错"的审计钩子之下运行 —— 另有负控制证明该钩子确实会触发。它们不是那个预注册实验臂，也不产生任何 S3 估计 | `scripts/phase8a_arm2_quarantine.py --check` → `phase8a/evidence/arm2_quarantine_record.json`；守卫测试见 `tests/test_phase8a.py`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
+| **门控拒绝了一个其实负担得起的实验臂**（附录 J，第四条账目要求）。对剩余 66 条 episode 预计 ¥53.14，而可用为 ¥44.53；实际花费 ¥38.46 —— 够，还余 ¥6.07。规则施行无误；错的是速率估计量被校准在 `p15_eval_0004` 上，而它是十二个实例中最贵的一个（¥1.109/ep，面板均值 ¥0.627，最便宜 ¥0.330），门控还抹平了自己已经记录下来的 6.86 倍离散度。面板组成这次决定的不是效应量，而是这个实验有没有发生。**这不重开那个决定** | 同一 JSON 的 `cost_gate_calibration`；宏见 `submission/tables/arm2_quarantine.tex` |
+| 金额按两个数字分列而不是合成一个（附录 I；可复现性声明）：纳入分析的支出 ¥145.47，实际总支出 ¥183.93；¥200 上限未被突破 | `arm2_quarantine_record.json` 的 `money`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 | 预注册及其六条编号修正案 —— 每条都在相应的进入分析的 episode 之前固定（附录 I，冻结点 3） | [`phase8a_prereg.zh.md`](phase8a_prereg.zh.md) |
 | 金钱（附录 I；可复现性声明）：逐 episode 保管记录、归档的废弃轮次、被替换尝试账本、低报成本的更正 | `phase8a/evidence/`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 
@@ -188,7 +191,7 @@ Phase-7A 附录 C 的解剖结构（6 个地板受限、1 个天花板受限、5
 
 ### 属于方法附录而非正文的部分
 
-Phase-8A 期间发现并修复了三个 harness/账本缺陷。它们证明的是复现治理，而不是科学结果。v15 把它们作为三条通用的
+Phase-8A 期间发现并修复了三个 harness/账本缺陷。它们证明的是复现治理，而不是科学结果。v15 把它们作为通用的
 **账目要求**写在附录 J，正文中一处也没有；事件层面的细节留在
 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) 的"测量效度发现"一节：从未执行的 slot 被误算为
 measurement-invalid；一个靠缩小观察范围而变绿的成本校验器；以及一个被存放在"后续正当操作有权覆盖"路径上的
@@ -207,6 +210,8 @@ python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
 python3 scripts/phase7e_answer_identifiability.py --check  # 候选域 294；BundleS 9–147，从不为 1
+python3 scripts/phase8a_claim_statistics.py --check        # k=6：−2.8 pp，带 −31.9 至 26.4
+python3 scripts/phase8a_arm2_quarantine.py --check         # 72 条被隔离的 S3 episode，从未分析
 cd submission && make distclean && make                # 22 页（正文 9 页），逐字节可复现
 python3 scripts/submission_page_limit_check.py         # 正文结束于第 9 页（ICLR 上限 9）
 ```

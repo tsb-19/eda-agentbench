@@ -3,7 +3,7 @@
 # Artifact map — every paper claim to the files that produce it
 
 This document exists so a reader arriving from the paper can locate the evidence for any claim
-without guessing. Section and table numbers refer to `submission/main.tex` (manuscript **v15**, the current
+without guessing. Section and table numbers refer to `submission/main.tex` (manuscript **v16**, the current
 ICLR 2027 submission; build it with `cd submission && make`). v14 is a frozen historical point,
 recoverable byte-for-byte from the commit and hashes recorded in `submission/FREEZE_HASHES.md`;
 where a row below cites a v14 section number it says so.
@@ -185,7 +185,10 @@ separate accessor called only after every survivor set is already fixed.
   an S3 arm properly, with a cost gate fixed as a formula before any of its outcomes existed, and the
   gate refused it (`ARM2_NOT_RUN`). The surplus under the cap was deliberately not spent on a
   shallower version of the arm. **Neither reason produces an effect direction** — S3 is untested, not
-  negative, and no report exists for it by design.
+  negative, and no report exists for it by design. **72 episodes do exist at that coordinate**, and
+  the distinction matters: they were generated under quarantine *after* the gate's decision was
+  committed, they are not the preregistered arm, and **their condition contrast has never been
+  computed**. See the Phase-8A section below.
 - **Softer information leakage is not excluded.** Phase-7E closes *direct answer disclosure* only
   (BundleS leaves 9–147 of 294 candidates, never 1). Prior narrowing, prompt-induced heuristic cues,
   accidental lexical correlation and model-specific exploitation remain open, and the Base/BundleS
@@ -210,7 +213,7 @@ separate accessor called only after every survivor set is already fixed.
 ## Phase-8A — the higher-replication S2-F panel (primary S2-F evidence in v15)
 
 Phase-8A re-ran the **same frozen 12-instance STA design at k=6**, because two repetitions per cell
-cannot resolve a cell's own value. In **manuscript v15 it is the primary S2-F evidence**, and the
+cannot resolve a cell's own value. **Since manuscript v15 it is the primary S2-F evidence**, and the
 earlier k=2 panel is retained as the earlier prospective study that motivated raising k. It was
 executed after the v14 freeze, so **v14 does not cite it**; v14 remains recoverable byte-for-byte from
 its recorded commit and hashes (`submission/FREEZE_HASHES.md`).
@@ -230,6 +233,9 @@ and the provider change is therefore **disclosed and not treated as an experimen
 | **Replication is not optional at this granularity** (§5; §6 Discussion). 7 of 36 (instance, condition) cells disagree across their 6 identical repetitions; `p15_eval_0013` Base is 3 of 6. A single-trajectory estimate of such a cell estimates a value the cell does not have | `within_cell_replication_stability` in the same JSON; per-rep booleans in `phase8a_sta_report.json` |
 | **Raising k widened rather than narrowed the composition band** (§5; Appendix C). −31.9 to +26.4 at k=6 against −12.5 to +41.7 at k=2: resolving the cells sharpened the per-instance differences, and those are what resampling perturbs. Repetition depth and panel composition are two independent limits | both statistics scripts' `--check`; the two bands are computed by one shared function, `instance_resampling_band` |
 | **S3 was not executed because it failed a preregistered cost gate** (§1, Fig. 1; Table 2 last row; Appendix D). Arm 2 (`deepseek-v4-pro`) **did not run**. Pooled r′=¥0.8051/episode over 12 cost-probe + block-00 episodes; the cheapest admissible arm projects ¥57.97 against ¥44.53 remaining under a ¥200 cap, so no k in {6,4,2} qualified → `ARM2_NOT_RUN`. One block ran (to establish r′, as §5F.5 requires) and is reported with **no condition contrast** (§5E.5). An arm that did not run has no effect direction: this is not a null result and not a negative one | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`; the one block at `phase8a_sta_report_arm2.md` (in `phase8a/reports/`) |
+| **72 quarantined episodes exist at S3, and have never been analysed** (Appendix D; Appendix I accounting). Generated after the gate's decision was committed, at the operator's request, with the run's entire write surface redirected under gitignored `runs/` so no committed record or `--check` could see them. 12 instances × 3 conditions × k=2, 12/12 blocks complete, 0 invalid, ¥45.1143. **No condition contrast has ever been computed**: the recorder opens only `episode.json` and `SHA256SUMS`, drops `total_score`/`semantic_binding`, and is driven in the tests under an audit hook that fails on a forbidden open — with a negative control proving the hook fires. They are not the preregistered arm and yield no S3 estimate | `scripts/phase8a_arm2_quarantine.py --check` → `phase8a/evidence/arm2_quarantine_record.json`; guard tests in `tests/test_phase8a.py`; narrative in [`phase8a_findings.md`](phase8a_findings.md) |
+| **The gate refused an arm that was affordable** (Appendix J, fourth accounting requirement). Projected ¥53.14 for the 66 remaining episodes against ¥44.53 available; realized ¥38.46 — fits, with ¥6.07 to spare. The rule was applied correctly; the rate estimator was calibrated on `p15_eval_0004`, the dearest of the twelve (¥1.109/ep vs a ¥0.627 panel mean and a ¥0.330 cheapest), and the gate averaged away a spread of 6.86 it had already recorded. Panel composition decided not an effect size but whether an experiment happened. **This does not reopen the decision** | same JSON, `cost_gate_calibration`; macros in `submission/tables/arm2_quarantine.tex` |
+| Money, as two figures rather than one (Appendix I; reproducibility statement): eligible-analysis spend ¥145.47, total realized spend ¥183.93; the ¥200 cap was not breached | `arm2_quarantine_record.json` → `money`; `scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 | Preregistration and its six numbered amendments — rules fixed before each analysed episode (Appendix I, freeze point 3) | [`phase8a_prereg.md`](phase8a_prereg.md) |
 | Money (Appendix I; reproducibility statement): per-episode custody, archived aborted passes, replaced-attempt ledger, the understated-cost correction | `phase8a/evidence/` ; `scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 
@@ -264,7 +270,7 @@ Cross-check: `scripts/phase7c_claim_statistics.py --check` → `sta_finite_panel
 ### What belongs in a methods appendix, not the main text
 
 Three harness/ledger defects were found and fixed during Phase-8A. They evidence reproducibility
-governance, not a scientific result. v15 states them as three general **accounting requirements** in
+governance, not a scientific result. v15 states them as general **accounting requirements** in
 Appendix J and nowhere in the main text; the incident-level detail stays in
 [`phase8a_findings.md`](phase8a_findings.md) §"Measurement-validity findings": never-executed slots
 miscounted as measurement-invalid; a cost verifier that went green by narrowing what it looked at; and
@@ -285,6 +291,8 @@ python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
 python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9–147, never 1
+python3 scripts/phase8a_claim_statistics.py --check        # k=6: -2.8 pp, band -31.9 to 26.4
+python3 scripts/phase8a_arm2_quarantine.py --check         # 72 quarantined S3 episodes, never analysed
 cd submission && make distclean && make                # 22 pp (main text 9), byte-reproducible
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```

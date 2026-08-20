@@ -1,3 +1,95 @@
+# Arm-2 Disclosure Freeze (v16 — the quarantined S3 trajectories are disclosed, and never analysed)
+
+**Submission HEAD:** `PENDING` — the manuscript artifacts and every hash in this section are that
+commit's, because it is the last commit to touch a build input. The commit recording this line
+touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12–v15
+used and for the same unavoidable reason: a commit cannot contain its own successor's hash.
+
+## What v16 is, and what it is not
+
+It is a **disclosure and accounting correction**. No scientific outcome changed, no number in any
+result moved, no episode entered or left an analysis, and the k=6 panel, the k=2 batch, the
+cross-batch concordance and every verdict read exactly as they did in v15. It is not a new
+scientific version and must not be described as one.
+
+## Why it exists
+
+Seventy-two DeepSeek-V4-Pro episodes exist at the S3 coordinate — twelve instances × three
+conditions × k=2, 12/12 blocks complete, 0 invalid attempts, ¥45.1143 — and v15 says S3 was *not
+executed*. Both are true, but only if the sentence is read as being about the preregistered arm.
+A reader takes "not executed" to mean no data exists, and that is no longer the case.
+
+The ordering is what makes disclosure safe rather than damaging. The preregistered cost gate wrote
+`ARM2_NOT_RUN` at 02:56Z; blocks 01–11 began at 04:31Z, under a quarantine that redirected the
+run's entire write surface — custody, run state, block files, archive glob, ledger — to a root
+under gitignored `runs/`, so it could not enter a commit even via `git add -A`. **The exclusion
+decision predates the data.**
+
+## Three changes, and one thing this version protects
+
+1. **S3 is stated precisely.** The preregistered *eligible* arm was not executed; trajectories
+   generated afterwards outside it remain unanalysed and yield no S3 estimate. In the abstract,
+   the Figure 1 caption, and at length in Appendix D.
+2. **Money is two figures, not one.** Eligible-analysis spend ¥145.47; total realized spend
+   ¥183.93. The 66 additional episodes cost ¥38.4582 and enter no analysis, but they were paid
+   for. The ¥200 cap was not breached. Appendix I and the reproducibility statement.
+3. **A fourth accounting requirement** in Appendix J: *a cost gate must be calibrated on a sample
+   that represents the panel it gates, and must carry the spread it measures into the decision
+   rather than reducing it to a pooled mean.* The gate priced the 66 remaining episodes at ¥53.14
+   against ¥44.53 available; they cost ¥38.46 — it refused an arm that was affordable, with ¥6.07
+   to spare. Its rule was applied correctly and its arithmetic was right; its rate estimator was
+   calibrated on `p15_eval_0004`, the dearest of the twelve at ¥1.109/episode against a ¥0.627
+   panel mean and a ¥0.330 cheapest instance, and it averaged away a spread factor of 6.86 it had
+   already recorded. This is the paper's own finding in a different currency: panel composition
+   decided not an effect size but whether an experiment happened at all.
+
+**What is protected: nobody has looked.** The condition contrast has never been computed, and that
+is worth more than any number it could yield — "excluded before the data existed, and never
+analysed" is a stronger claim than a result. It is also a state one careless import destroys
+permanently, so it is held mechanically rather than by intention:
+`scripts/phase8a_arm2_quarantine.py` opens only `episode.json` and `SHA256SUMS`, drops
+`total_score` and `semantic_binding` before the object is used, and never opens `result.json`,
+`exception_config.submitted.json` or the agent log. `tests/test_phase8a.py` drives that recorder
+*and* the three Phase-8A `--check` commands under a `sys.addaudithook` that raises on a forbidden
+open, with a negative control proving the hook fires. The custody record is
+`phase8a/evidence/arm2_quarantine_record.json`; its accounting macros are generated into
+`submission/tables/arm2_quarantine.tex`, so no figure above is transcribed by hand.
+
+Discovering that the refusal was too conservative does not reopen it. Evidence eligibility fixed
+before an outcome may not be revised once the outcome exists — least of all in a paper whose
+subject is that rule.
+
+## Layout note carried forward
+
+Additions to the abstract and to a pre-float caption cost nothing at the reference boundary: the
+floats repack and absorb them. Everything added in v16 outside the abstract lands after the
+bibliography, so the main text stayed at 9 pp with 0 words above `REFERENCES` and the appendix grew
+by one page (22 → 23).
+
+## SHA-256 hashes (frozen artifacts, v16)
+| Artifact | SHA-256 | vs v15 |
+|---|---|---|
+| Source (main.tex) | `f91a055f74aec0e551e7508ed85fbd8fa990d2dd7046dce9422de6e0d0705a0b` | changed |
+| Final PDF (main.pdf, 23 pp: 9 main + refs + appendix; 321 456 B) | `c76f4cf34419c62b1ec5f4645ac92a2cdf9b8e0092ce9b324e0968fed53831d3` | changed |
+| Quarantine accounting macros (tables/arm2_quarantine.tex) | `d8240e9de7812c0e20f124ce3653bc0d2cc0693346c218fdb3a2995078d0855c` | new |
+| Quarantine custody record (phase8a/evidence/arm2_quarantine_record.json) | `910cd17504675d107cebc2236746fafa0bb310c8767bb910f03c1628cb6b60e2` | new |
+| Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
+| Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
+| Generated k=2 stat macros (tables/claim_stats.tex) | `40f4b24d1f5b3a2c0c1a57a7fd01125908f4b84f41d7f09343a95d10f3c3b96f` | **identical** |
+| Generated k=6 stat macros (tables/phase8a_stats.tex) | `318e496c54ddfbe58a902cf7430e11f15719ed3de9019a0ec426dd8612c10df5` | **identical** |
+| Generated k=6 panel table (tables/sta12_k6.tex) | `aa5bbb4c937cf919b2876d1ae48d1fc7af29266052368b68c532e23b98485bc8` | **identical** |
+| Generated cross-batch table (tables/sta_concordance.tex) | `35c446471ca131de52ac126f36d3b2dc1fc66531118ca9f8ce41263b0de21d7b` | **identical** |
+| Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
+| Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
+
+**Mechanical proof that no scientific number moved.** All six generated result tables and the
+frozen claim-evidence matrix are **byte-identical** to their v15 hashes. Every figure v16 adds
+arrives in one *new* file, `tables/arm2_quarantine.tex`, which contains money and counts only —
+there is no macro in it that could carry a condition contrast, because the record it is generated
+from has none.
+
+---
+
 # Phase-8A Submission Freeze (v15 — the k=6 STA panel becomes the primary S2-F evidence)
 
 **Submission HEAD:** `07f5bf7f` — the manuscript artifacts and every hash in this section are that

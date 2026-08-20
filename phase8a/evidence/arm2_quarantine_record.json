@@ -1,0 +1,2440 @@
+{
+  "schema": "phase8a_arm2_quarantine/v1",
+  "analysis_status": "never_analyzed",
+  "what_this_is": "72 DeepSeek-V4-Pro episodes at the S3 coordinate (12 instances x 3 conditions x k=2), generated under quarantine after the preregistered cost gate had already refused the arm. They are not the preregistered S3 arm, they carry no preregistered analysis, and no condition contrast has ever been computed from them.",
+  "rationale": "The exclusion decision was fixed before any S3 outcome was observed. Although 72 quarantined trajectories were subsequently generated, opening them now would convert a pre-outcome exclusion into an outcome-informed exploratory analysis. We therefore disclose their existence and realized cost but leave their outcomes unexamined.",
+  "s3_status": {
+    "preregistered_eligible_arm": "not executed",
+    "quarantined_trajectories": 72,
+    "condition_contrast_computed": false,
+    "s3_effect_estimate": null,
+    "reason_no_estimate": "Reporting a contrast would convert an exclusion fixed before the data existed into an outcome-informed exploratory analysis, and these episodes are the shallower k=2 arm the preregistration declined to fund."
+  },
+  "ordering_that_makes_this_safe": {
+    "gate_decided_at": "2026-08-20T02:56:20Z",
+    "gate_decision": "ARM2_NOT_RUN",
+    "first_quarantined_block_started_at": "2026-08-20T04:31:06Z",
+    "last_quarantined_block_finished_at": "2026-08-20T10:22:06Z",
+    "note": "Every block after 00 began after the gate had been decided and committed, so no S3 outcome could have informed the decision to exclude them."
+  },
+  "read_discipline": {
+    "files_opened": [
+      "episode.json",
+      "SHA256SUMS"
+    ],
+    "files_never_opened": [
+      "result.json",
+      "exception_config.submitted.json",
+      "agentlog.sanitized.json"
+    ],
+    "episode_keys_kept": [
+      "block_id",
+      "condition",
+      "family",
+      "model_name",
+      "position_in_block",
+      "rep",
+      "task_id",
+      "track",
+      "transport",
+      "trial",
+      "total_cost",
+      "rates_cny_per_M",
+      "custody",
+      "error"
+    ],
+    "episode_keys_dropped": [
+      "total_score",
+      "semantic_binding"
+    ],
+    "enforced_by": "tests/test_phase8a.py, under an audit hook, not by this docstring"
+  },
+  "execution": {
+    "blocks": [
+      {
+        "block": "00",
+        "state": "COMPLETE",
+        "started_at": "2026-08-19T08:45:05Z",
+        "finished_at": "2026-08-19T10:05:32Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "01",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T04:31:06Z",
+        "finished_at": "2026-08-20T04:56:19Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "02",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T04:56:19Z",
+        "finished_at": "2026-08-20T05:24:02Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "03",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T05:24:03Z",
+        "finished_at": "2026-08-20T05:59:00Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "04",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T05:59:00Z",
+        "finished_at": "2026-08-20T06:28:41Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "05",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T06:28:41Z",
+        "finished_at": "2026-08-20T07:00:30Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "06",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T07:00:30Z",
+        "finished_at": "2026-08-20T07:21:31Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "07",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T07:21:31Z",
+        "finished_at": "2026-08-20T07:58:09Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "08",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T07:58:09Z",
+        "finished_at": "2026-08-20T08:47:56Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "09",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T08:47:56Z",
+        "finished_at": "2026-08-20T09:21:37Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "10",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T09:21:37Z",
+        "finished_at": "2026-08-20T09:42:51Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      },
+      {
+        "block": "11",
+        "state": "COMPLETE",
+        "started_at": "2026-08-20T09:42:51Z",
+        "finished_at": "2026-08-20T10:22:06Z",
+        "expected_primary_slots": 6,
+        "completed_primary_slots": 6,
+        "excluded_invalid_attempts": 0,
+        "report_pending": true
+      }
+    ],
+    "blocks_complete": 12,
+    "slots_completed": 72,
+    "slots_expected": 72,
+    "invalid_attempts": 0,
+    "aggregate_report_generated": false
+  },
+  "money": {
+    "episodes_total": 72,
+    "episodes_carried_forward_from_study_ledger": 6,
+    "episodes_new": 66,
+    "realized_cny_total": 45.1143,
+    "realized_cny_new": 38.4582,
+    "eligible_analysis_cny": 145.4747,
+    "total_realized_cny": 183.9329,
+    "cap_cny": 200.0,
+    "cap_breached": false,
+    "note": "Block 00 is byte-identical to the block already committed under phase8a/evidence/episodes_arm2 and its money is already in the study ledger; only realized_cny_new is additional programme spend.",
+    "per_instance": {
+      "p15_eval_0004": {
+        "n": 6,
+        "cny": 6.6561,
+        "per_episode": 1.1094
+      },
+      "p15_eval_0005": {
+        "n": 6,
+        "cny": 2.8758,
+        "per_episode": 0.4793
+      },
+      "p15_eval_0006": {
+        "n": 6,
+        "cny": 3.2284,
+        "per_episode": 0.5381
+      },
+      "p15_eval_0007": {
+        "n": 6,
+        "cny": 2.8966,
+        "per_episode": 0.4828
+      },
+      "p15_eval_0008": {
+        "n": 6,
+        "cny": 3.7059,
+        "per_episode": 0.6176
+      },
+      "p15_eval_0009": {
+        "n": 6,
+        "cny": 2.9136,
+        "per_episode": 0.4856
+      },
+      "p15_eval_0010": {
+        "n": 6,
+        "cny": 1.9787,
+        "per_episode": 0.3298
+      },
+      "p15_eval_0011": {
+        "n": 6,
+        "cny": 3.5015,
+        "per_episode": 0.5836
+      },
+      "p15_eval_0012": {
+        "n": 6,
+        "cny": 6.4415,
+        "per_episode": 1.0736
+      },
+      "p15_eval_0013": {
+        "n": 6,
+        "cny": 3.5786,
+        "per_episode": 0.5964
+      },
+      "p15_eval_0014": {
+        "n": 6,
+        "cny": 2.2151,
+        "per_episode": 0.3692
+      },
+      "p15_eval_0015": {
+        "n": 6,
+        "cny": 5.1225,
+        "per_episode": 0.8537
+      }
+    }
+  },
+  "cost_gate_calibration": {
+    "finding": "The preregistered gate refused an arm that was affordable at realized cost. Its rule was applied correctly; its rate estimator was calibrated on a sample that did not represent the panel it gated.",
+    "projected_rate_cny_per_episode": 0.805125,
+    "realized_rate_cny_per_episode": 0.6266,
+    "rate_overestimate_pct": 28.5,
+    "episodes_the_gate_priced": 66,
+    "projected_cny_for_those": 53.1382,
+    "realized_cny_for_those": 38.4582,
+    "available_after_holdback_cny": 44.5253,
+    "gate_verdict": "does not fit",
+    "verdict_at_realized_cost": "fits",
+    "margin_at_realized_cost_cny": 6.0671,
+    "why_the_estimator_missed": {
+      "calibration_pooled": 12,
+      "calibration_instance": "p15_eval_0004",
+      "calibration_instance_rate": 1.1094,
+      "panel_mean_rate": 0.6266,
+      "cheapest_instance_rate": 0.3298,
+      "dearest_instance_rate": 1.1094,
+      "instance_spread_factor": 3.36,
+      "spread_the_gate_recorded_and_averaged_away": 6.86
+    }
+  },
+  "episodes": [
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0004_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_base_r1",
+      "total_cost": 2.6002,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1fad2161c9df5f3d",
+        "result.json": "01bb267666748e89",
+        "agentlog.sanitized.json": "b790154d41a04b46"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_base_r1",
+      "custody_manifest_sha256": "f99a1fdc57c80732774b552575a1f25907eff0640bb566198c1c4544e257baea"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0004_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_base_r2",
+      "total_cost": 0.5513,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "0948d82f9bc301f2",
+        "result.json": "8798a3b31a5dd4a1",
+        "agentlog.sanitized.json": "32eaffbc7d50ceac"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_base_r2",
+      "custody_manifest_sha256": "e8c1c3aa09fe03bb744628aebf5ee13aae343635c974716ee911e3e5e7b56ffe"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0004_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_bundles_r1",
+      "total_cost": 0.6386,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "03cc7b367c62ec21",
+        "agentlog.sanitized.json": "7b1bf1823669f6d2"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_bundles_r1",
+      "custody_manifest_sha256": "fa3ffcb698b0a2b8438d82d15e58c7ce2ac0d732bdc17014047f835c10a6b10a"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0004_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_bundles_r2",
+      "total_cost": 1.2014,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "08e65a94e3d1a75f",
+        "agentlog.sanitized.json": "13c550fab75fa903"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_bundles_r2",
+      "custody_manifest_sha256": "c0bb74747e20ceef2ac18f3b109bc1829a60471a1dee3655fe0c3da8675ff50f"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0004_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_typedcontract_r1",
+      "total_cost": 0.4959,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "0948d82f9bc301f2",
+        "result.json": "fdba238410d0943d",
+        "agentlog.sanitized.json": "9adbc138640b0a7c"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_typedcontract_r1",
+      "custody_manifest_sha256": "cdc1f5dafccc01c1c09d0433f127afae1ae760c597411bb0524932ad0a4a35a1"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0004:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0004_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0004_typedcontract_r2",
+      "total_cost": 1.1687,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "0d0bbee8535253e3",
+        "agentlog.sanitized.json": "61fcfe6b9f993021"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0004_typedcontract_r2",
+      "custody_manifest_sha256": "c2683189182b981077fcc7692897dbe9b3a51d63915d014d7cdc8edd652ce8f8"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0005_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_base_r1",
+      "total_cost": 0.3753,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "c7bdc03cc205003a",
+        "agentlog.sanitized.json": "aefc35af2bcb2712"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_base_r1",
+      "custody_manifest_sha256": "c1c9aa8eefa0ef3a03c577ba3bcc32e3c57d06824fad0ec532eabf481dc265e8"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0005_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_base_r2",
+      "total_cost": 0.4168,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "a8c07e7d411648c9",
+        "result.json": "9e979024eecbe05c",
+        "agentlog.sanitized.json": "8845688fab2d578b"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_base_r2",
+      "custody_manifest_sha256": "2a10f286e305cc80d14e7e84eff2bfe7f8443a9c4f5974830e68205f0ec1d1dc"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0005_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_bundles_r1",
+      "total_cost": 0.7114,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "d3b38ce77eb05f7a",
+        "agentlog.sanitized.json": "a6f2facb7d41072e"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_bundles_r1",
+      "custody_manifest_sha256": "eee8f49ed2e2bac70ff021c0b9cd739622717353cf0237c07b38a4ea25e8d3ff"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0005_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_bundles_r2",
+      "total_cost": 0.5471,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "bb1f3d84ed63e1a9",
+        "agentlog.sanitized.json": "e8eea848acb7b5db"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_bundles_r2",
+      "custody_manifest_sha256": "23382949bb7c3eec9e3c70235414f6877444fcc905f7489711ec92d802fb9817"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0005_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_typedcontract_r1",
+      "total_cost": 0.435,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "ff53de68b893b748",
+        "result.json": "835730e291bbb175",
+        "agentlog.sanitized.json": "e5534eefd7d016bc"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_typedcontract_r1",
+      "custody_manifest_sha256": "ad9811127712095a0c57cd45dd50147d71a8722effbf50b20e0a0b0b4574ca52"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0005:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0005_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0005_typedcontract_r2",
+      "total_cost": 0.3902,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "e5fd1cc14fe55472",
+        "agentlog.sanitized.json": "c7d0b06fb425a807"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0005_typedcontract_r2",
+      "custody_manifest_sha256": "745286a456dbc8de0b284242842c5b4a16c75f93cbb6652fd25b90214979fe6e"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0006_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_base_r1",
+      "total_cost": 0.4544,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "5253f80e318949a6",
+        "result.json": "6d5e170d6688c78e",
+        "agentlog.sanitized.json": "a2695434f00e8a69"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_base_r1",
+      "custody_manifest_sha256": "854118c3a02201e338fba7b98529f4914a77f3f6ea0bd051e5ec3e47f8317d85"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0006_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_base_r2",
+      "total_cost": 0.8418,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "a1dbbe53d5e18e96",
+        "agentlog.sanitized.json": "8fab64c458fd6bbe"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_base_r2",
+      "custody_manifest_sha256": "1604a02a036313115b49f2708fa1542f46b3fdcb81470193cc82a4e73286bbe7"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0006_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_bundles_r1",
+      "total_cost": 0.4987,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "39da088993fc6bf3",
+        "result.json": "aca501f385db5374",
+        "agentlog.sanitized.json": "e8cfd39ed9653d20"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_bundles_r1",
+      "custody_manifest_sha256": "88d5c727a95716cfb1c982a1f09f6ca5f36b12d39c49e88c6129c9d51142b699"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0006_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_bundles_r2",
+      "total_cost": 0.3947,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "39da088993fc6bf3",
+        "result.json": "d8507336faa97f0d",
+        "agentlog.sanitized.json": "68ee5ea7aed031bf"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_bundles_r2",
+      "custody_manifest_sha256": "9dee5b7e322fa623e63cf60c55240f04f492283360b1eea7e5da613f122ac4bc"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0006_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_typedcontract_r1",
+      "total_cost": 0.6773,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "35ad1d4e1e1600c5",
+        "agentlog.sanitized.json": "4e0ed79941a1328f"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_typedcontract_r1",
+      "custody_manifest_sha256": "3ae8dfee26a9a2bf83243f25d0f2f54af20471b87950c332d3361534626b11ca"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0006:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0006_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0006_typedcontract_r2",
+      "total_cost": 0.3615,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "6f47a9016c44bf37",
+        "result.json": "7aad0fb98ebae953",
+        "agentlog.sanitized.json": "63de4a25ca071e8a"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0006_typedcontract_r2",
+      "custody_manifest_sha256": "a649f5347c9e413c3e7becb1adfcb4eba14ea514bb67da8a1af6bec200d8e855"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0007_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_base_r1",
+      "total_cost": 0.4579,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "c16bac8b8eb01149",
+        "result.json": "5783b63124a89370",
+        "agentlog.sanitized.json": "643a53c72738a6e7"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_base_r1",
+      "custody_manifest_sha256": "3fd22faebbc694dcc5d9c394deeaa72f6695af84ca44e53a200d73486bbce49e"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0007_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_base_r2",
+      "total_cost": 0.3726,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "c16bac8b8eb01149",
+        "result.json": "927dfb84b569b625",
+        "agentlog.sanitized.json": "01f91ad413b29d7e"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_base_r2",
+      "custody_manifest_sha256": "1575eb598f3d59aa3019d4d6f5d967c4df9748e15ceceeb1a379cfb4fff5c972"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0007_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_bundles_r1",
+      "total_cost": 0.6271,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "41af7b277877bc41",
+        "result.json": "91385be7095546be",
+        "agentlog.sanitized.json": "0266de8d7c0060ac"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_bundles_r1",
+      "custody_manifest_sha256": "9cfa1b467820a60e4521e559c5cdd4bd0243e6e7443541bdb5ef50be3ce9db1b"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0007_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_bundles_r2",
+      "total_cost": 0.5562,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "9ff1407689e88386",
+        "result.json": "bda85116c2903fa0",
+        "agentlog.sanitized.json": "a28918538e680f1e"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_bundles_r2",
+      "custody_manifest_sha256": "c93a55732618304aaf3443225a8efd0c9d637cbb7496d3042f59d14b12733afb"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0007_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_typedcontract_r1",
+      "total_cost": 0.4996,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "079080832abfea78",
+        "result.json": "e9ecd08da7ec6d4c",
+        "agentlog.sanitized.json": "b669032128ddb4b7"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_typedcontract_r1",
+      "custody_manifest_sha256": "897964bd8da29260ef8b34cf6a05c09104586e9862510ee49bc685dc5a9c0350"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0007:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0007_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0007_typedcontract_r2",
+      "total_cost": 0.3832,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "41af7b277877bc41",
+        "result.json": "2ba6e194598c904f",
+        "agentlog.sanitized.json": "f32b08ac548420d9"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0007_typedcontract_r2",
+      "custody_manifest_sha256": "bc2a58c3f60ef4f4feebafa16cce44acf6a17b66cbe4d46354a5d6690df39152"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0008_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_base_r1",
+      "total_cost": 1.1742,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1ff9ce2a456b7d8d",
+        "result.json": "0c526fb27ada1dba",
+        "agentlog.sanitized.json": "3e5a329978914f52"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_base_r1",
+      "custody_manifest_sha256": "99a46ebd3e6cd9f53e0d1c06c5ce1fe64a002162477d26b938ed752fb21aad3e"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0008_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_base_r2",
+      "total_cost": 0.4306,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1ff9ce2a456b7d8d",
+        "result.json": "f83acf1bc575dd29",
+        "agentlog.sanitized.json": "9804f2ade0dfe421"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_base_r2",
+      "custody_manifest_sha256": "7f706a91c014119cbae5bd9ba955faef098ac1c996600ec113813dd3978e7a1c"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0008_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_bundles_r1",
+      "total_cost": 0.8779,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "7c475b50ce9d75de",
+        "result.json": "3e06a9df12a5e428",
+        "agentlog.sanitized.json": "5d25600b2c145247"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_bundles_r1",
+      "custody_manifest_sha256": "a433d49844b248ef34e184dc0cf2504e5c3771fd3eab9ca9167b98e108b964aa"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0008_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_bundles_r2",
+      "total_cost": 0.4209,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1ff9ce2a456b7d8d",
+        "result.json": "49a9989ec0b40b0d",
+        "agentlog.sanitized.json": "89805976f6c08668"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_bundles_r2",
+      "custody_manifest_sha256": "bb9fbbb88c45f82ba5c877dff7c4f594396e435257b35fcf2f6685430952616d"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0008_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_typedcontract_r1",
+      "total_cost": 0.3634,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1ff9ce2a456b7d8d",
+        "result.json": "4669a44e59a8869f",
+        "agentlog.sanitized.json": "5b5a96d423b73453"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_typedcontract_r1",
+      "custody_manifest_sha256": "1e0f975d4e298b7c7e2318811f027d29d7b53cfb6f2ba8d1593633fbb0d0629b"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0008:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0008_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0008_typedcontract_r2",
+      "total_cost": 0.4389,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1ff9ce2a456b7d8d",
+        "result.json": "cf4e0227853e0840",
+        "agentlog.sanitized.json": "5e2076c14f43cd06"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0008_typedcontract_r2",
+      "custody_manifest_sha256": "463142996457a6c3e820e25388c3a67ac7214e6ec451fccde14cae432ddc83e6"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0009_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_base_r1",
+      "total_cost": 0.504,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "2fdbc77f219c3838",
+        "agentlog.sanitized.json": "5492e9c0b168f4aa"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_base_r1",
+      "custody_manifest_sha256": "9ec0777bfd6df8b674b82b7970b4cf8562cca304051ed806ee68b6ea3ecff921"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0009_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_base_r2",
+      "total_cost": 0.4239,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "0183d15f59fa014e",
+        "agentlog.sanitized.json": "5f5db909dea87dba"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_base_r2",
+      "custody_manifest_sha256": "f09ee01436a3ed3cd0f6fbc8fedab5a65f8585ed84d6428604cb23f51ad4095f"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0009_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_bundles_r1",
+      "total_cost": 0.2822,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "e0bab9fd453430fa",
+        "agentlog.sanitized.json": "71936dafadf73808"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_bundles_r1",
+      "custody_manifest_sha256": "64b81ca2a5f9a15b3cf4d796de855379d37e97580cda922ea48d475f005552e6"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0009_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_bundles_r2",
+      "total_cost": 0.3656,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "fbffd6adce2471c4",
+        "agentlog.sanitized.json": "a184320b6ef2a004"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_bundles_r2",
+      "custody_manifest_sha256": "8fc955079be57e4d03bc017264cdabd1f42d81c9457e303444631b038b5ff37a"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0009_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_typedcontract_r1",
+      "total_cost": 0.246,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "e100dbb7817336c2",
+        "agentlog.sanitized.json": "830cec610b4eda2f"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_typedcontract_r1",
+      "custody_manifest_sha256": "bc382fccec56000a2e7566ddea1d81e769ec922fe40769b49544830f78118523"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0009:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0009_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0009_typedcontract_r2",
+      "total_cost": 1.0919,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "e397c133f7e201cb",
+        "result.json": "1f094e3f211503d7",
+        "agentlog.sanitized.json": "132887c91e75d8c8"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0009_typedcontract_r2",
+      "custody_manifest_sha256": "9925dcd9f6af4945a932a62d48ba4778b06727f663ce8792c834bd46e4230969"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0010_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_base_r1",
+      "total_cost": 0.3232,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cf5a2ddc48047ca8",
+        "result.json": "5626cbfd17eb562d",
+        "agentlog.sanitized.json": "12fd2209cbb92e78"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_base_r1",
+      "custody_manifest_sha256": "ade5ecce5f2bbf39e1a35ff406efb4c7829b65ea0f5cc5b7d2629d370425b35c"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0010_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_base_r2",
+      "total_cost": 0.3546,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cf5a2ddc48047ca8",
+        "result.json": "73572df6779e69de",
+        "agentlog.sanitized.json": "a36a19d1e81b7640"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_base_r2",
+      "custody_manifest_sha256": "c72e7bb8f80e8d50a0810f0c2153aaa1955d209786eff210ed034dfe3c3190ed"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0010_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_bundles_r1",
+      "total_cost": 0.4868,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cfd9d89683e4c9d6",
+        "result.json": "7871b92206c129bf",
+        "agentlog.sanitized.json": "b276d4ab9572be0a"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_bundles_r1",
+      "custody_manifest_sha256": "d0c80119122964ac6d70fd9613c4657da3a5bcdb9b488e5c323c71992957adfd"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0010_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_bundles_r2",
+      "total_cost": 0.3226,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cf5a2ddc48047ca8",
+        "result.json": "f8c6e7bdbc75542b",
+        "agentlog.sanitized.json": "44620770d5f873ac"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_bundles_r2",
+      "custody_manifest_sha256": "766b19c17ab4879bb36aaf6a8ed48dd4345538c8d86cec2bea91c256e129fdd9"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0010_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_typedcontract_r1",
+      "total_cost": 0.237,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cf5a2ddc48047ca8",
+        "result.json": "3568fc1abdc8a2e6",
+        "agentlog.sanitized.json": "1e82317f6175c41f"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_typedcontract_r1",
+      "custody_manifest_sha256": "668950497c16386d75e836bf7e7c0660b2127a7b4f31a28d9c494c2a404343c2"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0010:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0010_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0010_typedcontract_r2",
+      "total_cost": 0.2545,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "cf5a2ddc48047ca8",
+        "result.json": "37a1d1c0a23eb001",
+        "agentlog.sanitized.json": "3be859c914bb0da7"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0010_typedcontract_r2",
+      "custody_manifest_sha256": "bf723613228480388976d89f4503a55950195c1113ffdc7bfd056775ebe2f3ad"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0011_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_base_r1",
+      "total_cost": 0.4677,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1fad2161c9df5f3d",
+        "result.json": "b8527207212f0a6d",
+        "agentlog.sanitized.json": "1430e0e1095b8333"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_base_r1",
+      "custody_manifest_sha256": "6eb1c3173d6ade3bf288cccfdf00494f0d6e1fe6e0a8d8b461f1ee7c9c67cb8e"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0011_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_base_r2",
+      "total_cost": 0.3176,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "1fad2161c9df5f3d",
+        "result.json": "09d3af2a0b64eeed",
+        "agentlog.sanitized.json": "9ddaa8a95f9026df"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_base_r2",
+      "custody_manifest_sha256": "6d7a0afbde2790ff0fe0745f7f170bbbb8525693ffb17d5086aec22e17a39815"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0011_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_bundles_r1",
+      "total_cost": 0.7417,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "22fb62ec95701526",
+        "result.json": "c34f848f1900a26d",
+        "agentlog.sanitized.json": "5ab162dce3fbfc03"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_bundles_r1",
+      "custody_manifest_sha256": "be7ae8890043f1c9abb570340b79c4ecb23b05dd1dc777c48dc3298b7aa4a180"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0011_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_bundles_r2",
+      "total_cost": 1.2849,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "22fb62ec95701526",
+        "result.json": "b5355b6d4637570f",
+        "agentlog.sanitized.json": "f263b3fee533caeb"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_bundles_r2",
+      "custody_manifest_sha256": "5d261376d6b6fa2d44aabd539f57e0e9f3a8725b8ba381758326503eabec2a2b"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0011_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_typedcontract_r1",
+      "total_cost": 0.47,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "22fb62ec95701526",
+        "result.json": "61b9d1fc623565d1",
+        "agentlog.sanitized.json": "96ce2497113fc7ab"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_typedcontract_r1",
+      "custody_manifest_sha256": "dc59e063b97a452542f57550b7d59239293fd6ee8e82514655303e1a5539e205"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0011:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0011_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0011_typedcontract_r2",
+      "total_cost": 0.2196,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "74c574d907ca5678",
+        "result.json": "5a7db4a1eff8bac5",
+        "agentlog.sanitized.json": "ab5552b0eda12bc5"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0011_typedcontract_r2",
+      "custody_manifest_sha256": "fb50039c552555498ad1bc7f5ed5a7b42323d289eaa8d1b72c8d589219e01f11"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0012_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_base_r1",
+      "total_cost": 0.5266,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "2a6f547f7635b6aa",
+        "result.json": "05168f11aa9ae935",
+        "agentlog.sanitized.json": "add8807caac613bd"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_base_r1",
+      "custody_manifest_sha256": "755467302d8562eb97d75fed7ead738f6389ac565f8c5a2703d344037522aa3b"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0012_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_base_r2",
+      "total_cost": 3.604,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "87ad236b49228932",
+        "result.json": "e1af65f69ecac92e",
+        "agentlog.sanitized.json": "247e9cfd8d0a1c16"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_base_r2",
+      "custody_manifest_sha256": "c426b23c0eb8d9a28297e775c13cc07f190ad42ca0ff92f34cbc53c5d3caa668"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0012_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_bundles_r1",
+      "total_cost": 0.5019,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "396db78fc35c3856",
+        "result.json": "eea422eeb4d2cec3",
+        "agentlog.sanitized.json": "39998a6a0240d675"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_bundles_r1",
+      "custody_manifest_sha256": "9b7020c6a737a93224cee6efb820a61c444897473b6a2979603db3830769d2e0"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0012_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_bundles_r2",
+      "total_cost": 0.6202,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "2a6f547f7635b6aa",
+        "result.json": "f96493c5746201c4",
+        "agentlog.sanitized.json": "2b4444bbb418b47b"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_bundles_r2",
+      "custody_manifest_sha256": "9699a057ec62f5abfde44f2007747b22ee2ac6701a195520ab9e5399d9cbe4d7"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0012_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_typedcontract_r1",
+      "total_cost": 0.6543,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "396db78fc35c3856",
+        "result.json": "39a9955ea01a5d8c",
+        "agentlog.sanitized.json": "5d340879254f3c68"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_typedcontract_r1",
+      "custody_manifest_sha256": "bee40ebd35a7f8885fe5b6e682303c40ba548c947cd705d7e68ad3569275caf4"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0012:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0012_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0012_typedcontract_r2",
+      "total_cost": 0.5345,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "396db78fc35c3856",
+        "result.json": "559ae5b5b380feab",
+        "agentlog.sanitized.json": "8f917e732d547703"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0012_typedcontract_r2",
+      "custody_manifest_sha256": "6fe703536d95527c81c84f8f22c47687816cee3f36687edf904d857642d41da3"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0013_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_base_r1",
+      "total_cost": 1.0979,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "61fb686101072414",
+        "result.json": "c4a7bc1b9b3ae392",
+        "agentlog.sanitized.json": "0ca5ee5502562a81"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_base_r1",
+      "custody_manifest_sha256": "9e78099932a3fc85e6965a9f9e7c0f6ad81a06813eeb12cd0c6ff4c5a24b267a"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0013_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_base_r2",
+      "total_cost": 0.4463,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "246e5a6dbd3da441",
+        "result.json": "e8f5440c9ce3a910",
+        "agentlog.sanitized.json": "f29774b5bc1043a6"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_base_r2",
+      "custody_manifest_sha256": "a147e3d7eaf3cab1599ec350ebed219052cb9baee6cd55dd45fa7f9d18784cfa"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0013_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_bundles_r1",
+      "total_cost": 0.9964,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "246e5a6dbd3da441",
+        "result.json": "14f6da53c321b3c6",
+        "agentlog.sanitized.json": "f65af407ed2d605d"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_bundles_r1",
+      "custody_manifest_sha256": "478fc8e9023ecce9238f952506c2f922c7e37fc57c0c5745f0a50905207bb0a6"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0013_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_bundles_r2",
+      "total_cost": 0.5914,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "246e5a6dbd3da441",
+        "result.json": "5c82ce30ca9e11e3",
+        "agentlog.sanitized.json": "1d62c689be6f6ede"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_bundles_r2",
+      "custody_manifest_sha256": "2bc632102567186ebcd8df5bdf12a7d20a2d61b5aaa550d05c938604f31950e4"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0013_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_typedcontract_r1",
+      "total_cost": 0.2723,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "246e5a6dbd3da441",
+        "result.json": "0e8f98d3210cef7d",
+        "agentlog.sanitized.json": "c744591c4429e6da"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_typedcontract_r1",
+      "custody_manifest_sha256": "6ed6648349bf8372e17faa3c6f2a07060d8a84ec15f4cde77b658e202259b391"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0013:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0013_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0013_typedcontract_r2",
+      "total_cost": 0.1743,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "246e5a6dbd3da441",
+        "result.json": "4a6b3587a0090266",
+        "agentlog.sanitized.json": "c551410bf4ecfbe4"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0013_typedcontract_r2",
+      "custody_manifest_sha256": "1e9da1045b7bdaa3aed06539a71781e1542da5f88f6ddca2ba61b2ed5a582985"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0014_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_base_r1",
+      "total_cost": 0.2707,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "624d2ea9a955e882",
+        "result.json": "0857d572997601b4",
+        "agentlog.sanitized.json": "9754f4bd5295ffb2"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_base_r1",
+      "custody_manifest_sha256": "04a0f266ebc4d6c3a4325136bc8174593c4f7aa4c7b9cd7f339d7c87006b2ddb"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0014_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_base_r2",
+      "total_cost": 0.2511,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "624d2ea9a955e882",
+        "result.json": "8b9b75971cd26876",
+        "agentlog.sanitized.json": "5b4bb501c886e20d"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_base_r2",
+      "custody_manifest_sha256": "7b547ca6767e9328c3c6e4c8b630b3e5f99d191343dec3e7321c4dd5127b6582"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0014_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_bundles_r1",
+      "total_cost": 0.4997,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "4f2d7edd597a699c",
+        "result.json": "1bea4abb79d235fc",
+        "agentlog.sanitized.json": "a3ea65c49c9c6cee"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_bundles_r1",
+      "custody_manifest_sha256": "a135375854337f87114ba8007b7005db71d87fead95ab949e8d28f377e2e22ad"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0014_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_bundles_r2",
+      "total_cost": 0.2304,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "624d2ea9a955e882",
+        "result.json": "646b19266789ea3f",
+        "agentlog.sanitized.json": "689ce7446366c1c1"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_bundles_r2",
+      "custody_manifest_sha256": "58db90f5874b29dac35d28d204d22fc2634c9c41885a9e4918a6e439063fa82a"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0014_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_typedcontract_r1",
+      "total_cost": 0.5172,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "624d2ea9a955e882",
+        "result.json": "2431b65b07d8cc73",
+        "agentlog.sanitized.json": "58cd77c9228ca349"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_typedcontract_r1",
+      "custody_manifest_sha256": "b6e41f24744a586408c38c8f81ae3c39502388d6f33d220f560596c7e7e629f9"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0014:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0014_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0014_typedcontract_r2",
+      "total_cost": 0.446,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "565fea655d1c50cf",
+        "result.json": "c329b1f463d35351",
+        "agentlog.sanitized.json": "3f9cb467e74193ab"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0014_typedcontract_r2",
+      "custody_manifest_sha256": "9ff42a23bb767965288ab66addce2a330799e3618c9ffde4afc97eb345cfab7e"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 0,
+      "rep": 1,
+      "task_id": "p15_eval_0015_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_base_r1",
+      "total_cost": 0.7575,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "45b27b9d577d3839",
+        "result.json": "5c23392b221af8bf",
+        "agentlog.sanitized.json": "89acc018141e8cd9"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_base_r1",
+      "custody_manifest_sha256": "4c9c5284da71dc9d84507c36e35716e6e5cea5d300c586f4f4c95cbe1eb8f1b9"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "Base",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 4,
+      "rep": 2,
+      "task_id": "p15_eval_0015_base",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_base_r2",
+      "total_cost": 1.7249,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "ab99865e10ed7e23",
+        "result.json": "bd7a883f34b8757c",
+        "agentlog.sanitized.json": "b55c4b57d14ce09b"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_base_r2",
+      "custody_manifest_sha256": "099f9628a7c49cc1c57ce7f3c2933362bf0aa0b2f33245d602bdf91f3d6134c4"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 2,
+      "rep": 1,
+      "task_id": "p15_eval_0015_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_bundles_r1",
+      "total_cost": 0.3312,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "45b27b9d577d3839",
+        "result.json": "b37848c6183658ef",
+        "agentlog.sanitized.json": "377138118d6f02a2"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_bundles_r1",
+      "custody_manifest_sha256": "45b34bb2cf46e3d4b62a5112ce93bd8f3e521c940d3b36a154d21c5470ae98de"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "BundleS",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 5,
+      "rep": 2,
+      "task_id": "p15_eval_0015_bundles",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_bundles_r2",
+      "total_cost": 0.4844,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "9e87a683b4bf85a9",
+        "result.json": "7708d4b6e0a2ec15",
+        "agentlog.sanitized.json": "e059e4c79a298d3a"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_bundles_r2",
+      "custody_manifest_sha256": "2f357972ba762a6646c9cce9fe0e5bdadaa69b4922618e1c4633a6715a82bb71"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 1,
+      "rep": 1,
+      "task_id": "p15_eval_0015_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_typedcontract_r1",
+      "total_cost": 1.3517,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "45b27b9d577d3839",
+        "result.json": "152325b19c5d2556",
+        "agentlog.sanitized.json": "bf1d3fa840a3ddfb"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_typedcontract_r1",
+      "custody_manifest_sha256": "36ce840a15a3320fe97ce28f9409e9f71bbcfc33af3102d9398225cb280acba6"
+    },
+    {
+      "block_id": "8A_sta:p15_eval_0015:DeepSeek-V4-Pro-TR",
+      "condition": "TypedContract",
+      "family": "A_sta",
+      "model_name": "deepseek-v4-pro",
+      "position_in_block": 3,
+      "rep": 2,
+      "task_id": "p15_eval_0015_typedcontract",
+      "track": "p15_sta_handoff",
+      "transport": {
+        "max_chat_retries": 6,
+        "stream_responses": true,
+        "request_inactivity_timeout_sec": 120,
+        "hard_request_deadline_sec": 300
+      },
+      "trial": "p15_eval_0015_typedcontract_r2",
+      "total_cost": 0.4728,
+      "rates_cny_per_M": {
+        "input": 12.0,
+        "output": 24.0
+      },
+      "custody": {
+        "exception_config.json": "9e87a683b4bf85a9",
+        "result.json": "6c469fb43db9e350",
+        "agentlog.sanitized.json": "e9ee6720ccbe953e"
+      },
+      "error": null,
+      "episode_id": "p15_eval_0015_typedcontract_r2",
+      "custody_manifest_sha256": "97635a24e1186f5c15087e6ddf20f6a1175261e8f1dc5b980d07bef52ad8c2fb"
+    }
+  ]
+}

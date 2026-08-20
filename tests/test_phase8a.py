@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import subprocess
 import sys
 from collections import Counter
@@ -1522,6 +1523,15 @@ def test_the_artifact_map_states_arm2_was_refused_not_that_it_ran():
     # v14 does not cite it, or a reader comparing the two would think a number went missing.
     assert "primary S2-F evidence in v15" in en and "v15 中的 S2-F 主要证据" in zh
     assert "**v14 does not cite it**" in en and "**v14 并未引用它**" in zh
+    # 72 episodes now exist at the S3 coordinate. "Not executed" is true of the preregistered arm and
+    # false as a claim that no data exists, so the map must carry both halves in both languages --
+    # the episodes exist, and their contrast has never been computed. Silence here would be the
+    # misreading this test was written to prevent, one level down.
+    assert "72 quarantined episodes exist at S3, and have never been analysed" in en
+    assert "S3 那一格上存在 72 条被隔离的 episode，且从未被分析" in zh
+    assert "No condition contrast has ever been computed" in en
+    assert "条件对比从未被计算过" in zh
+    assert "yield no S3 estimate" in en and "不产生任何 S3 估计" in zh
 
 
 def test_the_cross_backend_concordance_is_labelled_post_hoc_and_not_pooling():
@@ -1782,3 +1792,115 @@ def test_the_repository_has_no_dangling_references():
                        capture_output=True, text=True, cwd=REPO)
     assert r.returncode == 0, r.stdout + r.stderr
     assert "no dangling repository references" in r.stdout
+
+
+# ------------------------------------- the quarantined arm-2 trajectories must stay unanalysed
+#
+# 72 DeepSeek episodes exist at the S3 coordinate, generated under quarantine AFTER the
+# preregistered cost gate had already refused the arm. Their value is precisely that nobody has
+# looked: "excluded before the data existed, and never analysed" is a stronger statement than any
+# contrast they could yield, and it is a state one careless import destroys permanently. So it is
+# held by an audit hook rather than by convention.
+QUARANTINE_ROOT = REPO / "runs" / "phase8a_exploratory_arm2"
+QUARANTINE_RECORD = REPO / "phase8a" / "evidence" / "arm2_quarantine_record.json"
+QUARANTINE_SCRIPT = REPO / "scripts" / "phase8a_arm2_quarantine.py"
+OUTCOME_FILES = ("result.json", "exception_config.submitted.json", "agentlog.sanitized.json")
+
+_needs_tree = pytest.mark.skipif(not QUARANTINE_ROOT.exists(),
+                                 reason="quarantine tree is gitignored; absent in a fresh clone")
+
+_AUDIT = """
+import os, sys
+ROOT = {root!r}
+NAMES = {names!r}
+def _hook(event, args):
+    if event != "open" or not args:
+        return
+    target = args[0]
+    if not isinstance(target, (str, bytes, os.PathLike)):
+        return
+    p = os.fspath(target)
+    if isinstance(p, bytes):
+        p = p.decode("utf-8", "replace")
+    p = os.path.abspath(p)
+    if p.startswith(ROOT) and (NAMES is None or os.path.basename(p) in NAMES):
+        raise RuntimeError("QUARANTINE VIOLATION: " + p)
+sys.addaudithook(_hook)
+"""
+
+
+def _run_guarded(tmp_path, argv, names):
+    """Run argv in a subprocess that raises if it opens a guarded path under the quarantine root."""
+    site = tmp_path / "sitecustomize.py"
+    site.write_text(_AUDIT.format(root=str(QUARANTINE_ROOT), names=names))
+    env = dict(os.environ, PYTHONPATH=str(tmp_path))
+    return subprocess.run([sys.executable] + [str(a) for a in argv],
+                          capture_output=True, text=True, cwd=REPO, env=env)
+
+
+@_needs_tree
+def test_the_quarantine_audit_hook_can_actually_fire(tmp_path):
+    """Negative control. The two tests below assert that nothing trips this hook; if the hook were
+    broken they would pass for the wrong reason, which is the failure mode this whole guard exists
+    to prevent elsewhere in the paper.
+    """
+    victim = next((QUARANTINE_ROOT / "episodes_arm2").glob("*/result.json"))
+    prog = tmp_path / "peek.py"
+    prog.write_text(f"open({str(victim)!r}).read()\n")
+    r = _run_guarded(tmp_path, [prog], OUTCOME_FILES)
+    assert r.returncode != 0, "the audit hook did not fire on a deliberate outcome read"
+    assert "QUARANTINE VIOLATION" in r.stderr, r.stderr
+
+
+@_needs_tree
+def test_the_quarantine_recorder_cannot_open_an_outcome_file(tmp_path):
+    """The recorder reads money and orchestration. It must be unable to reach a verdict, a submitted
+    binding or an agent log even by accident.
+    """
+    r = _run_guarded(tmp_path, [QUARANTINE_SCRIPT, "--check"], OUTCOME_FILES)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "QUARANTINE VIOLATION" not in r.stderr
+
+
+@_needs_tree
+@pytest.mark.parametrize("argv", [
+    ["scripts/phase8a_claim_statistics.py", "--check"],
+    ["scripts/phase8a_arm2_gate.py", "--check"],
+    ["scripts/phase8a_report.py", "--arm", "2", "--check"],
+])
+def test_the_phase8a_analyses_never_touch_the_quarantined_tree(tmp_path, argv):
+    """Nothing that feeds the manuscript may read this tree at all -- not an outcome, not a cost,
+    not a run-state file. The quarantine's whole write surface was redirected under runs/ so that
+    these three --check commands could not see it; this proves they still cannot.
+    """
+    r = _run_guarded(tmp_path, [REPO / argv[0]] + argv[1:], None)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "QUARANTINE VIOLATION" not in r.stderr
+
+
+def test_the_quarantined_arm2_record_declares_it_was_never_analyzed():
+    rec = json.loads(QUARANTINE_RECORD.read_text())
+    assert rec["analysis_status"] == "never_analyzed"
+    assert rec["s3_status"]["preregistered_eligible_arm"] == "not executed"
+    assert rec["s3_status"]["condition_contrast_computed"] is False
+    assert rec["s3_status"]["s3_effect_estimate"] is None
+    assert rec["execution"]["aggregate_report_generated"] is False
+
+
+def test_the_quarantine_record_carries_no_outcome_anywhere():
+    """`read_discipline` has to name the keys it drops; nowhere else may mention them."""
+    rec = json.loads(QUARANTINE_RECORD.read_text())
+    scanned = json.dumps({k: v for k, v in rec.items() if k != "read_discipline"},
+                         ensure_ascii=False)
+    for key in ("total_score", "semantic_binding"):
+        assert key not in scanned, key
+    for ep in rec["episodes"]:
+        assert "total_score" not in ep and "semantic_binding" not in ep, ep["episode_id"]
+
+
+def test_the_exclusion_was_decided_before_the_quarantined_data_existed():
+    """The one fact that makes disclosure safe: no S3 outcome could have informed the exclusion."""
+    rec = json.loads(QUARANTINE_RECORD.read_text())
+    o = rec["ordering_that_makes_this_safe"]
+    assert o["gate_decision"] == "ARM2_NOT_RUN"
+    assert o["gate_decided_at"] < o["first_quarantined_block_started_at"], o

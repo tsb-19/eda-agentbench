@@ -181,6 +181,68 @@ Program spend: **¥145.4747 of ¥200.** The remaining ¥54.53 is not spent on ad
 instances, conditions or models (§2.3). Spending a surplus because it exists is the outcome-adaptive
 practice this program exists to prevent.
 
+### 72 episodes exist at the S3 coordinate, and nobody has looked at them
+
+After the gate's decision was computed and committed at 02:56Z, the operator asked that the remaining
+arm-2 blocks be allowed to finish in the background. They were, under a quarantine that redirected the
+run's entire write surface — custody, run state, block files, archive glob, ledger — to a root under
+`runs/`, which is gitignored, so the quarantine cannot enter a commit even via `git add -A`. Blocks 01
+onward began at 04:31Z. **The exclusion decision predates the data.**
+
+The result is 72 DeepSeek-V4-Pro episodes — 12 instances × 3 conditions × k=2, 12/12 blocks complete,
+0 invalid attempts, ¥45.1143 — sitting at exactly the coordinate the paper reports as unmeasured.
+
+**Their condition contrast has never been computed.** That is deliberate, and it is worth more than
+any number they could yield. Every block carries `report_pending: true`, no aggregate was ever
+generated, and `scripts/phase8a_arm2_quarantine.py` — which produced the custody record — opens only
+`episode.json` and `SHA256SUMS`, drops `total_score` and `semantic_binding` before the object is used,
+and never opens `result.json`, `exception_config.submitted.json` or the agent log. That is not a
+promise in a docstring: `tests/test_phase8a.py` drives the recorder *and* the three Phase-8A `--check`
+commands under a `sys.addaudithook` that raises on a forbidden open, with a negative control proving
+the hook fires.
+
+Why not just look? Because the paper's own standard is that evidence eligibility is fixed before an
+outcome is seen, and this is the first case where obeying it costs something. The episodes are the
+shallower k=2 arm the preregistration declined to fund; opening them now would convert an exclusion
+fixed before the data existed into an outcome-informed exploratory analysis. Reporting it honestly as
+exploratory would be permissible in general — but in *this* paper it would invite the fair question of
+when the standard ever binds the authors, and the answer would be "not when it was tempting."
+
+They are not permanently sealed. A later, separately framed study may analyse them as an explicitly
+exploratory follow-up. What may not happen is their being folded back into this paper's confirmatory
+evidence.
+
+### The gate refused an arm that was affordable
+
+The realized cost is a finding in its own right, and it needs no condition contrast:
+
+| | gate's projection | realized |
+|---|---|---|
+| rate r′ | ¥0.805125/episode (12-episode probe) | **¥0.6266/episode** (72 episodes) |
+| the 66 remaining episodes | ¥53.1382 | **¥38.4582** |
+| against ¥44.5253 after holdback | does not fit → `ARM2_NOT_RUN` | **fits, ¥6.07 to spare** |
+
+The gate applied its preregistered rule correctly and its arithmetic was right. Its *rate estimator*
+was calibrated on a sample that did not represent the panel it gated: r′ pooled the cost probe with
+the one executed block, and that block is `p15_eval_0004` — the dearest of the twelve at ¥1.1094 per
+episode, against a panel mean of ¥0.6266 and a cheapest instance at ¥0.3298. The gate had already
+recorded the spread it was averaging away (`rate.spread_factor 6.86`) and gated on the pooled mean.
+
+This is the study's own finding in a different currency. Panel composition — not run noise — decided
+the estimate, and here it decided not an effect size but whether an experiment happened at all. It is
+stated as a fourth accounting requirement in the manuscript's methods appendix: *a cost gate must be
+calibrated on a sample that represents the panel it gates, and must carry the spread it measures into
+the decision rather than reducing it to a pooled mean.*
+
+It does not reopen the decision. Eligibility fixed before an outcome may not be revised once the
+outcome exists — least of all by the discovery that the refusal was too conservative.
+
+Accounting, kept as two figures rather than one: **eligible-analysis spend ¥145.47**, **total realized
+spend ¥183.93** (the 66 quarantined episodes cost ¥38.4582 and enter no analysis; block 00 is
+byte-identical to the committed block and its money was already counted). The ¥200 cap was not
+breached. Record: [`../phase8a/evidence/arm2_quarantine_record.json`](../phase8a/evidence/arm2_quarantine_record.json),
+verified by `python3 scripts/phase8a_arm2_quarantine.py --check`.
+
 ## Measurement-validity findings
 
 These cost real money and are the more transferable half of the study.
