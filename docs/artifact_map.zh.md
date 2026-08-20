@@ -137,6 +137,47 @@ Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实
 - **模型身份只是提供方别名，不是解析后的快照。** `phase7c_claim_statistics.py` 报告 `resolved_snapshot_retained: false`。论文把这写成自己欠下的局限（第五条 Layer-4 要求），而非已行使的控制。
 - **两个生成器在冻结之后发生了漂移。** `scripts/frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件；均为既有状态，解释见 `docs/frozen_membership_baseline.json`。论文报告的数字来自被钉住的版本。
 
+## Phase-8A —— 冻结之后的 S2-F 功效扩充（不在手稿 v14 中）
+
+Phase-8A 在更换后端上重跑了**完全相同的冻结 12 实例 STA 设计，k=6**，因为原冻结端点已不再提供这些模型。
+它**未被 v14 引用** —— 它在冻结之后才执行 —— 记录于此，是因为它将成为下一版手稿中 S2-F 的主要证据，
+而 k=2 的前瞻面板保留为促使把 k 提高的先导结果。
+
+它的 episode **绝不与** Phase-7A 汇合。不同服务栈就是不同的测量；两者并列报告，绝不求和、求均值或求差
+汇入同一个 n。
+
+| 主张 | 证据所在 |
+|---|---|
+| **高重复面板结果。** 216 个 episode，12 实例 × 3 条件 × k=6，¥122.8175。没有建立一致的 BundleS 优势；描述性条件均值 Base .2778 / BundleS .25 / TypedContract .3611。符号检验 5 个非零实例差中 k⁺=2，双侧 *p*=1.0；置换 *p*=0.7176（描述性） | `scripts/phase8a_report.py --arm 1 --check` → `phase8a/reports/` 中的 `phase8a_sta_report.json` |
+| **实例级异质性，且是双向的。** 12 个实例中只有 5 个能表达差异（6 个在两个主条件上同处地板，1 个同处天花板）。这 5 个上的差值为 −1.0、−0.8333、−0.1667、+0.6667、+1.0 —— 有两个实例在**相反方向**上各自达到可能的最大幅度 | 同一 JSON 的 `instances[]`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
+| **在这个粒度上重复不是可选项。** 36 个（实例, 条件）单元中有 7 个，其 6 次完全相同的重复彼此不一致；`p15_eval_0013` 的 Base 是 6 次中的 3 次。在这个家族上，单轨迹估计有 19% 的时候就是抛硬币 | 同一 JSON 的 `instances[].within_inst_agreement` 与 `*_reps` |
+| **S3 是被预注册的成本门控拒绝，而不是跑出了一个负结果。** Arm 2（`deepseek-v4-pro`）**未执行**。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；完整 72 个预计 ¥57.97，而剩余 ¥44.53，故 {6,4,2} 中无一合格 → `ARM2_NOT_RUN`。十二个 block 中有一个执行了，报告时**不给出任何条件对比**（§5E.5） | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；那个 block 见 `phase8a/reports/` 中的 `phase8a_sta_report_arm2.md` |
+| 预注册及其六条编号修正案 —— 每条都在相应的进入分析的 episode 之前固定 | [`phase8a_prereg.zh.md`](phase8a_prereg.zh.md) |
+| 金钱：逐 episode 保管记录、归档的废弃轮次、被替换尝试账本、低报成本的更正 | `phase8a/evidence/`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
+
+### 事后观察：面板解剖结构在换后端之后重现
+
+Phase-7A 附录 C 的解剖结构（6 个地板受限、1 个天花板受限、5 个有信息量）在 k=6、不同后端上以**完全相同的
+计数**重现，而且**12 个实例中有 10 个获得完全一致的分类** —— 六个地板受限的实例是同样那六个。在有信息量
+的实例中，**符号**也一致：`p15_eval_0004` 与 `p15_eval_0007` 在两处都为负，`p15_eval_0011` 与
+`p15_eval_0012` 在两处都为正。只有 `p15_eval_0010`（+0.5 → 0.0）与 `p15_eval_0013`（0.0 → −0.1667）
+改变了类别，且都是在地板/天花板边界上的小幅移动。
+
+这是**事后的、非预注册的**观察，与 Phase-7A 自己的 `panel_anatomy` 块标注一致（`post_hoc: true`）。
+它也**不是**汇合：没有任何数字跨这两项研究相加。它支持的是一个狭窄而有用的表述 —— 实例级异质性是**实例**
+的性质，而不是抽样噪声，因为它在服务栈更换与 k 增至三倍之后依然存在。它**不**授权用其中一个后端去推断
+另一个后端的任何结论。
+
+交叉核对：`scripts/phase7c_claim_statistics.py --check` → `reports/synthetic_p14_claim_statistics.json`
+中的 `sta_finite_panel.panel_anatomy`，对照 `phase8a/reports/` 中的 `phase8a_sta_report.json` 中的 `instances[]`。
+
+### 属于方法附录而非正文的部分
+
+Phase-8A 期间发现并修复了三个 harness/账本缺陷。它们证明的是复现治理，而不是科学结果，记录在
+[`phase8a_findings.zh.md`](phase8a_findings.zh.md) 的"测量效度发现"一节：从未执行的 slot 被误算为
+measurement-invalid；一个靠缩小观察范围而变绿的成本校验器；以及一个被存放在"后续正当操作有权覆盖"路径上的
+原始工件。
+
 ## 不用商业工具也能复现的部分
 
 所有派生结果 —— 每个表格、区间、敏感带和 *p* 值 —— 都可以在不用 EDA 工具、不联网、不调用模型的前提下从冻结记录重算：

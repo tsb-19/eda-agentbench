@@ -198,6 +198,54 @@ separate accessor called only after every survivor set is already fixed.
   exactly 2 mismatches and 9 missing pinned files; all are pre-existing and explained in
   `docs/frozen_membership_baseline.json`. The reported numbers derive from the pinned versions.
 
+## Phase-8A — post-freeze S2-F power expansion (not in manuscript v14)
+
+Phase-8A re-ran the **same frozen 12-instance STA design at k=6** on a replacement backend, because
+the frozen program endpoint stopped serving the models. It is **not cited by v14** — it was executed
+after the freeze — and is recorded here because it is intended to become the primary S2-F evidence in
+the next manuscript version, with the k=2 prospective panel retained as the pilot that motivated
+raising k.
+
+Its episodes are **never pooled** with Phase-7A's. Different serving stack means a different
+measurement; the two are reported side by side and never summed, averaged or differenced into one n.
+
+| Claim | Where the evidence lives |
+|---|---|
+| **High-repetition panel result.** 216 episodes, 12 instances × 3 conditions × k=6, ¥122.8175. No consistent BundleS advantage established; descriptive condition means Base .2778 / BundleS .25 / TypedContract .3611. Sign test k⁺=2 of 5 non-zero instance diffs, two-sided *p*=1.0; permutation *p*=0.7176 (descriptive) | `scripts/phase8a_report.py --arm 1 --check` → `phase8a_sta_report.json` (in `phase8a/reports/`) |
+| **Instance-level heterogeneity, bidirectional.** Only 5 of 12 instances can express a difference (6 floor-limited in both primary arms, 1 ceiling-limited). Across those 5 the diffs are −1.0, −0.8333, −0.1667, +0.6667, +1.0 — two instances at the maximum possible magnitude in *opposite* directions | same JSON, `instances[]`; narrative in [`phase8a_findings.md`](phase8a_findings.md) |
+| **Replication is not optional at this granularity.** 7 of 36 (instance, condition) cells disagree across their 6 identical reps; `p15_eval_0013` Base is 3 of 6. A single-trajectory estimate on this family is a coin flip 19% of the time | same JSON, `instances[].within_inst_agreement` and `*_reps` |
+| **S3 was refused by a preregistered cost gate, not run to a negative result.** Arm 2 (`deepseek-v4-pro`) **did not execute**. Pooled r′=¥0.8051/episode over 12 cost-probe + block-00 episodes; the full 72 project ¥57.97 against ¥44.53 remaining, so no k in {6,4,2} qualified → `ARM2_NOT_RUN`. One block of twelve ran and is reported with **no condition contrast** (§5E.5) | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`; the one block at `phase8a_sta_report_arm2.md` (in `phase8a/reports/`) |
+| Preregistration and its six numbered amendments — rules fixed before each analysed episode | [`phase8a_prereg.md`](phase8a_prereg.md) |
+| Money: per-episode custody, archived aborted passes, replaced-attempt ledger, the understated-cost correction | `phase8a/evidence/` ; `scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
+
+### Post-hoc: the panel anatomy reproduces across the backend change
+
+Phase-7A's Appendix C anatomy (6 floor-limited, 1 ceiling-limited, 5 informative) recurs at k=6 on a
+different backend with the **same counts**, and **10 of 12 instances receive the identical
+classification** — all six floor-limited instances are the same six. Among the informative ones the
+*signs* also agree: `p15_eval_0004` and `p15_eval_0007` negative in both, `p15_eval_0011` and
+`p15_eval_0012` positive in both. Only `p15_eval_0010` (+0.5 → 0.0) and `p15_eval_0013` (0.0 →
+−0.1667) move class, both by small amounts at a floor/ceiling boundary.
+
+This is **post hoc and not preregistered**, exactly as Phase-7A's own `panel_anatomy` block is
+(`post_hoc: true`). It is also not pooling: no number is summed across the two studies. What it
+supports is a narrow, useful statement — the instance-level heterogeneity is a property of the
+*instances* rather than sampling noise, since it survives a change of serving stack and a tripling of
+k. It does **not** license any claim about either backend from the other.
+
+Cross-check: `scripts/phase7c_claim_statistics.py --check` → `sta_finite_panel.panel_anatomy` in
+`reports/synthetic_p14_claim_statistics.json`, against `instances[]` in
+`phase8a_sta_report.json` (in `phase8a/reports/`).
+
+### What belongs in a methods appendix, not the main text
+
+Three harness/ledger defects were found and fixed during Phase-8A. They evidence reproducibility
+governance, not a scientific result, and are recorded in
+[`phase8a_findings.md`](phase8a_findings.md) §"Measurement-validity findings":
+never-executed slots miscounted as measurement-invalid; a cost verifier that went green by narrowing
+what it looked at; and a primary artifact stored where a later correct operation was entitled to
+overwrite it.
+
 ## Reproducing without commercial tools
 
 Everything derived — every table, interval, band and *p*-value — recomputes from the frozen

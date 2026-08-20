@@ -2,7 +2,7 @@
 
 # 审计 LLM Agent Harness 的泛化论断 —— 可复现产物
 
-本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 v12，已冻结）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。
+本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 v14，已冻结）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。
 
 > 想找 **EDA-AgentBench** —— 那个 2892 任务的商业 EDA 基准？它在 `master` 上。本分支只保留论文涉及的内容 —— 见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 
@@ -39,10 +39,26 @@
 | 想看一页速览 | [`docs/overview.zh.html`](docs/overview.zh.html) |
 | 想看本分支的门禁输出 | [`VERIFICATION.zh.md`](VERIFICATION.zh.md) |
 
+### Phase-8A —— 冻结之后的 STA 功效扩充
+
+在手稿 v14 冻结**之后**执行，因此 **v14 并未引用它**。相同的 12 实例 STA 设计，k=6，运行在更换后的后端上，
+另有一条受预注册成本门控约束的第二臂。此处**只做导航** —— 主张与证据的对应关系见
+[`docs/artifact_map.zh.md`](docs/artifact_map.zh.md)。
+
+| | |
+|---|---|
+| 预注册（含六条编号修正案） | [`docs/phase8a_prereg.zh.md`](docs/phase8a_prereg.zh.md) · [English](docs/phase8a_prereg.md) |
+| 结论文档 | [`docs/phase8a_findings.zh.md`](docs/phase8a_findings.zh.md) · [English](docs/phase8a_findings.md) |
+| 最终报告（arm 1；arm 2 不完整） | [`phase8a/reports/`](phase8a/reports/) |
+| arm 2 成本门控决定 | [`phase8a/evidence/arm2_gate_decision.json`](phase8a/evidence/arm2_gate_decision.json) |
+| 分析脚本 | [`scripts/phase8a_report.py`](scripts/phase8a_report.py)、[`scripts/phase8a_arm2_gate.py`](scripts/phase8a_arm2_gate.py) |
+| 花费账本与逐 episode 保管记录 | [`phase8a/evidence/`](phase8a/evidence/) |
+| 研究状态与规则 | [`phase8a/README.zh.md`](phase8a/README.zh.md) · [English](phase8a/README.md) |
+
 ## 目录结构
 
 ```
-submission/        冻结的手稿：main.tex、main.pdf（18 页）、生成的表格、冻结哈希
+submission/        冻结的手稿：main.tex、main.pdf（20 页）、生成的表格、冻结哈希
 tasks/             三个语义交接家族
   p14_workflow_handoff/   27 个实例 —— 研究 I（PVT 轴，PrimeTime）
   p15_sta_handoff/        家族 A —— 研究 II S2-F（溯源 DAG，PrimeTime）
@@ -67,7 +83,7 @@ python3 scripts/phase7c_study1_ledger.py    --check    # 研究 I 台账：58 + 
 python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
 python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
 
-cd submission && make distclean && make                # 18 页；逐字节可复现的 PDF
+cd submission && make distclean && make                # 20 页；逐字节可复现的 PDF
 ```
 
 `--check` 从 `reports/evidence/` 重算并与已提交的输出比对，一旦漂移即以非零码退出。论文中没有一张表是手工抄录的：`main.tex` 直接 `\input` 这些脚本的产出。
@@ -92,6 +108,8 @@ agentic 路径采用两阶段工作区模型：agent 只看到可见+可编辑�
 - **没有人类构念验证。** 盲法人类研究已预注册但从未执行 —— 也没有用 LLM 顶替缺席的标注者。
 - **本分支未做匿名化。** 约 212 个冻结的保管文件含有用户名、主机名或绝对路径，改写它们会破坏论文所主张的保管链。双盲补充材料需要另做一次脱敏导出，而不是 git 编辑。见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 - **两个生成器在冻结之后漂移了。** `frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件，均为既有状态，解释见 `docs/frozen_membership_baseline.json`。它们被原样带过来而不是被悄悄清理，因为一张"干净的表"会掩盖真实的漂移。
+
+- **`submission/` 中记录的投稿截止日期不具权威性。** `submission/README.md` 与 `main.tex` 的可复现性声明写的是摘要 2026 年 9 月 18 日、全文 9 月 25 日 AOE，该日期曾于 2026-08-17 对照三个 ICLR 官方页面复核并记录在 `submission/FREEZE_HASHES.md`。而在 **2026-08-20，官方页面被报告为彼此不一致** —— Author Guidelines 显示 9 月 11 日 / 9 月 16 日，而 Call for Papers 仍显示 9 月 18 日 / 9 月 25 日。该分歧**未能**从本环境独立确认（构建主机无法访问 `iclr.cc`）。`submission/` 已冻结，因此**不**为追随此变动而修改。**请勿把本仓库中任何日期当作确定真值；提交前请立即以 OpenReview 与 Author Guidelines 的最终显示为准复核**，并在下一版手稿而非冻结版中修正该行。
 
 ## 文档语言
 

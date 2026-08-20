@@ -1502,3 +1502,49 @@ def test_the_programme_is_recorded_as_closed_in_both_languages():
     # the surplus must be explicitly withheld, not merely unmentioned
     assert "not** spent on additional cells" in en
     assert "不**用于任何额外的格子" in zh
+
+
+def test_the_artifact_map_states_arm2_was_refused_not_that_it_ran():
+    """The single most misreadable fact in this study. "Arm 2 produced no effect" and "arm 2 was
+    never executed" license completely different conclusions, and only the second is true. The
+    artifact map is where a reviewer or artifact evaluator lands, so it must say so in both
+    languages and must not present the one completed block as a contrast.
+    """
+    en = " ".join((REPO / "docs/artifact_map.md").read_text().split())
+    zh = " ".join((REPO / "docs/artifact_map.zh.md").read_text().split())
+    assert "refused by a preregistered cost gate, not run to a negative result" in en
+    assert "是被预注册的成本门控拒绝，而不是跑出了一个负结果" in zh
+    assert "ARM2_NOT_RUN" in en and "ARM2_NOT_RUN" in zh
+    assert "no condition contrast" in en and "不给出任何条件对比" in zh
+    # and Phase-8A must be flagged as absent from the frozen manuscript, not silently folded in
+    assert "not in manuscript v14" in en and "不在手稿 v14 中" in zh
+
+
+def test_the_cross_backend_concordance_is_labelled_post_hoc_and_not_pooling():
+    """The 10-of-12 anatomy agreement is the strongest thing Phase-8A found, which is exactly why it
+    needs its two limits attached wherever it is stated: it was not preregistered, and it is not a
+    pooled statistic. Phase-7A's own panel_anatomy already carries post_hoc: true.
+    """
+    en = " ".join((REPO / "docs/artifact_map.md").read_text().split())
+    zh = " ".join((REPO / "docs/artifact_map.zh.md").read_text().split())
+    assert "post hoc and not preregistered" in en
+    assert "事后的、非预注册的" in zh
+    assert "It is also not pooling: no number is summed across the two studies." in en
+    assert "没有任何数字跨这两项研究相加" in zh
+    # it may not be turned into a cross-backend inference
+    assert "does **not** license any claim about either backend from the other" in en
+
+
+def test_no_repository_date_is_presented_as_authoritative():
+    """The ICLR pages were observed disagreeing with each other. submission/ is frozen and states one
+    pair, so the caveat has to live where it CAN live, and it has to say the frozen file is not being
+    chased -- otherwise the next reader assumes the repo is authoritative and misses a deadline.
+    """
+    en = " ".join((REPO / "README.md").read_text().split())
+    zh = " ".join((REPO / "README.zh.md").read_text().split())
+    assert "is not authoritative" in en and "不具权威性" in zh
+    assert "Treat no date in this repository as ground truth" in en
+    assert "请勿把本仓库中任何日期当作确定真值" in zh
+    # the unverified status must be admitted, not smoothed over
+    assert "has not been independently confirmed" in en
+    assert "未能**从本环境独立确认" in zh.replace("未能从本环境独立确认", "未能**从本环境独立确认")
