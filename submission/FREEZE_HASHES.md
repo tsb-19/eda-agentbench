@@ -75,11 +75,51 @@ instances informative in both agree in sign.
 | Main text | 9 pp | 9 pp (unchanged) |
 | Total PDF | 20 pp | 22 pp |
 
+### The review pass before freezing
+
+v15 was checked against four questions before its hashes were recorded. Two produced changes.
+
+- **Is the k=6 panel named as the primary S2-F evidence in the abstract *and* the introduction?**
+  It was named in the abstract only. §1 now names it and states that the earlier k=2 panel is an
+  independent batch reported beside it, never pooled with it.
+- **Is the widened band explained as exposed instance heterogeneity, rather than as more repetition
+  making the statistics worse?** §4 and Appendix C already were. §6 was not: it inferred that "a
+  larger panel is no remedy," which the evidence does not support — raising *k* says nothing about
+  what adding instances would do. Corrected to the claim the data carry: resolving the cells bought
+  no aggregate stability, because repetition depth and panel composition are independent limits.
+  That sentence now appears in the main text, not only in Appendix C.
+- **Is S3 "not executed" everywhere, including the conclusion?** Yes, at every occurrence. The only
+  main-text matches for negative-result phrasing are the sentences that explicitly deny it. No change.
+- **Does the main text stand alone now that Table 1 sits in Appendix E?** Yes — §3.1 states all four
+  qualification tiers in prose and the appendix table only maps evidence shapes to wordings. Its
+  pointer was reworded from "defined in full in Appendix E" to "each stated at length in Appendix E",
+  so the main text no longer describes its own definitions as the incomplete ones.
+
+The pass also found that `scripts/slim_link_check.py` had been reporting **2 dangling references
+since the v15 manuscript commit**, and that an earlier gate report in this round recorded it as clean
+by reading only the last line of its output instead of its exit code. The two references were
+phantoms: the generated `phase8a_claim_statistics.json` records its inputs as `phase8a/reports/...`,
+and the checker, which did not know `phase8a` is a top-level directory, read the `reports/...` tail as
+a separate repo-root reference. Fixed at the cause rather than by allowlisting the symptom --
+`phase8a` joined the known top-level directories, which puts 391 previously unchecked paths under the
+check, and a match preceded by a directory segment is no longer read as a second reference, which
+also stops the absolute `runs/...` paths recorded in frozen episode evidence from being reported as
+repository breakage. Because both changes make the checker report *less*, four tests now pin that it
+can still fail: a reference nobody can satisfy is still caught, the ordinary written forms of a
+reference are still read, path tails are not invented into references, and the repository is clean.
+
+The main text was already at 9 pp with no slack, so these additions were paid for by compressing
+§5–§7 prose whose full form is in Appendices G and J. No result, number, caveat or limitation was
+removed. Measured behaviour worth recording for the next revision: cuts *before* the last main-text
+float change the reference boundary by nothing at all, and moving a paragraph across that float
+changes it by nothing either — only deletions after the final float move it, at roughly two words cut
+per word of overflow recovered.
+
 ## SHA-256 hashes (frozen artifacts, v15)
 | Artifact | SHA-256 | vs v14 |
 |---|---|---|
-| Source (main.tex) | `05c26fe6fc0d053cd7a5ac9c51b2b8d3e262f748669bb1f83e798d2f8a7d9b69` | changed |
-| Final PDF (main.pdf, 22 pp: 9 main + refs + appendix; 317 414 B) | `cdf85080b083fd3355cd2da1a0817a666c45ed35c01012e223043232d69c689c` | changed |
+| Source (main.tex) | `a9b36bb2c43a6996a6dd096ef48b8d17568af979624edbf661dae6b189838fc7` | changed |
+| Final PDF (main.pdf, 22 pp: 9 main + refs + appendix; 317 283 B) | `a863fc1cabe265c3f426089e49979560c206b77fa96fc5c2023773613abc5d8b` | changed |
 | Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
 | Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
 | Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |

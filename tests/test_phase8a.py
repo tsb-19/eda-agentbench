@@ -1721,3 +1721,64 @@ def test_the_k6_statistics_reproduce_from_the_frozen_records():
     assert out["unstable_cells"] == "7/36"
     assert out["same_class"] == "10/12"
     assert out["arm2"] == "ARM2_NOT_RUN"
+
+
+# ---------------------------------------------------- the link checker must still be able to fail
+def _link_check():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location(
+        "slim_link_check", REPO / "scripts" / "slim_link_check.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_the_link_checker_still_flags_a_genuinely_broken_reference():
+    """v15 widened this checker: `phase8a` joined its known top-level directories, and a match
+    preceded by a directory segment is no longer treated as a second reference. Both changes reduce
+    what it reports, so the standing risk is a verifier tuned until it prints nothing. This is the
+    negative control -- a reference nobody could satisfy must still be caught.
+    """
+    m = _link_check()
+    # Assembled at run time: written as literals they would themselves be scanned as broken
+    # references by the very check this test drives.
+    for broken in ("docs/" + "no_such_document_zzz.md",
+                   "scripts/" + "no_such_script_zzz.py",
+                   "phase8a/reports/" + "no_such_report_zzz.json"):
+        assert m.REF.findall(f"see {broken} for details") == [broken], broken
+        assert not m.resolves(broken), broken
+
+
+def test_the_link_checker_still_reads_the_reference_forms_the_docs_use():
+    """The tail guard must not silence the ordinary ways a reference is written."""
+    m = _link_check()
+    for line, want in (
+            ("see reports/README.md", "reports/README.md"),
+            ("see ./reports/README.md", "reports/README.md"),
+            ("`reports/README.md`", "reports/README.md"),
+            ("(reports/README.md)", "reports/README.md"),
+            ("[x](docs/artifact_map.md)", "docs/artifact_map.md")):
+        got = m.REF.findall(line)
+        assert want in got, (line, got)
+        assert m.resolves(want.rstrip(")")), want
+
+
+def test_the_link_checker_does_not_invent_references_from_path_tails():
+    """`runs/` is never committed, and frozen episode evidence records absolute runtime paths into
+    it verbatim. Reading the tail of such a path as a repo-root reference reports the repository as
+    broken for files it never claimed to have -- and the evidence may not be edited to suit a
+    checker.
+    """
+    m = _link_check()
+    for tail_only in ("runs/phase8a/a1_8A_sta:p15_eval_0005",
+                      "/data1/x/eda-agentbench/runs/phase8a/chain_a2_b00.log",
+                      "somewhere/reports/phase8a_sta_report.json"):
+        assert m.REF.findall(tail_only) == [], tail_only
+
+
+def test_the_repository_has_no_dangling_references():
+    """The positive half: with the checker demonstrably able to fail, its silence means something."""
+    r = subprocess.run([sys.executable, str(REPO / "scripts" / "slim_link_check.py")],
+                       capture_output=True, text=True, cwd=REPO)
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert "no dangling repository references" in r.stdout

@@ -1,6 +1,6 @@
 # Anonymity Audit — manuscript v15 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Re-scanned on the v15 PDF (`cdf85080…`, 317 414 B, 22 pp; main text 9 pp). v15 makes
+**Result: PASS.** Re-scanned on the v15 PDF (`a863fc1c…`, 317 283 B, 22 pp; main text 9 pp). v15 makes
 the preregistered k=6 STA batch the primary S2-F evidence; it runs no model call and alters no
 experimental record.
 

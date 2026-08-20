@@ -92,8 +92,15 @@ KNOWN_PROSE = {
 STEM_SUFFIXES = (".py", ".md", ".json", ".sh", ".tex", ".csv")
 
 TOP_LEVEL = ("tasks", "scripts", "generators", "eda_agentbench", "tests", "docs", "reports",
-             "submission", "configs", "datagen", "experiments")
-REF = re.compile(r"\b(?:" + "|".join(TOP_LEVEL) + r")/[A-Za-z0-9_][A-Za-z0-9_./-]*")
+             "submission", "configs", "datagen", "experiments", "phase8a")
+# A repository reference is resolved from the repo root, so it never has a directory segment
+# immediately in front of it: in `runs/phase8a/a1_8A_sta` or `phase8a/reports/x.json` the tail after
+# the first slash is not a second, independent reference. Requiring that the match is not preceded by
+# `<wordchar>/` drops those tails without loosening what counts as a reference -- `./reports/x.json`,
+# `"reports/x.json"` and bare `reports/x.json` all still match, so a genuinely broken link is still
+# caught. Without this guard every path under a directory the checker does not know is reported as a
+# dangling reference to a file the repository never claimed to have.
+REF = re.compile(r"(?<![A-Za-z0-9_-]/)\b(?:" + "|".join(TOP_LEVEL) + r")/[A-Za-z0-9_][A-Za-z0-9_./-]*")
 PLACEHOLDER = re.compile(r"[<>{}$*?]|\.\.\.|\bNNNN\b|\bxxxxxx\b|\bXXXX")
 # A match immediately followed by one of these is the literal stem of a glob or placeholder
 # (`docs/synthetic_*.md`, `tasks/p1_rtl_debug/task_{id}`), not a concrete path.
