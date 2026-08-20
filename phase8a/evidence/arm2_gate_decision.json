@@ -1,0 +1,78 @@
+{
+  "schema": "phase8a_arm2_gate/v1",
+  "decided_at": "2026-08-20T02:56:20Z",
+  "rule": "docs/phase8a_prereg.md \u00a72.2, re-applied per \u00a75F.5 step 3",
+  "reads_scores": false,
+  "rate": {
+    "r_prime_cny_per_episode": 0.805125,
+    "pooled_episodes": 12,
+    "from_cost_probe": {
+      "n": 6,
+      "cny": 3.0054,
+      "per_episode": 0.5009
+    },
+    "from_clean_block00": {
+      "n": 6,
+      "cny": 6.6561,
+      "per_episode": 1.1094
+    },
+    "min": 0.3792,
+    "max": 2.6002,
+    "spread_factor": 6.86,
+    "stdev": 0.6303
+  },
+  "budget": {
+    "cap_cny": 200.0,
+    "holdback_cny": 10.0,
+    "program_spend_cny": 145.4747,
+    "of_which_arm1_cny": 122.8175,
+    "remaining_after_holdback_cny": 44.5253
+  },
+  "gate": {
+    "k2": null,
+    "ladder": [
+      {
+        "k": 6,
+        "episodes": 216,
+        "projected_arm2_cny": 173.907,
+        "fits_prereg_formula": false,
+        "projected_total_cny": 319.3817,
+        "fits_hard_200_cap": false,
+        "affordable": false
+      },
+      {
+        "k": 4,
+        "episodes": 144,
+        "projected_arm2_cny": 115.938,
+        "fits_prereg_formula": false,
+        "projected_total_cny": 261.4127,
+        "fits_hard_200_cap": false,
+        "affordable": false
+      },
+      {
+        "k": 2,
+        "episodes": 72,
+        "projected_arm2_cny": 57.969,
+        "fits_prereg_formula": false,
+        "projected_total_cny": 203.4437,
+        "fits_hard_200_cap": false,
+        "affordable": false
+      }
+    ]
+  },
+  "stale_argument_reading": {
+    "note": "what \u00a72.2 returns if fed arm-1 spend only, as its parameter name literally says. Not used: it omits \u00a519.6518 of arm-2 money already paid.",
+    "k2": 2,
+    "remaining_after_holdback_cny": 67.1825
+  },
+  "remainder_cross_check": {
+    "blocks_already_valid": 1,
+    "episodes_remaining": 66,
+    "projected_cny": 53.1382,
+    "fits_after_holdback": false,
+    "fits_only_if_holdback_is_abandoned": true,
+    "margin_without_holdback_cny": 1.387
+  },
+  "decision": "ARM2_NOT_RUN",
+  "why": "No k in {6,4,2} satisfies 12*3*k*r' <= remaining. k is already at the floor of the preregistered ladder and \u00a75E.5 forbids a partial arm, so the only answers available were run-the-whole-arm or do-not-run-it. Arm 2 is reported as the one preregistered cell that could not be filled within budget."
+}

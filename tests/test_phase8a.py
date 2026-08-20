@@ -1241,25 +1241,35 @@ def test_cost_reconcile_excludes_another_passs_leftover_attempt_dirs():
     assert d["excluded_as_another_passs_leftovers"], "the known leftover must be reported, not hidden"
 
 
-def test_a_phantom_disarms_the_transport_fault_flag(tmp_path):
+def test_a_phantom_disarms_the_transport_fault_flag():
     """A pass can both survive a real 503 AND be ruined by a harness race -- this one did. Reading
     validity off the 503 alone would file a code defect under 'the provider was flaky' and re-run
     straight into it. `malformed_worker_result`, which the runner emits for a missing log, is
     deliberately not a transport category: a driver that fails to deliver a result is ours to fix.
+
+    Asserted against the ARCHIVED pass, not by invoking the script on whatever is live. An earlier
+    version of this test ran the CLI and accepted its exit code, and it broke the moment block 00 was
+    legitimately re-run clean -- it had encoded a transient state rather than the invariant. The
+    contaminated pass is a permanent artifact; the refusal it must produce can be checked forever.
     """
     mod = _load(REPO / "scripts/phase8a_archive_pass.py", "p8a_archive")
     assert not any(m in "malformed_worker_result" for m in mod.TRANSPORT_MARKERS), \
         "a missing driver log must never read as an infrastructure fault"
-    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
-                        "--arm", "2", "--block", "0", "--require-transport-fault", "--dry-run"],
-                       capture_output=True, text=True, cwd=str(REPO))
-    # block 00 is archived now, so there is no live state to refuse over; the guard is asserted on
-    # the recorded pass instead, which is the artifact that must keep telling the truth.
-    st = REPO / "phase8a/evidence/aborted/arm2_block00_attempt2/run_state.json"
-    if st.is_file():
-        errs, is_transport = mod._transport_evidence(json.loads(st.read_text()))
-        assert is_transport, "the 503 it survived really was a transport fault"
-    assert r.returncode in (0, 2)
+
+    arch = REPO / "phase8a/evidence/aborted/arm2_block00_attempt2"
+    trials = sorted(p.parent.name for p in arch.glob("*/episode.json"))
+    assert trials, "the contaminated pass must remain on disk as evidence"
+
+    errs, is_transport = mod._transport_evidence(json.loads((arch / "run_state.json").read_text()))
+    assert is_transport, "the 503 it survived really was a transport fault"
+
+    phantoms = mod._phantom_episodes(arch, trials)
+    assert phantoms, "the harness race left an episode with no evidence of a model call"
+    unexplained = [p for p in phantoms if not any(m in p[1] for m in mod.TRANSPORT_MARKERS)]
+    assert unexplained, "and that phantom is NOT explained by the transport fault"
+    # This is the refusal condition in the script, evaluated on the real artifact: transport
+    # evidence present, and still refused. That ordering is the whole point.
+    assert (not is_transport or unexplained), "--require-transport-fault must still refuse"
 
 
 def test_arm2_block00_second_pass_is_archived_at_its_true_cost():
@@ -1323,3 +1333,82 @@ def test_amendment6_extends_the_discard_rule_to_a_complete_but_contaminated_pass
     src = (REPO / "scripts/phase8a_archive_pass.py").read_text()
     assert "def _phantom_episodes" in src
     assert "Deliberately NOT score-based" in src, "the discard criterion may never read a score"
+
+
+# ---------------------------------------------------------------------------------------------
+# The §2.2 cost gate, re-applied after block 00 was re-run (prereg §5F.5 step 3).
+# This is the last decision in the programme and the one with money on it, so it is tested like
+# one: the gate may not read a score, may not run on a private copy of the formula, and may not be
+# fed a spend figure that flatters it.
+# ---------------------------------------------------------------------------------------------
+
+GATE_SCRIPT = REPO / "scripts/phase8a_arm2_gate.py"
+GATE_DECISION = REPO / "phase8a/evidence/arm2_gate_decision.json"
+
+
+def test_the_arm2_gate_never_reads_a_score():
+    """§2.2: 'The gate reads cost only. It never reads a score, a rate, a contrast or any outcome.'
+
+    A budget gate that could see outcomes would be a way to stop an arm whose early numbers looked
+    wrong, which is the precise practice the preregistration exists to make impossible.
+    """
+    src = GATE_SCRIPT.read_text()
+    assert '"reads_scores": False' in src
+    for forbidden in ("total_score", "score", "semantic_binding"):
+        assert f'get("{forbidden}"' not in src, f"the gate must not read {forbidden}"
+    assert 'get("total_cost")' in src
+
+
+def test_the_arm2_gate_does_not_reimplement_the_frozen_formula():
+    """The ladder arithmetic lives in phase8a_cost_probe.k2_from and is imported, never copied.
+
+    A second copy is a second thing to drift, and the copy that decides whether ~¥50 is spent is
+    exactly the one nobody would notice drifting.
+    """
+    src = GATE_SCRIPT.read_text()
+    assert "import phase8a_cost_probe as P" in src
+    assert "P.k2_from(" in src
+    assert "for k in (6, 4, 2)" not in src, "the ladder must not be re-derived here"
+
+
+def test_the_arm2_gate_is_fed_total_program_spend_not_the_stale_arm1_figure():
+    """k2_from's first parameter is *named* spent_arm1, but by now arm 2 has paid for two archived
+    passes and one valid block. Feeding it the arm-1 figure is literal and false: it hides real
+    outlay from the cap whose job is to see it, and it flips the answer.
+
+    Both readings must be recorded -- the difference is the whole substance of the decision.
+    """
+    d = json.loads(GATE_DECISION.read_text())
+    assert d["budget"]["program_spend_cny"] > d["budget"]["of_which_arm1_cny"]
+    assert d["stale_argument_reading"]["k2"] == 2, "the flattering reading did say run"
+    assert d["gate"]["k2"] is None, "the honest reading says do not run"
+    assert d["decision"] == "ARM2_NOT_RUN"
+
+
+def test_the_arm2_gate_decision_still_reproduces():
+    r = subprocess.run([sys.executable, str(GATE_SCRIPT), "--check"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert '"check": "PASS"' in r.stdout
+
+
+def test_the_holdback_is_what_refuses_arm2_and_is_not_negotiable():
+    """The remainder misses only by ¥1.39 -- 2.6% of its own projection -- against a pooled
+    per-episode spread of nearly 7x. That is not a margin, it is noise, and abandoning the ¥10
+    holdback to fit under it would be lowering the standard after seeing the number.
+    """
+    d = json.loads(GATE_DECISION.read_text())
+    x = d["remainder_cross_check"]
+    assert x["fits_after_holdback"] is False
+    assert x["fits_only_if_holdback_is_abandoned"] is True
+    assert d["rate"]["spread_factor"] > 5, "the estimate is not precise enough to spend a thin margin"
+
+
+def test_one_completed_block_yields_no_condition_contrast():
+    """§5E.5: blocks are instances, so a subset of blocks is a subset of *instances*, not a smaller
+    k. Arm 1 observed bidirectional instance-level heterogeneity, so reporting a contrast from
+    whichever single instance happened to run would let the budget choose the sample.
+    """
+    en = " ".join(PREREG.read_text().split())
+    assert "a subset of blocks is a subset of *instances*, not a reduced k" in en
+    assert "draws no condition contrast from them" in en
