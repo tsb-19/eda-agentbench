@@ -1,8 +1,9 @@
 # S3 Measurement Freeze (v17 — the joint model x family cell is measured, and not established)
 
-**Submission HEAD:** the commit that last touched a build input; the commit recording this line
-touches none and rebuilds to the same PDF byte-for-byte, the arrangement v12–v15 used and for the
-same unavoidable reason: a commit cannot contain its own successor's hash.
+**Submission HEAD:** `fd89bdc7` — the manuscript artifacts and every hash in this section are that
+commit's, because it is the last commit to touch a build input. The commit recording this line
+touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12–v15 used
+and for the same unavoidable reason: a commit cannot contain its own successor's hash.
 
 ## What v17 is
 
