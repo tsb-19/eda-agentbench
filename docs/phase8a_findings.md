@@ -10,6 +10,12 @@ Preregistration: [`phase8a_prereg.md`](phase8a_prereg.md), frozen before the fir
 with six numbered amendments. Every number below is re-derived from committed ledgers by the commands
 in [Reproduction](#reproduction).
 
+**Status in the paper.** Manuscript **v15** makes arm 1 the primary S2-F evidence, keeps the earlier
+k=2 batch as a separately reported study, and never pools the two. v14 does not cite Phase-8A at all —
+it was frozen first — and remains recoverable byte-for-byte. The claim-to-file mapping is in
+[`artifact_map.md`](artifact_map.md); the manuscript-facing numbers are re-derived by
+`scripts/phase8a_claim_statistics.py --check`.
+
 ## What was and was not established
 
 **Arm 1 (`qwen3.7-max`, 216 episodes, 12 instances × 3 conditions × k=6, ¥122.8175).**
@@ -28,22 +34,36 @@ That is the whole claim. In particular:
 **Arm 2 (`deepseek-v4-pro`) did not run.** The preregistered cost gate refused it. One block of twelve
 executed and is reported with **no condition contrast**. See [Arm 2](#arm-2-the-gate-refused-it).
 
-## Apparatus, and why the two measurements are never pooled
+## Why the two batches are never pooled
 
-The frozen program endpoint `llmapi.paratera.com` returns `403 team not allowed to access model` for
-both model IDs. Phase-8A ran on `tokenrhythm.studio`. Same design, different serving stack, therefore
-a **different measurement**. Phase-7A and Phase-8A are reported side by side and are never summed,
-averaged, differenced or pooled into one n.
+Phase-7A and Phase-8A are **two independent executions**, the second a separately preregistered
+higher-replication follow-up on the same twelve frozen instances. That, and not anything about where
+the model was served, is the reason nothing is combined across them: no quantity is summed, averaged
+or differenced, their episode counts are not added, and there is no k=8 panel and no n=24.
 
-| | backend | k | Base | BundleS | TypedContract |
-|---|---|---|---|---|---|
-| Phase-7A | `llmapi.paratera.com` (now 403) | 2 | 0.208 | 0.333 | 0.458 |
-| Phase-8A arm 1 | `tokenrhythm.studio` | 6 | 0.2778 | 0.25 | 0.3611 |
+| | k | Base | BundleS | TypedContract |
+|---|---|---|---|---|
+| Phase-7A | 2 | 0.208 | 0.333 | 0.458 |
+| Phase-8A arm 1 | 6 | 0.2778 | 0.25 | 0.3611 |
 
 The two rows order BundleS against Base in opposite directions. **That is not a replication failure
-and not a reversal**, because a reversal requires one measurement; these are two, on different
-apparatus. Neither row is evidence about the other's backend. The backend turnover itself is reported
-as a finding about measurement durability, not as a result about any model.
+and not a reversal**, because a reversal requires one measurement and these are two.
+
+**The serving endpoint, disclosed and not treated as an experimental factor.** The frozen program
+endpoint `llmapi.paratera.com` returns `403 team not allowed to access model` for both model IDs, so
+Phase-8A ran through `tokenrhythm.studio`. We treat the model identities served by both as genuine;
+what could change model behaviour is weights and version, sampling configuration, context and chat
+template, and reasoning/tool-call settings, not an endpoint string. We held and recorded the API
+parameters we control, and we **do not** claim the underlying serving implementation was identical,
+because we cannot verify it. So the change is disclosed as a fact under model custody — and as a
+finding about measurement durability, since an endpoint that stops serving a model ends the ability to
+re-measure a frozen design — but it is **not** the reason the batches are reported separately, and it
+is not a reason to downgrade Phase-8A.
+
+*(An earlier draft of this document gave the endpoint change as the reason for not pooling. It is
+corrected here rather than silently rewritten: the non-pooling rule is unchanged and always was
+correct, but its stated justification was wrong, and a justification that overstates what an endpoint
+string implies would license the opposite error elsewhere.)*
 
 ## Arm 1: the numbers, and why p = 1.0 says less than it looks like
 

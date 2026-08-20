@@ -3,8 +3,10 @@
 # Auditing Generalization Claims for LLM Agent Harnesses — reproducibility artifact
 
 This branch is the artifact for one paper: ***Auditing Generalization Claims for LLM Agent
-Harnesses: Semantic Binding and Measurement Validity*** (ICLR 2027 submission, manuscript v14,
-frozen). The paper is in [`submission/`](submission/); build it with `cd submission && make`.
+Harnesses: Semantic Binding and Measurement Validity*** (ICLR 2027 submission, manuscript **v15**).
+The paper is in [`submission/`](submission/); build it with `cd submission && make`. Earlier freezes
+(v14 and before) stay exactly recoverable from the commits and hashes in
+[`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md).
 
 > Looking for **EDA-AgentBench**, the 2892-task commercial-EDA benchmark? That is on `master`.
 > This branch keeps only what the paper covers — see [`docs/REMOVED.md`](docs/REMOVED.md).
@@ -24,9 +26,10 @@ Applied to its own results, on a tool-grounded **semantic-handoff** task:
 | **S0** local (Qwen3.7-Max, workflow family, dev instance) | Base 1/3 → BundleS 3/3, zero axis-binding failures under BundleS | **observed** |
 | **S1** + held-out instance (widens instance scope) | same direction on a pre-frozen instance | **replicated once** |
 | **S2-M** + DeepSeek-V4-Pro (widens model scope) | 3/4 = 3/4 | **not established** — and not absence either |
-| **S2-F** + STA family, 12 prospective instances | +12.5 pp, sensitivity band −12.5 to 41.7; the 3-instance pilot ran the *other* way (−16.7 pp) | **estimated; band spans zero** |
+| **S2-F** + STA family, 12 instances at *k*=6 (primary) | −2.8 pp, band −31.9 to +26.4; 5 of 12 instances carry the contrast, two at maximum magnitude in *opposite* directions; 7 of 36 cells disagree across six identical repetitions | **not established** |
+| **S2-F** + the same 12 instances at *k*=2 (earlier batch) | +12.5 pp, band −12.5 to 41.7; the 3-instance pilot ran the *other* way (−16.7 pp). **Never pooled with the row above** | **not established** |
 | **S2-F** + SPICE family | 1.00 = 1.00 = 1.00 | **ceiling; uninformative** |
-| **S3** different model *and* different family | nothing | **not measured** — reported as untested, not as failed |
+| **S3** different model *and* different family | nothing | **not executed** — preregistered as a second arm and refused by a preregistered cost gate. Untested, never a negative result |
 
 A wrong binding still produces a green tool sign-off (*tool-green*), so only a typed
 provenance/authority oracle rejects it. That is why the paper's failures survive a benchmark that
@@ -51,17 +54,18 @@ positive) would have produced confident wrong numbers in *any* analysis of the u
 | see it as a one-page overview | [`docs/overview.html`](docs/overview.html) |
 | see the gate output for this branch | [`VERIFICATION.md`](VERIFICATION.md) |
 
-### Phase-8A — post-freeze STA power expansion
+### Phase-8A — the k=6 STA panel
 
-Executed after manuscript v14 was frozen, so **v14 does not cite it**. Same 12-instance STA design at
-k=6 on a replacement backend, plus a preregistered cost gate on a second arm. Navigation only — the
-claims and their evidence are mapped in [`docs/artifact_map.md`](docs/artifact_map.md).
+Executed after manuscript v14 was frozen, so v14 does not cite it; **v15 makes it the primary S2-F
+evidence**, with the k=2 batch retained and reported separately. The two are never pooled. Navigation
+only — the claims and their evidence are mapped in [`docs/artifact_map.md`](docs/artifact_map.md).
 
 | | |
 |---|---|
 | preregistration (+ six numbered amendments) | [`docs/phase8a_prereg.md`](docs/phase8a_prereg.md) · [中文](docs/phase8a_prereg.zh.md) |
 | findings write-up | [`docs/phase8a_findings.md`](docs/phase8a_findings.md) · [中文](docs/phase8a_findings.zh.md) |
 | final report (arm 1; arm 2 incomplete) | [`phase8a/reports/`](phase8a/reports/) |
+| manuscript-facing statistics | [`scripts/phase8a_claim_statistics.py`](scripts/phase8a_claim_statistics.py) → `submission/tables/` |
 | arm-2 cost gate decision | [`phase8a/evidence/arm2_gate_decision.json`](phase8a/evidence/arm2_gate_decision.json) |
 | analysis script | [`scripts/phase8a_report.py`](scripts/phase8a_report.py), [`scripts/phase8a_arm2_gate.py`](scripts/phase8a_arm2_gate.py) |
 | spend ledger and per-episode custody | [`phase8a/evidence/`](phase8a/evidence/) |
@@ -70,7 +74,7 @@ claims and their evidence are mapped in [`docs/artifact_map.md`](docs/artifact_m
 ## Layout
 
 ```
-submission/        the frozen manuscript: main.tex, main.pdf (20 pp), generated tables, freeze hashes
+submission/        the manuscript: main.tex, main.pdf (22 pp), generated tables, freeze hashes
 tasks/             the three semantic-handoff families
   p14_workflow_handoff/   27 instances — Study I (PVT axes, PrimeTime)
   p15_sta_handoff/        Family A — Study II S2-F (provenance DAG, PrimeTime)
@@ -93,10 +97,11 @@ pip install -e ".[test]"
 
 scripts/check                                          # tests + task structure + 1065 custody pins
 python3 scripts/phase7c_study1_ledger.py    --check    # Study I ledger: 58 + 12 = 70 episodes
-python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/phase7c_claim_statistics.py --check    # k=2: 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/phase8a_claim_statistics.py --check    # k=6: -2.8 / [-31.9, 26.4] / 7-of-36 / 10-of-12
 python3 scripts/slim_link_check.py                     # no dangling repository references
 
-cd submission && make distclean && make                # 20 pp; byte-reproducible PDF
+cd submission && make distclean && make                # 22 pp; byte-reproducible PDF
 ```
 
 `--check` recomputes from `reports/evidence/` and diffs against the committed output, exiting

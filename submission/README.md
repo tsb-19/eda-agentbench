@@ -1,7 +1,14 @@
-# ICLR 2027 Submission Package (Phase-7E / manuscript v14 — **frozen**)
+# ICLR 2027 Submission Package (Phase-8A / manuscript v15 — **current**)
 
 **Title:** Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity
-**Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip). **Deadlines:** abstract Sept 18 2026 AOE; full paper Sept 25 2026 AOE — re-verified against all three official pages on 2026-08-17, unchanged; see the Deadlines section of [FREEZE_HASHES.md](FREEZE_HASHES.md) for the fetch and the AOE↔UTC cross-check.
+**Style:** Official ICLR 2027 (media.iclr.cc/Conferences/ICLR2027/iclr-2027-style-files.zip).
+**Deadlines: no date in this repository is authoritative.** On 2026-08-17 all three official pages
+read abstract Sept 18 / full paper Sept 25, 2026 AOE (fetch and AOE↔UTC cross-check in the Deadlines
+section of [FREEZE_HASHES.md](FREEZE_HASHES.md)). On 2026-08-20 the pages were reported to disagree
+with each other — Author Guidelines Sept 11 / Sept 16, Call for Papers Sept 18 / Sept 25 — and that
+divergence could not be independently confirmed from the build host (`iclr.cc` unreachable). v15
+therefore states **no deadline in the manuscript at all**; re-check OpenReview and the Author
+Guidelines immediately before submitting.
 
 ## Build
 ```
@@ -10,7 +17,8 @@ cd submission && make
 Regenerate derived tables first if the frozen records change:
 ```
 python3 scripts/phase7c_study1_ledger.py       # appendix ledger
-python3 scripts/phase7c_claim_statistics.py    # stat macros + pilot table
+python3 scripts/phase7c_claim_statistics.py    # k=2 stat macros + pilot table
+python3 scripts/phase8a_claim_statistics.py    # k=6 stat macros + panel and concordance tables
 ```
 **Note:** `make clean` does *not* remove `main.pdf`; use `make distclean` before any build
 you intend to measure (a v9 log measurement was taken off a stale PDF — see below).
@@ -18,8 +26,8 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Page boundaries
 - **Main text: 9 pp** (p1–p9; limit is 9 at submission → **0 pages of headroom**, and 10 at rebuttal/camera-ready → 1 page)
 - References: p10 (outside page limit)
-- Appendix A–K: p11–p20 (outside page limit)
-- **Total PDF: 20 pp**
+- Appendix A–K: p11–p22 (outside page limit)
+- **Total PDF: 22 pp**
 - **Do not measure the main-text page count by page arithmetic.** The rule is about whether main text
   appears above the `REFERENCES` heading on the heading's own page — during v13 an intermediate state
   reported "9 pp" because references began on p10, with 580 words of main text above them on that same
@@ -38,18 +46,57 @@ you intend to measure (a v9 log measurement was taken off a stale PDF — see be
 ## Contents
 | File | Purpose |
 |---|---|
-| main.tex | v14 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
+| main.tex | v15 source (official style; 3-study/RQ; **evidence-support** claim lattice + 2D framework) |
 | main.pdf | Compiled PDF (anonymous; 0 leaks) |
 | tables/study1_ledger.tex | Appendix ledger, generated — `\input` directly, never transcribed |
 | tables/claim_stats.tex | Generated `\newcommand` macros for every interval/band/p-value in the prose |
 | tables/sta_pilot.tex | Generated three-instance pilot table |
-| references.bib | 16 REAL verified citations (arXiv primary source; no placeholders) |
+| tables/phase8a_stats.tex | Generated macros for every k=6 number in the prose |
+| tables/sta12_k6.tex | Generated primary S2-F panel table (12 instances, k=6) |
+| tables/sta_concordance.tex | Generated cross-batch class/sign table (post hoc; not pooling) |
+| references.bib | 20 REAL verified citations (arXiv primary source; no placeholders) |
 | iclr2027_conference.sty/.bst | Official ICLR 2027 style |
 | natbib.sty / fancyhdr.sty | Bundled (from official style package) |
 | math_commands.tex | Optional math macros (from official package) |
 | Makefile | One-command build |
 | FREEZE_HASHES.md | SHA-256 hashes + compliance audit |
 | ANONYMITY_AUDIT.md | Double-blind audit (PASS) |
+
+## v15 (Phase-8A: the k=6 STA panel becomes the primary S2-F evidence; **no paid calls in this revision, no experimental record altered**)
+
+v14 reported S2-F from a twelve-instance panel at two repetitions per cell. Two repetitions cannot
+resolve a cell's own value, so a separately preregistered batch re-ran the **same twelve frozen
+instances at k=6** (216 episodes). v15 makes that batch the primary S2-F evidence and keeps the k=2
+batch as the earlier prospective study that motivated raising k.
+
+**The two batches are never pooled.** No quantity is summed, averaged or differenced across them,
+their episode counts are not added, and there is no k=8 panel. The stated reason is that they are two
+independent executions — the second a preregistered higher-replication follow-up — **not** that their
+serving endpoints differed. The endpoint change is disclosed once, under model custody, as a fact and
+not as an experimental factor.
+
+| | v14 | v15 |
+|---|---|---|
+| Primary S2-F evidence | 12 instances, k=2, +12.5 pp, band −12.5 to +41.7 | **12 instances, k=6, −2.8 pp, band −31.9 to +26.4** (216 episodes) |
+| k=2 panel | the result | retained as the **earlier batch**, reported separately |
+| Instance heterogeneity | 6 floor / 1 ceiling / 5 informative, stated post hoc | same anatomy at k=6, plus **10 of 12 instances identically classified** and 4 of 4 signs agreeing across batches (post hoc) |
+| Within-cell stability | invisible at k=2 | **7 of 36 cells** disagree across six identical repetitions |
+| S3 | "not measured" (methodological reason) | **"not executed"** — preregistered as a second arm and refused by a preregistered cost gate. Never a negative result |
+| Serving endpoint | one endpoint throughout | disclosed change, explicitly **not** an experimental factor |
+| Process defects | — | three **accounting requirements** in Appendix J; none in the main text |
+| Claim-qualification table | Table 1, main text | moved to Appendix E (page budget; prose standard stays in §3.1) |
+| Deadline line in the paper | stated Sept 18 / Sept 25 | **removed** — the official pages disagreed and the repo asserts no date |
+| Total PDF | 20 pp | 22 pp (main text 9 pp, unchanged) |
+
+### Page cost
+
+Main text was already exactly 9 pp with zero slack, and the k=6 material is a net addition, so it had
+to be paid for. Confirmed again the hard way: cuts made *before* the last main-text float are fully
+absorbed by float repacking — two rounds of trimming §1–§4 moved the boundary by exactly zero words.
+The budget came from (a) relocating the claim-qualification table to Appendix E, (b) compressing the
+three §5 paragraphs whose full versions live in Appendices G and J, and (c) tightening §6–§7. No
+result, number, caveat or limitation was dropped; the reference-standard incident narrative moved to
+Appendix J and the verdict-pairing detail to Appendix G, both of which already carried them in full.
 
 ## v14 (Phase-7E: direct-answer disclosure excluded; **no paid calls, no new episode, no EDA tool run, no previously reported number moved**)
 

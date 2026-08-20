@@ -1,3 +1,132 @@
+# Phase-8A Submission Freeze (v15 — the k=6 STA panel becomes the primary S2-F evidence)
+
+**Submission HEAD:** recorded in the commit that follows this section (see *Provenance of the frozen
+points*). **Experiment freeze HEAD for Studies I–II:** `a89e084` (immutable). **v15 ran no model call,
+no EDA tool and no new episode, and altered no experimental record.** Every k=6 number it reports is
+re-derived by a committed script from records that already existed.
+
+**v14 remains an immutable historical snapshot:** source `d0fdc5a2…`, PDF `95664f93…`, 20 pp, frozen
+at `f12faba4`. v15 is a *new* freeze, not an amendment of it, and nothing below rewrites a v14 record
+to look as though Phase-8A existed at the time. **v13** likewise: source `64b7f0b8…`, PDF
+`6f64140d…`, 18 pp, tag `iclr2027-submission-v4`. **v12**: source `82cb22da…`, PDF `bbf948bf…`, 15 pp.
+**Previous freezes:** v14 = `f12faba4`. v13 = `c7b3828a`, tagged `iclr2027-submission-v4`. v12 = the
+commit that added its section below. v11 = `95128e11`. v10 = `ff9b6b44`. v9 = `7c2f9c4f`. v8 =
+`83379da4`. v7 = `5858d843`, tagged `iclr2027-submission-v2`. v5 = `3d3e77b`, tagged
+`iclr2027-submission-v1`. **None of those tags moves.**
+
+## Why v15 exists
+
+v14's S2-F evidence was a twelve-instance panel at **two repetitions per cell**. Two repetitions
+cannot resolve a cell's own value: a cell scoring 1/2 is indistinguishable from a coin flip and from a
+stable 50%. A separately preregistered batch therefore re-ran the **same twelve frozen instances at
+k=6** — 216 episodes — with the conditions, grader, instance panel, execution order, analysis and a
+cost gate all fixed before its first paid call. v15 makes that batch the primary S2-F evidence.
+
+What it found is not a reversal. Raising the repetition depth **resolved the instances rather than
+stabilising the aggregate**: the panel difference is −2.8 pp against +12.5 pp at k=2, but the
+composition band came out *wider* (−31.9 to +26.4 against −12.5 to +41.7), because sharper per-instance
+differences are exactly what instance resampling perturbs. Five of twelve instances carry the whole
+contrast, two of them at the maximum possible magnitude in opposite directions, and 7 of 36 cells
+disagree across six identical repetitions. Meanwhile the instance-level *structure* held: 10 of 12
+instances classify identically across the two batches, the same six are floor-limited, and all four
+instances informative in both agree in sign.
+
+## The three boundaries this revision is most at risk of crossing, and how each is held
+
+1. **No pooling.** The two batches are reported as two rows of the main result table, two appendix
+   tables, and two separate statistics scripts. No quantity is summed, averaged or differenced across
+   them; their episode counts are not added; there is no k=8 panel and no n=24. The manuscript states
+   the rule explicitly in the table caption and again in Appendix C, and a regression test fails if a
+   combined figure appears. **The stated reason is that they are two independent executions, the
+   second a preregistered higher-replication follow-up — not that their serving endpoints differed.**
+2. **S3 is "not executed," never a negative result.** Phase-8A preregistered a second arm (a second
+   backend on the STA family) together with a cost gate fixed as a formula. Pooling the cost probe
+   with the one executed block gave ¥0.8051/episode over 12 episodes; the cheapest admissible arm
+   projected ¥57.97 against ¥44.53 remaining under a ¥200 cap, and the gate refused it
+   (`ARM2_NOT_RUN`). The one block that ran — which existed to establish that rate, as the
+   preregistration's §5F.5 requires — is reported with **no condition contrast**. The surplus was
+   deliberately not spent on a shallower arm: lowering a declared standard once the budget reveals
+   which standard it can afford is the same outcome-adaptive move in a different currency. A
+   regression test forbids "no effect", "failed to improve" and "negative result" near S3.
+3. **The serving endpoint is disclosed, not treated as a factor.** Phase-8A reached the same model
+   alias through a different serving endpoint, the original having ceased to serve these models. What
+   could change behaviour is weights and version, sampling configuration, context and chat template;
+   we held and recorded the API parameters we control and **do not claim** the underlying serving
+   implementation was identical, because we cannot verify it. The manuscript names no host. It states
+   the change once, under model custody, and does not use it as the reason for keeping the batches
+   apart.
+
+### What changed
+
+| | v14 | v15 |
+|---|---|---|
+| Primary S2-F evidence | 12 instances, k=2 | **12 instances, k=6** (216 episodes), reported at the preregistered analysis |
+| S2-F point estimate | +12.5 pp, band −12.5 to +41.7 | **−2.8 pp, band −31.9 to +26.4**; k=2 retained and reported separately |
+| Instance heterogeneity | 6 floor / 1 ceiling / 5 informative (post hoc) | same anatomy at k=6, plus **10 of 12 identically classified** and 4 of 4 signs agreeing (post hoc) |
+| Within-cell stability | not measurable at k=2 | **7 of 36 cells** disagree across six identical repetitions |
+| S3 | "not measured", methodological reason | **"not executed"**, preregistered arm refused by a preregistered cost gate; the methodological reason is retained for the original program |
+| Table 1 (claim qualification) | main text | Appendix E; the prose standard stays in §3.1 |
+| Process defects | — | three general **accounting requirements** in Appendix J, none in the main text |
+| Deadline line | stated in the reproducibility statement | **removed**; no date in this repository is authoritative |
+| Bibliography | 20 entries | 20 entries, unchanged |
+| Main text | 9 pp | 9 pp (unchanged) |
+| Total PDF | 20 pp | 22 pp |
+
+## SHA-256 hashes (frozen artifacts, v15)
+| Artifact | SHA-256 | vs v14 |
+|---|---|---|
+| Source (main.tex) | `05c26fe6fc0d053cd7a5ac9c51b2b8d3e262f748669bb1f83e798d2f8a7d9b69` | changed |
+| Final PDF (main.pdf, 22 pp: 9 main + refs + appendix; 317 414 B) | `cdf85080b083fd3355cd2da1a0817a666c45ed35c01012e223043232d69c689c` | changed |
+| Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
+| Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
+| Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
+| Generated k=2 stat macros (tables/claim_stats.tex) | `40f4b24d1f5b3a2c0c1a57a7fd01125908f4b84f41d7f09343a95d10f3c3b96f` | **identical** |
+| Generated k=6 stat macros (tables/phase8a_stats.tex) | `318e496c54ddfbe58a902cf7430e11f15719ed3de9019a0ec426dd8612c10df5` | new |
+| Generated k=6 panel table (tables/sta12_k6.tex) | `aa5bbb4c937cf919b2876d1ae48d1fc7af29266052368b68c532e23b98485bc8` | new |
+| Generated cross-batch table (tables/sta_concordance.tex) | `35c446471ca131de52ac126f36d3b2dc1fc66531118ca9f8ce41263b0de21d7b` | new |
+| Phase-8A statistics (in phase8a/reports/: phase8a_claim_statistics.json) | `87331498d84d2b0cc5647aec84583512bb5196ab2a865710e3d9d6a930d24466` | new |
+| Phase-8A statistics script (scripts/phase8a_claim_statistics.py) | `86feb655b6ed8ce2857afda0b2d97374e0b0beb8d77c907f8f2e52639242cfbf` | new |
+| Phase-8A arm-1 report (in phase8a/reports/: phase8a_sta_report.json) | `1b21a0fb1caaba27b072f912e1f7c8c54303c347cf15c9d32acd0deedc91e920` | unchanged since it was written |
+| Phase-8A arm-2 gate decision (phase8a/evidence/arm2_gate_decision.json) | `df214d5ee0d6156c8692539aaa7f729ea3956147afdda3a0aff8a280b380388a` | unchanged since it was written |
+| Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
+
+**Mechanical proof that no previously reported number moved.** All four v14-generated LaTeX artifacts
+— `study1_ledger.tex`, `sta_pilot.tex`, `claim_stats.tex` and `references.bib` — are **byte-identical**
+to their v14 hashes, as is the frozen claim-evidence matrix. The k=6 material arrives entirely in three
+*new* files. So +12.5, [−12.5, 41.7], −16.7, 58+12=70 and 169/82 are unchanged by construction rather
+than by inspection: the files that carry them were not rewritten. The k=6 band is computed by the same
+`instance_resampling_band` function the k=2 band uses, imported rather than reimplemented, with its own
+seed.
+
+**A cross-batch comparison that had to earn the right to be made.** "The panel anatomy reproduces"
+would be worthless if the two batches were classified by two subtly different rules. Both are
+classified by one function, and `phase8a_claim_statistics.py` runs that function over Phase-7A's own
+instances and asserts the counts equal Phase-7A's frozen `panel_anatomy` block *before* forming the
+comparison. If the assertion ever fails, the script aborts rather than reporting a concordance.
+
+**Verification performed for v15:** two independent `make distclean && make` builds give the same PDF
+sha256 (byte-reproducible); 3 pdflatex start banners counted rather than assuming a log exists; 0
+Overfull boxes, 0 undefined references or citations and 0 multiply-defined labels in the final pass;
+the page-limit gate passes with **0 main-text words above the REFERENCES heading** and its negative
+control still exits 1 at `--limit 8`; anonymity re-scanned over the PDF text *and* all generated
+tables (metadata Title/Author/Subject/Keywords empty; 0 infra, forge or serving-host matches — the
+manuscript names no endpoint); `scripts/check` passes at the recorded 1065/9/2/1 baseline; and all six
+`--check` analyses reproduce their committed outputs, including the new
+`phase8a_claim_statistics.py --check`.
+
+**v14's recoverability was verified, not assumed.** Promoting v15 is only legitimate if the version
+it supersedes stays exactly reachable, so that was checked rather than claimed: `git archive
+f12faba4 submission` into a clean directory, `make distclean && make`, and the rebuilt PDF is
+`95664f93161eb3c23a00f971cad0000f4422e5d859cf690f0b8dec5c6cba0b32`, 301 763 B, 20 pp — identical to
+the v14 hash recorded below, to the byte. The same check is the standard for any future version.
+
+**A layout fact re-confirmed for the third time.** Main text was already exactly 9 pp with zero slack.
+Trimming §1–§4 moved the page boundary by **exactly zero words** across two full rounds — the floats
+repack and absorb it. Only cuts *after* the last main-text float move the tail. The page budget for
+the k=6 material came from relocating the claim-qualification table to Appendix E and compressing the
+three §5 paragraphs whose complete versions already live in Appendices G and J. No result, number,
+caveat or limitation was deleted; two narratives moved to appendices that already carried them.
+
 # Phase-7E Submission Freeze (v14 — direct-answer disclosure excluded; measurement theory cited)
 
 **Submission HEAD:** `f12faba4`. v14 was assembled over four commits: `5ac63be6` added the
@@ -367,13 +496,18 @@ arXiv-only concurrent work is not required and its absence is not a rejection ba
 - **Repository gate:** `scripts/check` **PASSED 2985/2985**.
 - **Tags unmoved:** `iclr2027-submission-v1` → `3d3e77b7…`, `iclr2027-submission-v2` → `5858d843…`.
 
-## ICLR 2027 compliance audit
-- Main text ≤9 pages: **PASS** (9 pp, p1–p9; Conclusion ends on p9). **0 pages of headroom at
-  submission**, 1 at rebuttal/camera-ready where the limit rises to 10.
+## ICLR 2027 compliance audit (v15)
+- Main text ≤9 pages: **PASS** (9 pp, p1–p9; Conclusion ends on p9, 0 main-text words above the
+  REFERENCES heading). **0 pages of headroom at submission**, 1 at rebuttal/camera-ready where the
+  limit rises to 10.
 - References outside page limit: **PASS** (begin on p10).
-- Appendix after references: **PASS** (A–G, p10–p15). Reviewers are not required to read it, which is
-  why every load-bearing claim, the E/T distinction, §3.1, the main results, the pilot reversal, the
-  measurement incidents and the limitations all sit in p1–p9.
+- Appendix after references: **PASS** (A–K, p11–p22). Reviewers are not required to read it, which is
+  why every load-bearing claim — the E/T distinction, §3.1, both S2-F batches and the rule that they
+  are not pooled, the instance-level heterogeneity, S3's "not executed" status, the measurement
+  incidents and the limitations — sits in p1–p9. Two things moved *into* the appendix in v15 and are
+  named here so the move is on the record rather than discovered: the claim-qualification table (its
+  prose standard stays in §3.1) and two narratives whose complete versions already lived in
+  Appendices G and J.
 - Double-blind anonymity: **PASS** (0 leaks in PDF text and generated tables).
 - PDF metadata anonymous: **PASS**.
 - AI-use statement / Ethics statement / Reproducibility statement: **PASS** (all present, outside the
@@ -385,20 +519,37 @@ arXiv-only concurrent work is not required and its absence is not a rejection ba
 - OpenReview upload: **HUMAN STEP** — abstract Sept 18, 2026 AOE; full paper Sept 25, 2026 AOE.
 
 ## Known gaps this revision deliberately does not close
-Unchanged from v8–v11; each is stated in the manuscript as a limitation rather than silently omitted:
+Carried from v8–v14; each is stated in the manuscript as a limitation rather than silently omitted:
 - **Human construct validity (Study B)** — preregistered, unexecuted; no LLM annotator substituted.
 - **Bundle-only leakage control** — flagged in §7 as the single most informative experiment not run.
   v11 aligned the two BundleS sentences with this gap; v12 changes nothing here.
 - **Backend snapshot provenance** — unrecoverable for episodes already collected.
 - **Second independent coder for the Terminal-Bench probe** — single-coder, no agreement statistic.
-- **S3 (joint model × family)** — never measured; reported as an empty cell.
+- **S3 (joint model × family)** — never measured, and in v15 additionally *not executed*: preregistered as a second arm and refused by a preregistered cost gate. Reported as an empty cell, never as a negative result.
+- **Serving implementation identity** — the k=6 batch used a different serving endpoint for the same model alias. We recorded the API parameters we control and can certify nothing below them, so the change is disclosed and not treated as an experimental factor.
+- **Trajectory-level uncertainty is now measured but not modelled** — 7 of 36 cells disagree across six identical repetitions; v15 reports that count and deliberately does not add a hierarchical model to absorb it alongside panel-composition variance.
 - **Trajectory-level Monte-Carlo uncertainty** — not quantified anywhere; stated as a limit on what
   the sensitivity band may be read to mean.
 
 ## Freeze status
-**The manuscript is frozen at v14**, on branch `iclr2027-artifact`. The v13 freeze (tag
-`iclr2027-submission-v4`) and the v12 freeze below both stand as immutable historical snapshots; v14 is
-a new freeze, not an amendment.
+**The current manuscript is v15**, on branch `iclr2027-artifact`. v14, the v13 freeze (tag
+`iclr2027-submission-v4`) and the v12 freeze below all stand as immutable historical snapshots,
+recoverable byte-for-byte from the commits and hashes recorded here; v15 is a new freeze, not an
+amendment of any of them, and none of their records has been rewritten to look as though Phase-8A
+existed at the time.
+
+**What freezing does and does not mean, stated because v15 tested it.** A freeze exists so that a
+version stays exactly recoverable, not so that the repository stops at the first version called
+frozen. When new valid experimental evidence changes what the primary evidence for a claim *is* —
+here, a preregistered k=6 batch superseding a k=2 one — the correct response is a new version with a
+new freeze point, not shipping the older manuscript because it was labelled frozen first. What may
+never happen is the other direction: editing a historical commit or tag, rewriting a frozen record, or
+retroactively presenting a post-hoc finding as preregistered. The submission should be the
+scientifically strongest version as of the submission date.
+
+The v14-specific corollary still holds and now reads more generally: **a genuine alternative
+explanation of a reported result, or new evidence that changes which measurement is primary, is
+grounds to open a new version; wanting a better-scoring paper is not.**
 
 A v14-specific corollary, stated because it is the boundary this round tested: **a genuine alternative
 explanation of a reported result is grounds to reopen a freeze; wanting a better-scoring paper is not.**
@@ -454,6 +605,22 @@ branch `master` and tag `iclr2027-submission-v3` are pushed to the origin remote
   its three predecessors.
 
 ## Deadlines (official ICLR 2027 site)
+
+**No date in this repository is authoritative, and v15 states none in the manuscript.** The
+reproducibility statement's deadline sentence was removed in v15 rather than updated, because the
+official pages were reported to disagree with one another and the disagreement could not be resolved
+from this environment.
+
+**2026-08-20.** The Author Guidelines were reported as reading Sept 11 / Sept 16 while the Call for
+Papers still read Sept 18 / Sept 25. That report is recorded as **received and not independently
+confirmed**: `iclr.cc` is not reachable from the build host, so neither page could be re-fetched. It
+is not evidence that the dates moved, and it is not evidence that they did not.
+
+**Re-check OpenReview and the Author Guidelines immediately before submitting**, and correct the
+record in the next manuscript version rather than in a frozen one. The 2026-08-17 verification below
+is retained as what was true when it was performed, not as a current claim.
+
+### 2026-08-17 verification (historical; retained as recorded)
 - Abstract: September 18, 2026 AOE. Full paper: September 25, 2026 AOE.
 
 **Re-verified 2026-08-17** against the three official pages, fetched directly (server `Date:

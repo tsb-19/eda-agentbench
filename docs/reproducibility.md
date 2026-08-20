@@ -26,7 +26,8 @@ scripts/check
 
 # 2. the derived tables recompute from the frozen records
 python3 scripts/phase7c_study1_ledger.py    --check   # Study I ledger: 21 cells, 58 + 12 = 70 episodes
-python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -16.7; Fisher .4/.4/1.0
+python3 scripts/phase7c_claim_statistics.py --check   # k=2: 12.5 / [-12.5, 41.7] / -16.7; Fisher .4/.4/1.0
+python3 scripts/phase8a_claim_statistics.py --check   # k=6: -2.8 / [-31.9, 26.4]; 6/1/5; 7-of-36; 10-of-12
 
 # 3. no documentation points at anything that no longer exists
 python3 scripts/slim_link_check.py
@@ -47,6 +48,7 @@ taken off a stale PDF for exactly that reason. The PDF is byte-reproducible beca
 
 | Script | Reads | Writes |
 |---|---|---|
+| `scripts/phase8a_claim_statistics.py` | `phase8a_sta_report.json` (in `phase8a/reports/`), `reports/synthetic_phase7a_sta72_report.json`, `phase8a/evidence/arm2_gate_decision.json` | `phase8a_claim_statistics.json` (in `phase8a/reports/`) → `submission/tables/{phase8a_stats,sta12_k6,sta_concordance}.tex` |
 | `scripts/phase7c_study1_ledger.py` | `reports/evidence/p14_phase4*_episodes/<trial>/{flow_config.submitted.json,result.json,agentlog.sanitized.json}`, the frozen program manifest | `reports/synthetic_p14_study1_ledger.json` → `submission/tables/study1_ledger.tex` |
 | `scripts/phase7c_claim_statistics.py` | that ledger, `synthetic_phase7a_sta72_report.json`, `synthetic_phase5d_collection_report.json`, `reports/evidence/` | `reports/synthetic_p14_claim_statistics.json` → `submission/tables/{claim_stats,sta_pilot}.tex` |
 | `scripts/phase4z_figures_tables.py` | the controlled-pair matrix and the preserved episode ledgers | `reports/synthetic_p14_phase4z_figures_tables.md` |

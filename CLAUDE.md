@@ -3,8 +3,8 @@
 ## What this branch is
 
 `iclr2027-artifact` is the reproducibility artifact for one paper: **Auditing Generalization Claims
-for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript v14,
-frozen in `submission/`).
+for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v15**
+in `submission/`; v14 and earlier are immutable historical freezes).
 
 It is a **slimmed** branch. `master` is also EDA-AgentBench, a 2892-task commercial-EDA benchmark;
 that benchmark is not in the paper and is not here. If a task needs P1–P9, a per-track generator, a
@@ -45,7 +45,14 @@ Violating any of these silently invalidates the paper's claims. They are not sty
    the bytes must stay identical. Unpinned and editable: `cli.py`, `schema.py`,
    `agentic/runner.py`, `task/{loader,validator}.py`, `evaluator/workflow_handoff.py`,
    `scripts/check`, `scripts/validate_dataset.py`, every test, and the docs.
-3. **`submission/` is final.** Rebuilding is fine and byte-reproducible; changing content is not.
+3. **`submission/` develops forward; past versions are immutable.** The working manuscript is
+   **v15** and may be edited. What may never happen is the other direction: do not rewrite a
+   historical commit or tag, do not edit a past version's section in `FREEZE_HASHES.md`, and do not
+   retroactively present a post-hoc finding as preregistered. Every past freeze (v14 and earlier)
+   must stay recoverable byte-for-byte from its recorded commit and hashes — verify with a rebuild
+   before claiming otherwise. Any new version needs: regenerated derived tables, a full rebuild, the
+   page-limit gate, an anonymity re-scan, a new `FREEZE_HASHES.md` section with its own hash table,
+   and updated `docs/provenance.md` + `docs/artifact_map.md` (both languages).
 4. **Two paths may not move.** `docs/phase7/phase7_synthesis.md` (sha256 recorded in
    `submission/FREEZE_HASHES.md`) and
    `docs/synthetic_p14_phase4w_clarity_bundle_ablation_design.md` (cited by path inside a frozen
@@ -71,8 +78,9 @@ python3 scripts/phase7c_study1_ledger.py      --check   # 58 + 12 = 70 episodes
 python3 scripts/phase7c_claim_statistics.py   --check   # 12.5 / [-12.5, 41.7] / -16.7
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
 python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9-147, never 1
+python3 scripts/phase8a_claim_statistics.py --check     # k=6: -2.8 / [-31.9, 26.4]; 7-of-36; 10-of-12
 python3 scripts/slim_link_check.py                     # no dangling repository references
-cd submission && make distclean && make                # 20 pp, 301 763 bytes
+cd submission && make distclean && make                # 22 pp, 317 414 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 

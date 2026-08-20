@@ -21,7 +21,8 @@ scripts/check
 
 # 2. 派生表格从冻结记录重算
 python3 scripts/phase7c_study1_ledger.py    --check   # 研究 I 台账：21 个单元，58 + 12 = 70 个 episode
-python3 scripts/phase7c_claim_statistics.py --check   # 12.5 / [-12.5, 41.7] / -16.7；Fisher .4/.4/1.0
+python3 scripts/phase7c_claim_statistics.py --check   # k=2：12.5 / [-12.5, 41.7] / -16.7；Fisher .4/.4/1.0
+python3 scripts/phase8a_claim_statistics.py --check   # k=6：-2.8 / [-31.9, 26.4]；6/1/5；7-of-36；10-of-12
 
 # 3. 没有文档指向已不存在的东西
 python3 scripts/slim_link_check.py

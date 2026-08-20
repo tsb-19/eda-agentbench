@@ -2,7 +2,7 @@
 
 # 审计 LLM Agent Harness 的泛化论断 —— 可复现产物
 
-本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 v14，已冻结）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。
+本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 **v15**）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。更早的冻结点（v14 及之前）仍可凭 [`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md) 中的 commit 与哈希精确恢复。
 
 > 想找 **EDA-AgentBench** —— 那个 2892 任务的商业 EDA 基准？它在 `master` 上。本分支只保留论文涉及的内容 —— 见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 
@@ -17,9 +17,10 @@
 | **S0** 局部（Qwen3.7-Max，workflow 家族，开发实例） | Base 1/3 → BundleS 3/3，BundleS 下零错轴失败 | **已观察到** |
 | **S1** + 留出实例（拓宽实例范围） | 在预先冻结的实例上方向一致 | **复现一次** |
 | **S2-M** + DeepSeek-V4-Pro（拓宽模型范围） | 3/4 = 3/4 | **未确立** —— 也不等于不存在 |
-| **S2-F** + STA 家族，12 个前瞻实例 | +12.5 pp，敏感带 −12.5 至 41.7；三实例试点方向*相反*（−16.7 pp） | **在固定面板上估计；敏感带跨零** |
+| **S2-F** + STA 家族，12 实例 *k*=6（主要证据） | −2.8 pp，带 −31.9 至 +26.4；12 个实例中只有 5 个承载该对比，其中两个在*相反*方向上各自达到最大幅度；36 个单元中有 7 个在 6 次完全相同的重复上彼此不一致 | **未确立** |
+| **S2-F** + 同样 12 个实例 *k*=2（更早的批次） | +12.5 pp，敏感带 −12.5 至 41.7；三实例试点方向*相反*（−16.7 pp）。**绝不与上一行汇合** | **未确立** |
 | **S2-F** + SPICE 家族 | 1.00 = 1.00 = 1.00 | **天花板；无信息量** |
-| **S3** 同时换模型*与*换家族 | 什么都没有 | **未测量** —— 报为未检验，而非失败 |
+| **S3** 同时换模型*与*换家族 | 什么都没有 | **未执行** —— 曾作为第二实验臂预注册，被预注册的成本门控拒绝。是未检验，绝不是负结果 |
 
 错误的绑定仍会产生绿色的工具签核（*tool-green*），因此只有类型化的溯源/权威 oracle 才会拒绝它。这正是论文中的失败能够在"以工具退出码计分"的基准里存活的原因。
 
@@ -39,26 +40,26 @@
 | 想看一页速览 | [`docs/overview.zh.html`](docs/overview.zh.html) |
 | 想看本分支的门禁输出 | [`VERIFICATION.zh.md`](VERIFICATION.zh.md) |
 
-### Phase-8A —— 冻结之后的 STA 功效扩充
+### Phase-8A —— k=6 的 STA 面板
 
-在手稿 v14 冻结**之后**执行，因此 **v14 并未引用它**。相同的 12 实例 STA 设计，k=6，运行在更换后的后端上，
-另有一条受预注册成本门控约束的第二臂。此处**只做导航** —— 主张与证据的对应关系见
-[`docs/artifact_map.zh.md`](docs/artifact_map.zh.md)。
+在手稿 v14 冻结**之后**执行，因此 v14 并未引用它；**v15 把它作为 S2-F 的主要证据**，k=2 的批次保留并单独报告，
+两者绝不汇合。此处只做导航 —— 各条主张及其证据的映射在 [`docs/artifact_map.zh.md`](docs/artifact_map.zh.md)。
 
-| | |
+| |
 |---|---|
 | 预注册（含六条编号修正案） | [`docs/phase8a_prereg.zh.md`](docs/phase8a_prereg.zh.md) · [English](docs/phase8a_prereg.md) |
 | 结论文档 | [`docs/phase8a_findings.zh.md`](docs/phase8a_findings.zh.md) · [English](docs/phase8a_findings.md) |
 | 最终报告（arm 1；arm 2 不完整） | [`phase8a/reports/`](phase8a/reports/) |
 | arm 2 成本门控决定 | [`phase8a/evidence/arm2_gate_decision.json`](phase8a/evidence/arm2_gate_decision.json) |
 | 分析脚本 | [`scripts/phase8a_report.py`](scripts/phase8a_report.py)、[`scripts/phase8a_arm2_gate.py`](scripts/phase8a_arm2_gate.py) |
+| 面向手稿的统计 | [`scripts/phase8a_claim_statistics.py`](scripts/phase8a_claim_statistics.py) → `submission/tables/` |
 | 花费账本与逐 episode 保管记录 | [`phase8a/evidence/`](phase8a/evidence/) |
 | 研究状态与规则 | [`phase8a/README.zh.md`](phase8a/README.zh.md) · [English](phase8a/README.md) |
 
 ## 目录结构
 
 ```
-submission/        冻结的手稿：main.tex、main.pdf（20 页）、生成的表格、冻结哈希
+submission/        手稿：main.tex、main.pdf（22 页）、生成的表格、冻结哈希
 tasks/             三个语义交接家族
   p14_workflow_handoff/   27 个实例 —— 研究 I（PVT 轴，PrimeTime）
   p15_sta_handoff/        家族 A —— 研究 II S2-F（溯源 DAG，PrimeTime）
@@ -80,10 +81,11 @@ pip install -e ".[test]"
 
 scripts/check                                          # 测试 + 任务结构 + 1065 条保管钉
 python3 scripts/phase7c_study1_ledger.py    --check    # 研究 I 台账：58 + 12 = 70 个 episode
-python3 scripts/phase7c_claim_statistics.py --check    # 12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/phase7c_claim_statistics.py --check    # k=2：12.5 / [-12.5, 41.7] / -16.7
+python3 scripts/phase8a_claim_statistics.py --check    # k=6：-2.8 / [-31.9, 26.4] / 7-of-36 / 10-of-12
 python3 scripts/slim_link_check.py                     # 无悬空仓库路径引用
 
-cd submission && make distclean && make                # 20 页；逐字节可复现的 PDF
+cd submission && make distclean && make                # 22 页；逐字节可复现的 PDF
 ```
 
 `--check` 从 `reports/evidence/` 重算并与已提交的输出比对，一旦漂移即以非零码退出。论文中没有一张表是手工抄录的：`main.tex` 直接 `\input` 这些脚本的产出。
@@ -104,7 +106,7 @@ agentic 路径采用两阶段工作区模型：agent 只看到可见+可编辑�
 ## 刻意不在此处的东西
 
 - **付费 episode 无法重跑。** 实验程序已在冻结的实验 HEAD 上永久关闭；所有报告的数字都是从该 HEAD 及其之前已提交的台账重新派生的。见 [`docs/provenance.zh.md`](docs/provenance.zh.md)。
-- **没有 S3 证据。** 同时换模型*与*换家族从未测量。它的缺席就是论断本身，而不是遗漏。
+- **没有 S3 证据。** 同时换模型*与*换家族从未测量；其后 Phase-8A 把它作为第二实验臂正式预注册，并被预注册的成本门控拒绝执行。它的缺席就是论断本身，而不是遗漏，也不是负结果。
 - **没有人类构念验证。** 盲法人类研究已预注册但从未执行 —— 也没有用 LLM 顶替缺席的标注者。
 - **本分支未做匿名化。** 约 212 个冻结的保管文件含有用户名、主机名或绝对路径，改写它们会破坏论文所主张的保管链。双盲补充材料需要另做一次脱敏导出，而不是 git 编辑。见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 - **两个生成器在冻结之后漂移了。** `frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件，均为既有状态，解释见 `docs/frozen_membership_baseline.json`。它们被原样带过来而不是被悄悄清理，因为一张"干净的表"会掩盖真实的漂移。

@@ -1512,12 +1512,16 @@ def test_the_artifact_map_states_arm2_was_refused_not_that_it_ran():
     """
     en = " ".join((REPO / "docs/artifact_map.md").read_text().split())
     zh = " ".join((REPO / "docs/artifact_map.zh.md").read_text().split())
-    assert "refused by a preregistered cost gate, not run to a negative result" in en
-    assert "是被预注册的成本门控拒绝，而不是跑出了一个负结果" in zh
+    assert "S3 was not executed because it failed a preregistered cost gate" in en
+    assert "S3 未被执行，因为它没有通过预注册的成本门控" in zh
     assert "ARM2_NOT_RUN" in en and "ARM2_NOT_RUN" in zh
     assert "no condition contrast" in en and "不给出任何条件对比" in zh
-    # and Phase-8A must be flagged as absent from the frozen manuscript, not silently folded in
-    assert "not in manuscript v14" in en and "不在手稿 v14 中" in zh
+    assert "this is not a null result and not a negative one" in en
+    assert "这不是零结果，也不是负结果" in zh
+    # Phase-8A is now cited by v15, so the map must say which version -- and must still record that
+    # v14 does not cite it, or a reader comparing the two would think a number went missing.
+    assert "primary S2-F evidence in v15" in en and "v15 中的 S2-F 主要证据" in zh
+    assert "**v14 does not cite it**" in en and "**v14 并未引用它**" in zh
 
 
 def test_the_cross_backend_concordance_is_labelled_post_hoc_and_not_pooling():
@@ -1548,3 +1552,172 @@ def test_no_repository_date_is_presented_as_authoritative():
     # the unverified status must be admitted, not smoothed over
     assert "has not been independently confirmed" in en
     assert "未能**从本环境独立确认" in zh.replace("未能从本环境独立确认", "未能**从本环境独立确认")
+
+
+# --------------------------------------------------------------------------- manuscript v15
+#
+# Phase-8A entered the manuscript in v15 as the primary S2-F evidence. Three boundaries are easy to
+# cross by accident once that happens, and each of them would change what the paper claims rather
+# than how it reads, so each gets a test that reads the shipped source.
+
+MAIN_TEX = REPO / "submission" / "main.tex"
+
+
+def _tex() -> str:
+    return " ".join(MAIN_TEX.read_text().split())
+
+
+def test_the_manuscript_never_pools_the_two_sta_batches():
+    """The k=2 and k=6 batches are two executions of the same twelve instances.
+
+    Combining them is the single most tempting error available here -- 12 instances at k=2 plus 12 at
+    k=6 *looks* like a k=8 panel or a 288-episode study, and either would be a fabricated measurement.
+    The rule is asserted in the manuscript rather than left to the reader, and asserted here so that a
+    later edit cannot quietly introduce a combined figure.
+    """
+    t = _tex()
+    assert "are never pooled" in t, "the non-pooling rule must be stated, not implied"
+    assert "no quantity is summed, averaged or differenced across them" in t
+    # and the arithmetic that would express a pooled panel must not appear as a claim
+    for forbidden in ("$k$=8", "k=8 panel", "288 episodes", "$n$=24", "24 instances"):
+        if forbidden in t:
+            # the one legitimate occurrence is the sentence forbidding it
+            assert "do not form a $k$=8 panel" in t, f"{forbidden!r} appears outside its prohibition"
+
+
+def test_the_manuscript_reports_s3_as_not_executed_and_never_as_a_negative_result():
+    """An arm that did not run has no effect direction.
+
+    "Failed the cost gate" and "showed no effect" are different claims about the world, and only the
+    first is true. The distinction is the whole reason the gate was written as a formula in advance.
+    """
+    t = _tex()
+    assert "not executed because it failed a preregistered cost gate" in t
+    assert "this is not a null result, not a failure to improve" in t
+    # the empty cell must stay empty in the result matrix
+    assert r"\emph{joint model$\times$family} (S3) & --- & --- & --- & 0 & \emph{not executed}" in t
+    # and the one block that did run may not be turned into a contrast
+    assert "reported with \\emph{no} condition contrast" in t
+
+
+def test_the_manuscript_does_not_treat_the_serving_endpoint_as_an_experimental_factor():
+    """The endpoint changed; the model identity and our own API parameters did not.
+
+    Two failures are possible and opposite: silently hiding the change, or promoting it to a confound
+    that would make the k=6 batch look like a different model. The manuscript must do neither, must
+    name no host (it is a double-blind PDF), and must not claim more than we can verify about the
+    serving implementation.
+    """
+    t = _tex()
+    assert "different serving endpoint" in t, "the change must be disclosed"
+    assert "cannot certify the serving implementation identical" in t, "do not overclaim"
+    assert "not because their endpoints differed" in t, "the endpoint is not the non-pooling reason"
+    for host in ("paratera", "tokenrhythm", "llmapi", ".studio", ".com/"):
+        assert host not in t.lower(), f"{host!r} would be a serving-host leak in a blind submission"
+
+
+def test_every_k6_number_in_the_manuscript_is_a_generated_macro():
+    """No k=6 figure may be typed into prose by hand.
+
+    The k=2 study earned this rule the hard way; the k=6 batch arrives with three generated files, so
+    the rule is enforceable by checking that the literals never appear as bare prose.
+    """
+    src = MAIN_TEX.read_text()
+    assert r"\input{tables/phase8a_stats}" in src
+    body = " ".join(l for l in src.splitlines() if not l.strip().startswith("%"))
+    # These are the k=6 values; each has a macro, so a literal occurrence means someone transcribed.
+    for literal in ("216 episodes", "0.278", "0.250", "0.361", "-2.8 percentage", "7 of 36",
+                    "10 of 12", "-31.9", "+26.4"):
+        assert literal not in body, f"{literal!r} is transcribed; use the generated macro"
+
+
+def test_the_two_panels_are_classified_by_one_asserted_rule():
+    """The cross-batch concordance is only meaningful if both batches use the same classifier.
+
+    `phase8a_claim_statistics.compute()` runs its own classifier over Phase-7A's instances and asserts
+    the result equals Phase-7A's frozen panel_anatomy block. Calling compute() here re-executes that
+    assertion, so this test fails if the rules ever diverge -- which is the failure mode that would
+    turn "the anatomy reproduces" into an artifact of two different definitions.
+    """
+    sys.path.insert(0, str(REPO / "scripts"))
+    import phase8a_claim_statistics as M
+
+    st = M.compute()
+    c = st["cross_batch_structural_concordance"]
+    assert c["post_hoc"] is True and c["preregistered"] is False
+    assert c["is_pooling"] is False
+    assert c["instances_classified_identically"] == 10 and c["instances_total"] == 12
+    assert c["sign_agreement_among_informative_in_both"] == [4, 4]
+    # the classifier is one function, used for both batches
+    assert M.classify(0.0, 0.0) == "floor" and M.classify(1.0, 1.0) == "ceiling"
+    assert M.classify(0.5, 0.0) == "informative"
+
+
+def test_the_concordance_is_never_called_a_replication():
+    """Both batches re-run the *same* frozen instances.
+
+    Under the paper's own qualification standard that is repeated measurement of stability, not
+    replication -- replication requires newly frozen configurations enlarging the projection claimed.
+    Calling it a replication would let the paper claim a scope it did not widen, using its own
+    vocabulary against itself.
+    """
+    t = _tex()
+    assert "repeated measurement of stability, never replication" in t
+    assert "post hoc, not preregistered" in t
+
+
+def test_the_process_defects_stay_out_of_the_main_text():
+    """Engineering defects are reproducibility governance, not results.
+
+    They belong in the methods appendix as requirements. The check is positional: the three
+    accounting requirements must appear after \\appendix, never before it.
+    """
+    src = MAIN_TEX.read_text()
+    appendix_at = src.index("\\appendix")
+    marker = "Three accounting requirements the higher-replication batch added"
+    assert marker in src, "the requirements must be stated somewhere"
+    assert src.index(marker) > appendix_at, "process defects must not sit in the main text"
+    # the reference-standard principle, by contrast, is a Layer-4 requirement and stays in the main text
+    assert src.index("A monitor is only as trustworthy as the custody of its reference standard") < appendix_at
+
+
+def test_the_endpoint_is_not_given_as_the_reason_for_not_pooling():
+    """The rule and its justification are separate things, and only the rule was ever right.
+
+    An earlier draft justified not pooling by "different serving stack, therefore a different
+    measurement". That overstates what an endpoint string implies -- what could move behaviour is
+    weights, sampling configuration, context and chat template, none of which the endpoint names. The
+    defensible reason is that the two batches are independent executions, the second a preregistered
+    higher-replication follow-up. Both languages must carry the corrected reason, because a
+    justification this repository states in one language and not the other is how the wrong one
+    survives.
+    """
+    en = " ".join((REPO / "docs/phase8a_findings.md").read_text().split())
+    zh = " ".join((REPO / "docs/phase8a_findings.zh.md").read_text().split())
+    assert "two independent executions" in en
+    assert "两次独立的执行" in zh
+    assert "not treated as an experimental factor" in en and "不作为实验因子" in zh
+    assert "do not** claim the underlying serving implementation was identical" in en
+    assert "不**声称底层 serving 实现完全相同" in zh
+    # the discredited justification must be gone from both
+    assert "different serving stack, therefore" not in en
+    assert "不同服务栈，因此是" not in zh
+
+
+def test_the_k6_statistics_reproduce_from_the_frozen_records():
+    """`--check` must recompute and diff, so a drifted input fails the gate instead of moving a
+    printed number silently. Run as a subprocess so the test exercises the same entry point the
+    documented command does, including the file comparison the in-process helpers skip.
+    """
+    r = subprocess.run(
+        [sys.executable, str(REPO / "scripts" / "phase8a_claim_statistics.py"), "--check"],
+        capture_output=True, text=True, cwd=REPO,
+    )
+    assert r.returncode == 0, f"phase8a_claim_statistics --check failed: {r.stdout}{r.stderr}"
+    out = json.loads(r.stdout)
+    assert out["ok"] is True
+    assert out["k6_delta_pp"] == -2.8
+    assert out["anatomy"] == [6, 1, 5]
+    assert out["unstable_cells"] == "7/36"
+    assert out["same_class"] == "10/12"
+    assert out["arm2"] == "ARM2_NOT_RUN"

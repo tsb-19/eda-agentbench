@@ -2,13 +2,16 @@
 
 # 产物地图 —— 论文每个论断到生成它的文件
 
-本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 v14，已冻结的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
+本文档的存在，是为了让从论文过来的读者不必猜测就能定位任一论断的证据。章节与表号均指 `submission/main.tex`（手稿 **v15**，当前的 ICLR 2027 投稿；用 `cd submission && make` 构建）。
+v14 是一个冻结的历史点，可凭 `submission/FREEZE_HASHES.md` 中记录的 commit 与哈希逐字节恢复；下文若某一行引用的是
+v14 的节号，会明确写出。
 
-论文中没有任何数字是手工抄录的。两个派生表脚本读取冻结的逐 episode 记录并生成 LaTeX，由 `main.tex` 直接 `\input`，因此表格不可能与记录脱节：
+论文中没有任何数字是手工抄录的。三个派生表脚本读取冻结的逐 episode 记录并生成 LaTeX，由 `main.tex` 直接 `\input`，因此表格不可能与记录脱节：
 
 ```bash
 python3 scripts/phase7c_study1_ledger.py --check       # -> submission/tables/study1_ledger.tex
 python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/claim_stats.tex, sta_pilot.tex
+python3 scripts/phase8a_claim_statistics.py --check     # -> phase8a_stats.tex, sta12_k6.tex, sta_concordance.tex
 ```
 
 `--check` 会重新计算并与已提交的输出比对，一旦漂移即以非零码退出。
@@ -32,7 +35,7 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | 论文位置 | 论断 | 证据所在 |
 |---|---|---|
 | §1，图 1 | 五个支撑 S0 / S1 / S2-M / S2-F / S3 | 框架性论述；它点到的单元格通过下面各行落地 |
-| §3.1，表 1 | 论断资格标准 | 仅论述 —— 这是声明的标准，不是测量 |
+| §3.1，表 9（附录 E） | 论断资格标准 | 仅论述 —— 这是声明的标准，不是测量 |
 | §3，表 6（附录 A） | 工作实例：4 份随附证据源，两两自洽，且全部 PrimeTime 绿 | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/report_A_role_swap.rpt`、`report_B_role_stale.rpt`、`report_C_role_pvt.rpt`、`evidence_D_role_mismatch.json` |
 | §3 | 294 个候选赋值中恰有一个满足 K1–K5 | 唯一性穷举在 `generators/p14_workflow_handoff_gen.py`；隐藏真值在 `workflow_handoff_0009/hidden/handoff_truth.json`。**命名：**论文用 **K1–K5** 指这五条*任务约束*；冻结的任务文件把同样五条编号为 C1–C5，与*清晰度组件* C1–C7 相撞 —— 约束 K5（签核对）正是组件 C6 所断言的内容。实验刺激保留其原有编号，因为改写它们会改变测量 |
 | §3 | oracle 如何裁决；两种绝不合并的失败子类型 | `workflow_handoff_0009/hidden/grade_workflow.py` |
@@ -42,13 +45,15 @@ python3 scripts/phase7c_claim_statistics.py --check    # -> submission/tables/cl
 | §4 | 未隔离出稳定的最小组件（仅 C1、仅 C2、仅 C4、C24 桥均未过阈） | `reports/synthetic_p14_phase4y_stage1.*`、`_phase4y2_stage2.*`、`_phase4y3_stage3.*`、`_phase4y3_c24_bridge.*` |
 | §4 | 三个条件×模型组合在不同运行窗口中自相矛盾 | 表 7 中的重复行；不去重的理由见 `reports/README.zh.md` |
 | §5，表 2 第 3 行 | S2-M：DeepSeek 3/4 = 3/4，未确立 | `reports/synthetic_p14_study1_ledger.json`（受控对各行） |
-| §5，表 2 第 4 行 | S2-F STA：12 个实例上 Base .208 / BundleS .333 / TypedContract .458 | `reports/synthetic_phase7a_sta72_report.json` |
-| §5 | +12.5 pp，敏感带 −12.5 至 41.7；符号检验 p=1.0；置换检验 p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
+| §5，表 2 第 4 行 | **S2-F STA 主要证据（k=6）：** 12 个实例上 Base .278 / BundleS .250 / TypedContract .361 | `phase8a_sta_report.json`（在 `phase8a/reports/` 中） —— 详见下方 Phase-8A 一节 |
+| §5，表 2 第 5 行 | S2-F STA 更早的 k=2 批次：同样 12 个实例上 Base .208 / BundleS .333 / TypedContract .458。**绝不与上一行汇合** | `reports/synthetic_phase7a_sta72_report.json` |
+| §5、附录 C | k=2 批次：+12.5 pp，敏感带 −12.5 至 41.7；符号检验 p=1.0；置换检验 p=0.31 | `scripts/phase7c_claim_statistics.py` → `reports/synthetic_p14_claim_statistics.json` |
+| §5、附录 C | k=6 批次：−2.8 pp，带 −31.9 至 +26.4；符号检验 p=1.0；置换检验 p=0.72 | `scripts/phase8a_claim_statistics.py` → `phase8a_claim_statistics.json`（在 `phase8a/reports/` 中） |
 | §5 | 三实例试点方向相反（−16.7 pp） | `reports/synthetic_phase5d_collection_report.json` |
 | §5，表 2 第 5 行 | S2-F SPICE：Base = BundleS = TypedContract = 1.00 天花板 | `reports/synthetic_phase5c_collection_report.json` |
 | §3、附录 G | 在 169 条已验证配对的轨迹上工具成功信号是**常量**（接受），并接受了全部 82 条语义错绑，因此全部测得判别力都由类型化 oracle 承担；SPICE-5D 为负对照（18/18 正确，oracle 与工具一致） | `scripts/phase7d_semantic_proxy_gap.py --check` → `reports/synthetic_phase7d_semantic_proxy_gap.json`；回归测试 `tests/test_phase7d_semantic_proxy_gap.py` |
 | §4、附录 F | 仅凭 BundleS 自身的披露无法唯一确定 golden assignment：294 个候选中仍存 9–147 个（区间对应两种读法），在 S0 与预先冻结的留出实例上都从不为 1；而带答案的组件 C6 会把 (scenario, corner) 投影压缩到 1。**只**排除了直接公布答案 | `scripts/phase7e_answer_identifiability.py --check` → `reports/synthetic_phase7e_answer_identifiability.json`；回归测试 `tests/test_phase7e_answer_identifiability.py` |
-| §5、附录 C | 前瞻面板结构（事后）：6 个地板受限、1 个天花板受限、5 个具判别力；去掉两个主导实例后（*n*=10）为 −5.0 pp | `scripts/phase7c_claim_statistics.py --check` → `reports/synthetic_p14_claim_statistics.json` 中的 `sta_finite_panel.panel_anatomy` |
+| §5、附录 C | 面板解剖结构（事后），在两个批次中重现：6 个地板受限、1 个天花板受限、5 个具判别力；去掉两个主导实例后 k=2 为 −5.0 pp、k=6 为 −20.0 pp | `phase7c_claim_statistics.py --check` → `sta_finite_panel.panel_anatomy`；`phase8a_claim_statistics.py --check` → `k6_panel.panel_anatomy` |
 | §6 | 58 条 workflow episode 中有 9 条被排除，因为记录的工具判决并未证明其对应最终提交产物；tuple 相等只能抓到其中 2 条 | 同一 JSON —— `per_episode[].pairing_verified` 与 `exclusion_reason` |
 | §6，表 3 | 七个审计事件 | 每行对应下表一行 |
 | §6 | 模型保管：episode 跨度、快照留存率、逐 episode 传输记录 | `scripts/phase7c_claim_statistics.py`（`resolved_snapshot_retained`、diag-episode 计数）作用于 `reports/evidence/` |
@@ -126,7 +131,7 @@ Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实
 
 ## 论文*没有*主张什么，以及这在仓库中如何体现
 
-- **S3（同时换模型与换家族）从未测量。** 这里刻意不存在任何报告；`reports/` 中它的缺席本身就是该论断。它被刻意保持未测量：在已经看到 S2-F 结果之后再补这个单元，会让证据阶梯本身变成随结果自适应扩展的东西，而这正是论文自身的标准要防止的做法。成本不是原因 —— 72 个 episode 的 STA 面板只花了 ¥43.56（总额 ¥745.29）。
+- **S3（同时换模型与换家族）从未测量，其后又被判定为「未执行」。** 这是两个不同的理由，不可混为一谈。在原实验程序中，它没有在已经看到 S2-F 结果之后被补上，因为「看到不利结果再扩展证据」正是论文自身标准要防止的、随结果自适应的做法；成本不是那个程序的约束（其 72 个 episode 的 STA 面板只花了 ¥43.56，总额 ¥745.29）。随后 Phase-8A 正式预注册了一个 S3 实验臂，并在任何结果存在之前就把成本门控固定成公式，而门控拒绝了它（`ARM2_NOT_RUN`）。上限之下的余额被刻意不用于跑一个更浅的版本。**两个理由都不产生效应方向** —— S3 是未测试，而不是负结果；这里刻意不存在任何报告。
 - **更微妙的信息泄漏并未被排除。** Phase-7E 只关闭了*直接公布答案*（BundleS 留下 294 中的 9–147 个，从不为 1）。先验收窄、提示诱发的启发式线索、偶然的词汇相关与模型特异的利用方式仍然开放；Base/BundleS 的对照刻意**不是**等信息量比较。
 - **没有向生产级 harness 的迁移结论。** 论文里的 "harness" 指**任务层的信息结构**（§2）—— 提示、可见文件、
   披露包、公开工具反馈、动作面 —— 而不是智能体脚手架。所有 episode 都经由 `scripts/llm_agent_driver.py`
@@ -137,46 +142,60 @@ Phase-7E 与 Phase-7D 属于同一类分析：**事后、冻结之后**，在实
 - **模型身份只是提供方别名，不是解析后的快照。** `phase7c_claim_statistics.py` 报告 `resolved_snapshot_retained: false`。论文把这写成自己欠下的局限（第五条 Layer-4 要求），而非已行使的控制。
 - **两个生成器在冻结之后发生了漂移。** `scripts/frozen_membership_verify.py` 报告恰好 2 处不匹配、9 个缺失的被钉文件；均为既有状态，解释见 `docs/frozen_membership_baseline.json`。论文报告的数字来自被钉住的版本。
 
-## Phase-8A —— 冻结之后的 S2-F 功效扩充（不在手稿 v14 中）
+## Phase-8A —— 高重复的 S2-F 面板（v15 中的 S2-F 主要证据）
 
-Phase-8A 在更换后端上重跑了**完全相同的冻结 12 实例 STA 设计，k=6**，因为原冻结端点已不再提供这些模型。
-它**未被 v14 引用** —— 它在冻结之后才执行 —— 记录于此，是因为它将成为下一版手稿中 S2-F 的主要证据，
-而 k=2 的前瞻面板保留为促使把 k 提高的先导结果。
+Phase-8A 用**完全相同的冻结 12 实例 STA 设计、k=6** 重跑了一次，因为每格只跑两次无法确定该格自身的取值。
+在**手稿 v15 中它是 S2-F 的主要证据**，而先前 k=2 的面板保留为促使把 k 提高的更早的前瞻研究。它在 v14 冻结
+之后执行，因此 **v14 并未引用它**；v14 仍可凭其记录的 commit 与哈希逐字节恢复（见 `submission/FREEZE_HASHES.md`）。
 
-它的 episode **绝不与** Phase-7A 汇合。不同服务栈就是不同的测量；两者并列报告，绝不求和、求均值或求差
-汇入同一个 n。
+两个批次**绝不汇合**：没有任何量跨批次求和、求均值或求差，两者的 episode 数不相加，也不存在 k=8 的面板。
+理由是它们是**两个独立的实验批次**，后者是单独预注册的高重复后续研究 —— **而不是**因为它们的 serving endpoint
+不同。Phase-8A 通过一个不同的 serving endpoint 访问同一个模型别名（原端点已停止提供这些模型）；我们控制的 API
+参数被固定并记录，底层 serving 实现不是我们能证实的东西，因此服务提供方的更换是**如实披露、且不作为实验因子处理**的。
 
-| 主张 | 证据所在 |
+| 主张（论文位置） | 证据所在 |
 |---|---|
-| **高重复面板结果。** 216 个 episode，12 实例 × 3 条件 × k=6，¥122.8175。没有建立一致的 BundleS 优势；描述性条件均值 Base .2778 / BundleS .25 / TypedContract .3611。符号检验 5 个非零实例差中 k⁺=2，双侧 *p*=1.0；置换 *p*=0.7176（描述性） | `scripts/phase8a_report.py --arm 1 --check` → `phase8a/reports/` 中的 `phase8a_sta_report.json` |
-| **实例级异质性，且是双向的。** 12 个实例中只有 5 个能表达差异（6 个在两个主条件上同处地板，1 个同处天花板）。这 5 个上的差值为 −1.0、−0.8333、−0.1667、+0.6667、+1.0 —— 有两个实例在**相反方向**上各自达到可能的最大幅度 | 同一 JSON 的 `instances[]`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
-| **在这个粒度上重复不是可选项。** 36 个（实例, 条件）单元中有 7 个，其 6 次完全相同的重复彼此不一致；`p15_eval_0013` 的 Base 是 6 次中的 3 次。在这个家族上，单轨迹估计有 19% 的时候就是抛硬币 | 同一 JSON 的 `instances[].within_inst_agreement` 与 `*_reps` |
-| **S3 是被预注册的成本门控拒绝，而不是跑出了一个负结果。** Arm 2（`deepseek-v4-pro`）**未执行**。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；完整 72 个预计 ¥57.97，而剩余 ¥44.53，故 {6,4,2} 中无一合格 → `ARM2_NOT_RUN`。十二个 block 中有一个执行了，报告时**不给出任何条件对比**（§5E.5） | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；那个 block 见 `phase8a/reports/` 中的 `phase8a_sta_report_arm2.md` |
-| 预注册及其六条编号修正案 —— 每条都在相应的进入分析的 episode 之前固定 | [`phase8a_prereg.zh.md`](phase8a_prereg.zh.md) |
-| 金钱：逐 episode 保管记录、归档的废弃轮次、被替换尝试账本、低报成本的更正 | `phase8a/evidence/`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
+| **高重复面板结果**（§5 表 2 第 4 行；摘要）。216 个 episode，12 实例 × 3 条件 × k=6，¥122.8175。没有建立一致的 BundleS 优势；描述性均值 Base .278 / BundleS .250 / TypedContract .361；−2.8 pp，实例重抽样带 −31.9 至 +26.4。预注册符号检验 5 个非零差中 k⁺=2，双侧 *p*=1.0；置换 *p*=0.72（描述性） | `scripts/phase8a_report.py --arm 1 --check` → `phase8a/reports/` 中的 `phase8a_sta_report.json`；手稿数字经 `scripts/phase8a_claim_statistics.py --check` |
+| **实例级异质性，且是双向的**（§5；附录 C 表 5）。12 个实例中只有 5 个能表达差异（6 个在两个主条件上同处地板，1 个同处天花板）。这 5 个上的差值为 −1.0、−0.8333、−0.1667、+0.6667、+1.0 —— 有两个实例在**相反方向**上各自达到可能的最大幅度 | 同一 JSON 的 `k6_panel.per_instance` 与 `panel_anatomy`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
+| **在这个粒度上重复不是可选项**（§5；§6 讨论）。36 个（实例, 条件）单元中有 7 个，其 6 次完全相同的重复彼此不一致；`p15_eval_0013` 的 Base 是 6 次中的 3 次。用单条轨迹去估计这样一个单元，估的是该单元并不具有的取值 | 同一 JSON 的 `within_cell_replication_stability`；逐次布尔值见 `phase8a_sta_report.json` |
+| **把 k 提高反而让组成带变宽而非变窄**（§5；附录 C）。k=6 为 −31.9 至 +26.4，k=2 为 −12.5 至 +41.7：把各单元解析清楚之后，实例级差值变大了，而重抽样扰动的正是这些差值。重复深度与面板组成是两条互相独立的限制 | 两个统计脚本的 `--check`；两条带由同一个函数 `instance_resampling_band` 计算 |
+| **S3 未被执行，因为它没有通过预注册的成本门控**（§1 图 1；表 2 末行；附录 D）。Arm 2（`deepseek-v4-pro`）**未运行**。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；最便宜的合格方案预计 ¥57.97，而 ¥200 上限下仅剩 ¥44.53，故 {6,4,2} 中无一合格 → `ARM2_NOT_RUN`。有一个 block 执行了（按 §5F.5 的要求，用来确定 r′），报告时**不给出任何条件对比**（§5E.5）。未曾运行的实验臂没有效应方向：这不是零结果，也不是负结果 | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；那个 block 见 `phase8a/reports/` 中的 `phase8a_sta_report_arm2.md` |
+| 预注册及其六条编号修正案 —— 每条都在相应的进入分析的 episode 之前固定（附录 I，冻结点 3） | [`phase8a_prereg.zh.md`](phase8a_prereg.zh.md) |
+| 金钱（附录 I；可复现性声明）：逐 episode 保管记录、归档的废弃轮次、被替换尝试账本、低报成本的更正 | `phase8a/evidence/`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 
-### 事后观察：面板解剖结构在换后端之后重现
+### 事后观察：实例级结构在两个批次之间重现
 
-Phase-7A 附录 C 的解剖结构（6 个地板受限、1 个天花板受限、5 个有信息量）在 k=6、不同后端上以**完全相同的
-计数**重现，而且**12 个实例中有 10 个获得完全一致的分类** —— 六个地板受限的实例是同样那六个。在有信息量
-的实例中，**符号**也一致：`p15_eval_0004` 与 `p15_eval_0007` 在两处都为负，`p15_eval_0011` 与
+Phase-7A 附录 C 的解剖结构（6 个地板受限、1 个天花板受限、5 个有信息量）在 k=6 上以**完全相同的计数**重现，
+而且**12 个实例中有 10 个获得完全一致的分类** —— 六个地板受限的实例是同样那六个。在两处都有信息量的实例
+中，**符号**在全部 4 个上都一致：`p15_eval_0004` 与 `p15_eval_0007` 在两处都为负，`p15_eval_0011` 与
 `p15_eval_0012` 在两处都为正。只有 `p15_eval_0010`（+0.5 → 0.0）与 `p15_eval_0013`（0.0 → −0.1667）
 改变了类别，且都是在地板/天花板边界上的小幅移动。
 
+两个批次由**同一个函数**分类，并且 `phase8a_claim_statistics.py` 会先把这个函数跑在 Phase-7A 自己的实例上、
+断言其计数等于 Phase-7A 冻结的 `panel_anatomy` 块，然后才形成这个比较。没有这道断言，"解剖结构重现了"就可能
+只是两套措辞略有差别的规则造成的假象。
+
 这是**事后的、非预注册的**观察，与 Phase-7A 自己的 `panel_anatomy` 块标注一致（`post_hoc: true`）。
-它也**不是**汇合：没有任何数字跨这两项研究相加。它支持的是一个狭窄而有用的表述 —— 实例级异质性是**实例**
-的性质，而不是抽样噪声，因为它在服务栈更换与 k 增至三倍之后依然存在。它**不**授权用其中一个后端去推断
-另一个后端的任何结论。
+它也**不是**汇合：没有任何数字跨这两项研究相加。按论文自身的资格标准，它也**不是**复制 —— 两个批次重跑的是
+*同一批*冻结实例，这属于对稳定性的重复测量，而不是任何投影的扩大。它支持的是一个狭窄而有用的表述 ——
+实例级异质性是**实例**的性质，而不是 k=2 下的抽样噪声，因为它在一次独立执行中把重复深度增至三倍之后依然存在。
+它**不**授权用其中一个后端去推断另一个后端的任何结论，也不意味着总体方向得到了复制 —— 并没有；而"结构稳定、
+总体不稳定"这个对比本身才是那个观察。
 
 交叉核对：`scripts/phase7c_claim_statistics.py --check` → `reports/synthetic_p14_claim_statistics.json`
-中的 `sta_finite_panel.panel_anatomy`，对照 `phase8a/reports/` 中的 `phase8a_sta_report.json` 中的 `instances[]`。
+中的 `sta_finite_panel.panel_anatomy`，对照 `phase8a/reports/` 中 `phase8a_claim_statistics.json` 的
+`cross_batch_structural_concordance`。
 
 ### 属于方法附录而非正文的部分
 
-Phase-8A 期间发现并修复了三个 harness/账本缺陷。它们证明的是复现治理，而不是科学结果，记录在
+Phase-8A 期间发现并修复了三个 harness/账本缺陷。它们证明的是复现治理，而不是科学结果。v15 把它们作为三条通用的
+**账目要求**写在附录 J，正文中一处也没有；事件层面的细节留在
 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) 的"测量效度发现"一节：从未执行的 slot 被误算为
 measurement-invalid；一个靠缩小观察范围而变绿的成本校验器；以及一个被存放在"后续正当操作有权覆盖"路径上的
 原始工件。
+
+唯一进入正文的过程性发现是参照标准保管原则，它之所以在正文，是因为它在 v13 就已经被提升为一条 Layer-4 要求 ——
+以要求的形式陈述，事件叙述放在附录 J。
 
 ## 不用商业工具也能复现的部分
 
@@ -188,7 +207,7 @@ python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
 python3 scripts/phase7e_answer_identifiability.py --check  # 候选域 294；BundleS 9–147，从不为 1
-cd submission && make distclean && make                # 20 页（正文 9 页），逐字节可复现
+cd submission && make distclean && make                # 22 页（正文 9 页），逐字节可复现
 python3 scripts/submission_page_limit_check.py         # 正文结束于第 9 页（ICLR 上限 9）
 ```
 
