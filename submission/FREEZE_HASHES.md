@@ -1,6 +1,6 @@
 # Phase-8A Submission Freeze (v15 — the k=6 STA panel becomes the primary S2-F evidence)
 
-**Submission HEAD:** `5e0aafdd` — the manuscript artifacts and every hash in this section are that
+**Submission HEAD:** `07f5bf7f` — the manuscript artifacts and every hash in this section are that
 commit's, because it is the last commit to touch a build input. The commit recording this line
 touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12, v13 and
 v14 used and for the same unavoidable reason: a commit cannot contain its own successor's hash.
