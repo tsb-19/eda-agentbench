@@ -209,6 +209,20 @@ def _core_of(task_id):
             if task_id.endswith(("base", "bundles", "typedcontract")) else task_id)
 
 
+def _planned_instances(sched):
+    """Every non-pilot instance the frozen schedule intends this arm to run."""
+    return sorted({c for c in (_core_of(s["task_id"]) for s in sched["frozen_execution_order"])
+                   if c not in PILOTS})
+
+
+# The aggregate claims. Named once, so the incomplete-arm refusal below cannot drift out of step with
+# what build() actually emits: adding a fourth aggregate without adding it here would leak it.
+AGGREGATE_KEYS = ("condition_mean_rates_over_instances_descriptive",
+                  "contrast_tally_instance_level",
+                  "primary_sign_test",
+                  "primary_permutation_sensitivity")
+
+
 def _sign_p(diffs):
     n = sum(1 for d in diffs if d != 0)
     k = sum(1 for d in diffs if d > 0)
@@ -295,6 +309,13 @@ def build(arm: int = 1):
             ge += 1
 
     k_used = sorted({r[f"{c}_k"] for r in rows for c in COND})
+    # A slot that never executed is NOT a measurement-invalid episode. Both end up outside the
+    # analysis, so `_collect` returns them in one list, but they mean opposite things: an invalid
+    # episode was paid for and its telemetry says the apparatus failed, while a never-run slot has no
+    # episode at all. Summing them into "collected" would have reported 72 collected episodes for an
+    # arm that ran 6 -- a spend figure of ¥6.66 sitting beside a count of 72.
+    not_run = [x for x in excluded_invalid if x.endswith(":not_collected")]
+    truly_invalid = [x for x in excluded_invalid if not x.endswith(":not_collected")]
     report = {
         "schema": "phase8a_sta_report/v1",
         "arm": arm,
@@ -311,9 +332,10 @@ def build(arm: int = 1):
             "path": "reports/synthetic_phase7a_sta72_report.json",
             "rule": "report side by side; never sum, average, difference or pool into one n",
         },
-        "n_episodes_collected": len(included) + len(excluded_invalid),
+        "n_episodes_collected": len(included) + len(truly_invalid),
         "episodes_graded": sum(len(per[i][c]) for i in instances for c in COND),
-        "measurement_invalid_excluded": excluded_invalid,
+        "measurement_invalid_excluded": truly_invalid,
+        "slots_never_executed": len(not_run),
         "spent_cny": round(spent, 4),
         "spent_on_aborted_block_passes_cny": round(aborted_spend, 4),
         # Attempts the arbiter replaced. Their episode.json was overwritten by the replacement,
@@ -343,10 +365,35 @@ def build(arm: int = 1):
         "interpretation_note": "Reported at the preregistered k. No adaptive k, no "
                                "trajectory-pooled p-value, no outcome-dependent reanalysis.",
     }
+
+    # §5E.5: an arm that did not run every planned instance yields NO condition contrast. Blocks are
+    # instances, so a subset of blocks is a subset of *instances*, not a reduced k -- and arm 1
+    # observed bidirectional instance-level heterogeneity, so whichever instances happened to run
+    # before the budget or the provider stopped things would be a sample chosen by the budget or the
+    # provider. The rule was written down; until now nothing made the code assert it, and this
+    # project has already seen a stated inclusion rule fail to stop an aggregation that violated it.
+    planned = _planned_instances(sched)
+    missing = [i for i in planned if i not in instances]
+    if missing:
+        for key in AGGREGATE_KEYS:
+            report.pop(key, None)
+        report["incomplete_arm"] = {
+            "rule": "docs/phase8a_prereg.md §5E.5",
+            "instances_planned": len(planned), "instances_completed": len(instances),
+            "instances_not_run": missing,
+            "aggregates_withheld": list(AGGREGATE_KEYS),
+            "why": "A subset of blocks is a subset of instances, not a reduced k. Reporting a "
+                   "contrast over the instances that happened to run would let the budget or the "
+                   "provider choose the sample. Per-instance rows stand as descriptive record.",
+        }
+        report["unit"] = (f"INCOMPLETE ARM: {len(instances)} of {len(planned)} planned instances; "
+                          "no condition contrast is drawn")
     return report
 
 
 def _markdown(rep):
+    if rep.get("incomplete_arm"):
+        return _markdown_incomplete(rep)
     c = rep["condition_mean_rates_over_instances_descriptive"]
     pri = rep["contrast_tally_instance_level"]["primary_BundleS_vs_Base"]
     md = [f"# Phase-8A — STA panel at k={rep['k_per_condition_observed']} on a replacement backend",
@@ -401,6 +448,46 @@ def _markdown(rep):
     return "\n".join(md) + "\n"
 
 
+def _markdown_incomplete(rep):
+    """Markdown for an arm that did not run every planned instance.
+
+    No condition means, no tallies, no p-value -- the aggregates are absent from the JSON and must be
+    absent here too. Per-instance rows are kept: they are a record of what was paid for and graded,
+    and withholding them would hide expenditure rather than protect an inference. The side-by-side
+    Phase-7A table is also dropped, because comparing a full panel against a fragment of another
+    invites exactly the read the withholding exists to prevent.
+    """
+    inc = rep["incomplete_arm"]
+    md = [f"# Phase-8A arm {rep['arm']} — INCOMPLETE: no condition contrast is reported",
+          "",
+          f"`{rep['model_name']}` on `{rep['backend']['endpoint_host']}`. "
+          f"**{inc['instances_completed']} of {inc['instances_planned']} planned instances ran.** "
+          f"{rep['episodes_graded']} graded episodes, ¥{rep['spent_cny']}.",
+          "",
+          f"> **No aggregate is reported for this arm**, under [`{inc['rule']}`]"
+          "(../../docs/phase8a_prereg.md). " + inc["why"],
+          "",
+          "Withheld: " + ", ".join(f"`{k}`" for k in inc["aggregates_withheld"]) + ".",
+          "",
+          "## Per-instance outcomes (descriptive record of what was paid for)",
+          "| instance | Base | BundleS | TypedContract |",
+          "|---|---|---|---|"]
+    for r in rep["instances"]:
+        def cell(cn):
+            v = r[f"{cn}_reps"]
+            return ("".join("✓" if x else "✗" for x in v) + f" ({r[f'{cn}_rate']})") if v else "—"
+        md.append(f"| {r['instance']} | {cell('Base')} | {cell('BundleS')} "
+                  f"| {cell('TypedContract')} |")
+    md += ["",
+           "Per-instance differences are deliberately omitted from this table. A single instance's "
+           "B−Base is a difference, not a contrast, and arm 1 observed bidirectional instance-level "
+           "heterogeneity — one instance's sign carries no information about the panel's.",
+           "",
+           "## Instances not run", ""]
+    md += [f"- `{i}`" for i in inc["instances_not_run"]]
+    return "\n".join(md) + "\n"
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Phase-8A instance-level report (no model calls).")
     ap.add_argument("--arm", type=int, default=1, choices=(1, 2),
@@ -425,9 +512,12 @@ def main() -> int:
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(blob, encoding="utf-8")
     out_md.write_text(_markdown(rep), encoding="utf-8")
-    print(json.dumps({k: rep[k] for k in (
-        "condition_mean_rates_over_instances_descriptive", "contrast_tally_instance_level",
-        "primary_sign_test", "primary_permutation_sensitivity", "spent_cny")}, indent=2))
+    # An incomplete arm has no aggregates to print; say what it does have instead of inventing a
+    # summary line for numbers that were deliberately withheld.
+    keys = (("incomplete_arm", "episodes_graded", "spent_cny") if rep.get("incomplete_arm") else
+            ("condition_mean_rates_over_instances_descriptive", "contrast_tally_instance_level",
+             "primary_sign_test", "primary_permutation_sensitivity", "spent_cny"))
+    print(json.dumps({k: rep[k] for k in keys}, indent=2))
     return 0
 
 

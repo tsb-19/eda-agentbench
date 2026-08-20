@@ -52,5 +52,12 @@
   },
   "k2": 2,
   "decision": "RUN arm 2 at k=2",
+  "superseded": {
+    "note": "This record stands as written: it is what §2.2 decided on 2026-08-19, and §2.2 says k2 is fixed once and never revised. k2 IS 2. What later failed was not k -- it was affordability AT k=2.",
+    "final_outcome": "ARM2_NOT_RUN",
+    "final_record": "phase8a/evidence/arm2_gate_decision.json",
+    "why": "The r used here, 0.5009 CNY/episode, was measured on instances 0001-0002 only. Block 00 then ran on instance 0004 at 1.1094, and the pooled 12-episode rate is 0.8051 -- 61% above this probe. At the pooled rate the 72 episodes project 57.97 against 44.53 remaining, so no k in {6,4,2} qualified and arm 2 was not run. Procedure fixed in advance at docs/phase8a_prereg.md §5F.5.",
+    "do_not_read_this_file_as": "evidence that arm 2 ran at k=2. It did not run. One block of twelve was executed and is reported without any condition contrast (§5E.5)."
+  },
   "rate_denomination": "frozen DeepSeek-V4-Pro rates, input 12 / output 24 CNY per 1M, as recorded in reports/evidence/*/frozen_config.json. This is a comparability unit, NOT the provider's bill -- see \u00a75C.1"
 }

@@ -1412,3 +1412,75 @@ def test_one_completed_block_yields_no_condition_contrast():
     en = " ".join(PREREG.read_text().split())
     assert "a subset of blocks is a subset of *instances*, not a reduced k" in en
     assert "draws no condition contrast from them" in en
+
+
+def test_the_reconcile_check_covers_every_pass_not_just_the_live_one():
+    """Once block 00 was re-run clean, a --check scoped to the live pass reported "nothing
+    understated" and silently stopped verifying the ¥4.9775 already recovered from the archived
+    pass -- money still bound into the ¥200 cap. A verifier that goes green because it stopped
+    looking is worse than no verifier.
+    """
+    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_cost_reconcile.py"),
+                        "--arm", "2", "--block", "0", "--check"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    assert r.returncode == 0, r.stdout + r.stderr
+    d = json.loads(r.stdout)
+    assert d["check"] == "PASS"
+    assert d["passes_verified"] >= 3, "the live pass and both archived attempts must be checked"
+    ids = {x["pass"] for x in d["results"]}
+    assert {"live", "attempt1", "attempt2"} <= ids
+
+
+def test_an_overwritten_source_is_reported_as_such_and_never_as_a_pass():
+    """runs/phase8a/ is gitignored and keyed by (block, condition, position, attempt), so the
+    whole-block re-run overwrote the driver logs the archived corrections were computed from.
+
+    That is neither "reproduces" nor "the ledger is wrong" -- it is "the evidence is gone", and
+    collapsing it into either would be a lie in a different direction. The weaker fallback check
+    (does the recorded breakdown still add up?) must be labelled as weaker.
+    """
+    r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_cost_reconcile.py"),
+                        "--arm", "2", "--block", "0", "--check"],
+                       capture_output=True, text=True, cwd=str(REPO))
+    d = json.loads(r.stdout)
+    assert d["passes_no_longer_recomputable"] >= 1
+    gone = [x for x in d["results"] if x["verdict"].startswith("SOURCE_GONE")]
+    assert gone, "the overwritten passes must say so"
+    for x in gone:
+        assert "cannot be re-read" in x["why"]
+        # the sanitized chain log is what still survives in git, and must be named
+        assert x["still_committed"] and x["still_committed"].startswith("phase8a/evidence/aborted/")
+    corrected = [x for x in gone if x["ledger_cny"] > 0]
+    assert corrected, "the ¥4.9775 correction is one of them"
+    assert abs(corrected[0]["ledger_cny"] - 4.9775) < 1e-6
+
+
+def test_the_findings_write_up_uses_the_mandated_phrasing_in_both_languages():
+    """The result may be stated as "not established with bidirectional heterogeneity observed" and
+    must never be stated as proof of no effect. Non-significance is not evidence of a zero effect,
+    and this study is specifically about not overstating what a measurement licenses.
+    """
+    def _plain(p):
+        # strip blockquote markers and bold so the assertion tests the SENTENCE, not its decoration
+        t = p.read_text().replace("*", "")
+        return " ".join(t.replace("\n>", "\n").split())
+    en = _plain(REPO / "docs/phase8a_findings.md")
+    zh = _plain(REPO / "docs/phase8a_findings.zh.md")
+    assert ("No consistent BundleS advantage was established on this preregistered 12-instance, "
+            "k=6 panel, and bidirectional instance-level heterogeneity was observed." in en)
+    assert "在这个预注册的 12 实例、k=6 面板上没有建立一致的 BundleS 优势，并且观察到双向的实例级异质性" in zh
+    assert "This is not evidence that BundleS is ineffective" in en
+    assert "Non-significance is not proof of zero effect" in en
+    assert "单纯不显著并不等于证明零效应" in zh
+    for doc in (en, zh):
+        assert "proves BundleS" not in doc and "证明 BundleS 无效" not in doc.replace(
+            "不是\"BundleS 无效\"的证据", "")
+
+
+def test_the_findings_write_up_reports_the_unrun_arm_as_unaffordable_not_as_null():
+    en = " ".join((REPO / "docs/phase8a_findings.md").read_text().split())
+    zh = " ".join((REPO / "docs/phase8a_findings.zh.md").read_text().split())
+    assert "the one preregistered cell that could not be filled within budget" in en
+    assert "预注册计划中唯一一个预算内无法填上的格子" in zh
+    # and it must not be dressed up as a finding about the model
+    assert "Not anything about `deepseek-v4-pro` on this family" in en
