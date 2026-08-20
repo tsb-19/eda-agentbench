@@ -11,7 +11,7 @@ export FORCE_SOURCE_DATE = 1
 
 all: $(MAIN).pdf
 
-$(MAIN).pdf: $(MAIN).tex iclr2027_conference.sty references.bib tables/study1_ledger.tex tables/claim_stats.tex tables/sta_pilot.tex tables/phase8a_stats.tex tables/sta12_k6.tex tables/sta_concordance.tex
+$(MAIN).pdf: $(MAIN).tex iclr2027_conference.sty references.bib tables/study1_ledger.tex tables/claim_stats.tex tables/sta_pilot.tex tables/phase8a_stats.tex tables/sta12_k6.tex tables/sta_concordance.tex tables/sta12_arm2.tex
 	$(TEX) $(MAIN).tex
 	bibtex $(MAIN)
 	$(TEX) $(MAIN).tex

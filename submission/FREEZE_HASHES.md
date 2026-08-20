@@ -1,92 +1,141 @@
-# Arm-2 Disclosure Freeze (v16 — the quarantined S3 trajectories are disclosed, and never analysed)
+# S3 Measurement Freeze (v17 — the joint model x family cell is measured, and not established)
 
-**Submission HEAD:** `c8503f22` — the manuscript artifacts and every hash in this section are that
-commit's, because it is the last commit to touch a build input. The commit recording this line
-touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12–v15
-used and for the same unavoidable reason: a commit cannot contain its own successor's hash.
+**Submission HEAD:** the commit that last touched a build input; the commit recording this line
+touches none and rebuilds to the same PDF byte-for-byte, the arrangement v12–v15 used and for the
+same unavoidable reason: a commit cannot contain its own successor's hash.
 
-## What v16 is, and what it is not
+## What v17 is
 
-It is a **disclosure and accounting correction**. No scientific outcome changed, no number in any
-result moved, no episode entered or left an analysis, and the k=6 panel, the k=2 batch, the
-cross-batch concordance and every verdict read exactly as they did in v15. It is not a new
-scientific version and must not be described as one.
+The **joint model x family cell (S3) is measured rather than left empty.** Seventy-two
+`deepseek-v4-pro` episodes over the same twelve frozen STA instances — 3 conditions x k=2, 12/12
+blocks, 0 episodes excluded — are analysed and reported: Base .250 / BundleS .375 / TypedContract
+.4167, +12.5 pp, 5 instances improving to 2 declining, sign test *p*=0.453, instance-resampling band
+−16.7 to +41.7. The point estimate favours BundleS and the discrimination reaches no conclusion, so
+the verdict is **not established** — the same verdict as S2-F, reached for the same reasons, and
+explicitly not "no effect" on a panel where 5 of 12 instances cannot express a difference.
 
-## Why it exists
+## What happened to v16
 
-Seventy-two DeepSeek-V4-Pro episodes exist at the S3 coordinate — twelve instances × three
-conditions × k=2, 12/12 blocks complete, 0 invalid attempts, ¥45.1143 — and v15 says S3 was *not
-executed*. Both are true, but only if the sentence is read as being about the preregistered arm.
-A reader takes "not executed" to mean no data exists, and that is no longer the case.
+v16 was a *disclosure* version: it reported that 72 episodes existed at this coordinate and left them
+unanalysed, on the reasoning that a pre-outcome exclusion should not be revisited. It was built,
+gated and committed (`c8503f22`, `591c9a99`) but **never pushed and never tagged**, and v17 supersedes
+it before it was ever published. Its section is not preserved here because the three files it hashed
+no longer exist; it remains recoverable in full from those two commits. v14 (tag
+`iclr2027-submission-v5`) and v15 (tag `iclr2027-submission-v6`) are published freezes and are
+untouched.
 
-The ordering is what makes disclosure safe rather than damaging. The preregistered cost gate wrote
-`ARM2_NOT_RUN` at 02:56Z; blocks 01–11 began at 04:31Z, under a quarantine that redirected the
-run's entire write surface — custody, run state, block files, archive glob, ledger — to a root
-under gitignored `runs/`, so it could not enter a commit even via `git add -A`. **The exclusion
-decision predates the data.**
+The reason for the reversal is worth recording, because it is a judgement and not a bug fix. A cell
+that is scientifically necessary, already collected and complete should be analysed; an internal
+budget rule is not a reason to leave a hole in the evidence matrix of a paper about generalization,
+and a reviewer asking "why is the most important combination missing?" would be asking a fair
+question. What the reversal must not do is manufacture a provenance claim, and it does not.
 
-## Three changes, and one thing this version protects
+## Provenance, stated rather than smoothed over
 
-1. **S3 is stated precisely.** The preregistered *eligible* arm was not executed; trajectories
-   generated afterwards outside it remain unanalysed and yield no S3 estimate. In the abstract,
-   the Figure 1 caption, and at length in Appendix D.
-2. **Money is two figures, not one.** Eligible-analysis spend ¥145.47; total realized spend
-   ¥183.93. The 66 additional episodes cost ¥38.4582 and enter no analysis, but they were paid
-   for. The ¥200 cap was not breached. Appendix I and the reproducibility statement.
-3. **A fourth accounting requirement** in Appendix J: *a cost gate must be calibrated on a sample
-   that represents the panel it gates, and must carry the spread it measures into the decision
-   rather than reducing it to a pooled mean.* The gate priced the 66 remaining episodes at ¥53.14
-   against ¥44.53 available; they cost ¥38.46 — it refused an arm that was affordable, with ¥6.07
-   to spare. Its rule was applied correctly and its arithmetic was right; its rate estimator was
-   calibrated on `p15_eval_0004`, the dearest of the twelve at ¥1.109/episode against a ¥0.627
-   panel mean and a ¥0.330 cheapest instance, and it averaged away a spread factor of 6.86 it had
-   already recorded. This is the paper's own finding in a different currency: panel composition
-   decided not an effect size but whether an experiment happened at all.
+These episodes are **not** the arm the Phase-8A preregistration sized. That arm was refused by its
+preregistered cost gate (`ARM2_NOT_RUN`), and the remaining blocks were executed afterwards. The
+sentence *"this k=2 S3 experiment was preregistered and executed according to the original
+preregistration"* would be false and appears nowhere; the manuscript says outright that the arm's
+execution was not preregistered.
 
-**What is protected: nobody has looked.** The condition contrast has never been computed, and that
-is worth more than any number it could yield — "excluded before the data existed, and never
-analysed" is a stronger claim than a result. It is also a state one careless import destroys
-permanently, so it is held mechanically rather than by intention:
-`scripts/phase8a_arm2_quarantine.py` opens only `episode.json` and `SHA256SUMS`, drops
-`total_score` and `semantic_binding` before the object is used, and never opens `result.json`,
-`exception_config.submitted.json` or the agent log. `tests/test_phase8a.py` drives that recorder
-*and* the three Phase-8A `--check` commands under a `sys.addaudithook` that raises on a forbidden
-open, with a negative control proving the hook fires. The custody record is
-`phase8a/evidence/arm2_quarantine_record.json`; its accounting macros are generated into
-`submission/tables/arm2_quarantine.tex`, so no figure above is transcribed by hand.
+What is claimed is narrower and sufficient, and it is checkable three ways rather than asserted:
 
-Discovering that the refusal was too conservative does not reopen it. Evidence eligibility fixed
-before an outcome may not be revised once the outcome exists — least of all in a paper whose
-subject is that rule.
+1. **The analysis plan predates the outcomes.** `phase8a/evidence/arm2_analysis_plan.json` fixes the
+   inclusion rule, the unit, the primary and secondary contrasts, the tests, the no-pooling rule and
+   the mapping from outcome to wording. Its commit (`2e8fe5ad`) precedes the commit that brought the
+   analysed episodes into the tree, and a test asserts that ordering against git history.
+2. **No plan means no analysis.** `phase8a_report.py` records the plan's sha256 in the arm-2 report
+   and raises if the plan is absent, so the analysis cannot be produced without it and editing the
+   plan afterwards breaks `--check` instead of silently re-governing a published number.
+3. **No rule was weakened.** The report withholds condition aggregates *iff* a planned instance is
+   missing — because a subset of blocks is a subset of *instances*, which would let a budget or a
+   provider choose the sample. Arm 2 ran 12 of 12, so the unmodified rule permits them. A test
+   re-falsifies this by declaring a thirteenth planned instance and requiring the aggregates to
+   vanish.
 
-## Layout note carried forward
+The interpretation branch is evaluated in code from the plan's three pre-committed thresholds
+(*p*<0.05, band excluding zero, improvements outnumbering declines) rather than chosen after reading
+the numbers. The third holds; the first two do not.
 
-Additions to the abstract and to a pre-float caption cost nothing at the reference boundary: the
-floats repack and absorb them. Everything added in v16 outside the abstract lands after the
-bibliography, so the main text stayed at 9 pp with 0 words above `REFERENCES` and the appendix grew
-by one page (22 → 23).
+## What v17 does not claim
 
-## SHA-256 hashes (frozen artifacts, v16)
+- **Nothing is pooled.** Three STA batches over the same twelve instances — Qwen k=2, Qwen k=6,
+  DeepSeek k=2 — and no quantity is summed, averaged or differenced across any pair. No *n*=24, no
+  k=8, no combined episode count.
+- **k=2 carries no magnitude claim.** Arm 1 measured 7 of 36 cells disagreeing across six identical
+  repetitions on this same family, so arm 2's cell values are known-noisy and its aggregate is not
+  set beside arm 1's k=6 aggregate as though equally resolved.
+- **The cross-model structural agreement is post hoc and confounded.** 10 of 12 instances classify
+  identically and the sign agrees on 4 of the 5 informative in both, but the arms differ in the model
+  *and* in k. It locates heterogeneity in the *instances*; it is not evidence of backend invariance
+  and it establishes no transfer.
+
+## What left the manuscript
+
+The research-process history did. Appendix J's fourth accounting requirement (the miscalibrated cost
+gate) and Appendix D's quarantine narrative are **removed from the paper** and kept in
+`docs/phase8a_findings.md` and `phase8a/evidence/arm2_cost_calibration.json`: how a ¥200 cap was set,
+which gate arithmetic was unrepresentative and which block ran at which hour are project management,
+not scientific results. Programme spend is consequently **one figure again** — ¥183.9329 of the ¥200
+cap, ¥16.07 unspent, recomputed from the runner's own spend function. The v16 split into
+"eligible-analysis" and "total realized" spend existed only because arm 2's episodes were excluded
+from analysis; now that every ¥ paid stands behind a reported number, one total is the honest
+presentation.
+
+Discovering that the gate's refusal was too conservative is **not** the justification for analysing
+the arm — that would be revising eligibility because of what the outcome turned out to be. The
+justification is the plan fixed before the outcomes were read. The two are easy to conflate and the
+record keeps them apart.
+
+## Layout note carried forward, and sharpened
+
+The lever is the **typeset line**, not the word. Mid-paragraph cuts only reflow: 14 words removed from
+six post-float paragraphs once recovered exactly 1 word of overflow. Going from 336 words of overflow
+to 0 in this version took, in order of effectiveness: shrinking the **captions of main-text floats**
+(a caption is part of the float, so shortening it genuinely reduces typeset height, unlike body text
+before the last float, which the floats simply repack and absorb) — Table 1's caption and Figure 1's
+caption together bought roughly half the deficit; then removing whole clauses from the post-float
+paragraphs, roughly one line per paragraph; then the conclusion itself. Main text is 9 pp with **0**
+words above `REFERENCES`; the appendix grew by one page (23 → 24).
+
+## SHA-256 hashes (frozen artifacts, v17)
 | Artifact | SHA-256 | vs v15 |
 |---|---|---|
-| Source (main.tex) | `f91a055f74aec0e551e7508ed85fbd8fa990d2dd7046dce9422de6e0d0705a0b` | changed |
-| Final PDF (main.pdf, 23 pp: 9 main + refs + appendix; 321 456 B) | `c76f4cf34419c62b1ec5f4645ac92a2cdf9b8e0092ce9b324e0968fed53831d3` | changed |
-| Quarantine accounting macros (tables/arm2_quarantine.tex) | `d8240e9de7812c0e20f124ce3653bc0d2cc0693346c218fdb3a2995078d0855c` | new |
-| Quarantine custody record (phase8a/evidence/arm2_quarantine_record.json) | `910cd17504675d107cebc2236746fafa0bb310c8767bb910f03c1628cb6b60e2` | new |
+| Source (main.tex) | `4104299014ea0a06ecdefe5db2731480398bd2711bfc70182acebcbb8fe19639` | changed |
+| Final PDF (main.pdf, 24 pp: 9 main + refs + appendix; 323 565 B) | `3dfa15f9ce4d8229becfff95feb91bb058fdcf1e9c3640d47811c662a19da83e` | changed |
+| Generated Phase-8A stat macros (tables/phase8a_stats.tex) | `2f5d2dc39cfd0c9ef9461a9a7a01c7ebc08697038fec14a80b07a41c44301609` | changed (arm-2 macros added; every arm-1 macro byte-identical) |
+| Generated S3 panel table (tables/sta12_arm2.tex) | `4bddafd2a5a99c35d052a40a67e20e35dd8e76b4bf33362daac8d5a38e94e95b` | new |
+| Arm-2 analysis plan (phase8a/evidence/arm2_analysis_plan.json) | `62c14d1757589ccbb33232a91fd6b7ac5c6f923ac610a6e2505c63107557a544` | new |
+| Cost-calibration record (phase8a/evidence/arm2_cost_calibration.json) | `29f69210f4f23c1e933066ac2fd739f9311d323facd118c1847d2cd141ad3780` | new |
 | Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
 | Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
 | Generated k=2 stat macros (tables/claim_stats.tex) | `40f4b24d1f5b3a2c0c1a57a7fd01125908f4b84f41d7f09343a95d10f3c3b96f` | **identical** |
-| Generated k=6 stat macros (tables/phase8a_stats.tex) | `318e496c54ddfbe58a902cf7430e11f15719ed3de9019a0ec426dd8612c10df5` | **identical** |
 | Generated k=6 panel table (tables/sta12_k6.tex) | `aa5bbb4c937cf919b2876d1ae48d1fc7af29266052368b68c532e23b98485bc8` | **identical** |
 | Generated cross-batch table (tables/sta_concordance.tex) | `35c446471ca131de52ac126f36d3b2dc1fc66531118ca9f8ce41263b0de21d7b` | **identical** |
 | Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
 | Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
 
-**Mechanical proof that no scientific number moved.** All six generated result tables and the
-frozen claim-evidence matrix are **byte-identical** to their v15 hashes. Every figure v16 adds
-arrives in one *new* file, `tables/arm2_quarantine.tex`, which contains money and counts only —
-there is no macro in it that could carry a condition contrast, because the record it is generated
-from has none.
+**Mechanical proof that no earlier result moved.** Every generated table carrying a Study I, k=2 or
+k=6 number is **byte-identical** to its v15 hash, as is the frozen claim-evidence matrix. The one
+changed macro file gained arm-2 and cross-model macros and altered exactly two money macros
+(`StatEightAProgramme` 145.47 → 183.93, and a new `StatArmTwoSpend`); every `StatEightA*` result
+macro and every `StatConcord*` macro is unchanged. Arm 1's report JSON was regenerated and its
+condition means, tally, sign test, per-instance rows and spend are byte-identical — only two
+descriptive strings moved, one of which retracted a justification the documentation had already
+corrected.
+
+## Verification
+
+```bash
+python3 scripts/phase8a_report.py --arm 1 --check
+python3 scripts/phase8a_report.py --arm 2 --check
+python3 scripts/phase8a_claim_statistics.py --check
+python3 scripts/phase8a_arm2_gate.py --check
+python3 scripts/phase8a_arm2_cost_calibration.py --check
+scripts/check
+cd submission && make distclean && make      # 24 pp, 323 565 B, byte-reproducible
+python3 scripts/submission_page_limit_check.py
+```
 
 ---
 

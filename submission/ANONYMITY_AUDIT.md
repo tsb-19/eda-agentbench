@@ -1,6 +1,6 @@
 # Anonymity Audit — manuscript v15 (official ICLR 2027 style; double-blind)
 
-**Result: PASS.** Re-scanned on the v16 PDF (`c76f4cf3…`, 321 456 B, 23 pp; main text 9 pp). v15 makes
+**Result: PASS.** Re-scanned on the v17 PDF (`3dfa15f9…`, 323 565 B, 24 pp; main text 9 pp). v15 makes
 the preregistered k=6 STA batch the primary S2-F evidence; it runs no model call and alters no
 experimental record.
 
@@ -10,7 +10,7 @@ experimental record.
 | PDF text + **all generated tables**: infra leaks (tongsb, /data1, /home, eda-agentbench, harbor-framework, laude-institute, 192.168, 10.x, tsb@) | **0 matches.** PASS |
 | PDF text: acknowledgements, github.com, ORCID, institutional e-mail | **0 matches.** PASS |
 | **New in v15: serving-provider identity** | The k=6 batch used a different serving endpoint. The manuscript discloses *that it changed* and names **no host**: `paratera`, `tokenrhythm`, `llmapi` and `.studio` return **0 matches** in the PDF and in every generated table. A regression test asserts this, because a serving vendor is a plausible institutional fingerprint. The host names remain in the repository's own records, which are not the anonymised surface. PASS |
-| New in v15: three generated tables (`phase8a_stats.tex`, `sta12_k6.tex`, `sta_concordance.tex`) | Task instance ids (`0004`–`0015`), condition labels, integers and rates only. No author, host, path or licence-server string. PASS |
+| Generated Phase-8A tables (`phase8a_stats.tex`, `sta12_k6.tex`, `sta12_arm2.tex`, `sta_concordance.tex`) | Task instance ids (`0004`–`0015`), condition labels, integers and rates only. No author, host, path or licence-server string. PASS |
 | New in v15: Appendix J accounting requirements | Stated as requirements over anonymous artifacts ("a per-arm report", "a cost reconciliation", "driver logs"). Names no file path, host or tool. PASS |
 | Bibliography | 20 entries, unchanged from v14; all third-party published work. PASS |
 | Reminder, unchanged | The **repository** is not anonymised: ~212 frozen custody files under `reports/evidence/`, and the Phase-8A custody tree, still carry a username or host name and cannot be rewritten without breaking the custody chain. A double-blind supplement needs a separate sanitising export. The **PDF** is clean, which is what the double-blind requirement covers. |

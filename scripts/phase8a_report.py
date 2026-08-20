@@ -29,6 +29,7 @@ import tempfile
 from collections import defaultdict
 from math import comb
 from pathlib import Path
+import hashlib
 
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "generators" / "p15_sta_handoff"))
@@ -43,6 +44,45 @@ def _ev(arm: int) -> Path:
 
 
 ARM_MODEL_NAME = {1: "qwen3.7-max", 2: "deepseek-v4-pro"}
+
+# The analysis plan that governs arm 2. Its sha256 is recomputed into arm 2's report on every run, so
+# an arm-2 analysis cannot be produced without the plan being present, and editing the plan after the
+# fact breaks `--check` instead of silently re-governing a published number.
+ARM2_PLAN = P8A / "evidence" / "arm2_analysis_plan.json"
+
+_PROVENANCE = {
+    1: {
+        "preregistered": True,
+        "preregistration": "docs/phase8a_prereg.md",
+        "note": "arm 1 is the preregistered arm: design, k and analysis were fixed before its "
+                "first analysed episode",
+    },
+    2: {
+        "preregistered": False,
+        "analysis_plan": "docs/phase8a_arm2_analysis_plan.md",
+        "analysis_plan_json": "phase8a/evidence/arm2_analysis_plan.json",
+        # The one sentence that would be false. Recorded here so that anyone reading the artifact
+        # meets the correction at the same moment they meet the numbers.
+        "claim_never_made": "that this k=2 arm was preregistered and executed according to "
+                            "docs/phase8a_prereg.md -- it was not; it was executed after that "
+                            "preregistration's cost gate returned ARM2_NOT_RUN",
+        "what_is_claimed": "the analysis rules were fixed and committed before any outcome field "
+                           "of these episodes was read, and they are the arm-1 rules in the "
+                           "arm-1 code",
+        "aggregates_permitted_because": "phase8a_report.py withholds condition aggregates iff a "
+                                        "planned instance is missing; this arm ran 12 of 12, so "
+                                        "the unmodified rule permits them",
+    },
+}
+
+
+def _plan_sha256() -> str:
+    if not ARM2_PLAN.is_file():
+        raise SystemExit(f"arm-2 analysis plan missing: {ARM2_PLAN}. The plan is what makes this "
+                         "analysis interpretable; refusing to emit a report without it.")
+    return hashlib.sha256(ARM2_PLAN.read_bytes()).hexdigest()
+
+
 # A block aborted mid-way is re-executed whole and its first pass archived here. It MUST sit outside
 # EV: `EV/*/episode.json` is the grading glob, so an archive nested inside it would be re-graded and
 # the same trial would enter the analysis twice -- once from the discarded pass, once from the re-run.
@@ -321,16 +361,31 @@ def build(arm: int = 1):
         "arm": arm,
         "model_name": ARM_MODEL_NAME[arm],
         "study": "Phase-8A STA power expansion on a replacement backend",
-        "preregistration": "docs/phase8a_prereg.md",
+        # Per arm, because the two arms do not have the same provenance and a single field here
+        # would have to lie about one of them. Arm 1 is the preregistered arm. Arm 2's *execution*
+        # is not covered by that preregistration -- it ran after the cost gate refused the arm --
+        # so it cites the analysis plan that was fixed before its outcomes were read, and says so.
+        "provenance": _PROVENANCE[arm],
+        **({"governing_analysis_plan_sha256": _plan_sha256()} if arm == 2 else {}),
         "backend": {
             "endpoint_host": "tokenrhythm.studio",
             "frozen_program_endpoint": "llmapi.paratera.com",
             "frozen_endpoint_status": "403 team not allowed to access model (both model IDs)",
-            "consequence": "different serving stack => a DIFFERENT measurement",
+            # An earlier version of this field read "different serving stack => a DIFFERENT
+            # measurement". That reasoning was retracted in docs/phase8a_findings.md: what could
+            # move model behaviour is weights, sampling, context and tool configuration, not an
+            # endpoint string. The substitution is disclosed and is NOT treated as a factor, and
+            # it is not the reason the batches stay separate -- see not_poolable_with.
+            "consequence": "disclosed under model custody; NOT treated as an experimental factor, "
+                           "and NOT the reason any two batches are reported separately",
+            "durability_finding": "a frozen design cannot be remeasured once an endpoint stops "
+                                  "serving its models",
         },
         "not_poolable_with": {
             "path": "reports/synthetic_phase7a_sta72_report.json",
             "rule": "report side by side; never sum, average, difference or pool into one n",
+            "why": "separate executions of separate studies, and across arms separate models; "
+                   "not because the serving endpoint differs",
         },
         "n_episodes_collected": len(included) + len(truly_invalid),
         "episodes_graded": sum(len(per[i][c]) for i in instances for c in COND),

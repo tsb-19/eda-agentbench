@@ -3,16 +3,22 @@
   "arm": 1,
   "model_name": "qwen3.7-max",
   "study": "Phase-8A STA power expansion on a replacement backend",
-  "preregistration": "docs/phase8a_prereg.md",
+  "provenance": {
+    "preregistered": true,
+    "preregistration": "docs/phase8a_prereg.md",
+    "note": "arm 1 is the preregistered arm: design, k and analysis were fixed before its first analysed episode"
+  },
   "backend": {
     "endpoint_host": "tokenrhythm.studio",
     "frozen_program_endpoint": "llmapi.paratera.com",
     "frozen_endpoint_status": "403 team not allowed to access model (both model IDs)",
-    "consequence": "different serving stack => a DIFFERENT measurement"
+    "consequence": "disclosed under model custody; NOT treated as an experimental factor, and NOT the reason any two batches are reported separately",
+    "durability_finding": "a frozen design cannot be remeasured once an endpoint stops serving its models"
   },
   "not_poolable_with": {
     "path": "reports/synthetic_phase7a_sta72_report.json",
-    "rule": "report side by side; never sum, average, difference or pool into one n"
+    "rule": "report side by side; never sum, average, difference or pool into one n",
+    "why": "separate executions of separate studies, and across arms separate models; not because the serving endpoint differs"
   },
   "n_episodes_collected": 216,
   "episodes_graded": 216,

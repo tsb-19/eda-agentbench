@@ -1,0 +1,616 @@
+{
+  "model": "deepseek-v4-pro",
+  "task_id": "p15_eval_0005",
+  "track": "p15_sta_handoff",
+  "actions": [
+    {
+      "type": "run",
+      "cmd": "cat exception_config.json",
+      "rc": 0,
+      "out": "{\n  \"_comment\": \"STA exception binding (editable). Ships a plausible-but-wrong binding; repair to the provenance-attested binding.\",\n  \"intent_class\": \"reset_exempt\",\n  \"target_partition\": \"cdc\",\n  \"check_mode\": \"both\"\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat intent.md",
+      "rc": 0,
+      "out": "# Timing intent (authority: INT, primary)\nThe block's timing intent is **functional_close**.\n (canonical typed roles: intent_class/target_partition/check_mode)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat cdc_report.rpt",
+      "rc": 0,
+      "out": "# CDC crossing report (authority: CDC, primary)\nClock-domain crossing identified at partition: **cdc**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat reset_report.rpt",
+      "rc": 0,
+      "out": "# Reset-domain report (authority: RST, primary)\nReset exemption applies to partition: **reset**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat scan_section.md",
+      "rc": 0,
+      "out": "# Scan mode section (authority: SCN, primary)\nScan override applies to partition: **scan**.\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat intent_exception.json",
+      "rc": 0,
+      "out": "{\n  \"intent_exception\": {\n    \"cdc_isolate\": {\n      \"type\": \"false_path\"\n    },\n    \"reset_exempt\": {\n      \"type\": \"false_path\"\n    },\n    \"scan_override\": {\n      \"type\": \"multicycle\",\n      \"cycles\": 2\n    },\n    \"functional_close\": {\n      \"type\": \"none\"\n    }\n  }\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "ls -la",
+      "rc": 0,
+      "out": "total 1796\ndrwxrwxr-x    2 tongsb tongsb    4096 Aug  8 07:37 .\ndrwxrwxrwt 5142 root   root   1740800 Aug 20 12:52 ..\n-rw-rw-r--    1 tongsb tongsb    1003 Aug  8 07:37 build_applied_sdc.py\n-rw-rw-r--    1 tongsb tongsb     104 Aug  8 07:37 cdc_report.rpt\n-rw-rw-r--    1 tongsb tongsb     217 Aug  8 07:37 constraints.sdc\n-rw-rw-r--    1 tongsb tongsb    1206 Aug  8 07:37 design.v\n-rw-rw-r--    1 tongsb tongsb     889 Aug  8 07:37 disclosure_bundles.md\n-rw-rw-r--    1 tongsb tongsb     221 Aug  8 07:37 exception_config.json\n-rw-rw-r--    1 tongsb tongsb     272 Aug  8 07:37 intent_exception.json\n-rw-rw-r--    1 tongsb tongsb     160 Aug  8 07:37 intent.md\n-rw-rw-r--    1 tongsb tongsb     325 Aug  8 07:37 partition_pins.json\n-rw-rw-r--    1 tongsb tongsb      97 Aug  8 07:37 reset_report.rpt\n-rwxr-xr-x    1 tongsb tongsb     499 Aug  8 07:37 run_public.sh\n-rw-rw-r--    1 tongsb tongsb     469 Aug  8 07:37 run_public.tcl\n-rw-rw-r--    1 tongsb tongsb      92 Aug  8 07:37 scan_section.md\n-rw-rw-r--    1 tongsb tongsb     184 Aug  8 07:37 signoff.log\n-rw-rw-r--    1 tongsb tongsb   25600 Aug  8 07:37 tiny.db\n-rw-rw-r--    1 tongsb tongsb    3484 Aug  8 07:37 tiny.lib\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat disclosure_bundles.md",
+      "rc": 0,
+      "out": "# Disclosure bundle (BundleS: C1+C2+C4+C7, non-answer-bearing)\n\n## C1 canonical labels + disjoint-axis declaration\nTyped roles: intent_class, target_partition, check_mode. They are DISJOINT typed axes (a value on one axis does not satisfy another).\n\n## C2 value-domain definitions\n- intent_class in ['functional_close', 'cdc_isolate', 'reset_exempt', 'scan_override']\n- target_partition in ['cdc', 'reset', 'scan', 'core']\n- check_mode in ['setup', 'hold', 'both']\n\n## C4 glossary + references\n- intent_class: see intent.md\n- target_partition: see cdc_report|reset_report|scan_section\n- check_mode: the coverage matrix requires_exception cell\nAuthority precedence: INT(primary), CDC/RST/SCN(primary), COV(derived), PRIOR(none/decoy)\n\n## C7 procedural contract\nBind each role from its attesting primary/derived authority; tool signs green regardless, so correctness is provenance-attested.\n"
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "run",
+      "cmd": "cat partition_pins.json",
+      "rc": 0,
+      "out": "{\n  \"partition_pins\": {\n    \"cdc\": {\n      \"from\": \"cdc_src/Q\",\n      \"to\": \"cdc_dst/D\"\n    },\n    \"reset\": {\n      \"from\": \"reset_src/Q\",\n      \"to\": \"reset_dst/D\"\n    },\n    \"scan\": {\n      \"from\": \"scan_src/Q\",\n      \"to\": \"scan_dst/D\"\n    },\n    \"core\": {\n      \"from\": \"core_src/Q\",\n      \"to\": \"core_dst/D\"\n    }\n  }\n}\n"
+    },
+    {
+      "type": "run",
+      "cmd": "cat signoff.log",
+      "rc": 0,
+      "out": "# Prior signoff log (NON-AUTHORITATIVE, stale)\nPrior run attested: intent=reset_exempt partition=cdc view=both.\n(This is a decoy; lower precedence than the primary authorities above.)\n"
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers.\n\n Inclusivity & Diversity - Visit SolvNetPlus to read the \"Synopsys Statement on\n            Inclusivity and Diversity\" (Refer to article 000036315 at\n                        https://solvnetplus.synopsys.com)\n# Public feedback: agent_applied.sdc is built by run_public.sh (build_applied_sdc.py);\n# show real PrimeTime timing + active exceptions. FEEDBACK, not a verdict.\nread_db tiny.db\nLoading db file '/tmp/eda_agent_i_q1l1ld/tiny.db'\n1\nset link_path \"* tiny.db\"\n* tiny.db\nread_verilog design.v\n1\nlink_design p15_sta_top\nLoading verilog file '/tmp/eda_agent_i_q1l1ld/"
+    },
+    {
+      "type": "run",
+      "cmd": "cat build_applied_sdc.py",
+      "rc": 0,
+      "out": "# Public: translate exception_config.json (+ partition_pins.json + intent_exception.json)\n# into agent_applied.sdc. Deterministic; same logic run_public and run_hidden use.\nimport json\ncfg = json.load(open(\"exception_config.json\"))\npins = json.load(open(\"partition_pins.json\"))[\"partition_pins\"]\niexc = json.load(open(\"intent_exception.json\"))[\"intent_exception\"]\nbase = open(\"constraints.sdc\").read().splitlines()\nlines = [l for l in base]\nintent = cfg.get(\"intent_class\"); part = cfg.get(\"target_partition\")\nexc = iexc.get(intent, {\"type\": \"none\"})\nif exc.get(\"type\") == \"false_path\" and part in pins:\n    lines.append(\"set_false_path -from [get_pins %s] -to [get_pins %s]\" % (pins[part][\"from\"], pins[part][\"to\"]))\nelif exc.get(\"type\") == \"multicycle\" and part in pins:\n    lines.append(\"set_multicycle_path %d -setup -from [get_pins %s] -to [get_pins %s]\"\n                 % (exc.get(\"cycles\", 2), pins[part][\"from\"], pins[part][\"to\"]))\nopen(\"agent_applied.sdc\", \"w\").write(\"\\n\".join(lines) + \"\\n\")\n"
+    },
+    {
+      "type": "none"
+    },
+    {
+      "type": "write",
+      "file": "exception_config.json",
+      "bytes": 226
+    },
+    {
+      "type": "run",
+      "cmd": "bash run_public.sh",
+      "rc": 0,
+      "out": "\n                                 PrimeTime (R)\n\n               Version S-2021.06-SP5 for linux64 - Jan 11, 2022 \n\n                    Copyright (c) 1988 - 2022 Synopsys, Inc.\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys servers for the purpose of providing software\n    updates, detecting software piracy and verifying that customers are using\n    Licensed Products in conformity with the applicable License Key for such\n  Licensed Products. Synopsys will use information gathered in connection with\n    this process to deliver software updates and pursue software pirates and\n                                   infringers.\n\n Inclusivity & Diversity - Visit SolvNetPlus to read the \"Synopsys Statement on\n            Inclusivity and Diversity\" (Refer to article 000036315 at\n                        https://solvnetplus.synopsys.com)\n# Public feedback: agent_applied.sdc is built by run_public.sh (build_applied_sdc.py);\n# show real PrimeTime timing + active exceptions. FEEDBACK, not a verdict.\nread_db tiny.db\nLoading db file '/tmp/eda_agent_i_q1l1ld/tiny.db'\n1\nset link_path \"* tiny.db\"\n* tiny.db\nread_verilog design.v\n1\nlink_design p15_sta_top\nLoading verilog file '/tmp/eda_agent_i_q1l1ld/"
+    },
+    {
+      "type": "finish"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 32671,
+    "completion_tokens": 6459,
+    "reasoning_tokens": 5979
+  },
+  "finished": true,
+  "edited": [
+    "exception_config.json"
+  ],
+  "error": null,
+  "confidence": "high",
+  "confidence_format_ok": true,
+  "retries": 0,
+  "request_telemetry": [
+    {
+      "request_index": 0,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201524.539,
+          "end_ts": 1787201537.789,
+          "elapsed_s": 13.25,
+          "termination": "normal_exit",
+          "worker_pid": 1358553,
+          "body_sha256": "b6507570b3c5",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 6.6996,
+      "stream_duration_s": 8.2697,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 1,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201537.793,
+          "end_ts": 1787201542.271,
+          "elapsed_s": 4.477,
+          "termination": "normal_exit",
+          "worker_pid": 1358693,
+          "body_sha256": "f1a70456e09a",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 2.4304,
+      "stream_duration_s": 2.747,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 2,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201542.275,
+          "end_ts": 1787201546.33,
+          "elapsed_s": 4.055,
+          "termination": "normal_exit",
+          "worker_pid": 1358763,
+          "body_sha256": "ba0145c51c9b",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.393,
+      "stream_duration_s": 2.8574,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 3,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201546.334,
+          "end_ts": 1787201548.838,
+          "elapsed_s": 2.504,
+          "termination": "normal_exit",
+          "worker_pid": 1358786,
+          "body_sha256": "4d0bf1db76ed",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.2931,
+      "stream_duration_s": 0.618,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 4,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201548.841,
+          "end_ts": 1787201551.579,
+          "elapsed_s": 2.738,
+          "termination": "normal_exit",
+          "worker_pid": 1358796,
+          "body_sha256": "51ad56712444",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.948,
+      "stream_duration_s": 1.0547,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 5,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201551.584,
+          "end_ts": 1787201554.026,
+          "elapsed_s": 2.442,
+          "termination": "normal_exit",
+          "worker_pid": 1358850,
+          "body_sha256": "51084a0d29c2",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.762,
+      "stream_duration_s": 0.911,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 6,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201554.029,
+          "end_ts": 1787201571.538,
+          "elapsed_s": 17.508,
+          "termination": "normal_exit",
+          "worker_pid": 1358859,
+          "body_sha256": "04ff04be518b",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.1352,
+      "stream_duration_s": 13.8711,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 7,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201571.543,
+          "end_ts": 1787201579.8,
+          "elapsed_s": 8.257,
+          "termination": "normal_exit",
+          "worker_pid": 1359087,
+          "body_sha256": "e48e10c86bcb",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 6.0586,
+      "stream_duration_s": 6.3713,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 8,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201579.804,
+          "end_ts": 1787201603.346,
+          "elapsed_s": 23.542,
+          "termination": "normal_exit",
+          "worker_pid": 1359172,
+          "body_sha256": "8ca7674fc376",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 20.1356,
+      "stream_duration_s": 21.2104,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 9,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201603.346,
+          "end_ts": 1787201608.824,
+          "elapsed_s": 5.478,
+          "termination": "normal_exit",
+          "worker_pid": 1359331,
+          "body_sha256": "2e4a737a004a",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.5923,
+      "stream_duration_s": 3.3927,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 10,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201608.828,
+          "end_ts": 1787201623.939,
+          "elapsed_s": 15.111,
+          "termination": "normal_exit",
+          "worker_pid": 1359369,
+          "body_sha256": "d535b64a87e6",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 12.0834,
+      "stream_duration_s": 12.9001,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 11,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201623.944,
+          "end_ts": 1787201644.651,
+          "elapsed_s": 20.707,
+          "termination": "normal_exit",
+          "worker_pid": 1359562,
+          "body_sha256": "5b4aa42e8dee",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 18.8098,
+      "stream_duration_s": 19.1716,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 12,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201658.929,
+          "end_ts": 1787201679.538,
+          "elapsed_s": 20.609,
+          "termination": "normal_exit",
+          "worker_pid": 1359926,
+          "body_sha256": "9e7f54a46d82",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 17.7298,
+      "stream_duration_s": 19.2635,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 13,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201679.543,
+          "end_ts": 1787201700.49,
+          "elapsed_s": 20.947,
+          "termination": "normal_exit",
+          "worker_pid": 1360229,
+          "body_sha256": "c3e6591f1196",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 15.2087,
+      "stream_duration_s": 19.5585,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 14,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201700.49,
+          "end_ts": 1787201706.296,
+          "elapsed_s": 5.805,
+          "termination": "normal_exit",
+          "worker_pid": 1360438,
+          "body_sha256": "fce2b97cd9b1",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 1.8184,
+      "stream_duration_s": 4.5438,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 15,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201706.296,
+          "end_ts": 1787201708.21,
+          "elapsed_s": 1.913,
+          "termination": "normal_exit",
+          "worker_pid": 1360472,
+          "body_sha256": "17628e44a6d8",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 0.4011,
+      "stream_duration_s": 0.6225,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    },
+    {
+      "request_index": 16,
+      "total_attempts": 1,
+      "attempts": [
+        {
+          "attempt_index": 0,
+          "category": "success",
+          "retryable": null,
+          "status": null,
+          "start_ts": 1787201722.179,
+          "end_ts": 1787201739.47,
+          "elapsed_s": 17.291,
+          "termination": "normal_exit",
+          "worker_pid": 1360699,
+          "body_sha256": "fcb315fcfb6e",
+          "next_delay_s": null
+        }
+      ],
+      "recovered_failed_attempts": 0,
+      "recovered_categories": [],
+      "recovered_hard_deadlines": 0,
+      "retry_wall_s": 0,
+      "terminal_failure_category": null,
+      "time_to_first_chunk_s": 0.0001,
+      "time_to_first_answer_s": 11.1934,
+      "stream_duration_s": 16.025,
+      "finish_reason": "stop",
+      "served_model": "deepseek-v4-pro"
+    }
+  ],
+  "transport_summary": {
+    "logical_requests": 17,
+    "total_physical_attempts": 17,
+    "recovered_failed_attempts": 0,
+    "recovered_hard_deadlines": 0,
+    "cumulative_retry_wall_s": 0,
+    "terminal_transport_valid": true,
+    "recovered_transport_degradation": false
+  }
+}

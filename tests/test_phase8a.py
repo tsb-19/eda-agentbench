@@ -15,11 +15,15 @@ Also locks the budget rule (cost-only, never outcome-dependent) and the no-pooli
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
+import io
 import json
 import os
+import shutil
 import subprocess
 import sys
+from unittest import mock
 from collections import Counter
 from pathlib import Path
 
@@ -1028,6 +1032,29 @@ def test_arm2_block00_pass_is_archived_out_of_the_grading_tree():
 
 
 # ------------------------------------------- archiving an aborted pass (prereg 5B.3, automated)
+def _archive(tmp_path, state_obj, arm, block, *flags):
+    """Run the archive refusal logic against a throwaway evidence root.
+
+    These two tests used to write a scratch run state into `phase8a/evidence/` and delete it in a
+    finally block, relying on no real state occupying that block number. Once arm 2's remaining
+    eleven blocks were promoted into the committed tree, every block number was taken -- and the
+    guard `assert not state.exists()` fired, which is the good outcome of a bad design. Writing test
+    fixtures into the custody tree is precisely how this project once corrupted its canonical
+    dataset (docs/incident_golden_corruption.md), so the root is redirected instead.
+    """
+    mod = _load(REPO / "scripts/phase8a_archive_pass.py", f"p8a_archive_{arm}_{block}")
+    ev = tmp_path / "phase8a" / "evidence"
+    (ev / "aborted").mkdir(parents=True)
+    shutil.copy(REPO / f"phase8a/evidence/schedule_arm{arm}.json", ev / f"schedule_arm{arm}.json")
+    (ev / f"run_state_arm{arm}_block{block:02d}.json").write_text(json.dumps(state_obj))
+    mod.REPO = tmp_path
+    argv = ["phase8a_archive_pass.py", "--arm", str(arm), "--block", str(block), *flags]
+    buf = io.StringIO()
+    with mock.patch.object(sys, "argv", argv), contextlib.redirect_stdout(buf):
+        rc = mod.main()
+    return rc, buf.getvalue()
+
+
 def test_archive_refuses_a_pass_whose_fault_is_not_a_transport_fault(tmp_path):
     """The discriminator that keeps automation honest.
 
@@ -1035,50 +1062,33 @@ def test_archive_refuses_a_pass_whose_fault_is_not_a_transport_fault(tmp_path):
     model. Only the first is an infrastructure fault that 5B.3 lets us archive and re-run; archiving
     the second would hide a code defect behind a ledger entry and re-run straight into it.
     """
-    ev = REPO / "phase8a/evidence"
-    state = ev / "run_state_arm2_block07.json"
-    assert not state.exists(), "test would clobber a real run state"
-    try:
-        state.write_text(json.dumps({"state": "FAILED", "completed_primary_slots": 1,
-                                     "expected_primary_slots": 6, "executor_exit_code": 2,
-                                     "excluded_invalid_attempts": [
-                                         {"classification": {"error": "ValueError: grader crashed"}}]}))
-        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
-                            "--arm", "2", "--block", "7", "--require-transport-fault", "--dry-run"],
-                           capture_output=True, text=True, cwd=str(REPO))
-        assert r.returncode == 2, r.stdout
-        assert "not demonstrably a transport fault" in r.stdout
+    rc, out = _archive(tmp_path, {
+        "state": "FAILED", "completed_primary_slots": 1, "expected_primary_slots": 6,
+        "executor_exit_code": 2,
+        "excluded_invalid_attempts": [
+            {"classification": {"error": "ValueError: grader crashed"}}],
+    }, 2, 7, "--require-transport-fault", "--dry-run")
+    assert rc == 2, out
+    assert "not demonstrably a transport fault" in out
 
-        state.write_text(json.dumps({"state": "FAILED", "completed_primary_slots": 1,
-                                     "expected_primary_slots": 6, "executor_exit_code": 2,
-                                     "excluded_invalid_attempts": [
-                                         {"classification": {"error": "chat attempt failed: "
-                                          "category=retryable_http exc=ProviderHTTPError "
-                                          "status=503"}}]}))
-        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
-                            "--arm", "2", "--block", "7", "--require-transport-fault", "--dry-run"],
-                           capture_output=True, text=True, cwd=str(REPO))
-        assert r.returncode == 0, r.stdout
-        assert json.loads(r.stdout)["fault_is_transport"] is True
-    finally:
-        state.unlink(missing_ok=True)
+    rc, out = _archive(tmp_path / "b", {
+        "state": "FAILED", "completed_primary_slots": 1, "expected_primary_slots": 6,
+        "executor_exit_code": 2,
+        "excluded_invalid_attempts": [
+            {"classification": {"error": "chat attempt failed: category=retryable_http "
+                                         "exc=ProviderHTTPError status=503"}}],
+    }, 2, 7, "--require-transport-fault", "--dry-run")
+    assert rc == 0, out
+    assert json.loads(out)["fault_is_transport"] is True
 
 
-def test_archive_refuses_a_complete_pass():
+def test_archive_refuses_a_complete_pass(tmp_path):
     """A COMPLETE pass is data, not a discard candidate. Archiving one would remove valid episodes
     from the panel -- the mirror image of retrying away a valid score."""
-    ev = REPO / "phase8a/evidence"
-    state = ev / "run_state_arm2_block08.json"
-    assert not state.exists(), "test would clobber a real run state"
-    try:
-        state.write_text(json.dumps({"state": "COMPLETE", "completed_primary_slots": 6,
-                                     "expected_primary_slots": 6, "executor_exit_code": 0}))
-        r = subprocess.run([sys.executable, str(REPO / "scripts/phase8a_archive_pass.py"),
-                            "--arm", "2", "--block", "8", "--dry-run"],
-                           capture_output=True, text=True, cwd=str(REPO))
-        assert r.returncode == 1 and "COMPLETE" in r.stdout
-    finally:
-        state.unlink(missing_ok=True)
+    rc, out = _archive(tmp_path, {"state": "COMPLETE", "completed_primary_slots": 6,
+                                  "expected_primary_slots": 6, "executor_exit_code": 0},
+                       2, 8, "--dry-run")
+    assert rc == 1 and "COMPLETE" in out
 
 
 def test_archive_script_makes_no_model_call():
@@ -1478,13 +1488,25 @@ def test_the_findings_write_up_uses_the_mandated_phrasing_in_both_languages():
             "不是\"BundleS 无效\"的证据", "")
 
 
-def test_the_findings_write_up_reports_the_unrun_arm_as_unaffordable_not_as_null():
+def test_the_findings_write_up_reports_s3_as_measured_but_not_established():
+    """Arm 2 is now measured, which replaces one misreading with a subtler one.
+
+    "Not established" and "shown to have no effect" license different conclusions, and on a panel
+    where five of twelve instances cannot express a difference only the first is available. Both
+    languages must carry the distinction, and must not convert a favourable point estimate into a
+    transfer claim either.
+    """
     en = " ".join((REPO / "docs/phase8a_findings.md").read_text().split())
     zh = " ".join((REPO / "docs/phase8a_findings.zh.md").read_text().split())
-    assert "the one preregistered cell that could not be filled within budget" in en
-    assert "预注册计划中唯一一个预算内无法填上的格子" in zh
-    # and it must not be dressed up as a finding about the model
-    assert "Not anything about `deepseek-v4-pro` on this family" in en
+    assert "transfer was not established on this panel" in en
+    assert "没有建立联合 model × family 的迁移" in zh
+    # Neither direction may be overclaimed.
+    assert "Not that BundleS transfers to `deepseek-v4-pro` on this family, and not that it fails to" in en
+    assert "Not that arm 2 is a *negative* result" in en
+    assert "不可推出 arm 2 是一个**负**结果" in zh
+    # The provenance sentence that would be false must be denied outright, in both languages.
+    assert "would be false, and it appears nowhere" in en
+    assert "这句话是假的，它不出现在任何地方" in zh
 
 
 def test_the_programme_is_recorded_as_closed_in_both_languages():
@@ -1505,33 +1527,33 @@ def test_the_programme_is_recorded_as_closed_in_both_languages():
     assert "不**用于任何额外的格子" in zh
 
 
-def test_the_artifact_map_states_arm2_was_refused_not_that_it_ran():
-    """The single most misreadable fact in this study. "Arm 2 produced no effect" and "arm 2 was
-    never executed" license completely different conclusions, and only the second is true. The
-    artifact map is where a reviewer or artifact evaluator lands, so it must say so in both
-    languages and must not present the one completed block as a contrast.
+def test_the_artifact_map_states_s3_as_measured_not_established_and_not_preregistered():
+    """The three most misreadable facts about the S3 cell, guarded in both languages.
+
+    The artifact map is where a reviewer or artifact evaluator lands, so it has to carry: that the
+    cell is measured and the verdict is *not established* rather than "no effect"; that the arm's
+    execution was not preregistered even though its analysis plan predates its outcomes; and that
+    nothing is pooled across the three STA batches.
     """
     en = " ".join((REPO / "docs/artifact_map.md").read_text().split())
     zh = " ".join((REPO / "docs/artifact_map.zh.md").read_text().split())
-    assert "S3 was not executed because it failed a preregistered cost gate" in en
-    assert "S3 未被执行，因为它没有通过预注册的成本门控" in zh
+    assert "S3 measured, transfer not established" in en
+    assert "S3 已测量，迁移未确立" in zh
+    assert 'neither "no effect" nor a negative result' in en
+    assert "既不是\"无效应\"，也不是负结果" in zh
+    # Not preregistered, said outright rather than left to inference.
+    assert "Arm 2's execution is not preregistered, and the paper never says it is" in en
+    assert "Arm 2 的执行不是预注册的，而论文从不这样写" in zh
     assert "ARM2_NOT_RUN" in en and "ARM2_NOT_RUN" in zh
-    assert "no condition contrast" in en and "不给出任何条件对比" in zh
-    assert "this is not a null result and not a negative one" in en
-    assert "这不是零结果，也不是负结果" in zh
-    # Phase-8A is now cited by v15, so the map must say which version -- and must still record that
-    # v14 does not cite it, or a reader comparing the two would think a number went missing.
+    # No control was relaxed -- the claim a sceptical reader will most want to check.
+    assert "No rule was weakened to permit that analysis" in en
+    assert "没有为那次分析弱化任何规则" in zh
+    # k=2 carries no magnitude claim, and nothing is pooled.
+    assert "k=2 carries no magnitude claim" in en and "k=2 不承载任何幅度主张" in zh
+    assert "post hoc and confounded" in en and "事后且存在混淆" in zh
+    # Phase-8A is cited from v15 onward; v14 predates it and must stay recoverable.
     assert "primary S2-F evidence in v15" in en and "v15 中的 S2-F 主要证据" in zh
     assert "**v14 does not cite it**" in en and "**v14 并未引用它**" in zh
-    # 72 episodes now exist at the S3 coordinate. "Not executed" is true of the preregistered arm and
-    # false as a claim that no data exists, so the map must carry both halves in both languages --
-    # the episodes exist, and their contrast has never been computed. Silence here would be the
-    # misreading this test was written to prevent, one level down.
-    assert "72 quarantined episodes exist at S3, and have never been analysed" in en
-    assert "S3 那一格上存在 72 条被隔离的 episode，且从未被分析" in zh
-    assert "No condition contrast has ever been computed" in en
-    assert "条件对比从未被计算过" in zh
-    assert "yield no S3 estimate" in en and "不产生任何 S3 估计" in zh
 
 
 def test_the_cross_backend_concordance_is_labelled_post_hoc_and_not_pooling():
@@ -1577,37 +1599,44 @@ def _tex() -> str:
     return " ".join(MAIN_TEX.read_text().split())
 
 
-def test_the_manuscript_never_pools_the_two_sta_batches():
-    """The k=2 and k=6 batches are two executions of the same twelve instances.
+def test_the_manuscript_never_pools_the_three_sta_batches():
+    """Three executions over the same twelve instances: k=2 Qwen, k=6 Qwen, k=2 DeepSeek.
 
-    Combining them is the single most tempting error available here -- 12 instances at k=2 plus 12 at
-    k=6 *looks* like a k=8 panel or a 288-episode study, and either would be a fabricated measurement.
-    The rule is asserted in the manuscript rather than left to the reader, and asserted here so that a
-    later edit cannot quietly introduce a combined figure.
+    Combining any two is the most tempting error available here -- 12 instances at k=2 plus 12 at k=6
+    *looks* like a k=8 panel or a 288-episode study, and adding the third model would look like n=24.
+    Every one of those would be a fabricated measurement. The rule is asserted in the manuscript
+    rather than left to the reader, and asserted here so a later edit cannot quietly introduce a
+    combined figure.
     """
     t = _tex()
     assert "are never pooled" in t, "the non-pooling rule must be stated, not implied"
-    assert "no quantity is summed, averaged or differenced across them" in t
+    assert "nothing is summed, averaged or differenced across them" in t
+    assert "no $n$=24, no $k$=8, no pooled episode count" in t, \
+        "the specific fabrications must be named as forbidden, not merely avoided"
     # and the arithmetic that would express a pooled panel must not appear as a claim
-    for forbidden in ("$k$=8", "k=8 panel", "288 episodes", "$n$=24", "24 instances"):
-        if forbidden in t:
-            # the one legitimate occurrence is the sentence forbidding it
-            assert "do not form a $k$=8 panel" in t, f"{forbidden!r} appears outside its prohibition"
+    for forbidden in ("288 episodes", "24 instances"):
+        assert forbidden not in t, f"{forbidden!r} appears; the batches look pooled"
 
 
-def test_the_manuscript_reports_s3_as_not_executed_and_never_as_a_negative_result():
-    """An arm that did not run has no effect direction.
+def test_the_manuscript_reports_s3_as_not_established_and_never_as_no_effect():
+    """S3 is measured now, so the misreading to guard against has moved.
 
-    "Failed the cost gate" and "showed no effect" are different claims about the world, and only the
-    first is true. The distinction is the whole reason the gate was written as a formula in advance.
+    "Not established" and "shown to have no effect" are different claims about the world, and on a
+    panel where five of twelve instances cannot express a difference only the first is available. The
+    manuscript must also not let the pre-outcome analysis plan be read as a preregistration of the
+    experiment, and must not present a favourable point estimate as transfer.
     """
     t = _tex()
-    assert "not executed because it failed a preregistered cost gate" in t
-    assert "this is not a null result, not a failure to improve" in t
-    # the empty cell must stay empty in the result matrix
-    assert r"\emph{joint model$\times$family} (S3) & --- & --- & --- & 0 & \emph{not executed}" in t
-    # and the one block that did run may not be turned into a contrast
-    assert "reported with \\emph{no} condition contrast" in t
+    assert "not established" in t
+    assert "not ``no effect''" in t, \
+        "the paper must refuse the null reading explicitly, not just avoid asserting it"
+    # The result matrix must show the cell as populated with its episode count and its verdict.
+    assert r"\emph{joint model$\times$family} (S3) & --- & --- & --- & \StatArmTwoEpisodes{} & not established" in t
+    # Provenance: the analysis was pre-outcome; the execution was not preregistered. Both, and apart.
+    assert "the arm's \\emph{execution} was not preregistered" in t
+    assert "It is not covered by the $k$=\\StatEightAK{} study's preregistration, and we do not claim it is" in t
+    # And no control was relaxed to permit the analysis.
+    assert "withholds condition aggregates if and only if a planned instance is missing" in t
 
 
 def test_the_manuscript_does_not_treat_the_serving_endpoint_as_an_experimental_factor():
@@ -1704,8 +1733,8 @@ def test_the_endpoint_is_not_given_as_the_reason_for_not_pooling():
     """
     en = " ".join((REPO / "docs/phase8a_findings.md").read_text().split())
     zh = " ".join((REPO / "docs/phase8a_findings.zh.md").read_text().split())
-    assert "two independent executions" in en
-    assert "两次独立的执行" in zh
+    assert "independent executions" in en
+    assert "各自独立的执行" in zh
     assert "not treated as an experimental factor" in en and "不作为实验因子" in zh
     assert "do not** claim the underlying serving implementation was identical" in en
     assert "不**声称底层 serving 实现完全相同" in zh
@@ -1730,7 +1759,37 @@ def test_the_k6_statistics_reproduce_from_the_frozen_records():
     assert out["anatomy"] == [6, 1, 5]
     assert out["unstable_cells"] == "7/36"
     assert out["same_class"] == "10/12"
-    assert out["arm2"] == "ARM2_NOT_RUN"
+    # arm 2 -- the joint model x family panel. Descriptively favourable, not established.
+    assert out["arm2_delta_pp"] == 12.5
+    assert out["arm2_band_pp"] == [-16.7, 41.7]
+    assert out["arm2_branch"] == "not_established"
+    assert out["xmodel_sign_agree"] == "4/5"
+    assert out["programme_cny"] == 183.9329
+
+
+def test_the_gate_verification_can_actually_fail():
+    """Negative control for the check above.
+
+    `--check` no longer recomputes the gate from the live tree -- it cannot, because arm 2 has since
+    been executed and both of the gate's inputs have moved. It verifies the recorded decision against
+    the inputs the record declares instead, which is only worth anything if tampering still fails.
+    So tamper with it: three separate mutations, each of which must be caught.
+    """
+    mod = _load(REPO / "scripts/phase8a_arm2_gate.py", "p8a_gate_neg")
+    rec = json.loads((REPO / "phase8a/evidence/arm2_gate_decision.json").read_text())
+    assert mod.verify(rec)["check"] == "PASS"
+
+    flipped = json.loads(json.dumps(rec))
+    flipped["decision"] = "RUN_FULL_ARM2"
+    assert mod.verify(flipped)["check"] == "FAIL", "a flipped verdict passed verification"
+
+    cheaper = json.loads(json.dumps(rec))
+    cheaper["rate"]["r_prime_cny_per_episode"] = 0.4
+    assert mod.verify(cheaper)["check"] == "FAIL", "a tampered rate passed verification"
+
+    richer = json.loads(json.dumps(rec))
+    richer["budget"]["program_spend_cny"] = 10.0
+    assert mod.verify(richer)["check"] == "FAIL", "a tampered spend figure passed verification"
 
 
 # ---------------------------------------------------- the link checker must still be able to fail
@@ -1794,113 +1853,177 @@ def test_the_repository_has_no_dangling_references():
     assert "no dangling repository references" in r.stdout
 
 
-# ------------------------------------- the quarantined arm-2 trajectories must stay unanalysed
+# ------------------------------------- the arm-2 joint panel: plan before outcomes, or nothing
 #
-# 72 DeepSeek episodes exist at the S3 coordinate, generated under quarantine AFTER the
-# preregistered cost gate had already refused the arm. Their value is precisely that nobody has
-# looked: "excluded before the data existed, and never analysed" is a stronger statement than any
-# contrast they could yield, and it is a state one careless import destroys permanently. So it is
-# held by an audit hook rather than by convention.
-QUARANTINE_ROOT = REPO / "runs" / "phase8a_exploratory_arm2"
-QUARANTINE_RECORD = REPO / "phase8a" / "evidence" / "arm2_quarantine_record.json"
-QUARANTINE_SCRIPT = REPO / "scripts" / "phase8a_arm2_quarantine.py"
-OUTCOME_FILES = ("result.json", "exception_config.submitted.json", "agentlog.sanitized.json")
-
-_needs_tree = pytest.mark.skipif(not QUARANTINE_ROOT.exists(),
-                                 reason="quarantine tree is gitignored; absent in a fresh clone")
-
-_AUDIT = """
-import os, sys
-ROOT = {root!r}
-NAMES = {names!r}
-def _hook(event, args):
-    if event != "open" or not args:
-        return
-    target = args[0]
-    if not isinstance(target, (str, bytes, os.PathLike)):
-        return
-    p = os.fspath(target)
-    if isinstance(p, bytes):
-        p = p.decode("utf-8", "replace")
-    p = os.path.abspath(p)
-    if p.startswith(ROOT) and (NAMES is None or os.path.basename(p) in NAMES):
-        raise RuntimeError("QUARANTINE VIOLATION: " + p)
-sys.addaudithook(_hook)
-"""
+# 72 DeepSeek episodes sit on the S3 coordinate. They were executed AFTER the preregistered cost
+# gate refused the arm, so they are not the arm preregistration sized, and the only thing that makes
+# their analysis worth reading is the ordering: the analysis plan was written and committed before
+# any outcome field was read. That ordering is a historical fact about this repository, so it is
+# checked against git rather than asserted in prose -- and the analysis is made structurally
+# impossible without the plan, so "we meant to" cannot substitute for "we did".
+ARM2_PLAN = REPO / "phase8a" / "evidence" / "arm2_analysis_plan.json"
+ARM2_REPORT = REPO / "phase8a" / "reports" / "phase8a_sta_report_arm2.json"
+ARM2_EPISODES = REPO / "phase8a" / "evidence" / "episodes_arm2"
+STATS_JSON = REPO / "phase8a" / "reports" / "phase8a_claim_statistics.json"
 
 
-def _run_guarded(tmp_path, argv, names):
-    """Run argv in a subprocess that raises if it opens a guarded path under the quarantine root."""
-    site = tmp_path / "sitecustomize.py"
-    site.write_text(_AUDIT.format(root=str(QUARANTINE_ROOT), names=names))
-    env = dict(os.environ, PYTHONPATH=str(tmp_path))
-    return subprocess.run([sys.executable] + [str(a) for a in argv],
-                          capture_output=True, text=True, cwd=REPO, env=env)
+def _git(*args):
+    r = subprocess.run(["git", *args], capture_output=True, text=True, cwd=REPO)
+    return r.stdout.strip() if r.returncode == 0 else None
 
 
-@_needs_tree
-def test_the_quarantine_audit_hook_can_actually_fire(tmp_path):
-    """Negative control. The two tests below assert that nothing trips this hook; if the hook were
-    broken they would pass for the wrong reason, which is the failure mode this whole guard exists
-    to prevent elsewhere in the paper.
+def _first_commit_touching(relpath):
+    out = _git("log", "--reverse", "--format=%H", "--", relpath)
+    return out.split("\n")[0] if out else None
+
+
+def test_the_analysis_plan_was_committed_before_the_outcomes_were_analysed():
+    """The ordering claim, checked against history instead of trusted.
+
+    The plan must appear in an ancestor of the commit that first brought the analysed episodes into
+    the committed tree. If someone ever produces the numbers first and back-dates a plan, the two
+    commits swap order and this fails.
     """
-    victim = next((QUARANTINE_ROOT / "episodes_arm2").glob("*/result.json"))
-    prog = tmp_path / "peek.py"
-    prog.write_text(f"open({str(victim)!r}).read()\n")
-    r = _run_guarded(tmp_path, [prog], OUTCOME_FILES)
-    assert r.returncode != 0, "the audit hook did not fire on a deliberate outcome read"
-    assert "QUARANTINE VIOLATION" in r.stderr, r.stderr
+    plan_commit = _first_commit_touching("phase8a/evidence/arm2_analysis_plan.json")
+    if plan_commit is None:
+        pytest.skip("no git history available (shallow or exported tree)")
+    # An instance that exists only in the promoted set -- block 00 was committed long before.
+    ep_commit = _first_commit_touching("phase8a/evidence/episodes_arm2/p15_eval_0011_base_r1")
+    if ep_commit is None:
+        pytest.skip("analysed arm-2 episodes not yet committed")
+    if plan_commit == ep_commit:
+        pytest.fail("the plan and the analysed episodes landed in one commit; the pre-outcome "
+                    "ordering is then unverifiable from history")
+    anc = subprocess.run(["git", "merge-base", "--is-ancestor", plan_commit, ep_commit],
+                         cwd=REPO, capture_output=True)
+    assert anc.returncode == 0, (
+        f"the analysis plan ({plan_commit[:8]}) is not an ancestor of the commit that added the "
+        f"analysed episodes ({ep_commit[:8]}): the plan did not demonstrably precede the outcomes"
+    )
 
 
-@_needs_tree
-def test_the_quarantine_recorder_cannot_open_an_outcome_file(tmp_path):
-    """The recorder reads money and orchestration. It must be unable to reach a verdict, a submitted
-    binding or an agent log even by accident.
+def test_the_arm2_report_records_the_plan_that_governed_it():
+    """A hash, not a citation. Editing the plan after publication must break --check."""
+    import hashlib
+    rep = json.loads(ARM2_REPORT.read_text())
+    assert rep["governing_analysis_plan_sha256"] == \
+        hashlib.sha256(ARM2_PLAN.read_bytes()).hexdigest()
+
+
+def test_no_plan_means_no_analysis(tmp_path):
+    """Fail-closed. With the plan absent the report refuses to build rather than building anyway.
+
+    This is the replacement for the old quarantine hook: the thing worth enforcing is no longer
+    "never look", it is "never analyse without the pre-committed rules on disk".
     """
-    r = _run_guarded(tmp_path, [QUARANTINE_SCRIPT, "--check"], OUTCOME_FILES)
-    assert r.returncode == 0, r.stdout + r.stderr
-    assert "QUARANTINE VIOLATION" not in r.stderr
+    mod = _load(REPORT_SCRIPT, "p8a_report_noplan")
+    mod.ARM2_PLAN = tmp_path / "absent.json"
+    with pytest.raises(SystemExit) as e:
+        mod.build(2)
+    assert "analysis plan missing" in str(e.value)
 
 
-@_needs_tree
-@pytest.mark.parametrize("argv", [
-    ["scripts/phase8a_claim_statistics.py", "--check"],
-    ["scripts/phase8a_arm2_gate.py", "--check"],
-    ["scripts/phase8a_report.py", "--arm", "2", "--check"],
-])
-def test_the_phase8a_analyses_never_touch_the_quarantined_tree(tmp_path, argv):
-    """Nothing that feeds the manuscript may read this tree at all -- not an outcome, not a cost,
-    not a run-state file. The quarantine's whole write surface was redirected under runs/ so that
-    these three --check commands could not see it; this proves they still cannot.
+def test_arm2_is_never_recorded_as_preregistered():
+    """The one sentence that would be false. Guarded in the report, the stats and both languages."""
+    rep = json.loads(ARM2_REPORT.read_text())
+    assert rep["provenance"]["preregistered"] is False
+    assert "ARM2_NOT_RUN" in rep["provenance"]["claim_never_made"]
+    st = json.loads(STATS_JSON.read_text())
+    assert st["arm2_joint_panel"]["provenance"]["preregistered"] is False
+    for doc in ("docs/phase8a_arm2_analysis_plan.md", "docs/phase8a_arm2_analysis_plan.zh.md"):
+        text = (REPO / doc).read_text()
+        assert "preregist" in text or "预注册" in text, doc
+
+
+def test_the_withholding_rule_still_fires_when_an_instance_is_missing():
+    """No rule was weakened to permit the arm-2 analysis; its precondition was satisfied.
+
+    Proven by making the precondition false again: declare a thirteenth planned instance and the
+    aggregates must vanish. If a future edit ever removes the guard to "simplify" the arm-2 path,
+    this fails rather than the paper quietly gaining an aggregate over whichever instances ran.
     """
-    r = _run_guarded(tmp_path, [REPO / argv[0]] + argv[1:], None)
-    assert r.returncode == 0, r.stdout + r.stderr
-    assert "QUARANTINE VIOLATION" not in r.stderr
+    mod = _load(REPORT_SCRIPT, "p8a_report_withhold")
+    real = mod._planned_instances
+    mod._planned_instances = lambda s: sorted(set(real(s)) | {"p15_eval_9999"})
+    rep = mod.build(2)
+    assert "incomplete_arm" in rep
+    assert rep["incomplete_arm"]["instances_not_run"] == ["p15_eval_9999"]
+    for key in mod.AGGREGATE_KEYS:
+        assert key not in rep, f"{key} survived the incomplete-arm refusal"
 
 
-def test_the_quarantined_arm2_record_declares_it_was_never_analyzed():
-    rec = json.loads(QUARANTINE_RECORD.read_text())
-    assert rec["analysis_status"] == "never_analyzed"
-    assert rec["s3_status"]["preregistered_eligible_arm"] == "not executed"
-    assert rec["s3_status"]["condition_contrast_computed"] is False
-    assert rec["s3_status"]["s3_effect_estimate"] is None
-    assert rec["execution"]["aggregate_report_generated"] is False
+def test_the_two_arms_are_never_pooled():
+    """Separate models, separate k, separate n. No summed episode count and no n=24 anywhere."""
+    st = json.loads(STATS_JSON.read_text())
+    assert st["k6_panel"]["n_episodes"] == 216
+    assert st["arm2_joint_panel"]["n_episodes"] == 72
+    assert st["k6_panel"]["n_instances"] == st["arm2_joint_panel"]["n_instances"] == 12
+    blob = json.dumps(st)
+    for forbidden in ("288", "\"n_instances\": 24"):
+        assert forbidden not in blob, f"{forbidden} appears; the arms look pooled"
+    x = st["cross_model_structural_concordance"]
+    assert x["is_pooling"] is False and x["confounded"] is True
+    assert "in the MODEL and in k" in x["confound"], \
+        "the model/k confound must be stated where the concordance is reported"
 
 
-def test_the_quarantine_record_carries_no_outcome_anywhere():
-    """`read_discipline` has to name the keys it drops; nowhere else may mention them."""
-    rec = json.loads(QUARANTINE_RECORD.read_text())
-    scanned = json.dumps({k: v for k, v in rec.items() if k != "read_discipline"},
-                         ensure_ascii=False)
-    for key in ("total_score", "semantic_binding"):
-        assert key not in scanned, key
-    for ep in rec["episodes"]:
-        assert "total_score" not in ep and "semantic_binding" not in ep, ep["episode_id"]
+def test_the_interpretation_branch_is_computed_from_the_pre_committed_criteria():
+    """Recompute the branch here from the plan's three conditions and require agreement.
+
+    The point of fixing the mapping in advance is lost if the branch is a sentence someone typed
+    after seeing the numbers, so it is derived twice and compared.
+    """
+    st = json.loads(STATS_JSON.read_text())
+    j = st["arm2_joint_panel"]
+    lo, hi = j["instance_resampling_band95"]
+    tally = j["contrast_tally"]["primary_BundleS_vs_Base"]
+    expected = (j["sign_test"]["two_sided_exact_p"] < 0.05
+                and not (lo <= 0.0 <= hi)
+                and tally["improve"] > tally["decline"])
+    b = j["interpretation_branch"]
+    assert b["branch"] == ("support" if expected else "not_established")
+    assert b["p_below_0_05"] is (j["sign_test"]["two_sided_exact_p"] < 0.05)
+    assert b["band_excludes_zero"] is (not (lo <= 0.0 <= hi))
+    # And the negative branch may not be laundered into a null result.
+    if b["branch"] == "not_established":
+        assert "NOT ESTABLISHED" in b["wording_licensed"]
+        assert "no effect" in b["must_not_be_worded_as"]
 
 
-def test_the_exclusion_was_decided_before_the_quarantined_data_existed():
-    """The one fact that makes disclosure safe: no S3 outcome could have informed the exclusion."""
-    rec = json.loads(QUARANTINE_RECORD.read_text())
-    o = rec["ordering_that_makes_this_safe"]
-    assert o["gate_decision"] == "ARM2_NOT_RUN"
-    assert o["gate_decided_at"] < o["first_quarantined_block_started_at"], o
+def test_the_k2_magnitude_limit_travels_with_the_arm2_numbers():
+    """k=2 cannot resolve a cell, and arm 1 measured exactly how badly. Carry it in the artifact."""
+    j = json.loads(STATS_JSON.read_text())["arm2_joint_panel"]
+    lim = j["repetition_depth_limit"]
+    assert lim["k"] == 2
+    assert "7 of 36" in lim["why_it_binds"]
+    assert "equally resolved" in lim["forbidden_comparison"]
+
+
+def test_programme_spend_is_one_figure_within_the_cap():
+    """The eligible/realized split existed only because arm 2 was excluded. It must not survive."""
+    st = json.loads(STATS_JSON.read_text())
+    m = st["money"]
+    assert m["cap_breached"] is False
+    assert m["programme_spend_cny"] <= m["cap_cny"]
+    blob = json.dumps(st)
+    for stale in ("eligible_analysis_cny", "total_realized_cny"):
+        assert stale not in blob, f"{stale} survives; spend is being reported as two figures"
+    mod = _load(RUN_SCRIPT, "p8a_run_spend")
+    assert abs(m["programme_spend_cny"] - mod._program_spend()) < 1e-6
+
+
+def test_every_arm2_episode_is_committed_and_none_was_invalid():
+    """All 72, no exclusions. The plan forbids dropping an instance or a condition."""
+    dirs = [d for d in ARM2_EPISODES.iterdir() if (d / "episode.json").is_file()]
+    assert len(dirs) == 72
+    by_instance = Counter(json.loads((d / "episode.json").read_text())["task_id"].rsplit("_", 1)[0]
+                          for d in dirs)
+    assert len(by_instance) == 12 and set(by_instance.values()) == {6}
+    rep = json.loads(ARM2_REPORT.read_text())
+    # One attempt was measurement-invalid and was REPLACED, not dropped: what the plan forbids is
+    # excluding an episode from the analysis, and nothing was excluded.
+    assert rep["measurement_invalid_excluded"] == []
+    assert rep["slots_never_executed"] == 0
+    assert rep["episodes_graded"] == 72
+    assert rep["k_per_condition_observed"] == [2]
+

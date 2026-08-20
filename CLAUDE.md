@@ -78,8 +78,10 @@ python3 scripts/phase7c_study1_ledger.py      --check   # 58 + 12 = 70 episodes
 python3 scripts/phase7c_claim_statistics.py   --check   # 12.5 / [-12.5, 41.7] / -16.7
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 169 included / 82 tool-green wrong bindings
 python3 scripts/phase7e_answer_identifiability.py --check  # 294 universe; BundleS 9-147, never 1
-python3 scripts/phase8a_claim_statistics.py --check     # k=6: -2.8 / [-31.9, 26.4]; 7-of-36; 10-of-12
-python3 scripts/phase8a_arm2_quarantine.py --check      # 72 quarantined S3 episodes, never analyzed
+python3 scripts/phase8a_claim_statistics.py --check     # arm1 k=6: -2.8 / [-31.9, 26.4]; 7-of-36
+#                                                       # arm2 k=2: +12.5 / [-16.7, 41.7]; not established
+python3 scripts/phase8a_arm2_gate.py          --check    # verifies the recorded ARM2_NOT_RUN decision
+python3 scripts/phase8a_arm2_cost_calibration.py --check # projected ¥53.14 vs realized ¥38.46
 python3 scripts/slim_link_check.py                     # no dangling repository references
 cd submission && make distclean && make                # 23 pp, 321 456 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
@@ -114,11 +116,25 @@ oracle rejects it.
 | Family A (provenance DAG) | `tasks/p15_sta_handoff/` — 15×3 + dev | PrimeTime | Study II: S2-F |
 | Family B (request–authority join) | `tasks/p16_spice_handoff/` — 3×3 + dev | HSPICE | Study II: S2-F ceiling |
 
-Results, in the paper's own words: **observed** at S0, **replicated once** at S1, **not
-established** at S2-M and S2-F, **not measured** at S3. A prospective 12-instance panel reversed the
-descriptive direction of a 3-instance pilot without establishing anything. No stable minimal
-component was isolated. Do not restate any of these more strongly than the paper does; the paper is
-*about* not doing that.
+Results, in the paper's own words: **observed** at S0, **replicated once** at S1, **not established**
+at S2-M, S2-F or S3. A prospective 12-instance panel reversed the descriptive direction of a
+3-instance pilot without establishing anything. No stable minimal component was isolated. Do not
+restate any of these more strongly than the paper does; the paper is *about* not doing that.
+
+**S3 is measured but not established, and the two must not be confused.** The joint model x family
+cell holds 72 `deepseek-v4-pro` episodes at k=2 (Phase-8A arm 2): +12.5 pp, 5 instances improving to
+2 declining, sign test *p*=0.45, band -16.7 to +41.7. So the point estimate favours BundleS and the
+discrimination reaches no conclusion — "not established", never "shown absent" and never "no effect".
+Three further rules attach to that cell and are enforced by tests:
+
+1. **Its execution is not preregistered.** It ran after the preregistered cost gate returned
+   `ARM2_NOT_RUN`. Never write that it was preregistered and executed per `docs/phase8a_prereg.md`.
+   What governs it is `docs/phase8a_arm2_analysis_plan.md`, committed before any of its outcomes were
+   read; `phase8a_report.py` refuses to build the arm-2 report if that plan is absent.
+2. **k=2 carries no magnitude claim, and its aggregate is not comparable to arm 1's k=6 aggregate.**
+   Arm 1 measured 7 of 36 cells disagreeing across six identical repetitions.
+3. **Nothing is pooled** across Phase-7A, arm 1 and arm 2. No n=24, no k=8, no summed episode count.
+   The cross-model structural agreement (10/12 class, 4/5 sign) is post hoc and confounded with k.
 
 ## Measurement-validity rules
 

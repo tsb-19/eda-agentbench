@@ -159,10 +159,14 @@ Phase-8A 用**完全相同的冻结 12 实例 STA 设计、k=6** 重跑了一次
 | **实例级异质性，且是双向的**（§5；附录 C 表 5）。12 个实例中只有 5 个能表达差异（6 个在两个主条件上同处地板，1 个同处天花板）。这 5 个上的差值为 −1.0、−0.8333、−0.1667、+0.6667、+1.0 —— 有两个实例在**相反方向**上各自达到可能的最大幅度 | 同一 JSON 的 `k6_panel.per_instance` 与 `panel_anatomy`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
 | **在这个粒度上重复不是可选项**（§5；§6 讨论）。36 个（实例, 条件）单元中有 7 个，其 6 次完全相同的重复彼此不一致；`p15_eval_0013` 的 Base 是 6 次中的 3 次。用单条轨迹去估计这样一个单元，估的是该单元并不具有的取值 | 同一 JSON 的 `within_cell_replication_stability`；逐次布尔值见 `phase8a_sta_report.json` |
 | **把 k 提高反而让组成带变宽而非变窄**（§5；附录 C）。k=6 为 −31.9 至 +26.4，k=2 为 −12.5 至 +41.7：把各单元解析清楚之后，实例级差值变大了，而重抽样扰动的正是这些差值。重复深度与面板组成是两条互相独立的限制 | 两个统计脚本的 `--check`；两条带由同一个函数 `instance_resampling_band` 计算 |
-| **S3 未被执行，因为它没有通过预注册的成本门控**（§1 图 1；表 2 末行；附录 D）。Arm 2（`deepseek-v4-pro`）**未运行**。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；最便宜的合格方案预计 ¥57.97，而 ¥200 上限下仅剩 ¥44.53，故 {6,4,2} 中无一合格 → `ARM2_NOT_RUN`。有一个 block 执行了（按 §5F.5 的要求，用来确定 r′），报告时**不给出任何条件对比**（§5E.5）。未曾运行的实验臂没有效应方向：这不是零结果，也不是负结果 | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；那个 block 见 `phase8a/reports/` 中的 `phase8a_sta_report_arm2.md` |
-| **S3 那一格上存在 72 条被隔离的 episode，且从未被分析**（附录 D；附录 I 账目）。它们在门控判定被提交之后、应操作者要求生成，整个写入面被重定向到已被 gitignore 的 `runs/` 之下，因此没有任何已提交记录或 `--check` 能看到它们。12 实例 × 3 条件 × k=2，12/12 个 block 完成，0 次无效，¥45.1143。**条件对比从未被计算过**：记录器只打开 `episode.json` 与 `SHA256SUMS`，丢弃 `total_score`/`semantic_binding`，并在测试中被置于一个"打开禁止路径即抛错"的审计钩子之下运行 —— 另有负控制证明该钩子确实会触发。它们不是那个预注册实验臂，也不产生任何 S3 估计 | `scripts/phase8a_arm2_quarantine.py --check` → `phase8a/evidence/arm2_quarantine_record.json`；守卫测试见 `tests/test_phase8a.py`；叙述见 [`phase8a_findings.zh.md`](phase8a_findings.zh.md) |
-| **门控拒绝了一个其实负担得起的实验臂**（附录 J，第四条账目要求）。对剩余 66 条 episode 预计 ¥53.14，而可用为 ¥44.53；实际花费 ¥38.46 —— 够，还余 ¥6.07。规则施行无误；错的是速率估计量被校准在 `p15_eval_0004` 上，而它是十二个实例中最贵的一个（¥1.109/ep，面板均值 ¥0.627，最便宜 ¥0.330），门控还抹平了自己已经记录下来的 6.86 倍离散度。面板组成这次决定的不是效应量，而是这个实验有没有发生。**这不重开那个决定** | 同一 JSON 的 `cost_gate_calibration`；宏见 `submission/tables/arm2_quarantine.tex` |
-| 金额按两个数字分列而不是合成一个（附录 I；可复现性声明）：纳入分析的支出 ¥145.47，实际总支出 ¥183.93；¥200 上限未被突破 | `arm2_quarantine_record.json` 的 `money`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
+| **联合 model × family 面板 —— S3 已测量，迁移未确立**（§1 图 1；§5 表 2；附录 C）。Arm 2（`deepseek-v4-pro`），72 个 episode，同样 12 个冻结实例 × 3 条件 × k=2，¥58.11。描述性均值 Base .250 / BundleS .375 / TypedContract .4167；+12.5 pp，实例重抽样带 −16.7 至 +41.7。符号检验 7 个非零差中 k⁺=5，双侧 *p*=0.453；置换 *p*=0.336（描述性）。解剖为 4 地板 / 1 天花板 / 7 有信息量。点估计有利于 BundleS，而判别力得不出结论：**未确立** —— 它既不是"无效应"，也不是负结果 | `scripts/phase8a_report.py --arm 2 --check` → `phase8a/reports/` 中的 `phase8a_sta_report_arm2.json`；`phase8a_claim_statistics.json` 的 `arm2_joint_panel`；逐实例表 `submission/tables/sta12_arm2.tex` |
+| **Arm 2 的执行不是预注册的，而论文从不这样写**（§5；附录 D）。它的 episode 是在预注册成本门控返回 `ARM2_NOT_RUN` **之后**才跑的，因此不是预注册所规划的那个臂。支配分析的是一份在读取任何 arm-2 outcome 字段之前提交的方案；报告记录该方案的 sha256，而方案缺失时 `phase8a_report.py` 根本拒绝生成 arm-2 报告 | [`phase8a_arm2_analysis_plan.zh.md`](phase8a_arm2_analysis_plan.zh.md) → `phase8a/evidence/arm2_analysis_plan.json`；`phase8a_sta_report_arm2.json` 的 `provenance`；先后次序由 `tests/test_phase8a.py` 对照 git 历史核验 |
+| **没有为那次分析弱化任何规则**（§5；附录 D）。`phase8a_report.py` **当且仅当**某个计划实例缺失时才扣留条件聚合量 —— block 就是实例，所以 block 的子集会让预算或服务提供方挑样本。Arm 2 跑完 12 个中的 12 个，因此未经修改的规则本身就允许输出：这项控制是前提被满足，而不是被放松 | `scripts/phase8a_report.py:369` 的扣留分支；`test_the_withholding_rule_still_fires_when_an_instance_is_missing` 通过声明第十三个计划实例把它重新证伪 |
+| **k=2 不承载任何幅度主张**（§5；附录 C）。Arm 1 在同一家族上测出 36 个单元中有 7 个在六次完全相同的重复之间不一致，因此 arm 2 的单元取值是已知带噪的，其聚合量**不**与 arm 1 的 k=6 聚合量并列摆放、仿佛解析程度相同 | `arm2_joint_panel` 的 `repetition_depth_limit`；`test_the_k2_magnitude_limit_travels_with_the_arm2_numbers` |
+| **跨模型的结构一致，事后且存在混淆**（§5；附录 C）。12 个实例中有 10 个在两臂获得相同分类，两处都有信息量的 5 个中符号一致 4 个。两臂在模型**和** k 上都不同，因此不把任何东西单独归因于模型。它定位的是异质性长在**实例**上；它不确立聚合效应的迁移 | `phase8a_claim_statistics.json` 的 `cross_model_structural_concordance`，其中自带 `confounded: true` 并写明混淆来源 |
+| **预注册成本门控曾在 arm 2 运行前拒绝了它**（研究过程记录；刻意**不进**手稿）。在成本探针与 block 00 共 12 个 episode 上汇总得 r′=¥0.8051/episode；最便宜的合格方案预计 ¥57.97，而 ¥200 上限下仅剩 ¥44.53 → `ARM2_NOT_RUN`。由于门控的两个输入此后都变了，`--check` 现在**核验**已记录的决定（对照它自己声明的输入），而不再重算；三种篡改被断言为失败 | `scripts/phase8a_arm2_gate.py --check` → `phase8a/evidence/arm2_gate_decision.json`；`test_the_gate_verification_can_actually_fail` |
+| **门控拒绝了一个其实负担得起的实验臂**（研究过程记录；**不进**手稿）。对它所定价的那 66 条 episode 预计 ¥53.14，可用 ¥44.53；实际花费 ¥38.46 —— 够，还余 ¥6.07。规则施行无误；错的是速率估计量被校准在 `p15_eval_0004` 上，它是十二个实例中最贵的（¥1.109/ep，面板均值 ¥0.627，最便宜 ¥0.330）。这**不是**分析该臂的理由 —— 事前方案才是 | `scripts/phase8a_arm2_cost_calibration.py --check` → `phase8a/evidence/arm2_cost_calibration.json` |
+| 程序总支出，一个数字（附录 I；可复现性声明）：¥200 上限中的 ¥183.9329，未花掉 ¥16.07。arm 2 被排除在分析之外时曾按两个数字分列；既然每一分钱都站在某个被报告的数字背后，现在就是一个数字 | `phase8a_claim_statistics.json` 的 `money`，由 runner 自己的 `_program_spend()` 重算；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 | 预注册及其六条编号修正案 —— 每条都在相应的进入分析的 episode 之前固定（附录 I，冻结点 3） | [`phase8a_prereg.zh.md`](phase8a_prereg.zh.md) |
 | 金钱（附录 I；可复现性声明）：逐 episode 保管记录、归档的废弃轮次、被替换尝试账本、低报成本的更正 | `phase8a/evidence/`；`scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check` |
 
@@ -210,9 +214,10 @@ python3 scripts/phase7c_study1_ledger.py --check
 python3 scripts/phase7c_claim_statistics.py --check
 python3 scripts/phase7d_semantic_proxy_gap.py --check   # 纳入 169 条 / 82 条工具通过型错绑
 python3 scripts/phase7e_answer_identifiability.py --check  # 候选域 294；BundleS 9–147，从不为 1
-python3 scripts/phase8a_claim_statistics.py --check        # k=6：−2.8 pp，带 −31.9 至 26.4
-python3 scripts/phase8a_arm2_quarantine.py --check         # 72 条被隔离的 S3 episode，从未分析
-cd submission && make distclean && make                # 22 页（正文 9 页），逐字节可复现
+python3 scripts/phase8a_claim_statistics.py --check        # arm1 k=6：−2.8 pp；arm2 k=2：+12.5 pp
+python3 scripts/phase8a_arm2_gate.py --check               # 核验已记录的 ARM2_NOT_RUN 决定
+python3 scripts/phase8a_arm2_cost_calibration.py --check   # 预计 ¥53.14 对实际 ¥38.46
+cd submission && make distclean && make                # 正文 9 页，逐字节可复现
 python3 scripts/submission_page_limit_check.py         # 正文结束于第 9 页（ICLR 上限 9）
 ```
 

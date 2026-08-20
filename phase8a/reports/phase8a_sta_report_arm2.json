@@ -3,27 +3,37 @@
   "arm": 2,
   "model_name": "deepseek-v4-pro",
   "study": "Phase-8A STA power expansion on a replacement backend",
-  "preregistration": "docs/phase8a_prereg.md",
+  "provenance": {
+    "preregistered": false,
+    "analysis_plan": "docs/phase8a_arm2_analysis_plan.md",
+    "analysis_plan_json": "phase8a/evidence/arm2_analysis_plan.json",
+    "claim_never_made": "that this k=2 arm was preregistered and executed according to docs/phase8a_prereg.md -- it was not; it was executed after that preregistration's cost gate returned ARM2_NOT_RUN",
+    "what_is_claimed": "the analysis rules were fixed and committed before any outcome field of these episodes was read, and they are the arm-1 rules in the arm-1 code",
+    "aggregates_permitted_because": "phase8a_report.py withholds condition aggregates iff a planned instance is missing; this arm ran 12 of 12, so the unmodified rule permits them"
+  },
+  "governing_analysis_plan_sha256": "62c14d1757589ccbb33232a91fd6b7ac5c6f923ac610a6e2505c63107557a544",
   "backend": {
     "endpoint_host": "tokenrhythm.studio",
     "frozen_program_endpoint": "llmapi.paratera.com",
     "frozen_endpoint_status": "403 team not allowed to access model (both model IDs)",
-    "consequence": "different serving stack => a DIFFERENT measurement"
+    "consequence": "disclosed under model custody; NOT treated as an experimental factor, and NOT the reason any two batches are reported separately",
+    "durability_finding": "a frozen design cannot be remeasured once an endpoint stops serving its models"
   },
   "not_poolable_with": {
     "path": "reports/synthetic_phase7a_sta72_report.json",
-    "rule": "report side by side; never sum, average, difference or pool into one n"
+    "rule": "report side by side; never sum, average, difference or pool into one n",
+    "why": "separate executions of separate studies, and across arms separate models; not because the serving endpoint differs"
   },
-  "n_episodes_collected": 6,
-  "episodes_graded": 6,
+  "n_episodes_collected": 72,
+  "episodes_graded": 72,
   "measurement_invalid_excluded": [],
-  "slots_never_executed": 66,
-  "spent_cny": 19.6518,
+  "slots_never_executed": 0,
+  "spent_cny": 58.11,
   "spent_on_aborted_block_passes_cny": 6.9246,
   "spent_on_replaced_attempts_cny": 6.0711,
   "measurement_invalid_attempts": 1,
   "replaced_attempts": 3,
-  "unit": "INCOMPLETE ARM: 1 of 12 planned instances; no condition contrast is drawn",
+  "unit": "task instance (n=12); k reps nested; trajectories are NOT n",
   "k_per_condition_observed": [
     2
   ],
@@ -39,6 +49,43 @@
     "p15_eval_0002",
     "p15_eval_0003"
   ],
+  "condition_mean_rates_over_instances_descriptive": {
+    "Base": 0.25,
+    "BundleS": 0.375,
+    "TypedContract": 0.4167
+  },
+  "contrast_tally_instance_level": {
+    "primary_BundleS_vs_Base": {
+      "improve": 5,
+      "decline": 2,
+      "tie": 5,
+      "n": 12
+    },
+    "secondary_TC_vs_Base": {
+      "improve": 4,
+      "decline": 1,
+      "tie": 7,
+      "n": 12
+    },
+    "secondary_TC_vs_BundleS": {
+      "improve": 2,
+      "decline": 1,
+      "tie": 9,
+      "n": 12
+    }
+  },
+  "primary_sign_test": {
+    "n_nonzero_instance_diffs": 7,
+    "k_positive": 5,
+    "two_sided_exact_p": 0.45312
+  },
+  "primary_permutation_sensitivity": {
+    "observed_sum_BundleS_minus_Base": 1.5,
+    "mc_replicates": 10000,
+    "two_sided_permutation_p": 0.3362,
+    "seed": 20260817,
+    "note": "per-instance shuffle of condition labels over that instance's own reps; descriptive sensitivity only, NOT a population-rate p-value"
+  },
   "instances": [
     {
       "instance": "p15_eval_0004",
@@ -80,32 +127,458 @@
       "BundleS_minus_Base": -0.5,
       "TC_minus_Base": 0.0,
       "TC_minus_BundleS": 0.5
+    },
+    {
+      "instance": "p15_eval_0005",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        false
+      ],
+      "BundleS_rate": 0.0,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.0,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0006",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        false
+      ],
+      "BundleS_rate": 0.0,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.0,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0007",
+      "Base_reps": [
+        true,
+        true
+      ],
+      "Base_rate": 1.0,
+      "Base_subtypes": [
+        null,
+        null
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        false
+      ],
+      "BundleS_rate": 0.0,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": -1.0,
+      "TC_minus_Base": -1.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0008",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        false
+      ],
+      "BundleS_rate": 0.0,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.0,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0009",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        false
+      ],
+      "BundleS_rate": 0.0,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.0,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0010",
+      "Base_reps": [
+        true,
+        true
+      ],
+      "Base_rate": 1.0,
+      "Base_subtypes": [
+        null,
+        null
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        true,
+        true
+      ],
+      "BundleS_rate": 1.0,
+      "BundleS_subtypes": [
+        null,
+        null
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        true,
+        true
+      ],
+      "TypedContract_rate": 1.0,
+      "TypedContract_subtypes": [
+        null,
+        null
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.0,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0011",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        true,
+        true
+      ],
+      "BundleS_rate": 1.0,
+      "BundleS_subtypes": [
+        null,
+        null
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        true,
+        true
+      ],
+      "TypedContract_rate": 1.0,
+      "TypedContract_subtypes": [
+        null,
+        null
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 1.0,
+      "TC_minus_Base": 1.0,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0012",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        true,
+        false
+      ],
+      "BundleS_rate": 0.5,
+      "BundleS_subtypes": [
+        null,
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        true,
+        true
+      ],
+      "TypedContract_rate": 1.0,
+      "TypedContract_subtypes": [
+        null,
+        null
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "disagree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.5,
+      "TC_minus_Base": 1.0,
+      "TC_minus_BundleS": 0.5
+    },
+    {
+      "instance": "p15_eval_0013",
+      "Base_reps": [
+        false,
+        true
+      ],
+      "Base_rate": 0.5,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        null
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        true,
+        true
+      ],
+      "BundleS_rate": 1.0,
+      "BundleS_subtypes": [
+        null,
+        null
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        true,
+        true
+      ],
+      "TypedContract_rate": 1.0,
+      "TypedContract_subtypes": [
+        null,
+        null
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "disagree",
+        "BundleS": "agree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.5,
+      "TC_minus_Base": 0.5,
+      "TC_minus_BundleS": 0.0
+    },
+    {
+      "instance": "p15_eval_0014",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        true,
+        false
+      ],
+      "BundleS_rate": 0.5,
+      "BundleS_subtypes": [
+        null,
+        "authority_unattested_binding"
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        false
+      ],
+      "TypedContract_rate": 0.0,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "disagree",
+        "TypedContract": "agree"
+      },
+      "BundleS_minus_Base": 0.5,
+      "TC_minus_Base": 0.0,
+      "TC_minus_BundleS": -0.5
+    },
+    {
+      "instance": "p15_eval_0015",
+      "Base_reps": [
+        false,
+        false
+      ],
+      "Base_rate": 0.0,
+      "Base_subtypes": [
+        "authority_unattested_binding",
+        "authority_unattested_binding"
+      ],
+      "Base_k": 2,
+      "BundleS_reps": [
+        false,
+        true
+      ],
+      "BundleS_rate": 0.5,
+      "BundleS_subtypes": [
+        "authority_unattested_binding",
+        null
+      ],
+      "BundleS_k": 2,
+      "TypedContract_reps": [
+        false,
+        true
+      ],
+      "TypedContract_rate": 0.5,
+      "TypedContract_subtypes": [
+        "authority_unattested_binding",
+        null
+      ],
+      "TypedContract_k": 2,
+      "within_inst_agreement": {
+        "Base": "agree",
+        "BundleS": "disagree",
+        "TypedContract": "disagree"
+      },
+      "BundleS_minus_Base": 0.5,
+      "TC_minus_Base": 0.5,
+      "TC_minus_BundleS": 0.0
     }
   ],
-  "interpretation_note": "Reported at the preregistered k. No adaptive k, no trajectory-pooled p-value, no outcome-dependent reanalysis.",
-  "incomplete_arm": {
-    "rule": "docs/phase8a_prereg.md \u00a75E.5",
-    "instances_planned": 12,
-    "instances_completed": 1,
-    "instances_not_run": [
-      "p15_eval_0005",
-      "p15_eval_0006",
-      "p15_eval_0007",
-      "p15_eval_0008",
-      "p15_eval_0009",
-      "p15_eval_0010",
-      "p15_eval_0011",
-      "p15_eval_0012",
-      "p15_eval_0013",
-      "p15_eval_0014",
-      "p15_eval_0015"
-    ],
-    "aggregates_withheld": [
-      "condition_mean_rates_over_instances_descriptive",
-      "contrast_tally_instance_level",
-      "primary_sign_test",
-      "primary_permutation_sensitivity"
-    ],
-    "why": "A subset of blocks is a subset of instances, not a reduced k. Reporting a contrast over the instances that happened to run would let the budget or the provider choose the sample. Per-instance rows stand as descriptive record."
-  }
+  "interpretation_note": "Reported at the preregistered k. No adaptive k, no trajectory-pooled p-value, no outcome-dependent reanalysis."
 }

@@ -128,29 +128,73 @@ def compute() -> dict:
     }
 
 
+def verify(was: dict) -> dict:
+    """Re-apply the frozen formula to the inputs the record itself declares.
+
+    Why not simply recompute? Because the gate fired at a moment, and both of its inputs have since
+    moved: arm 2 was subsequently executed, so `episodes_arm2/` now holds 72 episodes rather than
+    block 00's 6, and programme spend has grown by everything paid since. A live recomputation would
+    pool 78 episodes into r' and compare against today's balance -- arithmetic about a different
+    question, which would then report the historical decision as drifted.
+
+    So the record is verified as a *decision*: take the rate and the spend it says it used, push them
+    back through the same preregistered `k2_from`, and require the same ladder, the same k and the
+    same verdict. That keeps the record falsifiable -- a tampered rate, spend or verdict still fails
+    -- without pretending the world stood still. What it deliberately does not do is re-litigate the
+    decision; the arm's analysis rests on a plan fixed before its outcomes were read, not on this.
+    """
+    r = was["rate"]["r_prime_cny_per_episode"]
+    spend = was["budget"]["program_spend_cny"]
+    k2, remaining, detail = P.k2_from(r, spend, 0.0)
+
+    probe, block = was["rate"]["from_cost_probe"], was["rate"]["from_clean_block00"]
+    pooled_n = probe["n"] + block["n"]
+    pooled_r = (probe["cny"] + block["cny"]) / pooled_n
+
+    checks = {
+        "rate_matches_its_declared_components": abs(pooled_r - r) < 5e-5,
+        "pooled_count_consistent": pooled_n == was["rate"]["pooled_episodes"],
+        "ladder_reproduces": detail == was["gate"]["ladder"],
+        "k2_reproduces": k2 == was["gate"]["k2"],
+        "remaining_reproduces": abs(remaining
+                                    - was["budget"]["remaining_after_holdback_cny"]) < 5e-5,
+        "verdict_follows_from_k2": was["decision"] == ("RUN_FULL_ARM2" if k2 else "ARM2_NOT_RUN"),
+        "never_read_a_score": was["reads_scores"] is False,
+    }
+    return {"check": "PASS" if all(checks.values()) else "FAIL",
+            "verified": "the recorded decision, against the inputs it declares",
+            "recorded": was["decision"], "recorded_r": r, "recorded_spend_cny": spend,
+            "note": "inputs are NOT re-derived from the live tree: arm 2 has since been executed, "
+                    "so both the block-00 custody dir and programme spend have moved on",
+            "checks": checks}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description="Apply the frozen §2.2 cost gate to arm 2.")
     ap.add_argument("--apply", action="store_true")
     ap.add_argument("--check", action="store_true")
     a = ap.parse_args()
 
-    now = compute()
-    print(json.dumps(now, indent=2))
-
     if a.check:
         if not DECISION.is_file():
             print(json.dumps({"check": "FAIL", "note": "no decision record"}))
             return 1
-        was = json.loads(DECISION.read_text())
-        same = (was["decision"] == now["decision"]
-                and was["gate"]["k2"] == now["gate"]["k2"]
-                and abs(was["rate"]["r_prime_cny_per_episode"]
-                        - now["rate"]["r_prime_cny_per_episode"]) < 1e-6)
-        print(json.dumps({"check": "PASS" if same else "FAIL",
-                          "recorded": was["decision"], "recomputed": now["decision"],
-                          "recorded_r": was["rate"]["r_prime_cny_per_episode"],
-                          "recomputed_r": now["rate"]["r_prime_cny_per_episode"]}))
-        return 0 if same else 1
+        out = verify(json.loads(DECISION.read_text()))
+        print(json.dumps(out, indent=2))
+        return 0 if out["check"] == "PASS" else 1
+
+    # A live computation is only meaningful before the arm runs. Afterwards the custody dir holds the
+    # whole arm, so pooling it into r' would answer a question nobody asked; refuse rather than print
+    # a plausible number.
+    live = _costs(ARM2_CUSTODY)
+    if len(live) > EPISODES_PER_BLOCK:
+        print(json.dumps({"refused": "arm 2 has been executed; the gate's live inputs no longer "
+                                     "exist. Use --check to verify the recorded decision.",
+                          "episodes_in_custody": len(live)}))
+        return 0
+
+    now = compute()
+    print(json.dumps(now, indent=2))
 
     if not a.apply:
         return 0

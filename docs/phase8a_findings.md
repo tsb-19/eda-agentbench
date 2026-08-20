@@ -2,17 +2,24 @@
 
 # Phase-8A findings — an STA power expansion on a replacement backend
 
-Phase-8A was a two-arm attempt to put more power behind one preregistered cell of the semantic-binding
-study, after the frozen program endpoint stopped serving the models the study was run on. It is
-reported here in full, including the arm that did not run and the four harness defects it exposed.
+Phase-8A put more power behind the semantic-binding study's cross-family cell and then filled its
+joint model x family cell, after the frozen program endpoint stopped serving the models the study was
+run on. Both arms are reported here in full, including how each came to exist and the four harness
+defects they exposed.
 
 Preregistration: [`phase8a_prereg.md`](phase8a_prereg.md), frozen before the first analysed episode,
 with six numbered amendments. Every number below is re-derived from committed ledgers by the commands
 in [Reproduction](#reproduction).
 
-**Status in the paper.** Manuscript **v15** makes arm 1 the primary S2-F evidence, keeps the earlier
-k=2 batch as a separately reported study, and never pools the two. v14 does not cite Phase-8A at all —
-it was frozen first — and remains recoverable byte-for-byte. The claim-to-file mapping is in
+Arm 2 has a second, narrower governing document, because its episodes were executed after the
+preregistered cost gate refused the arm and are therefore not covered by that preregistration:
+[`phase8a_arm2_analysis_plan.md`](phase8a_arm2_analysis_plan.md), committed before any arm-2 outcome
+field was read.
+
+**Status in the paper.** Manuscript **v17** makes arm 1 the primary S2-F evidence and reports arm 2 at
+the S3 coordinate, keeps the earlier k=2 batch as a separately reported study, and never pools any of
+the three. v14 does not cite Phase-8A at all — it was frozen first — and remains recoverable
+byte-for-byte. The claim-to-file mapping is in
 [`artifact_map.md`](artifact_map.md); the manuscript-facing numbers are re-derived by
 `scripts/phase8a_claim_statistics.py --check`.
 
@@ -31,23 +38,35 @@ That is the whole claim. In particular:
 - **The k=6 expansion did not settle the question it was built to settle.** It bought precision
   *within* instances; the unit of analysis is the instance, and n stayed 12.
 
-**Arm 2 (`deepseek-v4-pro`) did not run.** The preregistered cost gate refused it. One block of twelve
-executed and is reported with **no condition contrast**. See [Arm 2](#arm-2-the-gate-refused-it).
+**Arm 2 (`deepseek-v4-pro`, 72 episodes, the same 12 frozen instances × 3 conditions × k=2, ¥58.11).**
 
-## Why the two batches are never pooled
+> **Joint model × family transfer was not established on this panel. The point estimate favours
+> BundleS (+12.5 pp, 5 instances improve to 2 declining) but the sign test cannot distinguish that
+> split from a coin (*p* = 0.45) and the resampling band spans zero (−16.7 to +41.7 pp).**
 
-Phase-7A and Phase-8A are **two independent executions**, the second a separately preregistered
-higher-replication follow-up on the same twelve frozen instances. That, and not anything about where
-the model was served, is the reason nothing is combined across them: no quantity is summed, averaged
-or differenced, their episode counts are not added, and there is no k=8 panel and no n=24.
+Read [Arm 2](#arm-2-the-joint-model--family-panel) for what that does and does not license, and
+[the analysis plan](phase8a_arm2_analysis_plan.md) for the rules it was analysed under — fixed and
+committed before any of its outcomes were read.
+
+## Why the batches are never pooled
+
+Phase-7A and Phase-8A are **independent executions**, the second a separately preregistered
+higher-replication follow-up on the same twelve frozen instances, and Phase-8A's two arms run
+different models. That, and not anything about where the model was served, is the reason nothing is
+combined across any of them: no quantity is summed, averaged or differenced, their episode counts are
+not added, and there is no k=8 panel and no n=24.
 
 | | k | Base | BundleS | TypedContract |
 |---|---|---|---|---|
 | Phase-7A | 2 | 0.208 | 0.333 | 0.458 |
 | Phase-8A arm 1 | 6 | 0.2778 | 0.25 | 0.3611 |
+| Phase-8A arm 2 (DeepSeek) | 2 | 0.25 | 0.375 | 0.4167 |
 
-The two rows order BundleS against Base in opposite directions. **That is not a replication failure
-and not a reversal**, because a reversal requires one measurement and these are two.
+Rows one and two order BundleS against Base in opposite directions. **That is not a replication
+failure and not a reversal**, because a reversal requires one measurement and these are two. Row
+three is a *different model* and so is not evidence about either of the others; the fact that both
+k=2 rows land on the same +12.5 pp while the k=6 row does not is an observation about repetition
+depth, made post hoc, and it pools nothing.
 
 **The serving endpoint, disclosed and not treated as an experimental factor.** The frozen program
 endpoint `llmapi.paratera.com` returns `403 team not allowed to access model` for both model IDs, so
@@ -131,7 +150,96 @@ scaffold comparison, and it is the durable thing arm 1 produced.
 Custody: 2 measurement-invalid attempts and 4 arbiter-replaced attempts, all transport faults, none of
 them a score. No valid wrong score was ever retried.
 
-## Arm 2: the gate refused it
+## Arm 2: the joint model × family panel
+
+This is the coordinate the claim lattice calls **S3**: a different model *and* a different family than
+the setting where the effect was first observed. It is the combination a reader most wants and the one
+a paper about generalization can least afford to leave empty.
+
+**Provenance, stated plainly.** These 72 episodes are **not** the arm the preregistration sized. That
+arm was refused by a cost gate before it ran (below), and these episodes were executed afterwards. The
+sentence *"this k=2 S3 experiment was preregistered and executed according to the original
+preregistration"* would be false, and it appears nowhere. What is claimed is narrower and enough: the
+analysis rules were written down and committed before any outcome field was read, and they are arm 1's
+rules running in arm 1's code.
+
+**No rule was weakened to permit the analysis.** `scripts/phase8a_report.py` withholds condition
+aggregates *if and only if* some planned instance is missing — because blocks are instances, so a
+subset of blocks is a subset of *instances*, and a contrast over whichever instances happened to finish
+would let the budget or the provider choose the sample. Arm 2 ran **12 of 12**. The precondition that
+triggers withholding is simply not met; the control was satisfied, not relaxed. A regression test makes
+the point in the other direction, by declaring a thirteenth planned instance and requiring the
+aggregates to vanish again.
+
+### The numbers
+
+Descriptive, instance-level (n = 12), at k = 2:
+
+| | Base | BundleS | TypedContract |
+|---|---|---|---|
+| mean rate over instances | 0.250 | 0.375 | 0.4167 |
+
+| contrast | improve | decline | tie |
+|---|---|---|---|
+| **primary** BundleS vs Base | 5 | 2 | 5 |
+| secondary TC vs Base | 4 | 1 | 7 |
+| secondary TC vs BundleS | 2 | 1 | 9 |
+
+Primary: Δ = **+12.5 pp**; exact two-sided paired sign test, k⁺ = 5 of 7 non-zero instance
+differences, **p = 0.453**; instance-resampling band **−16.7 to +41.7 pp**; permutation p = 0.336
+(descriptive only). Panel anatomy: **4** instances at floor in both compared conditions, **1** at
+ceiling, **7** informative.
+
+The plan fixed in advance which wording each outcome licenses, and the branch is evaluated in code
+rather than chosen afterwards. Support required *all three* of: p < 0.05, a band excluding zero, and
+improvements outnumbering declines. The third holds and the first two do not, so the branch is
+**not established**.
+
+That phrase is doing exact work in both directions:
+
+- It is **not** "BundleS does not transfer." The point estimate favours BundleS and 5 of 7 informative
+  instances improve. What is missing is discrimination, not effect.
+- It is **not** evidence of a null effect either. Four instances sit at the floor in both conditions
+  and one at the ceiling; a panel where five of twelve instances cannot express a difference fails to
+  show one for reasons independent of whether one exists.
+
+**k = 2 is the binding limit, and this study measured how badly.** Arm 1 found **7 of 36** cells
+disagreeing across six identical repetitions on this same family — a single trajectory is a coin flip
+about its own cell roughly 19% of the time. So no claim is made about the magnitude or stability of any
+arm-2 cell value, and **arm 2's aggregate is not set beside arm 1's k=6 aggregate as though the two
+were equally resolved.** They are not. One resolves its cells; the other does not.
+
+### The same instances carry the effect under both models
+
+Post hoc, not preregistered, and **confounded**: arm 1 and arm 2 differ in the model *and* in k, so
+nothing here can be attributed to the model alone. With that said, the per-instance structure is
+strikingly stable. **10 of 12** instances receive the same class under both arms, and among the 5
+informative in both, the **sign agrees on 4**:
+
+```
+p15_eval_0004   arm1 −1.0000   arm2 −0.5000   agree (negative in both)
+p15_eval_0007   arm1 −0.8333   arm2 −1.0000   agree (negative in both)
+p15_eval_0011   arm1 +1.0000   arm2 +1.0000   agree (positive in both)
+p15_eval_0012   arm1 +0.6667   arm2 +0.5000   agree (positive in both)
+p15_eval_0013   arm1 −0.1667   arm2 +0.5000   DISAGREE (both small, near the floor)
+```
+
+The pre-committed model-dependence branch required disagreement on a *majority* of instances
+informative in both; 1 of 5 does not fire it. The reading this supports is narrow and useful:
+**the heterogeneity lives in the instances, not in the model.** The same tasks help or hurt in the same
+direction whichever model runs them. It does **not** establish transfer of the aggregate effect, which
+neither arm establishes.
+
+One more thing worth noticing, and worth not over-reading: both k=2 batches land on **+12.5 pp** — the
+Qwen k=2 batch of Phase-7A and this DeepSeek k=2 arm — while the one k=6 batch lands on −2.8 pp. The
+k=2 → k=6 move is *within* one model, so the flip is clean there; whether DeepSeek would move the same
+way at k=6 is simply unmeasured. Nothing is pooled to say this, and it is post hoc.
+
+### Arm 2 was refused by a cost gate before it ran
+
+This subsection and the next are **research-process history**, kept here and deliberately absent from
+the manuscript. A reader of the paper does not need to know how the ¥200 cap was set or which block ran
+at which hour; a maintainer of this repository does.
 
 Arm 2's k was fixed by a cost-only gate (§2.2) evaluated before its first analysed episode. The gate
 reads cost and never a score, a rate or a contrast.
@@ -150,8 +258,7 @@ Pooled **r′ = ¥0.8051/episode** over 12 episodes:
 | 2 | 72 | ¥57.97 | ✗ |
 
 No k qualified → **`ARM2_NOT_RUN`**. k was already at the floor of the ladder and §5E.5 forbids a
-partial arm, so the check could only ever return *run it whole* or *do not run it*; it can never
-return a smaller arm.
+partial arm, so the check could only ever return *run it whole* or *do not run it*.
 
 **One input decided this, and it is recorded both ways.** The formula's first parameter is *named*
 `spent_arm1`; fed arm 1's ¥122.8175 it still returns k = 2, because it cannot see the ¥19.65 arm 2 had
@@ -160,57 +267,16 @@ literal and false — it hides real outlay from the cap whose only purpose is to
 sit side by side in [`arm2_gate_decision.json`](../phase8a/evidence/arm2_gate_decision.json), because
 the difference between them *is* the decision.
 
-Crediting the block already paid for, the remainder misses by **¥1.39** and clears only if the ¥10
-holdback is abandoned — 2.6% of its own projection, against a pooled per-episode spread of **6.9×**
-(¥0.38–¥2.60, sd ¥0.63). That is noise, not margin. Spending it after seeing the number would be
-lowering the standard.
+The remaining blocks were executed afterwards, at the operator's direction. That is the honest account
+of how the data came to exist, and it is why the analysis rests on a plan committed before its outcomes
+were read rather than on the preregistration.
 
-Arm 2 is therefore reported as **the one preregistered cell that could not be filled within budget** —
-not as untried, and not as tried-and-null.
-
-### The one block that ran is not a result
-
-`p15_eval_0004`, 6 episodes, was executed and graded. Its aggregates are **withheld** under §5E.5, and
-`scripts/phase8a_report.py` now refuses to compute them rather than leaving the rule to a reader's
-discipline: blocks are instances, so a subset of blocks is a subset of *instances*, not a reduced k.
-With bidirectional heterogeneity established in arm 1, a contrast from whichever instance the budget
-happened to reach would be a sample chosen by the budget. The record is
-`phase8a_sta_report_arm2.md`, in [`../phase8a/reports/`](../phase8a/reports/).
-
-Program spend: **¥145.4747 of ¥200.** The remaining ¥54.53 is not spent on additional cells,
-instances, conditions or models (§2.3). Spending a surplus because it exists is the outcome-adaptive
-practice this program exists to prevent.
-
-### 72 episodes exist at the S3 coordinate, and nobody has looked at them
-
-After the gate's decision was computed and committed at 02:56Z, the operator asked that the remaining
-arm-2 blocks be allowed to finish in the background. They were, under a quarantine that redirected the
-run's entire write surface — custody, run state, block files, archive glob, ledger — to a root under
-`runs/`, which is gitignored, so the quarantine cannot enter a commit even via `git add -A`. Blocks 01
-onward began at 04:31Z. **The exclusion decision predates the data.**
-
-The result is 72 DeepSeek-V4-Pro episodes — 12 instances × 3 conditions × k=2, 12/12 blocks complete,
-0 invalid attempts, ¥45.1143 — sitting at exactly the coordinate the paper reports as unmeasured.
-
-**Their condition contrast has never been computed.** That is deliberate, and it is worth more than
-any number they could yield. Every block carries `report_pending: true`, no aggregate was ever
-generated, and `scripts/phase8a_arm2_quarantine.py` — which produced the custody record — opens only
-`episode.json` and `SHA256SUMS`, drops `total_score` and `semantic_binding` before the object is used,
-and never opens `result.json`, `exception_config.submitted.json` or the agent log. That is not a
-promise in a docstring: `tests/test_phase8a.py` drives the recorder *and* the three Phase-8A `--check`
-commands under a `sys.addaudithook` that raises on a forbidden open, with a negative control proving
-the hook fires.
-
-Why not just look? Because the paper's own standard is that evidence eligibility is fixed before an
-outcome is seen, and this is the first case where obeying it costs something. The episodes are the
-shallower k=2 arm the preregistration declined to fund; opening them now would convert an exclusion
-fixed before the data existed into an outcome-informed exploratory analysis. Reporting it honestly as
-exploratory would be permissible in general — but in *this* paper it would invite the fair question of
-when the standard ever binds the authors, and the answer would be "not when it was tempting."
-
-They are not permanently sealed. A later, separately framed study may analyse them as an explicitly
-exploratory follow-up. What may not happen is their being folded back into this paper's confirmatory
-evidence.
+Because the gate fired at a moment and both of its inputs have since moved — the block-00 custody
+directory now holds all 72 episodes, and programme spend has grown — `phase8a_arm2_gate.py --check` no
+longer recomputes the decision. It **verifies** it: the rate and spend the record declares are pushed
+back through the same preregistered formula and must yield the same ladder, the same k and the same
+verdict. Three tamper cases (flipped verdict, altered rate, altered spend) are asserted to fail, so the
+record stays falsifiable without pretending the world stood still.
 
 ### The gate refused an arm that was affordable
 
@@ -219,29 +285,32 @@ The realized cost is a finding in its own right, and it needs no condition contr
 | | gate's projection | realized |
 |---|---|---|
 | rate r′ | ¥0.805125/episode (12-episode probe) | **¥0.6266/episode** (72 episodes) |
-| the 66 remaining episodes | ¥53.1382 | **¥38.4582** |
+| the 66 episodes it was pricing | ¥53.1382 | **¥38.4582** |
 | against ¥44.5253 after holdback | does not fit → `ARM2_NOT_RUN` | **fits, ¥6.07 to spare** |
 
 The gate applied its preregistered rule correctly and its arithmetic was right. Its *rate estimator*
 was calibrated on a sample that did not represent the panel it gated: r′ pooled the cost probe with
 the one executed block, and that block is `p15_eval_0004` — the dearest of the twelve at ¥1.1094 per
-episode, against a panel mean of ¥0.6266 and a cheapest instance at ¥0.3298. The gate had already
-recorded the spread it was averaging away (`rate.spread_factor 6.86`) and gated on the pooled mean.
+episode, against a panel mean of ¥0.6266 and a cheapest instance at ¥0.3298, an instance-level spread
+of 3.4×. The gate had already recorded the episode-level spread it was averaging away
+(`rate.spread_factor 6.86`) and gated on the pooled mean anyway.
 
 This is the study's own finding in a different currency. Panel composition — not run noise — decided
-the estimate, and here it decided not an effect size but whether an experiment happened at all. It is
-stated as a fourth accounting requirement in the manuscript's methods appendix: *a cost gate must be
-calibrated on a sample that represents the panel it gates, and must carry the spread it measures into
-the decision rather than reducing it to a pooled mean.*
+the estimate, and here it decided not an effect size but whether an experiment happened at all. The
+lesson generalizes: *a cost gate must be calibrated on a sample that represents the panel it gates, and
+must carry the spread it measures into the decision rather than reducing it to a pooled mean.*
 
-It does not reopen the decision. Eligibility fixed before an outcome may not be revised once the
-outcome exists — least of all by the discovery that the refusal was too conservative.
+Note what does **not** follow. "The refusal turned out to be too conservative" is not the justification
+for analysing the arm; that would be revising eligibility because of what the outcome turned out to be.
+The justification is the plan fixed before the outcomes were read. The two are easy to confuse and
+worth keeping apart.
 
-Accounting, kept as two figures rather than one: **eligible-analysis spend ¥145.47**, **total realized
-spend ¥183.93** (the 66 quarantined episodes cost ¥38.4582 and enter no analysis; block 00 is
-byte-identical to the committed block and its money was already counted). The ¥200 cap was not
-breached. Record: [`../phase8a/evidence/arm2_quarantine_record.json`](../phase8a/evidence/arm2_quarantine_record.json),
-verified by `python3 scripts/phase8a_arm2_quarantine.py --check`.
+Programme spend: **¥183.9329 of ¥200**, ¥16.07 unspent — one figure, from the same `_program_spend()`
+the runner uses. An earlier draft reported this as two (eligible-analysis ¥145.47 versus total realized
+¥183.93) because arm 2's episodes were then excluded from analysis; now that they are analysed, every ¥
+paid stands behind a reported number and one total is the honest presentation. Record:
+[`../phase8a/evidence/arm2_cost_calibration.json`](../phase8a/evidence/arm2_cost_calibration.json),
+verified by `python3 scripts/phase8a_arm2_cost_calibration.py --check`.
 
 ## Measurement-validity findings
 
@@ -312,10 +381,17 @@ correct operation is entitled to reuse.**
 - Not that BundleS helps. Neither direction was established.
 - Not that arm 1 replicates or fails to replicate Phase-7A. Different apparatus, different
   measurement.
-- Not anything about `deepseek-v4-pro` on this family. Arm 2 did not run, and one block is not a
-  contrast.
+- Not that BundleS transfers to `deepseek-v4-pro` on this family, and not that it fails to. Arm 2's
+  point estimate favours it; its discrimination does not reach a conclusion either way.
+- Not that arm 2 is a *negative* result. "Not established" and "shown absent" are different claims and
+  only the first is supported.
+- Not that the cross-model structural agreement (10/12 class, 4/5 sign) shows the model does not
+  matter. It is post hoc, non-pooled, and confounded with k; what it locates is heterogeneity in the
+  instances, nothing more.
 - Not that k=6 is sufficient for this design. It is sufficient *within* a cell — 19% of cells needed
   it — and says nothing about the n=12 between-instance panel that carries the claim.
+- Not that arm 2's k=2 aggregate is comparable in resolution to arm 1's k=6 aggregate. It is not, by
+  this study's own measurement of cell instability.
 
 The study's own object is the difference between a measurement and a claim about the world. These
 limits are the result, not a hedge around one.
@@ -326,8 +402,10 @@ No model calls. All commands are read-only re-derivations from committed ledgers
 
 ```bash
 python3 scripts/phase8a_report.py --arm 1 --check    # 216 graded, ¥122.8175
-python3 scripts/phase8a_report.py --arm 2 --check    # incomplete arm, aggregates withheld
-python3 scripts/phase8a_arm2_gate.py     --check     # ARM2_NOT_RUN, r′ = ¥0.8051/episode
+python3 scripts/phase8a_report.py --arm 2 --check    # 72 graded, ¥58.11, k=2
+python3 scripts/phase8a_claim_statistics.py --check  # both panels; arm 2 +12.5 pp, band -16.7..41.7
+python3 scripts/phase8a_arm2_gate.py     --check     # VERIFIES the recorded ARM2_NOT_RUN decision
+python3 scripts/phase8a_arm2_cost_calibration.py --check   # projected ¥53.14 vs realized ¥38.46
 python3 scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check   # all 3 passes; 2 SOURCE_GONE
 scripts/check                                        # 1065 pins / 9 missing / 2 mismatch / 1 multi-sha
 python3 -m pytest tests/test_phase8a.py -q

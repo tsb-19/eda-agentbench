@@ -1,16 +1,304 @@
 {
-  "arm2_not_executed": {
-    "blocks_executed": 1,
-    "cheapest_ladder_rung_cny": 57.969,
-    "condition_contrast_drawn": false,
-    "decision": "ARM2_NOT_RUN",
-    "episodes_executed": 6,
-    "not_a_negative_result": "an experiment that did not run produces no effect direction. This may not be restated as 'no effect', 'failed to improve' or a negative result.",
-    "pooled_episodes_behind_rate": 12,
-    "r_prime_cny_per_episode": 0.805125,
-    "remaining_after_holdback_cny": 44.5253,
-    "status": "NOT EXECUTED -- failed the preregistered cost gate",
-    "why_no_contrast": "INCOMPLETE ARM: 1 of 12 planned instances; no condition contrast is drawn"
+  "arm2_joint_panel": {
+    "condition_means": {
+      "Base": 0.25,
+      "BundleS": 0.375,
+      "TypedContract": 0.4167
+    },
+    "contrast_tally": {
+      "primary_BundleS_vs_Base": {
+        "decline": 2,
+        "improve": 5,
+        "n": 12,
+        "tie": 5
+      },
+      "secondary_TC_vs_Base": {
+        "decline": 1,
+        "improve": 4,
+        "n": 12,
+        "tie": 7
+      },
+      "secondary_TC_vs_BundleS": {
+        "decline": 1,
+        "improve": 2,
+        "n": 12,
+        "tie": 9
+      }
+    },
+    "coordinate": "S3 -- joint model x family: a different model AND a different family than the setting where the effect was first observed",
+    "delta_hat_BundleS_minus_Base": 0.125,
+    "instance_resampling_band95": [
+      -0.16666666666666666,
+      0.4166666666666667
+    ],
+    "interpretation_branch": {
+      "band_excludes_zero": false,
+      "branch": "not_established",
+      "criteria_fixed_in": "phase8a/evidence/arm2_analysis_plan.json -> interpretation_fixed_in_advance",
+      "descriptively": "the point estimate favours BundleS and improvements outnumber declines (5 to 2), but the sign test cannot distinguish that split from a coin and the band spans zero",
+      "improvements_outnumber_declines": true,
+      "must_not_be_worded_as": "evidence that BundleS has no effect. A panel with 4 floor-limited and 1 ceiling-limited instances fails to show a difference for reasons independent of whether one exists.",
+      "p_below_0_05": false,
+      "wording_licensed": "joint model x family transfer NOT ESTABLISHED on this panel"
+    },
+    "k_per_cell": 2,
+    "measurement_invalid_attempts": 1,
+    "model_name": "deepseek-v4-pro",
+    "n_episodes": 72,
+    "n_instances": 12,
+    "panel_anatomy": {
+      "ceiling_limited_both_arms": 1,
+      "ceiling_members": [
+        "p15_eval_0010"
+      ],
+      "floor_limited_both_arms": 4,
+      "floor_members": [
+        "p15_eval_0005",
+        "p15_eval_0006",
+        "p15_eval_0008",
+        "p15_eval_0009"
+      ],
+      "heterogeneity_range": [
+        -1.0,
+        1.0
+      ],
+      "informative_instances": 7,
+      "informative_members": [
+        "p15_eval_0004",
+        "p15_eval_0007",
+        "p15_eval_0011",
+        "p15_eval_0012",
+        "p15_eval_0013",
+        "p15_eval_0014",
+        "p15_eval_0015"
+      ],
+      "post_hoc": true
+    },
+    "per_instance": [
+      {
+        "BundleS_minus_Base": -0.5,
+        "TC_minus_Base": 0.0,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 1,
+          "BundleS": 0,
+          "TypedContract": 1
+        },
+        "instance": "p15_eval_0004",
+        "k": 2,
+        "rates": {
+          "Base": 0.5,
+          "BundleS": 0.0,
+          "TypedContract": 0.5
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.0,
+        "TC_minus_Base": 0.0,
+        "class": "floor",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 0,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0005",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.0,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.0,
+        "TC_minus_Base": 0.0,
+        "class": "floor",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 0,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0006",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.0,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": -1.0,
+        "TC_minus_Base": -1.0,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 2,
+          "BundleS": 0,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0007",
+        "k": 2,
+        "rates": {
+          "Base": 1.0,
+          "BundleS": 0.0,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.0,
+        "TC_minus_Base": 0.0,
+        "class": "floor",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 0,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0008",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.0,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.0,
+        "TC_minus_Base": 0.0,
+        "class": "floor",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 0,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0009",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.0,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.0,
+        "TC_minus_Base": 0.0,
+        "class": "ceiling",
+        "correct_of_k": {
+          "Base": 2,
+          "BundleS": 2,
+          "TypedContract": 2
+        },
+        "instance": "p15_eval_0010",
+        "k": 2,
+        "rates": {
+          "Base": 1.0,
+          "BundleS": 1.0,
+          "TypedContract": 1.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 1.0,
+        "TC_minus_Base": 1.0,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 2,
+          "TypedContract": 2
+        },
+        "instance": "p15_eval_0011",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 1.0,
+          "TypedContract": 1.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.5,
+        "TC_minus_Base": 1.0,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 1,
+          "TypedContract": 2
+        },
+        "instance": "p15_eval_0012",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.5,
+          "TypedContract": 1.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.5,
+        "TC_minus_Base": 0.5,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 1,
+          "BundleS": 2,
+          "TypedContract": 2
+        },
+        "instance": "p15_eval_0013",
+        "k": 2,
+        "rates": {
+          "Base": 0.5,
+          "BundleS": 1.0,
+          "TypedContract": 1.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.5,
+        "TC_minus_Base": 0.0,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 1,
+          "TypedContract": 0
+        },
+        "instance": "p15_eval_0014",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.5,
+          "TypedContract": 0.0
+        }
+      },
+      {
+        "BundleS_minus_Base": 0.5,
+        "TC_minus_Base": 0.5,
+        "class": "informative",
+        "correct_of_k": {
+          "Base": 0,
+          "BundleS": 1,
+          "TypedContract": 1
+        },
+        "instance": "p15_eval_0015",
+        "k": 2,
+        "rates": {
+          "Base": 0.0,
+          "BundleS": 0.5,
+          "TypedContract": 0.5
+        }
+      }
+    ],
+    "permutation_two_sided_p": 0.3362,
+    "provenance": {
+      "analysis_plan": "docs/phase8a_arm2_analysis_plan.md",
+      "analysis_plan_sha256": "62c14d1757589ccbb33232a91fd6b7ac5c6f923ac610a6e2505c63107557a544",
+      "no_rule_was_weakened": "phase8a_report.py withholds condition aggregates iff a planned instance is missing. Arm 2 ran 12 of 12, so the unmodified rule permits them; the control's precondition is satisfied rather than relaxed.",
+      "preregistered": false,
+      "what_is_claimed": "the analysis plan was committed before any outcome field was read, and it is the arm-1 analysis in the arm-1 code",
+      "why_not": "these episodes were executed after the preregistered cost gate returned ARM2_NOT_RUN, so they are not the arm the preregistration sized. The claim that they were preregistered and executed per docs/phase8a_prereg.md is false and is made nowhere."
+    },
+    "repetition_depth_limit": {
+      "forbidden_comparison": "arm 2's aggregate may not be set beside arm 1's k=6 aggregate as though the two were equally resolved",
+      "k": 2,
+      "why_it_binds": "arm 1 measured 7 of 36 cells disagreeing across six identical repetitions on this same family, so a single trajectory is a coin flip about its cell's own value roughly 19% of the time. No claim is made about the magnitude or stability of any arm-2 cell value."
+    },
+    "sign_test": {
+      "k_positive": 5,
+      "n_nonzero_instance_diffs": 7,
+      "two_sided_exact_p": 0.45312
+    }
   },
   "cross_batch_structural_concordance": {
     "class_changes": [
@@ -180,6 +468,160 @@
     ],
     "what_it_is": "a comparison of the per-instance CLASS and SIGN produced by two independently executed batches. No quantity is summed, averaged or differenced across them.",
     "what_it_is_not": "evidence about either batch's serving endpoint, and not a replication in the sense of the paper's qualification standard: the k=6 batch re-runs the same frozen instances, which is repeated measurement of stability, not scope."
+  },
+  "cross_model_structural_concordance": {
+    "confound": "arm 1 and arm 2 differ in the MODEL and in k (6 vs 2). Agreement therefore cannot be attributed to the model alone, and this is not an estimate of anything -- it is a description of which instances carry the effect.",
+    "confounded": true,
+    "informative_in_both": [
+      "p15_eval_0004",
+      "p15_eval_0007",
+      "p15_eval_0011",
+      "p15_eval_0012",
+      "p15_eval_0013"
+    ],
+    "instances_classified_identically": 10,
+    "instances_total": 12,
+    "is_pooling": false,
+    "model_dependence_branch_fires": false,
+    "per_instance": [
+      {
+        "arm1_k6_class": "informative",
+        "arm1_k6_diff": -1.0,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": -0.5,
+        "informative_in_both": true,
+        "instance": "p15_eval_0004",
+        "same_class": true,
+        "same_sign": true
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "floor",
+        "arm2_k2_diff": 0.0,
+        "informative_in_both": false,
+        "instance": "p15_eval_0005",
+        "same_class": true,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "floor",
+        "arm2_k2_diff": 0.0,
+        "informative_in_both": false,
+        "instance": "p15_eval_0006",
+        "same_class": true,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "informative",
+        "arm1_k6_diff": -0.8333333333333334,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": -1.0,
+        "informative_in_both": true,
+        "instance": "p15_eval_0007",
+        "same_class": true,
+        "same_sign": true
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "floor",
+        "arm2_k2_diff": 0.0,
+        "informative_in_both": false,
+        "instance": "p15_eval_0008",
+        "same_class": true,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "floor",
+        "arm2_k2_diff": 0.0,
+        "informative_in_both": false,
+        "instance": "p15_eval_0009",
+        "same_class": true,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "ceiling",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "ceiling",
+        "arm2_k2_diff": 0.0,
+        "informative_in_both": false,
+        "instance": "p15_eval_0010",
+        "same_class": true,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "informative",
+        "arm1_k6_diff": 1.0,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": 1.0,
+        "informative_in_both": true,
+        "instance": "p15_eval_0011",
+        "same_class": true,
+        "same_sign": true
+      },
+      {
+        "arm1_k6_class": "informative",
+        "arm1_k6_diff": 0.6666666666666666,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": 0.5,
+        "informative_in_both": true,
+        "instance": "p15_eval_0012",
+        "same_class": true,
+        "same_sign": true
+      },
+      {
+        "arm1_k6_class": "informative",
+        "arm1_k6_diff": -0.16666666666666669,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": 0.5,
+        "informative_in_both": true,
+        "instance": "p15_eval_0013",
+        "same_class": true,
+        "same_sign": false
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": 0.5,
+        "informative_in_both": false,
+        "instance": "p15_eval_0014",
+        "same_class": false,
+        "same_sign": null
+      },
+      {
+        "arm1_k6_class": "floor",
+        "arm1_k6_diff": 0.0,
+        "arm2_k2_class": "informative",
+        "arm2_k2_diff": 0.5,
+        "informative_in_both": false,
+        "instance": "p15_eval_0015",
+        "same_class": false,
+        "same_sign": null
+      }
+    ],
+    "post_hoc": true,
+    "preregistered": false,
+    "reading": "the same instances tend to carry the effect in the same direction under both models, which locates the heterogeneity in the INSTANCES rather than in the model. It does not establish transfer of the aggregate effect, which neither arm establishes.",
+    "sign_agreeing_members": [
+      "p15_eval_0004",
+      "p15_eval_0007",
+      "p15_eval_0011",
+      "p15_eval_0012"
+    ],
+    "sign_agreement_among_informative_in_both": [
+      4,
+      5
+    ],
+    "sign_disagreeing_members": [
+      "p15_eval_0013"
+    ],
+    "what_it_is": "a comparison of per-instance CLASS and SIGN across two models on the same twelve frozen instances. No quantity is summed, averaged or differenced."
   },
   "k6_panel": {
     "band_interpretation": "how far the point estimate moves when panel membership is resampled; not a confidence interval, since the realized panel's composition carries no sampling uncertainty",
@@ -477,15 +919,20 @@
   "money": {
     "arm1_aborted_block_passes_cny": 7.8445,
     "arm1_cny": 122.8175,
-    "arm2_incomplete_block_cny": 19.6518,
+    "arm2_aborted_block_passes_cny": 6.9246,
+    "arm2_cny": 58.11,
+    "arm2_replaced_attempts_cny": 6.0711,
+    "cap_breached": false,
     "cap_cny": 200.0,
-    "programme_spend_cny": 145.4747
+    "note": "counts live episodes of every arm, archived aborted passes, replaced attempts and the arm-2 cost probe; money paid is money paid",
+    "programme_spend_cny": 183.9329
   },
-  "purpose": "manuscript-facing re-derivation of the k=6 STA panel; no new data, no model call, no tool run",
+  "purpose": "manuscript-facing re-derivation of both Phase-8A panels -- the k=6 arm-1 panel and the k=2 arm-2 joint model x family panel; no new data, no model call, no tool run",
   "schema": "phase8a_claim_statistics/v1",
   "sources": {
+    "arm2_analysis_plan": "phase8a/evidence/arm2_analysis_plan.json",
     "arm2_gate": "phase8a/evidence/arm2_gate_decision.json",
-    "arm2_incomplete_block": "phase8a/reports/phase8a_sta_report_arm2.json",
+    "arm2_panel": "phase8a/reports/phase8a_sta_report_arm2.json",
     "k2_panel": "reports/synthetic_phase7a_sta72_report.json",
     "k6_panel": "phase8a/reports/phase8a_sta_report.json"
   },
