@@ -1,0 +1,87 @@
+{
+  "schema": "phase8a_arm2_analysis_plan/v1",
+  "fixed_at": "2026-08-20",
+  "status": "fixed before any arm-2 outcome field was read",
+
+  "what_this_governs": "The analysis of 72 deepseek-v4-pro episodes on the frozen 12-instance STA panel (family A), 12 instances x 3 conditions x k=2. This is the joint model x family coordinate (S3) of the claim lattice.",
+
+  "provenance_stated_truthfully": {
+    "is_this_the_preregistered_arm_2": false,
+    "why_not": "The Phase-8A preregistration sized arm 2 through a cost ladder and its cost gate returned ARM2_NOT_RUN. These 72 episodes were executed after that decision. They are therefore NOT covered by the original preregistration and no claim is made that they were.",
+    "what_is_preregistered_about_them": "Nothing about their execution. This analysis plan alone, and only in the ordinary sense that it was written down and committed before any outcome was read.",
+    "claim_that_must_never_be_made": "That this k=2 S3 experiment was preregistered and executed according to the original Phase-8A preregistration.",
+    "what_may_be_said": "That the analysis plan was fixed before the outcomes were examined, and that the analysis was produced by the same unmodified scripts as arm 1."
+  },
+
+  "no_rule_was_weakened_to_permit_this": {
+    "claim": "scripts/phase8a_report.py withholds condition aggregates if and only if some planned instance is missing (the rule at phase8a_report.py:369, written for prereg 5E.5).",
+    "consequence": "Arm 2 completed 12 of 12 planned instances, so that rule permits its aggregates with no edit. The rule was never 'do not analyze arm 2'; it was 'do not draw a contrast over a subset of instances chosen by the budget or the provider'. That condition no longer holds.",
+    "verify": "python3 scripts/phase8a_report.py --arm 2 --check"
+  },
+
+  "inclusion": {
+    "episodes": 72,
+    "instances": 12,
+    "conditions": ["Base", "BundleS", "TypedContract"],
+    "reps_per_cell": 2,
+    "exclusions": "none beyond the pre-existing measurement-invalid rule inherited from arm 1; the run recorded 0 invalid attempts, so nothing is excluded",
+    "no_instance_may_be_dropped": true,
+    "no_condition_may_be_dropped": true,
+    "measurement_invalid_rule": "unchanged: infrastructure timeout, gateway error or worker failure only. A valid wrong score is a hard failure and is never retried away."
+  },
+
+  "unit_and_metric": {
+    "unit_of_analysis": "instance",
+    "n": 12,
+    "per_episode_metric": "exact-correct, from the frozen typed provenance/authority oracle generators/p15_sta_handoff/grade_sta_handoff.py; the tool exit signal is never read",
+    "per_instance_condition_rate": "mean of the k=2 repetition booleans for that (instance, condition) cell",
+    "metric_may_not_be_substituted": true
+  },
+
+  "contrasts": {
+    "primary": "BundleS - Base, instance-level",
+    "secondary": ["TypedContract - Base", "TypedContract - BundleS"],
+    "promotion_forbidden": "A secondary contrast may not become the primary contrast, whatever the outcomes look like. If TypedContract appears stronger, that is reported as a secondary result."
+  },
+
+  "tests": {
+    "primary_sign_test": "exact two-sided paired sign test over the non-zero instance-level differences; identical implementation to arm 1 (_sign_p in scripts/phase8a_report.py)",
+    "sensitivity_band": "instance-resampling band, phase7c_claim_statistics.instance_resampling_band, 100000 replicates, seed 20260820; a resampling band over instances, deliberately NOT a confidence interval for a population rate",
+    "permutation": "per-instance shuffle of condition labels over that instance's own reps, 10000 Monte Carlo draws; descriptive sensitivity only, never reported as a population-rate p-value",
+    "panel_anatomy": "the same classify()/anatomy() functions used for Phase-7A and arm 1; floor = zero in both compared conditions, ceiling = one in both, informative = a non-zero difference",
+    "no_test_may_be_added_after_seeing_the_outcomes": true
+  },
+
+  "pooling_prohibited": {
+    "with_arm_1": "No quantity is summed, averaged or differenced across arm 1 and arm 2. Different models. There is no n=24 and no k=8 panel.",
+    "with_phase_7a": "Likewise. Three separate executions, reported separately.",
+    "why": "Pooling across models would answer neither the cross-model question nor the joint question, and would silently convert two measurements into one."
+  },
+
+  "interpretation_fixed_in_advance": {
+    "note": "The mapping from outcome to wording is fixed here so that it cannot be chosen after the numbers are known. Whichever branch fires, the result is reported.",
+    "branch_support": {
+      "fires_when": "primary sign test two-sided p < 0.05 AND the instance-resampling band excludes 0 AND improvements outnumber declines among informative instances",
+      "wording": "joint model x family transfer observed at S3 on this panel at k=2"
+    },
+    "branch_not_established": {
+      "fires_when": "any condition of branch_support fails",
+      "wording": "joint model x family transfer not established on this panel",
+      "must_not_be_worded_as": "evidence that BundleS has no effect; absence of a significant difference is not a demonstration of a null effect, especially on a panel whose floor-limited instances cannot express one"
+    },
+    "branch_model_dependence": {
+      "fires_when": "the sign of the primary instance-level difference disagrees between arm 1 and arm 2 on a majority of the instances informative in both",
+      "wording": "descriptive evidence of model dependence in the instance-level pattern; reported as an observation, not as an effect estimate, and it does not require either arm to be significant"
+    },
+    "constraint_on_every_branch": {
+      "repetition_depth": "k=2 resolves a cell's own value poorly. Arm 1 established on this very family that 7 of 36 cells disagree across 6 identical repetitions, so a single trajectory is a coin flip about 19% of the time. No claim about the magnitude or stability of an arm-2 cell value may be made, and arm 2's aggregate may not be set beside arm 1's k=6 aggregate as though the two were equally resolved.",
+      "panel_composition": "The same finite-panel limit applies as in arm 1: instances at floor or ceiling in both compared conditions cannot express a difference, so the effective n is smaller than 12 and must be reported."
+    }
+  },
+
+  "reporting_commitment": {
+    "report_regardless_of_direction": true,
+    "no_outcome_dependent_reanalysis": "Once the outcomes are read, this plan is not revised. Any later analysis beyond it is labelled as post hoc and reported as such.",
+    "process_history_stays_out_of_the_manuscript": "The internal budget history (how the cap was set, which gate arithmetic was miscalibrated, which block ran when) is project management, not a scientific result. It stays in docs/ and phase8a/evidence/. The manuscript reports the final design and its results."
+  }
+}
