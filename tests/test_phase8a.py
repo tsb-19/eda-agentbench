@@ -1484,3 +1484,21 @@ def test_the_findings_write_up_reports_the_unrun_arm_as_unaffordable_not_as_null
     assert "预注册计划中唯一一个预算内无法填上的格子" in zh
     # and it must not be dressed up as a finding about the model
     assert "Not anything about `deepseek-v4-pro` on this family" in en
+
+
+def test_the_programme_is_recorded_as_closed_in_both_languages():
+    """"Arm 2 is the last cell, and the programme ends when it does" (§5F.6) -- whether it ran or
+    not. The closure has to be a durable record at the study's entry point, not a claim that lives
+    only in a chat log, or the next person to open this tree has no way to know it is finished.
+    """
+    en = " ".join((REPO / "phase8a/README.md").read_text().split())
+    zh = " ".join((REPO / "phase8a/README.zh.md").read_text().split())
+    assert "Status: CLOSED" in en and "状态：已关闭" in zh
+    assert "No further paid model call is authorised" in en
+    assert "不再授权任何付费模型调用" in zh
+    # the unfilled cell must be named as unfilled, never as tried-and-null
+    assert "not run** — refused by the preregistered §2.2 cost gate" in en
+    assert "未执行** —— 被预注册的 §2.2 成本门控拒绝" in zh
+    # the surplus must be explicitly withheld, not merely unmentioned
+    assert "not** spent on additional cells" in en
+    assert "不**用于任何额外的格子" in zh

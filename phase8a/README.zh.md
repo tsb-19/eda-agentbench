@@ -5,6 +5,25 @@
 Phase-8A 是在 ICLR 投稿冻结并打标签（`iclr2027-submission-v5`）之后开展的一项新研究。其设计与分析计划见
 [`docs/phase8a_prereg.zh.md`](../docs/phase8a_prereg.zh.md)。
 
+## 状态：已关闭 —— 2026-08-20
+
+**实验部分已经结束。本分支上不再授权任何付费模型调用 —— 任何臂、实例、条件、模型或 scaffold 都不再有。**
+
+| | |
+|---|---|
+| arm 1（`qwen3.7-max`，k=6） | 已完成 —— 216 个 episode，¥122.8175 |
+| arm 2（`deepseek-v4-pro`） | **未执行** —— 被预注册的 §2.2 成本门控拒绝 |
+| 程序总支出 | ¥200 上限中的 ¥145.4747 |
+| 剩余 ¥54.53 | **不**用于任何额外的格子、实例、条件或模型（§2.3） |
+
+Arm 2 是既有预注册计划中最后一个尚未填写的格子 —— 不是看到结果之后才想出来的新实验。它现在被报告为
+**预注册计划中唯一一个预算内无法填上的格子**。计划由此闭合：每一个格子要么被填上，要么被明确记录为
+无法填上。
+
+结论（双语）见 [`docs/phase8a_findings.zh.md`](../docs/phase8a_findings.zh.md)。
+一句话的结果是：**在这个预注册的 12 实例、k=6 面板上没有建立一致的 BundleS 优势，并且观察到双向的
+实例级异质性** —— 这**不是** "BundleS 无效" 的结论。引用此处任何数字之前，请先读那份结论文档。
+
 ```
 phase8a/
   evidence/    冻结的调度、运行前完整性清单、preflight 记录、
@@ -62,8 +81,13 @@ mismatch:    2 -> 1
 
 ## 复现
 
+无任何模型调用。以下每条命令都是从已提交账本出发的只读重新导出。
+
 ```bash
 python3 scripts/phase8a_schedule.py --model Qwen3.7-Max-TR --reps 6 --arm 1 --check
 python3 scripts/phase8a_preflight.py        # 零付费调用；一次不计费的 /v1/models 列表查询
-python3 scripts/phase8a_report.py --check
+python3 scripts/phase8a_report.py --arm 1 --check
+python3 scripts/phase8a_report.py --arm 2 --check    # 不完整臂；聚合量被扣留（§5E.5）
+python3 scripts/phase8a_arm2_gate.py --check         # ARM2_NOT_RUN
+python3 scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check
 ```

@@ -6,6 +6,27 @@ Phase-8A is a new study run after the ICLR submission was frozen and tagged
 (`iclr2027-submission-v5`). Its design and analysis plan are in
 [`docs/phase8a_prereg.md`](../docs/phase8a_prereg.md).
 
+## Status: CLOSED — 2026-08-20
+
+**The experimental programme is over. No further paid model call is authorised on this branch,
+for any arm, instance, condition, model or scaffold.**
+
+| | |
+|---|---|
+| arm 1 (`qwen3.7-max`, k=6) | complete — 216 episodes, ¥122.8175 |
+| arm 2 (`deepseek-v4-pro`) | **not run** — refused by the preregistered §2.2 cost gate |
+| programme spend | ¥145.4747 of the ¥200 cap |
+| remaining ¥54.53 | **not** spent on additional cells, instances, conditions or models (§2.3) |
+
+Arm 2 was the last unfilled cell of the existing preregistered plan — not a new experiment invented
+after seeing results. It is now reported as the one preregistered cell that could not be filled
+within budget. That closes the plan: filled or explicitly unfillable, every cell is accounted for.
+
+Findings, in both languages: [`docs/phase8a_findings.md`](../docs/phase8a_findings.md).
+The single-sentence result is that **no consistent BundleS advantage was established on this
+preregistered 12-instance, k=6 panel, and bidirectional instance-level heterogeneity was observed** —
+which is not a finding that BundleS is ineffective. Read the write-up before quoting any number here.
+
 ```
 phase8a/
   evidence/    frozen schedules, prerun integrity manifest, preflight record,
@@ -71,8 +92,13 @@ forwarded EDA tool.
 
 ## Reproducing
 
+No model calls. Every command is a read-only re-derivation from committed ledgers.
+
 ```bash
 python3 scripts/phase8a_schedule.py --model Qwen3.7-Max-TR --reps 6 --arm 1 --check
 python3 scripts/phase8a_preflight.py        # zero paid calls; one unbilled /v1/models listing
-python3 scripts/phase8a_report.py --check
+python3 scripts/phase8a_report.py --arm 1 --check
+python3 scripts/phase8a_report.py --arm 2 --check    # incomplete arm; aggregates withheld (§5E.5)
+python3 scripts/phase8a_arm2_gate.py --check         # ARM2_NOT_RUN
+python3 scripts/phase8a_cost_reconcile.py --arm 2 --block 0 --check
 ```
