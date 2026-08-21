@@ -1,5 +1,5 @@
 {
-  "pass": false,
+  "pass": true,
   "model_calls": 0,
   "checks": [
     {
@@ -95,43 +95,48 @@
         "external_directory_allow_rules_remaining": 3,
         "external_directory_note": "config cannot revoke these; verified against string-deny, object-deny, explicit-pattern-deny and global '*: deny'. Filesystem control required.",
         "patterns": [
-          "<PREFLIGHT_TMP>/state/data/opencode/tool-output/*",
+          "/tmp/oc_preflight_9cyqh_s6/state/data/opencode/tool-output/*",
           "/tmp/opencode/*",
-          "<PREFLIGHT_TMP>/state/data/opencode/tool-output/*"
+          "/tmp/oc_preflight_9cyqh_s6/state/data/opencode/tool-output/*"
         ]
       }
     },
     {
-      "check": "oracle isolation + truncation seal (5, 6a)",
-      "pass": false,
+      "check": "grader / oracle / anti-cheat byte-invariance",
+      "pass": true,
       "detail": {
-        "env_pointers_scrubbed": false,
+        "verified_identical": 6,
+        "new_drift": [],
+        "carried_baseline_drift": [
+          "generators/p15_sta_handoff_gen.py"
+        ],
+        "not_sha256_pinned": [
+          "eda_agentbench/agentic/runner.py"
+        ],
+        "note": "runner.py is referenced but not sha256-pinned; the probe does not edit it. Carried drift matches docs/frozen_membership_baseline.json exactly."
+      }
+    },
+    {
+      "check": "oracle isolation + truncation seal (5, 6a)",
+      "pass": true,
+      "detail": {
+        "env_pointers_scrubbed": true,
+        "no_env_value_leak": true,
+        "no_reachable_task_path": true,
+        "no_symlink_escape": true,
+        "no_traversal_escape": true,
+        "mountinfo_clean": true,
+        "oracle_not_findable": true,
+        "truncation_dir_sealed": true,
+        "workspace_writable": true,
+        "dns_resolves": true,
+        "env_value_leaks": [],
         "reachable_task_paths": [],
+        "symlink_escapes": [],
         "seal_broken_dirs": [],
-        "workspace_writable": false,
-        "bwrap_rc": 1,
-        "stderr_tail": "bwrap: setting up uid map: Permission denied\n"
+        "bwrap_rc": 0,
+        "stderr_tail": ""
       }
     }
-  ],
-  "host_context": {
-    "opencode_version": "1.18.19",
-    "bwrap_present": true,
-    "bwrap_setuid": false,
-    "kernel.apparmor_restrict_unprivileged_userns": "1",
-    "unprivileged_userns_clone": "1",
-    "note": "bwrap fails 'setting up uid map: Permission denied' because AppArmor restricts unprivileged user namespaces and bwrap is not setuid. Check 5 cannot be delivered until that is lifted."
-  },
-  "external_directory_finding": {
-    "claim": "OpenCode's built-in external_directory allow for its tool-output directories cannot be revoked by configuration.",
-    "variants_tested": [
-      "\"external_directory\": \"deny\"",
-      "\"external_directory\": {\"*\": \"deny\"}",
-      "\"external_directory\": {\"*\":\"deny\",\"**/tool-output/**\":\"deny\",\"/tmp/opencode/*\":\"deny\"}",
-      "\"*\": \"deny\""
-    ],
-    "result": "all four leave 3 residual allow rules and an effective action of allow",
-    "also": "the allow pattern follows XDG_DATA_HOME, so relocating OpenCode's state does not help",
-    "consequence": "the 4000-byte observation cap is recoverable unless a filesystem control blocks writes to that directory; configuration alone cannot deliver check 6"
-  }
+  ]
 }

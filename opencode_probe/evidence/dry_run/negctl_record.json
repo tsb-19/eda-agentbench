@@ -1,0 +1,144 @@
+{
+  "mode": "negctl",
+  "authorization": "unscored, discarded; docs/opencode_scaffold_probe_scope.md dry run",
+  "instance": "p15_dev_0000",
+  "not_a_condition_contrast": true,
+  "wall_clock_sec": 319.3,
+  "error": null,
+  "runs_dir": "/data1/tongsb/eda-agentbench/opencode_probe/evidence/dry_run/runs_negctl/p15_dev_0000/20260821_215407",
+  "score": {
+    "task_id": "p15_dev_0000",
+    "track": "p15_sta_handoff",
+    "mode": "agentic",
+    "total_score": 0.5,
+    "max_possible": 1.0,
+    "components": [
+      "ScoreComponent(name='provenance_attested', weight=0.3, raw_score=0.0, weighted_score=0.0, details='check=False', tool_output_snippet=None)",
+      "ScoreComponent(name='coverage_cell_consistent', weight=0.2, raw_score=0.0, weighted_score=0.0, details='check=False', tool_output_snippet=None)",
+      "ScoreComponent(name='check_view_legal', weight=0.1, raw_score=1.0, weighted_score=0.1, details='check=True', tool_output_snippet=None)",
+      "ScoreComponent(name='pt_signoff_green', weight=0.1, raw_score=1.0, weighted_score=0.1, details='check=True', tool_output_snippet=None)",
+      "ScoreComponent(name='not_masking', weight=0.15, raw_score=1.0, weighted_score=0.15, details='check=True', tool_output_snippet=None)",
+      "ScoreComponent(name='explanation', weight=0.15, raw_score=1.0, weighted_score=0.15, details='no structured explanation required', tool_output_snippet=None)"
+    ],
+    "passed": true,
+    "passing_threshold": 0.5,
+    "evaluation_time_sec": 40.404120683670044,
+    "anti_cheat": {
+      "forbidden_files_modified": false,
+      "checked_files": [
+        "design.v",
+        "constraints.sdc",
+        "run_public.sh",
+        "run_public.tcl",
+        "tiny.db",
+        "tiny.lib",
+        "signoff_intent_truth.json",
+        "grade_sta_handoff.py",
+        "run_hidden.sh"
+      ],
+      "hash_mismatches": [],
+      "tcl_injection": [],
+      "hidden_shadows": []
+    },
+    "resource_usage": {
+      "wall_time_sec": 40.4
+    },
+    "metadata": {
+      "difficulty": "hard",
+      "data_type": "flow_synthetic",
+      "tool": [
+        "pt"
+      ],
+      "version": "1.0.0",
+      "agent_cmd": "python3 /data1/tongsb/eda-agentbench/scripts/opencode_probe_agent.py --config /data1/tongsb/eda-agentbench/opencode_probe/config/opencode.json --agent probe --model probe/deepseek-v4-pro --steps 60 --elicit-confidence --log /data1/tongsb/eda-agentbench/opencode_probe/evidence/dry_run/negctl_eventstream.json",
+      "agent_exit_code": 0,
+      "agent_timed_out": false
+    },
+    "objective_score": 0.35,
+    "explanation_score": 0.15,
+    "confidence_decision": "",
+    "format_ok": null,
+    "protocol_status": "ok",
+    "overconfident_wrong": false,
+    "underconfident_correct": false,
+    "abstained": false
+  },
+  "canonical_fingerprint_before": "7990acc486728ffd7bf3653cc820563203733b2f17a3fe123fdb20c6a173c694",
+  "canonical_fingerprint_after": "7990acc486728ffd7bf3653cc820563203733b2f17a3fe123fdb20c6a173c694",
+  "canonical_fingerprint_intact": true,
+  "tasks_git_dirty": "",
+  "ledger": {
+    "wrapper_returncode": 0,
+    "prompt_sections": [
+      {
+        "section": "role_preamble",
+        "status": "TRANSFERRED",
+        "chars": 146,
+        "sha256": "1a11d3dd0f78c465"
+      },
+      {
+        "section": "task_text",
+        "status": "TRANSFERRED",
+        "chars": 791,
+        "sha256": "4d01170768f08f05"
+      },
+      {
+        "section": "workspace_file_lists",
+        "status": "TRANSFERRED",
+        "chars": 334,
+        "sha256": "10a66ae118d2f16b"
+      },
+      {
+        "section": "how_to_act",
+        "status": "RESTATED",
+        "chars": 268,
+        "sha256": "c48837bd5b80c714"
+      },
+      {
+        "section": "environment_tools_on_path",
+        "status": "TRANSFERRED",
+        "chars": 218,
+        "sha256": "2594c674df1d9cd3"
+      },
+      {
+        "section": "environment_editable_only",
+        "status": "RESTATED",
+        "chars": 146,
+        "sha256": "b4504430773d4b10"
+      },
+      {
+        "section": "environment_budget_advice",
+        "status": "RESTATED",
+        "chars": 156,
+        "sha256": "e6c19f1006a45f89"
+      },
+      {
+        "section": "budget_sentence",
+        "status": "RESTATED",
+        "chars": 27,
+        "sha256": "65804bcdf9f36d3a"
+      },
+      {
+        "section": "no_oracle_clause",
+        "status": "TRANSFERRED",
+        "chars": 240,
+        "sha256": "74c65089a5f8fe49"
+      },
+      {
+        "section": "confidence_elicitation",
+        "status": "RESTATED",
+        "chars": 252,
+        "sha256": "b433d81d6c6d7b4f"
+      },
+      {
+        "section": "negative_control_block",
+        "status": "DRY_RUN_ONLY",
+        "chars": 1722,
+        "sha256": "6e2900ab880ed751"
+      }
+    ],
+    "stdout_bytes": 157197,
+    "stderr_tail": "",
+    "overflow_sentinel_in_transcript": true
+  }
+}

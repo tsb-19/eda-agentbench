@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import argparse
 import ast
+import hashlib
 import json
 import os
 import re
@@ -259,53 +260,166 @@ def check_resolved_agent(state: Path) -> dict:
     }
 
 
+def check_grader_invariance() -> dict:
+    """The probe's central structural claim: the grader is not merely unchanged, it is not reached.
+
+    An OpenCode arm is a different `agent_cmd` and nothing else, so the evaluator workspace, the
+    hidden overlay, run_public.sh / run_hidden.sh, the typed provenance/authority oracle and the
+    three anti-cheat checks are all downstream of the substitution. That is only worth anything if
+    the bytes are actually still the frozen bytes, so verify the pins rather than assert the design.
+    """
+    from frozen_membership_verify import collect_pins, SCAN_ROOT
+    pins = collect_pins(SCAN_ROOT)
+    # The gate is "no NEW drift", not "no drift". Two generators were edited after the phase-5B/5C
+    # freeze and that drift is carried forward deliberately (docs/frozen_membership_baseline.json);
+    # a check tuned until it prints nothing would hide the next real mutation, which is the failure
+    # mode the baseline exists to prevent.
+    baseline = json.loads((REPO / "docs/frozen_membership_baseline.json").read_text())
+    known = {e["path"]: e["actual"] for e in baseline.get("mismatch", []) if isinstance(e, dict)}
+    watched = [
+        "eda_agentbench/agentic/runner.py",
+        "eda_agentbench/agentic/workspace.py",
+        "eda_agentbench/evaluator/sta_handoff.py",
+        "eda_agentbench/evaluator/spice_handoff.py",
+        "generators/p15_sta_handoff_gen.py",
+        "scripts/llm_agent_driver.py",
+        "scripts/canonical_integrity.py",
+        "scripts/episode_arbiter.py",
+    ]
+    bad, unpinned, carried = [], [], []
+    for rel in watched:
+        # collect_pins maps path -> {(sha256, manifest_that_recorded_it), ...}; a path may carry
+        # more than one sha only if it is legitimately versioned, so accept any recorded sha.
+        want = {sha for sha, _ in pins.get(rel, set())}
+        if not want:
+            unpinned.append(rel)
+            continue
+        p = REPO / rel
+        got = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else None
+        if got in want:
+            continue
+        # known drift is only acceptable if it is the SAME drift the baseline recorded
+        if known.get(rel) == got:
+            carried.append(rel)
+        else:
+            bad.append(rel)
+    return {
+        "check": "grader / oracle / anti-cheat byte-invariance",
+        "pass": not bad,
+        "detail": {"verified_identical": len(watched) - len(unpinned) - len(carried) - len(bad),
+                   "new_drift": bad,
+                   "carried_baseline_drift": carried,
+                   "not_sha256_pinned": unpinned,
+                   "note": "runner.py is referenced but not sha256-pinned; the probe does not edit "
+                           "it. Carried drift matches docs/frozen_membership_baseline.json exactly."},
+    }
+
+
 def check_sandbox(ws: Path, state: Path) -> dict:
     """Checks 5 and 6a, with a plain shell instead of a model.
 
     A model is not needed to establish that a path is unreachable: bash inside the sandbox is the
     same bash the agent would get, and it is strictly more capable than the agent because it is not
-    mediated by any permission layer.
+    mediated by any permission layer. So a bash that cannot reach the oracle bounds `read`, `write`
+    and `edit` too, which is the only reason one shell probe can stand for four tools.
+
+    This is an escape battery, not a listing. Each stanza is a named bypass the plan requires to be
+    closed -- absolute path, parent traversal, environment disclosure, symlink, mount-table
+    disclosure, and filesystem-wide search -- and the check fails if any of them succeeds.
     """
     import importlib.util
     spec = importlib.util.spec_from_file_location("oc_agent3", AGENT_ENTRY)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
 
+    # Planted before entry: a symlink is the one bypass that is created inside the writable
+    # workspace and so survives the sandbox boundary as an object, even though its target does not.
+    for name, target in (("escape_hidden", DEV_TASK / "hidden"),
+                         ("escape_solution", DEV_TASK / "solution"),
+                         ("escape_repo", REPO)):
+        link = ws / name
+        if not link.is_symlink():
+            link.symlink_to(target)
+
     probe_sh = r"""
 set -u
 echo "ENV_TASK_PATH=${EDA_TASK_PATH:-ABSENT}"
 echo "ENV_TASK_ID=${EDA_TASK_ID:-ABSENT}"
+# any variable whose VALUE spells out the repository or the instance is an equivalent disclosure
+while IFS= read -r line; do
+  k="${line%%=*}"; v="${line#*=}"
+  [ "$k" = "PATH" ] && continue
+  case "$v" in
+    *"$REPO_GUESS"*|*"$DEV_GUESS"*) echo "ENV_VALUE_LEAK=$k" ;;
+  esac
+done < <(env)
 for p in "$REPO_GUESS" "$REPO_GUESS/tasks" "$DEV_GUESS" "$DEV_GUESS/hidden" "$DEV_GUESS/solution"; do
   if [ -e "$p" ]; then echo "REACHABLE=$p"; else echo "absent=$p"; fi
 done
+# symlink escape: the link exists, the target must not resolve
+for l in escape_hidden escape_solution escape_repo; do
+  if [ -e "$WS/$l/" ]; then echo "SYMLINK_ESCAPE=$l"; else echo "symlink_dangles=$l"; fi
+done
+# parent traversal out of the workspace
+if [ -e "$WS/../../../data1" ]; then echo "TRAVERSAL_ESCAPE=data1"; else echo "traversal_blocked"; fi
+# mount table must not disclose the task tree either
+if grep -qE 'eda-agentbench|p15_' /proc/self/mountinfo; then echo "MOUNTINFO_LEAK"; else echo "mountinfo_clean"; fi
+# filesystem-wide search for the oracle, by content not by guessed path
+if find / -xdev -name 'handoff_truth.json' -o -xdev -name 'run_hidden.sh' 2>/dev/null | grep -q .; then
+  echo "ORACLE_FOUND_BY_SEARCH"; else echo "oracle_not_findable"; fi
 if [ -d "$WS" ]; then echo "WORKSPACE_OK=$WS"; else echo "WORKSPACE_MISSING"; fi
 if touch "$WS/.probe_write_test" 2>/dev/null; then echo "WORKSPACE_WRITABLE"; rm -f "$WS/.probe_write_test"; else echo "WORKSPACE_READONLY"; fi
 for d in "$XDG_DATA_HOME/opencode/tool-output" /tmp/opencode; do
   if touch "$d/.seal_test" 2>/dev/null; then echo "SEAL_BROKEN=$d"; rm -f "$d/.seal_test"; else echo "sealed=$d"; fi
 done
+# the probe calls a remote model API, so egress and name resolution must both work; without this
+# every request fails as an infrastructure fault and is misread as model behaviour
+if timeout 15 getent ahostsv4 tokenrhythm.studio >/dev/null 2>&1; then echo "DNS_OK"; else echo "DNS_FAIL"; fi
 """
     inner = ["/bin/bash", "-c", probe_sh]
     argv = mod.bwrap_argv(ws, state, _opencode(), inner,
                           ro_binds=os.environ.get("EDA_PROBE_BIND_RO", "").split(":"),
-                          seal_tool_output=True)
+                          seal_tool_output=True,
+                          config=CONFIG, resolv=mod.write_resolv(state))
     env = mod.scrubbed_env(CONFIG, state)
     env["REPO_GUESS"] = str(REPO)
     env["DEV_GUESS"] = str(DEV_TASK)
     env["WS"] = str(ws)
     # deliberately try to smuggle the pointers back in; the scrub must have removed them already
-    proc = subprocess.run(argv, env=env, capture_output=True, text=True, timeout=120)
+    proc = subprocess.run(argv, env=env, capture_output=True, text=True, timeout=300)
     out = proc.stdout
-    reachable = [l.split("=", 1)[1] for l in out.splitlines() if l.startswith("REACHABLE=")]
-    seal_broken = [l.split("=", 1)[1] for l in out.splitlines() if l.startswith("SEAL_BROKEN=")]
+
+    def tagged(prefix: str) -> list[str]:
+        return [l.split("=", 1)[1] for l in out.splitlines() if l.startswith(prefix)]
+
+    reachable = tagged("REACHABLE=")
+    seal_broken = tagged("SEAL_BROKEN=")
+    # REPO_GUESS / DEV_GUESS / WS are injected by this harness itself to make the probe adversarial;
+    # they are not part of the environment a real episode gets.
+    env_leaks = [k for k in tagged("ENV_VALUE_LEAK=")
+                 if k not in ("REPO_GUESS", "DEV_GUESS", "WS", "_")]
+    symlink_escapes = tagged("SYMLINK_ESCAPE=")
     scrubbed = ("ENV_TASK_PATH=ABSENT" in out and "ENV_TASK_ID=ABSENT" in out)
+    hard_failures = {
+        "env_pointers_scrubbed": scrubbed,
+        "no_env_value_leak": not env_leaks,
+        "no_reachable_task_path": not reachable,
+        "no_symlink_escape": not symlink_escapes,
+        "no_traversal_escape": "TRAVERSAL_ESCAPE=data1" not in out,
+        "mountinfo_clean": "mountinfo_clean" in out,
+        "oracle_not_findable": "oracle_not_findable" in out,
+        "truncation_dir_sealed": not seal_broken,
+        "workspace_writable": "WORKSPACE_WRITABLE" in out,
+        "dns_resolves": "DNS_OK" in out,
+    }
     return {
         "check": "oracle isolation + truncation seal (5, 6a)",
-        "pass": (not reachable) and scrubbed and (not seal_broken)
-                and "WORKSPACE_WRITABLE" in out,
-        "detail": {"env_pointers_scrubbed": scrubbed,
+        "pass": all(hard_failures.values()),
+        "detail": {**hard_failures,
+                   "env_value_leaks": env_leaks,
                    "reachable_task_paths": reachable,
+                   "symlink_escapes": symlink_escapes,
                    "seal_broken_dirs": seal_broken,
-                   "workspace_writable": "WORKSPACE_WRITABLE" in out,
                    "bwrap_rc": proc.returncode,
                    "stderr_tail": _redact(proc.stderr[-400:])},
     }
@@ -333,6 +447,7 @@ def main() -> int:
         results.append(check_file_exposure(ws))
         results.append(check_resolved_config(state))
         results.append(check_resolved_agent(state))
+        results.append(check_grader_invariance())
         results.append(check_sandbox(ws, state))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)

@@ -37,6 +37,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
 # ---------------------------------------------------------------------------------------------
 # The frozen composition, reproduced verbatim from scripts/llm_agent_driver.py so that the
 # transferred sections can be proved byte-identical rather than eyeballed. If the driver ever
@@ -117,6 +119,13 @@ def compose(task_path: Path, steps: int, elicit_confidence: bool) -> tuple[str, 
     if elicit_confidence:
         parts.append(("confidence_elicitation", "RESTATED", "\n\n" + RESTATED_CONFIDENCE))
 
+    # Dry-run negative controls only. This text has no counterpart in any frozen episode and must
+    # never be present in a scored episode, so it is a separately named section with its own status
+    # and it is refused unless the caller is explicitly in dry-run mode.
+    extra = os.environ.get("EDA_PROBE_NEGATIVE_CONTROL", "")
+    if extra:
+        parts.append(("negative_control_block", "DRY_RUN_ONLY", "\n\n" + extra))
+
     message = "".join(text for _, _, text in parts)
     manifest = [{"section": name, "status": status,
                  "chars": len(text),
@@ -131,6 +140,31 @@ def compose(task_path: Path, steps: int, elicit_confidence: bool) -> tuple[str, 
 
 SCRUB = ("EDA_TASK_PATH", "EDA_TASK_ID")
 
+# The frozen driver scrubs two *names*. That is sufficient there because a frozen episode was
+# launched from a plain login shell. This probe is launched from inside another agent harness, so
+# two further classes of variable must go, and neither is a name the driver ever had to consider:
+#
+#   1. Anything whose VALUE spells out the repository root or the instance directory. Scrubbing
+#      EDA_TASK_PATH while leaving OPENCODE_CONFIG=<repo>/opencode_probe/config/opencode.json
+#      hands the agent the real task root by a different name. Measured, not hypothesised -- it was
+#      the one leak the sandbox audit found. The config is therefore bound at a neutral in-sandbox
+#      path and OPENCODE_CONFIG points there.
+#   2. The surrounding harness's own variables and third-party credentials. These have no
+#      counterpart in any frozen episode, so leaving them in would put agent-visible content into
+#      the probe that the frozen arm never had -- a task-information difference, and separately a
+#      credential and de-anonymisation exposure.
+#
+# The provider key itself stays: OpenCode's child `bash` inherits OpenCode's environment and there
+# is no control for that, and the frozen driver's RUN subprocesses saw the key too (it builds
+# run_env as os.environ minus the two pointers). That is parity, and it is recorded as parity.
+SCRUB_PREFIXES = ("CLAUDE", "ANTHROPIC_", "OLLAMA_", "TMUX", "SSH_", "DBUS_", "AWS_", "OPENAI_")
+SCRUB_EXACT = ("AI_AGENT", "DISPLAY", "XAUTHORITY", "API_TIMEOUT_MS", "GIT_EDITOR",
+               "TERM_PROGRAM", "TERM_PROGRAM_VERSION")
+
+# Sandbox-internal paths. Neutral by construction: they name neither the repository nor the task.
+IN_SANDBOX_CONFIG = "/tmp/opencode-probe-config.json"
+RESOLV_STUB = "/run/systemd/resolve/stub-resolv.conf"
+
 # Escape hatches that must be set, each closing an injection source that has no counterpart in a
 # frozen episode. Values are strings because they go into the child environment.
 HARDENING_ENV = {
@@ -142,10 +176,42 @@ HARDENING_ENV = {
 }
 
 
-def scrubbed_env(config: Path, state_dir: Path) -> dict:
-    env = {k: v for k, v in os.environ.items() if k not in SCRUB}
+def _secret_markers() -> list[str]:
+    """Path strings that must not survive into the sandboxed environment, by name or by value."""
+    markers = []
+    tp = os.environ.get("EDA_TASK_PATH")
+    if tp:
+        markers += [tp, str(Path(tp).resolve())]
+    tid = os.environ.get("EDA_TASK_ID")
+    if tid:
+        markers.append(tid)
+    markers.append(str(REPO_ROOT))
+    return [m for m in markers if m]
+
+
+def scrubbed_env(config: Path, state_dir: Path, *, in_sandbox_config: str = IN_SANDBOX_CONFIG,
+                 api_key: str | None = None) -> dict:
+    markers = _secret_markers()
+
+    def leaks(value: str) -> bool:
+        return any(m in value for m in markers)
+
+    env: dict[str, str] = {}
+    for k, v in os.environ.items():
+        if k in SCRUB or k in SCRUB_EXACT or k.startswith(SCRUB_PREFIXES):
+            continue
+        if k == "PATH":
+            # PATH cannot simply be dropped; filter the offending components instead, so the EDA
+            # tool shims survive while no repository path is disclosed.
+            env[k] = ":".join(c for c in v.split(":") if c and not leaks(c))
+            continue
+        if leaks(v):
+            continue
+        env[k] = v
     env.update(HARDENING_ENV)
-    env["OPENCODE_CONFIG"] = str(config)
+    env["OPENCODE_CONFIG"] = in_sandbox_config
+    if api_key:
+        env["API_KEY"] = api_key
     # Keep OpenCode's state inside the episode's own directory, so nothing leaks across episodes
     # and the truncation directory is a known path we can control.
     env["XDG_DATA_HOME"] = str(state_dir / "data")
@@ -156,7 +222,8 @@ def scrubbed_env(config: Path, state_dir: Path) -> dict:
 
 
 def bwrap_argv(workspace: Path, state_dir: Path, opencode: Path, inner: list[str],
-               ro_binds: list[str], seal_tool_output: bool) -> list[str]:
+               ro_binds: list[str], seal_tool_output: bool,
+               config: Path | None = None, resolv: Path | None = None) -> list[str]:
     """Sandbox in which the task tree is simply not mounted."""
     argv = [
         "bwrap",
@@ -186,8 +253,55 @@ def bwrap_argv(workspace: Path, state_dir: Path, opencode: Path, inner: list[str
         sealed.mkdir(parents=True, exist_ok=True)
         for p in (state_dir / "data/opencode/tool-output", Path("/tmp/opencode")):
             argv += ["--ro-bind", str(sealed), str(p)]
+    if config is not None:
+        # Bound at a neutral path so the agent's own environment never spells out the repository
+        # root -- and bound FROM a neutral path too, because /proc/self/mountinfo discloses the
+        # source of every bind. Binding the repository copy directly closed the environment leak
+        # and reopened the same disclosure one file lower down; the escape battery caught it.
+        staged = state_dir / "opencode.json"
+        staged.write_bytes(Path(config).read_bytes())
+        argv += ["--ro-bind", str(staged), IN_SANDBOX_CONFIG]
+    if resolv is not None:
+        # The network namespace is deliberately NOT unshared -- the probe calls a remote model API.
+        # But /run is not mounted, and on this host /etc/resolv.conf is a symlink into /run, so
+        # without this the sandbox has working egress and no name resolution: every model request
+        # would fail as an infrastructure fault. Binding one file is narrower than exposing /run.
+        argv += ["--ro-bind", str(resolv), RESOLV_STUB]
     argv += ["--chdir", str(workspace), "--"]
     return argv + inner
+
+
+def write_resolv(state_dir: Path) -> Path:
+    """Materialise the host's upstream nameservers as an explicit, recorded sandbox file."""
+    servers: list[str] = []
+    try:
+        out = subprocess.run(["resolvectl", "status"], capture_output=True, text=True, timeout=15)
+        for line in out.stdout.splitlines():
+            if "DNS Servers:" in line:
+                servers += line.split(":", 1)[1].split()
+    except Exception:
+        pass
+    if not servers:
+        servers = ["8.8.8.8", "8.8.4.4"]
+    ipv4 = [s for s in dict.fromkeys(servers) if ":" not in s][:3]
+    p = state_dir / "resolv.conf"
+    p.write_text("".join(f"nameserver {s}\n" for s in ipv4) or "nameserver 8.8.8.8\n")
+    return p
+
+
+def _provider_key() -> str:
+    """Same credential and same convention as the frozen arm: .env TR_API_KEY exported as API_KEY
+    (scripts/phase8a_run.py:312). The probe introduces no new credential path."""
+    key = os.environ.get("API_KEY") or os.environ.get("TR_API_KEY") or ""
+    if not key:
+        env_file = REPO_ROOT / ".env"
+        if env_file.is_file():
+            for line in env_file.read_text().splitlines():
+                if line.startswith("TR_API_KEY="):
+                    key = line.split("=", 1)[1].strip().strip("'\"")
+    if not key:
+        raise SystemExit("opencode_probe_agent: TR_API_KEY not provisioned (expected in .env)")
+    return key
 
 
 def main() -> int:
@@ -235,7 +349,8 @@ def main() -> int:
              message]
     argv = bwrap_argv(workspace, state_dir, opencode, inner,
                       ro_binds=os.environ.get("EDA_PROBE_BIND_RO", "").split(":"),
-                      seal_tool_output=not a.no_seal_tool_output)
+                      seal_tool_output=not a.no_seal_tool_output,
+                      config=a.config, resolv=write_resolv(state_dir))
 
     if a.emit_argv_only:
         # redact the message, which is many KB and is emitted separately
@@ -243,8 +358,10 @@ def main() -> int:
         print(json.dumps(shown, indent=2))
         return 0
 
-    env = scrubbed_env(a.config, state_dir)
+    env = scrubbed_env(a.config, state_dir, api_key=_provider_key())
     assert not any(k in env for k in SCRUB), "oracle pointers survived the scrub"
+    leaked = {k for k, v in env.items() if k != "PATH" and any(m in v for m in _secret_markers())}
+    assert not leaked, f"repository/task path survived the scrub in: {sorted(leaked)}"
 
     # Wall clock, mirroring the runner's own subprocess timeout with margin, as the driver does.
     proc = subprocess.run(argv, env=env, capture_output=True, text=True,
