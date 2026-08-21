@@ -2,7 +2,7 @@
 
 # 审计 LLM Agent Harness 的泛化论断 —— 可复现产物
 
-本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 **v18**）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。更早的冻结点（v14 及之前）仍可凭 [`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md) 中的 commit 与哈希精确恢复。
+本分支是单篇论文的产物：***Auditing Generalization Claims for LLM Agent Harnesses: Semantic Binding and Measurement Validity***（ICLR 2027 投稿，手稿 **v19**）。论文在 [`submission/`](submission/)，用 `cd submission && make` 构建。更早的冻结点（v14 及之前）仍可凭 [`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md) 中的 commit 与哈希精确恢复。
 
 > 想找 **EDA-AgentBench** —— 那个 2892 任务的商业 EDA 基准？它在 `master` 上。本分支只保留论文涉及的内容 —— 见 [`docs/REMOVED.zh.md`](docs/REMOVED.zh.md)。
 

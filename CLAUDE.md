@@ -3,7 +3,7 @@
 ## What this branch is
 
 `iclr2027-artifact` is the reproducibility artifact for one paper: **Auditing Generalization Claims
-for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v18**
+for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v19**
 in `submission/`; v14 and earlier are immutable historical freezes).
 
 It is a **slimmed** branch. `master` is also EDA-AgentBench, a 2892-task commercial-EDA benchmark;
@@ -46,7 +46,7 @@ Violating any of these silently invalidates the paper's claims. They are not sty
    `agentic/runner.py`, `task/{loader,validator}.py`, `evaluator/workflow_handoff.py`,
    `scripts/check`, `scripts/validate_dataset.py`, every test, and the docs.
 3. **`submission/` develops forward; past versions are immutable.** The working manuscript is
-   **v18** and may be edited. What may never happen is the other direction: do not rewrite a
+   **v19** and may be edited. What may never happen is the other direction: do not rewrite a
    historical commit or tag, do not edit a past version's section in `FREEZE_HASHES.md`, and do not
    retroactively present a post-hoc finding as preregistered. Every past freeze (v14 and earlier)
    must stay recoverable byte-for-byte from its recorded commit and hashes — verify with a rebuild
@@ -83,7 +83,7 @@ python3 scripts/phase8a_claim_statistics.py --check     # arm1 k=6: -2.8 / [-31.
 python3 scripts/phase8a_arm2_gate.py          --check    # verifies the recorded ARM2_NOT_RUN decision
 python3 scripts/phase8a_arm2_cost_calibration.py --check # projected ¥53.14 vs realized ¥38.46
 python3 scripts/slim_link_check.py                     # no dangling repository references
-cd submission && make distclean && make                # 24 pp, 324 520 bytes
+cd submission && make distclean && make                # 24 pp, 325 053 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 
@@ -145,6 +145,17 @@ Four further rules attach to that cell, the first three enforced by tests:
    calculation, and no verdict may be derived from it. Applying a looser standard to this post-hoc
    claim than to the treatment effect (*p*=0.45 → "not established") is the exact failure the paper
    is about.
+
+**The cross-BATCH concordance is a different, better-supported contrast, and is still bounded.** Arm
+1's k=2 and k=6 batches share a model and share instances; only depth changes, so the degenerate-
+agreement objection above does not apply and the finding stands. What it licenses is that the
+instance-level heterogeneity is **not wholly attributable** to sampling noise at k=2 — never "is a
+property of the instances, not sampling noise", which v18 still said in the appendix while §5 said
+the weaker thing about the same comparison. The bound is the paper's own k=6 batch: 7 of 36 cells
+disagree internally across six identical repetitions, so run noise persists at k=6 and recurrence
+excludes low repetition as the *whole* explanation, not as a contributor. Both statements must sit at
+that strength and carry the 7-of-36 figure; `test_the_cross_batch_concordance_excludes_only_the_whole_explanation`
+fails if either drifts.
 
 ## Measurement-validity rules
 

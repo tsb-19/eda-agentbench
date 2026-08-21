@@ -3,7 +3,7 @@
 # Auditing Generalization Claims for LLM Agent Harnesses — reproducibility artifact
 
 This branch is the artifact for one paper: ***Auditing Generalization Claims for LLM Agent
-Harnesses: Semantic Binding and Measurement Validity*** (ICLR 2027 submission, manuscript **v18**).
+Harnesses: Semantic Binding and Measurement Validity*** (ICLR 2027 submission, manuscript **v19**).
 The paper is in [`submission/`](submission/); build it with `cd submission && make`. Earlier freezes
 (v14 and before) stay exactly recoverable from the commits and hashes in
 [`submission/FREEZE_HASHES.md`](submission/FREEZE_HASHES.md).

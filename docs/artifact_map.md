@@ -47,7 +47,7 @@ Family designs: `docs/synthetic_phase5a_family_specs.md`,
 | Paper location | Claim | Where the evidence lives |
 |---|---|---|
 | §1, Fig. 1 | the five supports S0 / S1 / S2-M / S2-F / S3 | prose framework; the cells it names resolve through the rows below |
-| §3.1, Table 9 (App. E) | claim-qualification standard | prose only — a stated standard, not a measurement |
+| §3.1, Table 9 (App. E) | claim-qualification standard | prose only — a stated standard, not a measurement. Its Table 8 row *post hoc sign agreement between two panels differing in more than one factor* was added in v19 so the standard visibly covers this paper's own post-hoc concordance finding; the row is generic and carries no p-value |
 | §3, Table 6 (App. A) | the worked instance: 4 shipped evidence sources, each pairwise plausible, each PrimeTime-green | `tasks/p14_workflow_handoff/workflow_handoff_0009/files/report_A_role_swap.rpt`, `report_B_role_stale.rpt`, `report_C_role_pvt.rpt`, `evidence_D_role_mismatch.json` |
 | §3 | 294 candidate assignments, exactly one satisfies K1–K5 | uniqueness enumeration in `generators/p14_workflow_handoff_gen.py`; hidden truth at `workflow_handoff_0009/hidden/handoff_truth.json`. **Naming:** the paper says **K1–K5** for the five *task constraints*; the frozen task files number the same five C1–C5, which collides with the *clarity components* C1–C7 — constraint K5 (sign-off pair) is what component C6 asserts. The stimuli keep their own numbering because rewording them would change the measurement |
 | §3 | how the oracle adjudicates; the two never-collapsed failure subtypes | `workflow_handoff_0009/hidden/grade_workflow.py` |
@@ -261,11 +261,14 @@ This is **post hoc and not preregistered**, exactly as Phase-7A's own `panel_ana
 (`post_hoc: true`). It is also not pooling: no number is summed across the two studies. Nor is it a
 replication under the paper's own qualification standard — both batches re-run the *same* frozen
 instances, which is repeated measurement of stability, not an enlargement of any projection. What it
-supports is narrow and useful: the instance-level heterogeneity is a property of the *instances*
-rather than sampling noise at k=2, since it survives tripling the repetition depth in an independent
-execution. It does **not** license any claim about either backend from the other, and it does not mean
-the aggregate direction replicated — it did not, and that contrast between a stable structure and an
-unstable aggregate is the observation.
+supports is narrow and useful: the instance-level heterogeneity is **not wholly attributable** to
+sampling noise at k=2, since it survives tripling the repetition depth in an independent execution.
+It does not exclude run noise — 7 of 36 cells still disagree internally across six identical
+repetitions at k=6 — so what recurrence rules out is low repetition as the *whole* explanation of the
+heterogeneity, not as a contributor to it. This is the same strength §5 uses for the same comparison,
+and a guard test fails if the two drift apart. It does **not** license any claim about either backend
+from the other, and it does not mean the aggregate direction replicated — it did not, and that
+contrast between a stable structure and an unstable aggregate is the observation.
 
 Cross-check: `scripts/phase7c_claim_statistics.py --check` → `sta_finite_panel.panel_anatomy` in
 `reports/synthetic_p14_claim_statistics.json`, against `cross_batch_structural_concordance` in
