@@ -3,7 +3,7 @@
 ## What this branch is
 
 `iclr2027-artifact` is the reproducibility artifact for one paper: **Auditing Generalization Claims
-for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v16**
+for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v18**
 in `submission/`; v14 and earlier are immutable historical freezes).
 
 It is a **slimmed** branch. `master` is also EDA-AgentBench, a 2892-task commercial-EDA benchmark;
@@ -46,7 +46,7 @@ Violating any of these silently invalidates the paper's claims. They are not sty
    `agentic/runner.py`, `task/{loader,validator}.py`, `evaluator/workflow_handoff.py`,
    `scripts/check`, `scripts/validate_dataset.py`, every test, and the docs.
 3. **`submission/` develops forward; past versions are immutable.** The working manuscript is
-   **v16** and may be edited. What may never happen is the other direction: do not rewrite a
+   **v18** and may be edited. What may never happen is the other direction: do not rewrite a
    historical commit or tag, do not edit a past version's section in `FREEZE_HASHES.md`, and do not
    retroactively present a post-hoc finding as preregistered. Every past freeze (v14 and earlier)
    must stay recoverable byte-for-byte from its recorded commit and hashes — verify with a rebuild
@@ -83,7 +83,7 @@ python3 scripts/phase8a_claim_statistics.py --check     # arm1 k=6: -2.8 / [-31.
 python3 scripts/phase8a_arm2_gate.py          --check    # verifies the recorded ARM2_NOT_RUN decision
 python3 scripts/phase8a_arm2_cost_calibration.py --check # projected ¥53.14 vs realized ¥38.46
 python3 scripts/slim_link_check.py                     # no dangling repository references
-cd submission && make distclean && make                # 23 pp, 321 456 bytes
+cd submission && make distclean && make                # 24 pp, 324 520 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 
@@ -125,7 +125,7 @@ restate any of these more strongly than the paper does; the paper is *about* not
 cell holds 72 `deepseek-v4-pro` episodes at k=2 (Phase-8A arm 2): +12.5 pp, 5 instances improving to
 2 declining, sign test *p*=0.45, band -16.7 to +41.7. So the point estimate favours BundleS and the
 discrimination reaches no conclusion — "not established", never "shown absent" and never "no effect".
-Three further rules attach to that cell and are enforced by tests:
+Four further rules attach to that cell, the first three enforced by tests:
 
 1. **Its execution is not preregistered.** It ran after the preregistered cost gate returned
    `ARM2_NOT_RUN`. Never write that it was preregistered and executed per `docs/phase8a_prereg.md`.
@@ -134,7 +134,17 @@ Three further rules attach to that cell and are enforced by tests:
 2. **k=2 carries no magnitude claim, and its aggregate is not comparable to arm 1's k=6 aggregate.**
    Arm 1 measured 7 of 36 cells disagreeing across six identical repetitions.
 3. **Nothing is pooled** across Phase-7A, arm 1 and arm 2. No n=24, no k=8, no summed episode count.
-   The cross-model structural agreement (10/12 class, 4/5 sign) is post hoc and confounded with k.
+4. **The cross-model concordance is descriptive, and most of it is degenerate.** 10 of 12 instances
+   classify identically, but **5 of those agreements are floor/floor or ceiling/ceiling** — no
+   expressible difference in either arm, so they record shared instance difficulty, not a shared
+   response. The non-degenerate content is 4 of the 5 jointly informative instances agreeing in
+   sign, which arises with probability 0.1875 under independent signs. Report it as *consistent with
+   recurring task-specific structure*. Never as "nearly model-invariant", never as "heterogeneity is
+   a property of the instances rather than the backend" — both were in v17 and both were corrected
+   in v18. The sign-exchangeability figure is appendix-only, labelled a descriptive sensitivity
+   calculation, and no verdict may be derived from it. Applying a looser standard to this post-hoc
+   claim than to the treatment effect (*p*=0.45 → "not established") is the exact failure the paper
+   is about.
 
 ## Measurement-validity rules
 

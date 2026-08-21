@@ -20,6 +20,7 @@ import importlib.util
 import io
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -1550,7 +1551,14 @@ def test_the_artifact_map_states_s3_as_measured_not_established_and_not_preregis
     assert "没有为那次分析弱化任何规则" in zh
     # k=2 carries no magnitude claim, and nothing is pooled.
     assert "k=2 carries no magnitude claim" in en and "k=2 不承载任何幅度主张" in zh
-    assert "post hoc and confounded" in en and "事后且存在混淆" in zh
+    # The cross-model concordance carries all three of its limits: post hoc, confounded, and
+    # mostly degenerate. v17 stated it as an attribution and v18 corrected that, so the map has to
+    # say what the count does NOT license as explicitly as what it does.
+    assert "post hoc, confounded and mostly degenerate" in en
+    assert "事后、存在混淆，且大部分是退化的" in zh
+    assert "5 of those agreements are degenerate" in en and "其中 5 处一致是退化的" in zh
+    assert "Not** licensed: model-invariant instance structure" in en
+    assert "**不允许的措辞**：实例结构与模型无关" in zh
     # Phase-8A is cited from v15 onward; v14 predates it and must stay recoverable.
     assert "primary S2-F evidence in v15" in en and "v15 中的 S2-F 主要证据" in zh
     assert "**v14 does not cite it**" in en and "**v14 并未引用它**" in zh
@@ -1997,6 +2005,59 @@ def test_the_k2_magnitude_limit_travels_with_the_arm2_numbers():
     assert lim["k"] == 2
     assert "7 of 36" in lim["why_it_binds"]
     assert "equally resolved" in lim["forbidden_comparison"]
+
+
+def test_the_cross_model_concordance_is_never_stated_as_an_attribution():
+    """v17 wrote this post-hoc concordance as a claim about where heterogeneity lives.
+
+    Its evidence does not license that. 5 of the 10 class agreements are floor/floor or
+    ceiling/ceiling -- no expressible difference in either arm, so they record shared instance
+    difficulty, not a shared response -- and the non-degenerate content is 4 of 5 signs. Stating
+    that as "nearly model-invariant" applies a looser standard to a post-hoc structural claim than
+    the paper applies to its own treatment effect (p=0.45 -> not established), which is the exact
+    failure the paper is about. Guard the wording in the manuscript and in the machine record.
+    """
+    forbidden = (
+        "model-invariant",
+        "nearly invariant",
+        "property of the instances rather than of the backend",
+        "property of the instances, not evidence of backend invariance",
+        "locates the heterogeneity in the INSTANCES",
+    )
+    src = MAIN_TEX.read_text()
+    x = json.loads(STATS_JSON.read_text())["cross_model_structural_concordance"]
+    blob = json.dumps(x)
+    for phrase in forbidden:
+        # the manuscript may only use these phrases to DENY them ("does not establish ...")
+        for hit in re.finditer(re.escape(phrase), src):
+            window = src[max(0, hit.start() - 120):hit.start()]
+            assert ("not" in window or "\\emph{not}" in window), (
+                f"main.tex asserts {phrase!r} without a negation in front of it")
+        assert phrase not in blob or "not" in blob, (
+            f"the machine record asserts {phrase!r}")
+    # the headline count may never travel without its degenerate breakout
+    assert x["class_agreements_that_are_degenerate"] == 5
+    assert x["instances_classified_identically"] == 10
+    assert "shared instance difficulty" in x["why_degenerate_agreement_is_not_evidence"]
+    assert "\\StatXModelDegenerate" in src, (
+        "the 10-of-12 count appears without the degenerate breakout beside it")
+
+
+def test_the_sign_exchangeability_figure_is_appendix_only_and_is_not_a_test():
+    """A descriptive sensitivity figure, not a hypothesis test, and no verdict rests on it."""
+    src = MAIN_TEX.read_text()
+    x = json.loads(STATS_JSON.read_text())["cross_model_structural_concordance"]
+    assert abs(x["sign_exchangeability_tail_p"] - 0.1875) < 1e-9
+    disclaimer = x["sign_exchangeability_tail_p_is_not_a_hypothesis_test"]
+    assert "post hoc" in disclaimer and "not preregistered" in disclaimer
+    assert "establishes nothing" in disclaimer
+    appendix_at = src.index("\\appendix")
+    uses = [m.start() for m in re.finditer(re.escape("\\StatXModelSignExchP"), src)]
+    assert uses, "the sensitivity figure must be stated somewhere"
+    for at in uses:
+        assert at > appendix_at, "the sign-exchangeability figure must not sit in the main text"
+    # and it must be labelled where it is used
+    assert "descriptive sensitivity figure, not a preregistered test" in src
 
 
 def test_programme_spend_is_one_figure_within_the_cap():

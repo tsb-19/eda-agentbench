@@ -62,6 +62,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import sys
 from pathlib import Path
 
@@ -324,6 +325,22 @@ def compute() -> dict:
     xm_agree = [c["instance"] for c in xm_both if c["same_sign"]]
     xm_disagree = [c["instance"] for c in xm_both if c["same_sign"] is False]
     a2_model_dependence = len(xm_disagree) > len(xm_both) / 2
+    # How much of the class agreement is DEGENERATE for the claim at issue. An instance at the floor
+    # or the ceiling in both compared conditions has no expressible treatment difference in either
+    # arm, so it cannot discriminate a shared response structure from a model-dependent one -- its
+    # agreement records shared instance difficulty, not a shared response. Splitting it out keeps
+    # the headline count from being read as though every agreeing instance had contributed evidence.
+    xm_degenerate = [c["instance"] for c in cross_model
+                     if c["same_class"] and c["arm1_k6_class"] != "informative"]
+    # Descriptive sensitivity figure ONLY, and never a hypothesis test: how often would this many
+    # signs (or more) agree if each instance's arm-2 sign were an independent coin flip against its
+    # arm-1 sign. The five jointly informative instances were identified after the fact and the
+    # exchangeability null was not preregistered, so this bounds how impressed to be -- it licenses
+    # nothing.
+    xm_sign_exch_p = (
+        sum(math.comb(len(xm_both), j) for j in range(len(xm_agree), len(xm_both) + 1))
+        / 2 ** len(xm_both)
+    ) if xm_both else None
 
     return {
         "schema": "phase8a_claim_statistics/v1",
@@ -532,16 +549,40 @@ def compute() -> dict:
             ),
             "instances_classified_identically": len([c for c in cross_model if c["same_class"]]),
             "instances_total": len(cross_model),
+            "class_agreements_that_are_degenerate": len(xm_degenerate),
+            "degenerate_agreeing_members": xm_degenerate,
+            "why_degenerate_agreement_is_not_evidence": (
+                "an instance at the floor or the ceiling in both compared conditions has no "
+                "expressible treatment difference in EITHER arm, so it cannot discriminate a "
+                "shared response structure from a model-dependent one: its agreement records "
+                "shared instance difficulty, not a shared response. (The agreement is not "
+                "logically necessary -- the second model could have solved a floor instance -- it "
+                "is uninformative about the claim at issue.) Only the instances informative in "
+                "BOTH arms could have disagreed about response direction, which is why the sign "
+                "agreement below, and not the headline class count, is the non-degenerate content "
+                "of this comparison."
+            ),
             "informative_in_both": [c["instance"] for c in xm_both],
             "sign_agreement_among_informative_in_both": [len(xm_agree), len(xm_both)],
             "sign_agreeing_members": xm_agree,
             "sign_disagreeing_members": xm_disagree,
+            "sign_exchangeability_tail_p": xm_sign_exch_p,
+            "sign_exchangeability_tail_p_is_not_a_hypothesis_test": (
+                "descriptive sensitivity figure only. The jointly informative subset was "
+                "identified post hoc and the independent-coin-flip null was not preregistered, so "
+                "this quantity bounds how impressed to be and establishes nothing. It is not "
+                "reported in the main text and no verdict is derived from it."
+            ),
             "model_dependence_branch_fires": a2_model_dependence,
             "reading": (
-                "the same instances tend to carry the effect in the same direction under both "
-                "models, which locates the heterogeneity in the INSTANCES rather than in the "
-                "model. It does not establish transfer of the aggregate effect, which neither "
-                "arm establishes."
+                "among the instances informative under both arms, most carry the effect in the "
+                "same direction. This is a descriptive concordance consistent with recurring "
+                "task-specific structure. It does NOT establish that the response structure is "
+                "model-invariant or that the heterogeneity is a property of the instances rather "
+                "than the backend: the arms differ in the model and in k together, the subset was "
+                "chosen post hoc, and the agreement is too small to distinguish from chance. Nor "
+                "does it establish transfer of the aggregate effect, which neither arm "
+                "establishes."
             ),
             "per_instance": cross_model,
         },
@@ -637,8 +678,12 @@ def render_tex(st: dict) -> str:
     x = st["cross_model_structural_concordance"]
     macro("StatXModelSame", str(x["instances_classified_identically"]))
     macro("StatXModelTotal", str(x["instances_total"]))
+    macro("StatXModelDegenerate", str(x["class_agreements_that_are_degenerate"]))
     macro("StatXModelSignAgree", str(x["sign_agreement_among_informative_in_both"][0]))
     macro("StatXModelSignOf", str(x["sign_agreement_among_informative_in_both"][1]))
+    # Appendix-only, and labelled there as a descriptive sensitivity figure: see
+    # sign_exchangeability_tail_p_is_not_a_hypothesis_test in the JSON record.
+    macro("StatXModelSignExchP", f"{x['sign_exchangeability_tail_p']:.4f}")
 
     m = st["money"]
     macro("StatEightASpend", f"{m['arm1_cny']:.2f}")

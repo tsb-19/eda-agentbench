@@ -470,8 +470,16 @@
     "what_it_is_not": "evidence about either batch's serving endpoint, and not a replication in the sense of the paper's qualification standard: the k=6 batch re-runs the same frozen instances, which is repeated measurement of stability, not scope."
   },
   "cross_model_structural_concordance": {
+    "class_agreements_that_are_degenerate": 5,
     "confound": "arm 1 and arm 2 differ in the MODEL and in k (6 vs 2). Agreement therefore cannot be attributed to the model alone, and this is not an estimate of anything -- it is a description of which instances carry the effect.",
     "confounded": true,
+    "degenerate_agreeing_members": [
+      "p15_eval_0005",
+      "p15_eval_0006",
+      "p15_eval_0008",
+      "p15_eval_0009",
+      "p15_eval_0010"
+    ],
     "informative_in_both": [
       "p15_eval_0004",
       "p15_eval_0007",
@@ -607,7 +615,7 @@
     ],
     "post_hoc": true,
     "preregistered": false,
-    "reading": "the same instances tend to carry the effect in the same direction under both models, which locates the heterogeneity in the INSTANCES rather than in the model. It does not establish transfer of the aggregate effect, which neither arm establishes.",
+    "reading": "among the instances informative under both arms, most carry the effect in the same direction. This is a descriptive concordance consistent with recurring task-specific structure. It does NOT establish that the response structure is model-invariant or that the heterogeneity is a property of the instances rather than the backend: the arms differ in the model and in k together, the subset was chosen post hoc, and the agreement is too small to distinguish from chance. Nor does it establish transfer of the aggregate effect, which neither arm establishes.",
     "sign_agreeing_members": [
       "p15_eval_0004",
       "p15_eval_0007",
@@ -621,7 +629,10 @@
     "sign_disagreeing_members": [
       "p15_eval_0013"
     ],
-    "what_it_is": "a comparison of per-instance CLASS and SIGN across two models on the same twelve frozen instances. No quantity is summed, averaged or differenced."
+    "sign_exchangeability_tail_p": 0.1875,
+    "sign_exchangeability_tail_p_is_not_a_hypothesis_test": "descriptive sensitivity figure only. The jointly informative subset was identified post hoc and the independent-coin-flip null was not preregistered, so this quantity bounds how impressed to be and establishes nothing. It is not reported in the main text and no verdict is derived from it.",
+    "what_it_is": "a comparison of per-instance CLASS and SIGN across two models on the same twelve frozen instances. No quantity is summed, averaged or differenced.",
+    "why_degenerate_agreement_is_not_evidence": "an instance at the floor or the ceiling in both compared conditions has no expressible treatment difference in EITHER arm, so it cannot discriminate a shared response structure from a model-dependent one: its agreement records shared instance difficulty, not a shared response. (The agreement is not logically necessary -- the second model could have solved a floor instance -- it is uninformative about the claim at issue.) Only the instances informative in BOTH arms could have disagreed about response direction, which is why the sign agreement below, and not the headline class count, is the non-degenerate content of this comparison."
   },
   "k6_panel": {
     "band_interpretation": "how far the point estimate moves when panel membership is resampled; not a confidence interval, since the realized panel's composition carries no sampling uncertainty",

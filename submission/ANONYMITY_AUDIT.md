@@ -1,3 +1,19 @@
+# Anonymity Audit — manuscript v18 (official ICLR 2027 style; double-blind)
+
+**Result: PASS.** Re-scanned on the v18 PDF (`e9a9c8bc…`, 324 591 B, 24 pp; main text 9 pp). v18 is a
+claim correction: the post-hoc cross-model concordance is stated descriptively instead of as an
+attribution. It runs no model call, adds no episode and alters no experimental record.
+
+| Check | Result |
+|---|---|
+| PDF metadata (pdfinfo) | Title/Author/Subject/Keywords empty; Creator `LaTeX with hyperref`, Producer `pdfTeX-1.40.25` — both generic. PASS |
+| PDF text + **all generated tables**: infra leaks (tongsb, /data1, /home, eda-agentbench, harbor-framework, laude-institute, 192.168, 10.x, tsb@) | **0 matches.** PASS |
+| PDF text: acknowledgements, github.com, ORCID, institutional e-mail | **0 matches.** PASS |
+| Serving-provider identity | `paratera`, `tokenrhythm`, `llmapi`, `.studio` — **0 matches** in the PDF and in every generated table, as in v15/v17. A regression test in `tests/test_phase8a.py` asserts this. PASS |
+| Generated Phase-8A tables (`phase8a_stats.tex`, `sta12_k6.tex`, `sta12_arm2.tex`, `sta_concordance.tex`) | Task instance ids (`0004`–`0015`), condition labels, integers and rates only. The two macros v18 adds (`StatXModelDegenerate`, `StatXModelSignExchP`) are an integer and a probability. No author, host, path or licence-server string. PASS |
+| Bibliography | 20 entries, unchanged from v14. PASS |
+| Reminder, unchanged | The **repository** is not anonymised: ~212 frozen custody files under `reports/evidence/`, and the Phase-8A custody tree, still carry a username or host name and cannot be rewritten without breaking the custody chain. A double-blind supplement needs a separate sanitising export. The **PDF** is clean, which is what the double-blind requirement covers. |
+
 # Anonymity Audit — manuscript v15 (official ICLR 2027 style; double-blind)
 
 **Result: PASS.** Re-scanned on the v17 PDF (`3dfa15f9…`, 323 565 B, 24 pp; main text 9 pp). v15 makes
