@@ -2129,3 +2129,47 @@ def test_every_arm2_episode_is_committed_and_none_was_invalid():
     assert rep["episodes_graded"] == 72
     assert rep["k_per_condition_observed"] == [2]
 
+
+
+def test_the_paper_never_names_its_own_object_a_harness():
+    """v20 renamed the object of study; the word may stay only where it points elsewhere.
+
+    The defect: the title said "LLM Agent Harnesses" while section 2 defined a harness as the
+    task-level information structure -- a *different layer* from the agent scaffold that every cited
+    harness paper varies. A reader meets the title first, so the paper read as a scaffold study that
+    never varied a scaffold. "harness" may still name other people's object (citations, the
+    positioning table) or our own test software; it may never again name what we intervene on.
+    """
+    src = MAIN_TEX.read_text()
+
+    title = src[src.index("\\title{"):src.index("}", src.index("\\title{")) + 1]
+    assert "arness" not in title, f"the title names our object a harness: {title!r}"
+    assert "Task-Information Intervention" in title
+
+    for phrase in ("\\emph{harness}", "\\emph{harness effect}", "harness intervention",
+                   "harness-effect claim", "Harness scope", "harness information content",
+                   "Harness Effect Audit Protocol", "directional harness claims"):
+        assert phrase not in src, f"{phrase!r} names our object a harness again"
+
+    # the layer distinction is stated in the framing, before any result
+    at = src.index("no result here is a harness effect in that sense")
+    assert at < src.index("\\section{Study I"), "the disambiguation must precede the results"
+    para = src[src.rindex("\\paragraph", 0, at):at]
+    assert "agent scaffold" in para and "task-information intervention" in para
+
+    # and the rename must not be used to bury the scope limit it reframes
+    lim = src[src.index("\\section{Limitations"):src.index("\\section{Conclusion")]
+    assert "Scaffold scope" in lim and "scaffoldeffect" in lim
+
+
+def test_the_measured_findings_are_named_and_bundles_is_labelled_a_case():
+    """What the paper measured leads; what it applied the framework to is labelled as such.
+
+    Both findings were subordinate clauses through v19, which let the paper read as an intervention
+    study with four "not established" verdicts rather than as the measurement result it is.
+    """
+    t = _tex()
+    assert t.count("an evaluation cell is not point-valued") == 2, \
+        "the cell-instability finding must be named in both the abstract and section 5"
+    assert "the case study the framework is applied to, not the paper's claim" in t, \
+        "BundleS must be labelled a case study rather than the paper's claim"
