@@ -2027,20 +2027,61 @@ def test_the_cross_model_concordance_is_never_stated_as_an_attribution():
     src = MAIN_TEX.read_text()
     x = json.loads(STATS_JSON.read_text())["cross_model_structural_concordance"]
     blob = json.dumps(x)
+    # Table 8 catalogues unlicensed wordings, so a forbidden phrase is *expected* in its third
+    # ("Not licensed") column. That is a structural negation and is checked as one -- the phrase
+    # must fall after the second column separator on its own row -- rather than by relaxing the
+    # prose rule, which still applies to every other occurrence in the manuscript.
+    tbl_lo = src.index("\\label{tab:wording}")
+    tbl_hi = src.index("\\end{table}", tbl_lo)
+
+    def excused_by_table_column(at):
+        if not (tbl_lo < at < tbl_hi):
+            return False
+        row_lo = src.rindex("\n", 0, at) + 1
+        return src.count("&", row_lo, at) >= 2
+
     for phrase in forbidden:
         # the manuscript may only use these phrases to DENY them ("does not establish ...")
         for hit in re.finditer(re.escape(phrase), src):
             window = src[max(0, hit.start() - 120):hit.start()]
-            assert ("not" in window or "\\emph{not}" in window), (
+            assert ("not" in window or "\\emph{not}" in window
+                    or excused_by_table_column(hit.start())), (
                 f"main.tex asserts {phrase!r} without a negation in front of it")
         assert phrase not in blob or "not" in blob, (
             f"the machine record asserts {phrase!r}")
+    # the shape must stay in the qualification table: this is the paper's own standard applied to
+    # its own post-hoc finding, and dropping the row would remove that self-application
+    row = [ln for ln in src[tbl_lo:tbl_hi].splitlines() if "Post hoc sign agreement" in ln]
+    assert len(row) == 1, "tab:wording lost its post-hoc concordance row"
+    assert "model-invariant instance structure" in row[0]
+    assert "rather than the backend" in row[0]
     # the headline count may never travel without its degenerate breakout
     assert x["class_agreements_that_are_degenerate"] == 5
     assert x["instances_classified_identically"] == 10
     assert "shared instance difficulty" in x["why_degenerate_agreement_is_not_evidence"]
     assert "\\StatXModelDegenerate" in src, (
         "the 10-of-12 count appears without the degenerate breakout beside it")
+
+
+def test_the_cross_batch_concordance_excludes_only_the_whole_explanation():
+    """The k=2 vs k=6 comparison is a different, better-supported contrast than the cross-model
+    one -- same model, only depth changes -- so it was not downgraded with it. But v18 still
+    overstated it: 7 of 36 cells disagree internally across six identical repetitions, so run
+    noise demonstrably persists at k=6. What recurrence excludes is low repetition as the WHOLE
+    explanation of the heterogeneity, not as a contributor. Main text (S2-F) and appendix must
+    state that at the same strength; the appendix had been the stronger of the two.
+    """
+    src = MAIN_TEX.read_text()
+    assert "is a property of the \\emph{instances}, not sampling noise" not in src, (
+        "the appendix attributes the heterogeneity to the instances outright")
+    at = src.index("not wholly attributable")
+    assert at > src.index("\\appendix")
+    para = src[at:at + 600]
+    assert "\\StatEightAUnstableCells" in para and "\\StatEightACells" in para, (
+        "the 'not wholly' claim must carry the residual-noise evidence that bounds it")
+    assert "\\emph{whole} explanation" in para
+    # and the main text's version of the same comparison stays at that strength
+    assert "not wholly an artifact of low repetition" in src[:src.index("\\appendix")]
 
 
 def test_the_sign_exchangeability_figure_is_appendix_only_and_is_not_a_test():
