@@ -3,7 +3,7 @@
 ## What this branch is
 
 `iclr2027-artifact` is the reproducibility artifact for one paper: **Auditing Generalization Claims
-for LLM Agent Harnesses: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v19**
+for LLM Agent Task-Information Interventions: Semantic Binding and Measurement Validity** (ICLR 2027, manuscript **v20**
 in `submission/`; v14 and earlier are immutable historical freezes).
 
 It is a **slimmed** branch. `master` is also EDA-AgentBench, a 2892-task commercial-EDA benchmark;
@@ -46,7 +46,7 @@ Violating any of these silently invalidates the paper's claims. They are not sty
    `agentic/runner.py`, `task/{loader,validator}.py`, `evaluator/workflow_handoff.py`,
    `scripts/check`, `scripts/validate_dataset.py`, every test, and the docs.
 3. **`submission/` develops forward; past versions are immutable.** The working manuscript is
-   **v19** and may be edited. What may never happen is the other direction: do not rewrite a
+   **v20** and may be edited. What may never happen is the other direction: do not rewrite a
    historical commit or tag, do not edit a past version's section in `FREEZE_HASHES.md`, and do not
    retroactively present a post-hoc finding as preregistered. Every past freeze (v14 and earlier)
    must stay recoverable byte-for-byte from its recorded commit and hashes — verify with a rebuild
@@ -83,7 +83,7 @@ python3 scripts/phase8a_claim_statistics.py --check     # arm1 k=6: -2.8 / [-31.
 python3 scripts/phase8a_arm2_gate.py          --check    # verifies the recorded ARM2_NOT_RUN decision
 python3 scripts/phase8a_arm2_cost_calibration.py --check # projected ¥53.14 vs realized ¥38.46
 python3 scripts/slim_link_check.py                     # no dangling repository references
-cd submission && make distclean && make                # 24 pp, 325 053 bytes
+cd submission && make distclean && make                # 24 pp, 325 238 bytes
 python3 scripts/submission_page_limit_check.py         # main text ends on p9 (ICLR limit 9)
 ```
 

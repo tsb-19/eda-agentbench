@@ -16,7 +16,7 @@ preregistered cost gate refused the arm and are therefore not covered by that pr
 [`phase8a_arm2_analysis_plan.md`](phase8a_arm2_analysis_plan.md), committed before any arm-2 outcome
 field was read.
 
-**Status in the paper.** Manuscript **v19** makes arm 1 the primary S2-F evidence and reports arm 2 at
+**Status in the paper.** Manuscript **v20** makes arm 1 the primary S2-F evidence and reports arm 2 at
 the S3 coordinate, keeps the earlier k=2 batch as a separately reported study, and never pools any of
 the three. The post-hoc cross-model concordance beside arm 2 is stated descriptively: 5 of its 10
 class agreements are degenerate, and its non-degenerate content is 4 of 5 signs. v14 does not cite

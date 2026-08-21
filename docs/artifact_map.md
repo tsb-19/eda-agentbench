@@ -3,7 +3,7 @@
 # Artifact map — every paper claim to the files that produce it
 
 This document exists so a reader arriving from the paper can locate the evidence for any claim
-without guessing. Section and table numbers refer to `submission/main.tex` (manuscript **v16**, the current
+without guessing. Section and table numbers refer to `submission/main.tex` (manuscript **v20**, the current
 ICLR 2027 submission; build it with `cd submission && make`). v14 is a frozen historical point,
 recoverable byte-for-byte from the commit and hashes recorded in `submission/FREEZE_HASHES.md`;
 where a row below cites a v14 section number it says so.
@@ -193,13 +193,16 @@ separate accessor called only after every survivor set is already fixed.
   (BundleS leaves 9–147 of 294 candidates, never 1). Prior narrowing, prompt-induced heuristic cues,
   accidental lexical correlation and model-specific exploitation remain open, and the Base/BundleS
   contrast is deliberately **not** an equal-information comparison.
-- **No production-harness transfer.** "Harness" in the paper means the *task-level information
-  structure* (§2) — prompt, visible files, disclosure bundle, public tool feedback, action surface —
-  not the agent scaffold. Every episode ran through `scripts/llm_agent_driver.py` and
-  `eda_agentbench/agentic/`; no production coding agent was tested. §7 states this, so the 82-of-169
-  occupancy rate is scoped to that runner. What is *not* scaffold-dependent is the discrimination
-  result itself: that a tool-success field cannot separate correct from incorrect role binding is a
-  property of the task and its oracle, which is why it is stated as a benchmark/evaluator finding.
+- **No scaffold transfer, and since v20 the paper is not named after one.** The object of study is a
+  **task-information intervention** (§2) — a change to the prompt, visible files, disclosure bundle,
+  public tool feedback and action surface — with the agent scaffold held fixed. Through v19 this was
+  called a *harness*, which collided with the term's meaning in `harnessbench`, `harnesseval` and
+  `scaffoldeffect`, all of which vary the scaffold and all of which the paper cites. Every episode
+  ran through `scripts/llm_agent_driver.py` and `eda_agentbench/agentic/`; no production coding agent
+  was tested and no scaffold was ever varied, so the 82-of-169 occupancy rate is scoped to that one
+  runner. What is *not* scaffold-dependent is the discrimination result itself: that a tool-success
+  field cannot separate correct from incorrect role binding is a property of the task and its oracle,
+  which is why it is stated as a benchmark/evaluator finding.
 - **No human construct validation.** `docs/phase7/phase7b_annotation_freeze.md` is a
   preregistration; there are no annotation results, because no qualified independent annotators
   were available and no LLM was substituted.
