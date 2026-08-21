@@ -1,3 +1,129 @@
+# S3 Wording Freeze (v18 — the cross-model concordance is stated descriptively, not as an attribution)
+
+**Submission HEAD:** `8584ff54` — the manuscript artifacts and every hash in this section are that
+commit's, because it is the last commit to touch a build input. The commit recording this line
+touches no build input and rebuilds to the same PDF byte-for-byte, the same arrangement v12–v17 used
+and for the same unavoidable reason: a commit cannot contain its own successor's hash.
+
+## What v18 is
+
+A **claim correction with no new evidence.** v17 stated the post-hoc cross-model concordance as an
+attribution — *"the per-instance structure is nearly model-invariant"* in the main text and *"the
+heterogeneity is a property of the instances rather than of the backend"* in the appendix. Its
+evidence does not license that, for a reason the headline count hides.
+
+Of the **10 of 12** instances classifying identically across arm 1 (Qwen, k=6) and arm 2 (DeepSeek,
+k=2), **5 are floor/floor or ceiling/ceiling**. Those instances have no expressible treatment
+difference in *either* arm, so they cannot discriminate a shared response structure from a
+model-dependent one: their agreement records shared instance difficulty, not a shared response. (The
+agreement is not logically necessary — the second model could have solved a floor instance — it is
+uninformative about the claim at issue.) Only the **5 instances informative in both** could have
+disagreed about direction. **4 of them agree**, which under independent per-instance signs arises
+with probability **0.1875**.
+
+So the paper had been applying a stricter standard to its own treatment effect (*p*=0.45, band
+spanning zero → *not established*) than to a post-hoc structural claim resting on 4 of 5. That
+asymmetry is the exact failure the paper is about, and Table 8's "Not licensed" column exists to
+catch it.
+
+**The licensed wording is now:** *consistent with recurring task-specific structure*. Never
+"model-invariant", never "a property of the instances rather than the backend".
+
+## What v18 does not change
+
+**No result moved.** Every generated data table is byte-identical to v17 — `sta12_k6.tex`,
+`sta12_arm2.tex`, `sta_concordance.tex`, `sta_pilot.tex`, `claim_stats.tex`, `study1_ledger.tex`,
+`references.bib` and the frozen claim-evidence matrix. The one changed macro file gained exactly two
+macros (`StatXModelDegenerate`, `StatXModelSignExchP`) and altered none. Every `--check` gate returns
+its v17 values: −2.8 / [−31.9, 26.4] / 7-of-36 / +12.5 / [−16.7, 41.7] / `not_established` / 4-of-5 /
+¥183.9329.
+
+The S3 verdict itself is untouched. **Not established** remains the finding, on the same 72 episodes,
+under the same pre-outcome analysis plan, with the same disclosure that the arm's *execution* was not
+preregistered. v18 corrects only the sentence standing beside that verdict.
+
+## The sign-exchangeability figure, and what it is not
+
+0.1875 is a **descriptive sensitivity calculation**, and the manuscript says so where it appears. It
+is not a hypothesis test: the jointly informative subset was identified after the outcomes were read,
+and the independent-coin-flip null was not preregistered. It sits in the appendix only — a guard test
+fails if it moves above `\appendix` — and no verdict is derived from it. Its purpose is to bound how
+impressed to be by 4 of 5, which is the number the corrected wording rests on.
+
+## Stated rules, asserted by code
+
+The branch's own rule is that a stated rule must also be machine-checked, because a stated inclusion
+rule once failed to stop an aggregation from collapsing 70 episodes to 54. Two guards were added and
+**both were falsified before being trusted**:
+
+1. `test_the_cross_model_concordance_is_never_stated_as_an_attribution` — the forbidden phrasings may
+   appear in `main.tex` only behind a negation, the machine record may not assert them, and the
+   10-of-12 count may not travel without `\StatXModelDegenerate` beside it. Reinjecting v17's exact
+   sentence fails it.
+2. `test_the_sign_exchangeability_figure_is_appendix_only_and_is_not_a_test` — the figure is
+   appendix-only and must carry its label. Moving it above `\appendix` fails it.
+
+The pre-existing artifact-map guard was updated to require the degenerate breakout and the explicit
+"not licensed" wordings, so it became stricter rather than looser.
+
+## What happened to v17
+
+v17 was built, gated and committed (`fd89bdc7`, `b87011a7`) but **never pushed and never tagged** —
+the same footing v16 had — and v18 supersedes it before it was ever published. Its section below is
+**preserved unedited**, including the sentence at "What v17 does not claim" that states the
+attribution this version retracts; the record of what a version claimed is not rewritten because a
+later version disagrees with it.
+
+**v17's recoverability was verified, not assumed,** before it was superseded: `git archive fd89bdc7`
+rebuilt in a scratch tree gives source `4104299014ea…` and PDF `3dfa15f9…`, 323 565 B, matching the
+hashes recorded below to the byte. v14 (tag `iclr2027-submission-v5`) and v15 (tag
+`iclr2027-submission-v6`) are published freezes and are untouched.
+
+## SHA-256 hashes (frozen artifacts, v18)
+| Artifact | SHA-256 | vs v17 |
+|---|---|---|
+| Source (main.tex) | `cff2297306bbfe276765b3d47cd60dc157599350655518d5fe3e65ac8c845286` | changed (two wording sites) |
+| Final PDF (main.pdf, 24 pp: 9 main + refs + appendix; 324 591 B) | `e9a9c8bc56ff4c38d55546dbc649ddb428eb1be1bacf6a06a442853b0afe6d6f` | changed |
+| Generated Phase-8A stat macros (tables/phase8a_stats.tex) | `827bb37e6da6f10077304f519ce224bd72bf2a65f25cf69f4f12110468a37c6a` | changed (two macros added; every existing macro byte-identical) |
+| Claim-statistics record (phase8a/reports/phase8a_claim_statistics.json) | `85d34023035fa2de9ddc5792634ef3891c4166ce9a9a1c94d32e5971949e6feb` | changed (degenerate breakout, sensitivity figure, corrected `reading`) |
+| Generated k=6 panel table (tables/sta12_k6.tex) | `aa5bbb4c937cf919b2876d1ae48d1fc7af29266052368b68c532e23b98485bc8` | **identical** |
+| Generated S3 panel table (tables/sta12_arm2.tex) | `4bddafd2a5a99c35d052a40a67e20e35dd8e76b4bf33362daac8d5a38e94e95b` | **identical** |
+| Generated cross-batch table (tables/sta_concordance.tex) | `35c446471ca131de52ac126f36d3b2dc1fc66531118ca9f8ce41263b0de21d7b` | **identical** |
+| Generated k=2 pilot table (tables/sta_pilot.tex) | `95cb8d73b4de9d368b0b986f22fe1c92810c43ab7b358a22f6723b7bf8aaf32b` | **identical** |
+| Generated k=2 stat macros (tables/claim_stats.tex) | `40f4b24d1f5b3a2c0c1a57a7fd01125908f4b84f41d7f09343a95d10f3c3b96f` | **identical** |
+| Generated ledger table (tables/study1_ledger.tex) | `fdf6c50c2e0c837e96c33c88a1a37bd5a88eb503ed98669de38c4b9fdb99b7c6` | **identical** |
+| Arm-2 analysis plan (phase8a/evidence/arm2_analysis_plan.json) | `62c14d1757589ccbb33232a91fd6b7ac5c6f923ac610a6e2505c63107557a544` | **identical** |
+| Cost-calibration record (phase8a/evidence/arm2_cost_calibration.json) | `29f69210f4f23c1e933066ac2fd739f9311d323facd118c1847d2cd141ad3780` | **identical** |
+| Bibliography (references.bib, 20 entries) | `6817858d2c1a5346e77fb79483fe779d9fbed6217284a71a1eeda04e69fb2d8c` | **identical** |
+| Claim-evidence matrix (docs/phase7/phase7_synthesis.md) | `9dbecd9fedc65ac19bc5ab1c14589013942f746cf18c2b3900c9627b317f961b` | **identical** |
+
+**Mechanical proof that no result moved.** Every table carrying a Study I, k=2, k=6 or S3 number is
+byte-identical to its v17 hash, as is the frozen claim-evidence matrix and the arm-2 analysis plan.
+The three files that changed carry wording, two additive macros and the two new derived quantities —
+nothing that any reported result depends on.
+
+## Verification
+
+```bash
+python3 scripts/phase8a_report.py --arm 1 --check
+python3 scripts/phase8a_report.py --arm 2 --check
+python3 scripts/phase8a_claim_statistics.py --check
+python3 scripts/phase8a_arm2_gate.py --check
+python3 scripts/phase8a_arm2_cost_calibration.py --check
+python3 scripts/slim_link_check.py
+scripts/check
+cd submission && make distclean && make      # 24 pp, 324 591 B, byte-reproducible
+python3 scripts/submission_page_limit_check.py
+```
+
+**Verification performed for v18:** two independent `make distclean && make` builds give the same PDF
+sha256 (`e9a9c8bc…`), 3 pdflatex passes each, counted from start banners rather than assumed. Page
+gate PASS with **0** main-text words above `REFERENCES`. `scripts/check`: 685 passed, 84/84 structural,
+1065 pins at the recorded baseline. Anonymity re-scan on the v18 PDF and all generated tables: 0
+matches. **No paid model call, no new episode, no EDA tool run, no task-semantics change.**
+
+---
+
 # S3 Measurement Freeze (v17 — the joint model x family cell is measured, and not established)
 
 **Submission HEAD:** `fd89bdc7` — the manuscript artifacts and every hash in this section are that
