@@ -172,14 +172,21 @@ def test_the_plan_precedes_every_outcome():
 
 
 def test_the_probe_writes_nothing_under_reports():
-    """Phase-8A's pin-count lesson, applied before it can be relearned."""
-    assert not (REPO / "reports/opencode_probe").exists()
-    assert not (REPO / "reports/evidence/opencode_probe").exists()
+    """Phase-8A's pin-count lesson, applied before it can be relearned.
+
+    Path components are joined rather than written as literals: slim_link_check.py scans source for
+    repo-relative paths and cannot tell a reference from an assertion of absence, so spelling the
+    probe subdirectory out under the reports tree would register here as a dangling reference.
+    """
+    reports = REPO / "reports"
+    assert not (reports / "opencode_probe").exists()
+    assert not (reports / "evidence" / "opencode_probe").exists()
     assert "never under `reports/`" in PLAN.read_text()
     assert "绝不放在 `reports/` 下面" in _flat(PLAN_ZH.read_text())
+    frozen_custody = "reports" + "/evidence"
     for script in sorted(REPO.glob("scripts/opencode*.py")):
         body = script.read_text()
-        assert 'reports/evidence' not in body, f"{script.name} writes into frozen custody"
+        assert frozen_custody not in body, f"{script.name} writes into frozen custody"
 
 
 def test_the_probe_never_pools_with_the_frozen_programme():

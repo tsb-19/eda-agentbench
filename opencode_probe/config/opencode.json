@@ -1,0 +1,108 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "username": "probe",
+  "autoupdate": false,
+  "share": "disabled",
+  "autoshare": false,
+  "logLevel": "INFO",
+
+  "instructions": [],
+  "plugin": [],
+  "mcp": {},
+  "skills": { "paths": [], "urls": [] },
+  "command": {},
+
+  "formatter": false,
+  "snapshot": false,
+  "lsp": false,
+  "watcher": { "ignore": ["**"] },
+  "subagent_depth": 0,
+
+  "default_agent": "probe",
+  "model": "probe/deepseek-v4-pro",
+  "small_model": "probe/deepseek-v4-pro",
+
+  "tool_output": {
+    "max_bytes": 4000,
+    "max_lines": 4000
+  },
+
+  "compaction": {
+    "auto": false,
+    "prune": false
+  },
+
+  "permission": {
+    "bash": "allow",
+    "read": "allow",
+    "edit": "allow",
+    "glob": "deny",
+    "grep": "deny",
+    "list": "deny",
+    "task": "deny",
+    "todowrite": "deny",
+    "question": "deny",
+    "webfetch": "deny",
+    "websearch": "deny",
+    "lsp": "deny",
+    "skill": "deny",
+    "doom_loop": "deny",
+    "external_directory": "deny"
+  },
+
+  "provider": {
+    "probe": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "probe-endpoint",
+      "env": ["API_KEY"],
+      "options": {
+        "baseURL": "https://tokenrhythm.studio/v1",
+        "timeout": 300000,
+        "chunkTimeout": 120000,
+        "headerTimeout": 120000
+      },
+      "models": {
+        "deepseek-v4-pro": {
+          "name": "deepseek-v4-pro",
+          "tool_call": true,
+          "reasoning": true,
+          "options": {
+            "max_tokens": 32000
+          }
+        }
+      }
+    }
+  },
+
+  "agent": {
+    "probe": {
+      "mode": "primary",
+      "description": "OpenCode external-scaffold probe agent. Task text is supplied per episode.",
+      "model": "probe/deepseek-v4-pro",
+      "temperature": 0.7,
+      "steps": 60,
+      "permission": {
+        "bash": "allow",
+        "read": "allow",
+        "edit": "allow",
+        "glob": "deny",
+        "grep": "deny",
+        "list": "deny",
+        "task": "deny",
+        "todowrite": "deny",
+        "question": "deny",
+        "webfetch": "deny",
+        "websearch": "deny",
+        "lsp": "deny",
+        "skill": "deny",
+        "doom_loop": "deny",
+        "external_directory": "deny"
+      }
+    },
+    "build": { "disable": true },
+    "plan": { "disable": true },
+    "general": { "disable": true },
+    "explore": { "disable": true }
+  }
+}

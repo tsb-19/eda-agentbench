@@ -1,0 +1,137 @@
+{
+  "pass": false,
+  "model_calls": 0,
+  "checks": [
+    {
+      "check": "prompt transfer fidelity",
+      "pass": true,
+      "detail": {
+        "frozen_literals_not_found_in_driver": [],
+        "transferred_sections": [
+          "role_preamble",
+          "task_text",
+          "workspace_file_lists",
+          "environment_tools_on_path",
+          "no_oracle_clause"
+        ],
+        "restated_sections": [
+          "how_to_act",
+          "environment_editable_only",
+          "environment_budget_advice",
+          "budget_sentence",
+          "confidence_elicitation"
+        ],
+        "frozen_action_grammar_leaked": [],
+        "message_chars": 2578
+      }
+    },
+    {
+      "check": "file exposure (1)",
+      "pass": true,
+      "detail": {
+        "files_in_workspace": 16,
+        "files_in_instance": 16,
+        "only_in_workspace": [],
+        "only_in_instance": [],
+        "forbidden_dirs_present": []
+      }
+    },
+    {
+      "check": "injection sources silent (2)",
+      "pass": true,
+      "detail": {
+        "instructions_empty": true,
+        "plugin_empty": true,
+        "mcp_empty": true,
+        "skills_empty": true,
+        "username_neutral": true,
+        "share_disabled": true,
+        "snapshot_off": true,
+        "formatter_off": true,
+        "lsp_off": true,
+        "autoupdate_off": true,
+        "tool_output_4000": true,
+        "compaction_auto_off": true,
+        "compaction_prune_off": true,
+        "small_model_pinned": true,
+        "subagent_depth_zero": true,
+        "no_literal_secret": true
+      },
+      "resolved_username": "probe"
+    },
+    {
+      "check": "resolved agent permissions (2b)",
+      "pass": true,
+      "detail": {
+        "effective": {
+          "task": "deny",
+          "webfetch": "deny",
+          "websearch": "deny",
+          "skill": "deny",
+          "lsp": "deny",
+          "glob": "deny",
+          "grep": "deny",
+          "list": "deny",
+          "todowrite": "deny",
+          "question": "deny",
+          "external_directory": "allow"
+        },
+        "tools_enabled": [
+          "bash",
+          "edit",
+          "invalid",
+          "read",
+          "write"
+        ],
+        "tools_disabled": [
+          "glob",
+          "grep",
+          "question",
+          "skill",
+          "task",
+          "todowrite",
+          "webfetch"
+        ],
+        "external_directory_allow_rules_remaining": 3,
+        "external_directory_note": "config cannot revoke these; verified against string-deny, object-deny, explicit-pattern-deny and global '*: deny'. Filesystem control required.",
+        "patterns": [
+          "<PREFLIGHT_TMP>/state/data/opencode/tool-output/*",
+          "/tmp/opencode/*",
+          "<PREFLIGHT_TMP>/state/data/opencode/tool-output/*"
+        ]
+      }
+    },
+    {
+      "check": "oracle isolation + truncation seal (5, 6a)",
+      "pass": false,
+      "detail": {
+        "env_pointers_scrubbed": false,
+        "reachable_task_paths": [],
+        "seal_broken_dirs": [],
+        "workspace_writable": false,
+        "bwrap_rc": 1,
+        "stderr_tail": "bwrap: setting up uid map: Permission denied\n"
+      }
+    }
+  ],
+  "host_context": {
+    "opencode_version": "1.18.19",
+    "bwrap_present": true,
+    "bwrap_setuid": false,
+    "kernel.apparmor_restrict_unprivileged_userns": "1",
+    "unprivileged_userns_clone": "1",
+    "note": "bwrap fails 'setting up uid map: Permission denied' because AppArmor restricts unprivileged user namespaces and bwrap is not setuid. Check 5 cannot be delivered until that is lifted."
+  },
+  "external_directory_finding": {
+    "claim": "OpenCode's built-in external_directory allow for its tool-output directories cannot be revoked by configuration.",
+    "variants_tested": [
+      "\"external_directory\": \"deny\"",
+      "\"external_directory\": {\"*\": \"deny\"}",
+      "\"external_directory\": {\"*\":\"deny\",\"**/tool-output/**\":\"deny\",\"/tmp/opencode/*\":\"deny\"}",
+      "\"*\": \"deny\""
+    ],
+    "result": "all four leave 3 residual allow rules and an effective action of allow",
+    "also": "the allow pattern follows XDG_DATA_HOME, so relocating OpenCode's state does not help",
+    "consequence": "the 4000-byte observation cap is recoverable unless a filesystem control blocks writes to that directory; configuration alone cannot deliver check 6"
+  }
+}

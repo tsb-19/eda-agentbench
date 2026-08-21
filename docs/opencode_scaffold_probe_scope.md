@@ -153,34 +153,61 @@ first-marker-wins. OpenCode's `build` agent resolves to `bash, read, write, edit
 webfetch, todowrite, skill, question, invalid`, issues **multiple tool calls per assistant turn**,
 and edits by patch rather than whole-file overwrite.
 
-It can be narrowed a long way. The permission keys are exactly `read, edit, glob, grep, list, bash,
-task, external_directory, todowrite, question, webfetch, websearch, lsp, doom_loop, skill`, each
-taking `allow` / `ask` / `deny`, and within a per-pattern object **the last matching rule wins**, so
-broad rules go first. A minimal surface is `bash`, `read` and `write`/`edit` allowed and everything
-else denied, with `lsp: false`, `subagent_depth` at its floor and `task: deny`.
+It can be narrowed a long way, but four mechanics matter and three of them correct an earlier draft
+of this audit:
 
-It still cannot be made one-action-per-turn, and there is no configuration that makes a patch edit
-into a whole-file `WRITE`. **Record this as the scaffold difference the probe is deliberately
-introducing** — it is the intervention, not a defect. What must not happen is reporting a row
-difference as if the action surface had been held fixed.
+- **The permission keys are `read, edit, glob, grep, list, bash, task, external_directory, todowrite,
+  question, webfetch, websearch, lsp, doom_loop, skill`** — and **`write` is not among them.** Per
+  OpenCode's own permission documentation, **`edit` is a single key covering `edit`, `write` *and*
+  `patch`**. So permissions cannot allow whole-file writes while denying patch edits; the two share
+  one switch. An earlier draft of this section said to allow "`write`/`edit`", which is not a thing
+  that can be written.
+- **`deny` removes the tool; it does not merely refuse a call.** This was measured, not inferred:
+  with the probe permissions applied, `opencode debug agent probe` reports the denied tools as
+  *disabled*, and the enabled set collapses from twelve to **`bash, edit, read, write`** (plus
+  `invalid`, OpenCode's malformed-call fallback). The deprecated `AgentConfig.tools` boolean map
+  produces an identical result, so there is no reason to use the deprecated path. This is better
+  alignment than an earlier draft of this section claimed — it asserted that a denied tool stays in
+  the schema and injects a refusal observation. It does not. The visible action surface is four
+  tools against the frozen driver's three verbs.
+- **The resolved defaults already contain duplicate, conflicting rules**, and last-wins is doing real
+  work in them: `question` appears as `deny` and then `allow`, and so does `plan_enter`. They also
+  contain permission names that **do not appear in the published schema at all** (`plan_enter`,
+  `plan_exit`), so the fifteen documented keys are not the complete runtime set. A probe config is
+  therefore not verified by what it was written to say — it is verified by reading back
+  `opencode debug agent <name>` and inspecting the *resolved* rule list.
+- `lsp: false`, `subagent_depth` at its floor and `task: deny` remain correct as written.
 
-### 4. Observation budget — BOUNDED to EXACT, and there is a trap
+It still cannot be made one-action-per-turn, and — now for a named reason rather than an assumption —
+there is no permission that makes a patch edit into a whole-file `WRITE`, because `edit` governs
+both. **Record this as the scaffold difference the probe is deliberately introducing** — it is the
+intervention, not a defect. What must not happen is reporting a row difference as if the action
+surface had been held fixed.
+
+### 4. Observation budget — CANNOT by config; depends on the sandbox
 
 `tool_output` defaults to `max_lines` 2000 and `max_bytes` **51200** — 12.8× the frozen 4000-byte
-truncation. Setting `tool_output.max_bytes: 4000` matches the number.
+truncation. Setting `tool_output.max_bytes: 4000` matches the number, and reads back correctly.
 
-The trap: on overflow OpenCode **writes the full text to a truncation directory and returns a
-preview**, and the default `build` agent explicitly *allows* `external_directory` for
-`~/.local/share/opencode/tool-output/*`. So a capped observation is recoverable by reading a file,
-which the frozen driver's hard slice makes impossible. Both settings are needed:
-`tool_output.max_bytes: 4000` **and** `external_directory` denied for that path (and for
-`/tmp/opencode/*`, allowed by the same default).
+The trap, and it is worse than an earlier draft of this section said. On overflow OpenCode **writes
+the full text to a truncation directory and returns a preview**, and the resolved agent *allows*
+`external_directory` for `~/.local/share/opencode/tool-output/*` — **three separate times in the
+resolved rule list**. So a capped observation is recoverable by reading a file, which the frozen
+driver's hard slice makes impossible.
+
+**That deny cannot be delivered by configuration at all.** Measured against four forms — `"deny"`,
+`{"*": "deny"}`, explicit `tool-output` and `/tmp/opencode/*` patterns, and a global `"*": "deny"` —
+every one leaves the three built-in allow rules in place, and last-matching-rule-wins gives an
+effective action of `allow`. The allow pattern also *follows* `XDG_DATA_HOME`, so giving each episode
+its own state directory moves the hole rather than closing it. An earlier draft said "both settings
+are needed"; in fact **the cap is enforceable and the deny is inert**, so check 6 rests entirely on a
+filesystem control — see §8. Without one, the 4000-byte cap is one tool call from not existing.
 
 ### 5. Stop conditions and budget — BOUNDED, with one unit mismatch
 
 | Frozen control | OpenCode equivalent | Note |
 |---|---|---|
-| `--max-actions 60` | agent `steps` | **Not the same unit** — `steps` counts agentic iterations, and one iteration may carry several tool calls. Record as a scaffold difference; do not claim equal action budgets. |
+| `--max-actions 60` | agent `steps` | **Not the same unit** — the schema defines `steps` as *"maximum number of agentic iterations before forcing text-only response"*, and one iteration may carry several tool calls. (`maxSteps` is its `@deprecated` alias; pin `steps`.) Record as a scaffold difference; do not claim equal action budgets. |
 | hard request deadline 300 s | provider `options.timeout` (ms) | direct |
 | socket inactivity 120 s | provider `options.chunkTimeout` (ms) | direct, streaming only |
 | — | provider `options.headerTimeout` | no frozen counterpart; pin it |
@@ -234,19 +261,63 @@ which would not merely bias the probe, it would void it.
 Two layers are required, and neither is optional:
 
 1. **Wrapper env scrub** — the OpenCode `agent_cmd` must delete `EDA_TASK_PATH` and `EDA_TASK_ID`
-   before exec, exactly as the driver does.
-2. **Filesystem isolation** — `bwrap` is available on this host. Run OpenCode with the task tree
-   unmounted, so the oracle is not merely un-named but absent. A denylist is a weaker control than
-   an empty mount, and this is a case where the stronger one is cheap.
+   before exec, exactly as the driver does. **Implemented and verified** in
+   `scripts/opencode_probe_agent.py`.
+2. **Filesystem isolation** — run OpenCode with the task tree unmounted, so the oracle is not merely
+   un-named but absent. A denylist is a weaker control than an empty mount.
 
-A dry-run assertion belongs on top of both: an episode whose prompt *instructs* the agent to read
-the oracle must fail to find it.
+**Layer 2 is currently blocked, and it is the probe's one hard blocker.** `bwrap` 0.9.0 is installed
+but fails `setting up uid map: Permission denied`: the binary is not setuid and this host sets
+`kernel.apparmor_restrict_unprivileged_userns=1`, so unprivileged user namespaces are unavailable.
+`unshare -r` fails the same way. Three ways out, in preference order:
+
+- **Lift the restriction** — `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0` (or an
+  AppArmor profile for `bwrap`). One line, and it restores the design exactly as specified. It is a
+  host-wide security-posture change, so it is the operator's decision and not something this audit
+  performs.
+- **Docker** — the daemon is reachable, but this is **rejected on alignment grounds, not difficulty**:
+  containerising the run would change the EDA tool environment, and the tool environment is one of
+  the factors the probe exists to hold fixed. It would trade the oracle-isolation confound for a
+  tool-environment confound.
+- **Parity-only fallback** — env scrub plus `bash`/`read` permission patterns reconstructing the
+  driver's `hidden|solution|oracle|run_hidden|\.\.` denylist. This reaches **the same protection the
+  frozen runner has, not better**, so check 5 would be downgraded from *"the oracle is absent"* to
+  *"the oracle is undisclosed and denylisted"* and must be disclosed at that strength. Note it is
+  strictly weaker here than in the frozen runner, because there one mediated action grammar saw every
+  command, whereas OpenCode reaches the filesystem through `bash`, `read`, `write` and `edit`.
+
+Because layer 2 also carries check 6 (§4 — the observation cap is unenforceable by config and needs
+the truncation directory made read-only), the sandbox decision governs **two** of the nine checks,
+one of them mandatory.
+
+A dry-run assertion belongs on top of both layers: an episode whose prompt *instructs* the agent to
+read the oracle must fail to find it.
 
 ### 9. Publication and anonymity — EXACT
 
 `share: "disabled"` (and the deprecated `autoshare: false`). This branch is not anonymised and
 roughly 212 frozen custody files still carry a username or host name; an OpenCode session must never
 be uploaded. `--pure` also keeps external plugins from seeing episode content.
+
+## What the zero-call preflight already settled
+
+`scripts/opencode_probe_preflight.py` runs the checks that do not need a model — they are properties
+of the config, the filesystem and the sandbox, and a model adds nothing to establishing them. It makes
+**zero model calls**; its record is
+[`opencode_probe/evidence/preflight.json`](../opencode_probe/evidence/preflight.json).
+
+| Established at zero cost | Result |
+|---|---|
+| Prompt transfer fidelity | **PASS.** Every section marked TRANSFERRED is byte-identical to what the frozen driver sends, proved by evaluating the driver's own AST rather than grepping its source. Five sections transfer, four are restated, and the frozen `RUN:`/`WRITE:`/`FINISH` grammar does not leak into an OpenCode episode. |
+| Check 1 — file exposure | **PASS.** 16 files in the workspace, 16 in `<instance>/files/`, no difference either way, and no `hidden`/`solution`/`oracle` directory present. Uses the real `create_agent_workspace`. |
+| Check 2 — injection sources silent | **PASS**, all sixteen assertions: `instructions`/`plugin`/`mcp`/`skills` empty, `username` neutral, `share` disabled, `snapshot`/`formatter`/`lsp`/`autoupdate` off, `tool_output.max_bytes` 4000, `compaction.auto` and `.prune` off, `small_model` equal to `model`, `subagent_depth` 0, and no literal secret in the resolved provider block. |
+| Check 2b — resolved permissions | **PASS** for everything enforceable. Denied tools are genuinely *disabled*: the enabled set is `bash, edit, read, write` (plus `invalid`), down from twelve. `external_directory` is the sole exception and is unenforceable by config (§4). |
+| Checks 5 and 6a — sandbox | **FAIL, blocked.** `bwrap` cannot create a user namespace on this host (§8). A host setting, not a probe defect. |
+
+Two consequences worth stating plainly. First, **the paid dry run now only has to settle checks 3, 4,
+7, 9 and the recoverability half of 6** — the model-behaviour ones. Second, **the mandatory check 5 is
+currently failing for a reason no amount of configuration can fix**, so by this document's own abort
+criteria the formal arm cannot start until the sandbox question is decided.
 
 ## Dry run specification
 

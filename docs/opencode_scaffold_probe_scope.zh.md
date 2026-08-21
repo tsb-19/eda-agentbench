@@ -130,29 +130,50 @@ information，所以不可能在 scaffold 变化的同时把它保持固定。
 agent 解析出的工具是 `bash, read, write, edit, glob, grep, task, webfetch, todowrite, skill, question,
 invalid`，**每个 assistant 轮次可以发出多次工具调用**，而且以 patch 而非整文件覆写的方式编辑。
 
-它可以被收窄很多。permission 的键恰好是 `read, edit, glob, grep, list, bash, task, external_directory,
-todowrite, question, webfetch, websearch, lsp, doom_loop, skill`，每个取 `allow` / `ask` / `deny`，而在
-逐 pattern 的对象内部**最后一条匹配规则生效**，所以宽规则要写在前面。一个最小面是：允许 `bash`、`read`
-与 `write`/`edit`，其余全部 deny，并且 `lsp: false`、`subagent_depth` 取下限、`task: deny`。
+它可以被收窄很多，但有四条机制很关键，其中三条更正了本审计的早先稿本：
 
-它仍然做不到每轮一个动作，也没有任何配置能把 patch 编辑变成整文件 `WRITE`。**要把这一点记录成 probe 刻意
-引入的那个 scaffold 差异** —— 它是干预本身，不是缺陷。不能发生的是：把行间差当成动作面已被固定来报告。
+- **permission 的键是 `read, edit, glob, grep, list, bash, task, external_directory, todowrite,
+  question, webfetch, websearch, lsp, doom_loop, skill`** —— 而 **`write` 不在其中。** 按 OpenCode 自己的
+  权限文档，**`edit` 是一个同时覆盖 `edit`、`write` *与* `patch` 的键**。所以权限无法在允许整文件写入的同时
+  拒绝 patch 编辑；两者共用一个开关。本节的早先稿本写的是允许"`write`/`edit`"，而那是写不出来的东西。
+- **`deny` 会移除该工具，而不只是拒绝一次调用。** 这是实测而非推断：套用 probe 权限之后，
+  `opencode debug agent probe` 把被 deny 的工具报告为 *disabled*，启用集从十二个收缩到
+  **`bash, edit, read, write`**（外加 `invalid`，即 OpenCode 对畸形调用的兜底工具）。已废弃的
+  `AgentConfig.tools` 布尔映射给出完全相同的结果，因此没有理由走那条废弃路径。这比本节早先稿本所声称的
+  对齐**更好** —— 那份稿本断言被 deny 的工具仍留在 schema 里并注入一条拒绝观察。它不会。可见动作面是
+  四个工具，对照冻结 driver 的三个动词。
+- **解析后的默认值本身就含有重复且冲突的规则**，而 last-wins 在其中真的起了作用：`question` 先 `deny`
+  后 `allow`，`plan_enter` 也是。它们还含有**在发布的 schema 里根本不存在**的权限名（`plan_enter`、
+  `plan_exit`），所以那十五个有文档的键并不是运行时的完整集合。因此一份 probe 配置不是靠"它被写成什么"来
+  核验的 —— 而是靠读回 `opencode debug agent <name>`、检查*解析后*的规则列表来核验。
+- `lsp: false`、`subagent_depth` 取下限、`task: deny` 三条依然如原文所写成立。
 
-### 4. 观察预算 —— 有界到完全可对齐，但有一个坑
+它仍然做不到每轮一个动作，而且 —— 现在是有具名理由而不是靠假定 —— 没有任何权限能把 patch 编辑变成整文件
+`WRITE`，因为 `edit` 同时管着两者。**要把这一点记录成 probe 刻意引入的那个 scaffold 差异** —— 它是干预本身，
+不是缺陷。不能发生的是：把行间差当成动作面已被固定来报告。
+
+### 4. 观察预算 —— 靠配置做不到；取决于沙箱
 
 `tool_output` 的默认值是 `max_lines` 2000、`max_bytes` **51200** —— 是冻结的 4000 字节截断的 12.8 倍。
-设 `tool_output.max_bytes: 4000` 即可对上这个数。
+设 `tool_output.max_bytes: 4000` 即可对上这个数，而且读回来是正确的。
 
-坑在于：溢出时 OpenCode 会**把全文写进一个截断目录、只返回一段预览**，而默认的 `build` agent 恰恰把
-`external_directory` 对 `~/.local/share/opencode/tool-output/*` 显式设为 *allow*。于是一段被截断的观察
-可以靠读文件找回来，而冻结 driver 的硬切片让这不可能。两项设置都需要：`tool_output.max_bytes: 4000`
-**并且**对该路径 deny `external_directory`（`/tmp/opencode/*` 同理，它也被同一份默认值放行）。
+坑在这里，而且比本节早先稿本所说的更糟。溢出时 OpenCode 会**把全文写进一个截断目录、只返回一段预览**，
+而解析后的 agent 把 `external_directory` 对 `~/.local/share/opencode/tool-output/*` 设为 *allow* ——
+**在解析后的规则列表里出现了三次**。于是一段被截断的观察可以靠读文件找回来，而冻结 driver 的硬切片让这
+不可能。
+
+**而那条 deny 根本无法由配置交付。** 实测了四种写法 —— `"deny"`、`{"*": "deny"}`、显式的 `tool-output`
+与 `/tmp/opencode/*` pattern，以及全局 `"*": "deny"` —— 每一种都让那三条内置 allow 规则原样留下，而
+last-matching-rule-wins 使有效动作仍为 `allow`。那条 allow 的 pattern 还会*跟随* `XDG_DATA_HOME`，所以
+给每条 episode 各自的状态目录只是把这个洞搬了个地方、并没有堵上。早先稿本写的是"两项设置都需要"；事实是
+**上限可强制、而 deny 是空转的**，因此第 6 项完全依赖一项文件系统控制 —— 见 §8。没有它，这个 4000 字节
+上限离"不存在"只差一次工具调用。
 
 ### 5. 停止条件与预算 —— 有界对齐，有一处单位不匹配
 
 | 冻结控制 | OpenCode 等价物 | 说明 |
 |---|---|---|
-| `--max-actions 60` | agent 的 `steps` | **不是同一个单位** —— `steps` 数的是 agentic 迭代，而一次迭代可以携带多次工具调用。记录为 scaffold 差异；不得声称动作预算相等。 |
+| `--max-actions 60` | agent 的 `steps` | **不是同一个单位** —— schema 把 `steps` 定义为*"强制转为纯文本回复之前的最大 agentic 迭代数"*，而一次迭代可以携带多次工具调用。（`maxSteps` 是它的 `@deprecated` 别名；钉 `steps`。）记录为 scaffold 差异；不得声称动作预算相等。 |
 | 硬请求截止 300 s | provider `options.timeout`（毫秒） | 直接对应 |
 | socket 不活动 120 s | provider `options.chunkTimeout`（毫秒） | 直接对应，仅流式 |
 | —— | provider `options.headerTimeout` | 冻结侧无对应物；仍需钉住 |
@@ -200,9 +221,28 @@ OpenCode 在 `build`、`plan`、`general`、`explore` 之外还带着隐藏的�
 需要两层，且两层都不是可选项：
 
 1. **wrapper 抹环境** —— OpenCode 的 `agent_cmd` 必须在 exec 之前删除 `EDA_TASK_PATH` 与 `EDA_TASK_ID`，
-   与 driver 的做法完全一致。
-2. **文件系统隔离** —— 本机有 `bwrap`。让 OpenCode 在任务树未被挂载的情况下运行，使 oracle 不只是没被
-   命名，而是根本不存在。denylist 是比空挂载更弱的控制，而这正是更强的那一种恰好很便宜的场合。
+   与 driver 的做法完全一致。**已实现并已核验**，见 `scripts/opencode_probe_agent.py`。
+2. **文件系统隔离** —— 让 OpenCode 在任务树未被挂载的情况下运行，使 oracle 不只是没被命名，而是根本不
+   存在。denylist 是比空挂载更弱的控制。
+
+**第 2 层目前被阻塞，而这就是本 probe 唯一的硬阻塞点。** `bwrap` 0.9.0 已安装，但报
+`setting up uid map: Permission denied`：该二进制不是 setuid，而本机设置了
+`kernel.apparmor_restrict_unprivileged_userns=1`，因此非特权 user namespace 不可用。`unshare -r`
+以同样方式失败。三条出路，按推荐次序：
+
+- **解除该限制** —— `sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0`（或者为 `bwrap`
+  装一个 AppArmor profile）。一行，而且能让设计完全按原定方案成立。这是一次全机范围的安全姿态变更，
+  因此属于操作者的决定，本审计不执行它。
+- **Docker** —— 守护进程可达，但**因对齐理由而否决，不是因为难**：把运行容器化会改变 EDA 工具环境，
+  而工具环境正是本 probe 要保持固定的因子之一。那是用一个工具环境混淆去换一个 oracle 隔离混淆。
+- **只做到"平级"的退路** —— 抹环境，加上用 `bash`/`read` 的 permission pattern 重建 driver 的
+  `hidden|solution|oracle|run_hidden|\.\.` denylist。这达到的是**与冻结 runner 相同的保护，而不是更好**，
+  因此第 5 项要从*"oracle 不存在"*降级为*"oracle 未被披露且已被 denylist"*，并且必须按那个强度披露。注意
+  它在这里比在冻结 runner 中**更弱**：那边有一套被中介的动作语法看得见每一条命令，而 OpenCode 通过
+  `bash`、`read`、`write` 与 `edit` 四条路触达文件系统。
+
+由于第 2 层同时承载第 6 项（§4 —— 观察上限靠配置无法强制，需要把截断目录设为只读），沙箱这个决定支配着
+九项检查中的**两项**，其中一项是必需项。
 
 在这两层之上还应加一条 dry-run 断言：一条**明确指示**智能体去读 oracle 的提示，必须找不到它。
 
@@ -210,6 +250,24 @@ OpenCode 在 `build`、`plan`、`general`、`explore` 之外还带着隐藏的�
 
 `share: "disabled"`（以及已废弃的 `autoshare: false`）。本分支并未匿名化，约 212 个冻结保管文件仍带着
 用户名或主机名；一个 OpenCode session 绝不可被上传。`--pure` 同时能让外部 plugin 看不到 episode 内容。
+
+## 零调用 preflight 已经确立了什么
+
+`scripts/opencode_probe_preflight.py` 跑的是不需要模型的那些检查 —— 它们是配置、文件系统与沙箱的性质，
+模型对确立它们毫无贡献。它**零模型调用**；记录见
+[`opencode_probe/evidence/preflight.json`](../opencode_probe/evidence/preflight.json)。
+
+| 零成本确立的事 | 结果 |
+|---|---|
+| 提示传递保真度 | **通过。** 每个标为 TRANSFERRED 的小节都与冻结 driver 实际发送的内容逐字节相同 —— 靠求值 driver 自己的 AST 来证明，而不是 grep 它的源码。五个小节被传递，四个被改写，且冻结的 `RUN:`/`WRITE:`/`FINISH` 语法不会泄漏进 OpenCode episode。 |
+| 第 1 项 —— 文件暴露面 | **通过。** workspace 16 个文件，`<instance>/files/` 16 个，两侧无差异，且不存在 `hidden`/`solution`/`oracle` 目录。用的是真正的 `create_agent_workspace`。 |
+| 第 2 项 —— 注入源静默 | **通过**，十六条断言全部成立：`instructions`/`plugin`/`mcp`/`skills` 为空，`username` 中性，`share` 已禁用，`snapshot`/`formatter`/`lsp`/`autoupdate` 关闭，`tool_output.max_bytes` 为 4000，`compaction.auto` 与 `.prune` 关闭，`small_model` 等于 `model`，`subagent_depth` 为 0，解析后的 provider 块中没有字面密钥。 |
+| 第 2b 项 —— 解析后权限 | 凡可强制的**全部通过**。被 deny 的工具确实*被禁用*：启用集是 `bash, edit, read, write`（外加 `invalid`），从十二个降下来。`external_directory` 是唯一例外，且靠配置无法强制（§4）。 |
+| 第 5、6a 项 —— 沙箱 | **失败，被阻塞。** `bwrap` 在本机无法创建 user namespace（§8）。这是主机设置，不是 probe 的缺陷。 |
+
+有两个后果值得直说。第一，**付费 dry run 现在只需要settle 第 3、4、7、9 项以及第 6 项中"可否取回"的那一半**
+—— 也就是需要模型行为的那些。第二，**必需的第 5 项目前处于失败状态，而其原因是任何配置都修不了的**，
+所以按本文自己的中止判据，在沙箱问题被决定之前，正式臂不能开始。
 
 ## Dry run 规格
 
