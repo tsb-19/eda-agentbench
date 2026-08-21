@@ -17,9 +17,29 @@ Start from `README.md`, then `docs/artifact_map.md` (every paper claim → the f
 
 Violating any of these silently invalidates the paper's claims. They are not style rules.
 
-1. **Experiments are permanently closed.** No paid model call, no new episode, no alteration of
-   frozen task semantics. The experiment freeze HEAD is `a89e084`. Every reported number is
-   re-derived from committed ledgers at or before it.
+1. **The `a89e084` experimental programme is permanently closed.** No paid model call, no new
+   episode, no alteration of frozen task semantics *within it*. The experiment freeze HEAD is
+   `a89e084`. Every number the paper reports is re-derived from committed ledgers at or before it.
+
+   **One exception exists, and it is a separate study rather than a reopening.** A separately named
+   **OpenCode external-scaffold arm** is authorized after that freeze. It has its own plan, budget,
+   ledger, evidence root and claim scope; it **may not alter, pool with, replace, or retroactively
+   reinterpret any `a89e084`-derived episode or statistic**. Nothing it produces may be summed with,
+   averaged into, or differenced against a frozen number — the no-pooling rule that already separates
+   Phase-7A, arm 1 and arm 2 extends to it unchanged. Its governing document is
+   `docs/opencode_probe_analysis_plan.md`, committed before any outcome field is read.
+
+   Two limits on that authorization, both narrower than "the arm is approved":
+
+   - **Authorized so far: integration plus one unscored, discarded paid dry run** on `p15_dev_0000`.
+     The 48-episode formal arm is *not* authorized; it becomes authorized only if all nine structural
+     checks in `docs/opencode_scaffold_probe_scope.md` pass. The dry run is read for
+     exposure / action surface / grader fidelity **only** — never for a Base/BundleS contrast.
+   - **The scaffold main effect may not be estimated.** OpenCode necessarily replaces the action
+     surface and the prompt frame, and the paper's own §2 counts both as task information, so
+     `OpenCode − controlled runner` is not a scaffold effect and may not be reported as one. No
+     script, table or summary may generate that difference;
+     `test_no_scaffold_main_effect_claim` fails if one appears.
 2. **`reports/evidence/` is read-only.** 1337 files of frozen custody records. It also holds
    **1065 `path → sha256` pins** on the membership code that was in force when each batch of paid
    episodes ran. Any file appearing in a pin must stay byte-identical. Check before editing

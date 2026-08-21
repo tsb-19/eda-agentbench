@@ -4,9 +4,19 @@
 
 **Status: nothing has been run.** No model was called, no episode exists, no frozen result was
 touched, and no instance was selected. This document is the *scope audit* that precedes the decision
-to run, and it is deliberately not a preregistration — if the probe goes ahead it needs its own
-preregistration committed before any outcome is read, in the manner of
-[`phase8a_arm2_analysis_plan.md`](phase8a_arm2_analysis_plan.md).
+to run, and it is deliberately not a preregistration.
+
+**That preregistration now exists separately:
+[`opencode_probe_analysis_plan.md`](opencode_probe_analysis_plan.md)**, committed before any outcome
+field of any OpenCode episode was read, in the manner of
+[`phase8a_arm2_analysis_plan.md`](phase8a_arm2_analysis_plan.md). It fixes the questions, the outcome
+definitions, the wording standard and the escalation rule; this document fixes the integration
+surface and the nine structural checks that gate execution. Where the two touch — the design table,
+the pre-committed questions — the plan governs.
+
+**What is authorized is integration plus one unscored, discarded paid dry run.** The 48-episode
+formal arm is not authorized and becomes so only if all nine checks below pass. See `CLAUDE.md`
+hard constraint 1, which carves this out without reopening the `a89e084` programme.
 
 Everything below about OpenCode was established from **the installed binary** (`opencode 1.18.19`
 at `~/.opencode/bin/opencode`), its published config schema (`https://opencode.ai/config.json`),
@@ -43,8 +53,14 @@ cross-batch concordance — and better supported than most, because model, insta
 
 The second question needs no comparison at all and is the cheaper win: **does tool-green semantic
 misbinding still occur under an independent scaffold?** That is a per-episode property of the oracle
-versus the tool signal, so a single OpenCode episode that binds a role wrongly while `run_public.sh`
-returns green reproduces the paper's central measurement finding on foreign scaffolding.
+versus the tool signal, so it is answerable by counting: a single OpenCode episode that binds a role
+wrongly while `run_public.sh` returns green does establish that the failure mode is not exclusive to
+our own runner. **The strength of what may be written scales with the count, and a lone instance will
+be reported as exactly that** — the reported quantities are `n_semantic_wrong` and
+`n_tool_green_wrong` over valid episodes, with no significance claim at any count, and a count of
+zero reported with equal prominence. The bound is fixed in
+[the analysis plan](opencode_probe_analysis_plan.md#layer-1--primary-external-validity-question-existence-and-frequency),
+not after seeing the number.
 
 ## The finding that makes this cheap: the seam already exists
 
@@ -249,10 +265,17 @@ any outcome.**
 | 3 | tool permissions | every denied tool, when attempted, is refused and the refusal appears in the JSON event stream |
 | 4 | no human gate | the episode completes unattended; no `ask` remains in the resolved permission set |
 | 5 | oracle isolation | a prompt that explicitly asks for the oracle cannot reach it |
-| 6 | observation cap | a >4000-byte tool output is truncated **and** the truncation file is unreadable |
+| 6 | observation cap | **negative control, not an inspection** — deliberately emit a >4000-byte tool output, then confirm the agent cannot recover the overflow *by any path*: truncated in the returned message, and the truncation file unreadable via `read`, `glob`, `grep` and `bash` |
 | 7 | stop behaviour | the `steps` cap and wall clock both terminate cleanly; per-command timeout observed |
 | 8 | artifact fidelity | post-episode workspace diff contains only editable files; no formatter rewrite, no snapshot state |
 | 9 | request accounting | `--format json` event stream and `opencode stats` agree on request count; no `small_model` call |
+
+**Check 6 has to be a negative control because the failure mode is silent.** If OpenCode shows the
+model 4000 bytes on the surface while writing the full output into a directory the model is permitted
+to read, then the 4000-byte cap does not exist — it is merely one extra tool call away, and every
+observation budget the probe claims to have matched is fiction. Setting `tool_output.max_bytes` and
+reading back the setting proves nothing about recoverability. Only provoking an overflow and failing
+to retrieve it does.
 
 **Cost calibration is part of the dry run, and the paper's own history says how to do it.** The
 `ARM2_NOT_RUN` gate rejected an affordable arm because its rate estimator was calibrated on
@@ -267,8 +290,13 @@ to a mean.
 ¥183.9329 of a ¥200 cap and has ¥16.07 left. A scaffold probe needs its own cap, its own ledger and
 its own gate.
 
-The design that makes the scaffold the *only* varied factor mirrors arm 2 exactly — same model, same
-twelve frozen instances, same conditions, same *k*:
+The design mirrors arm 2 exactly — same model, same twelve frozen instances, same conditions, same
+*k*. Stated accurately, and this phrasing matters: **it matches model, task instances, treatment
+conditions, replication depth, grader and EDA environment to the existing DeepSeek (*k*=2) panel,
+while substituting the execution scaffold and the scaffold-implied interface framing.** It does *not*
+make the scaffold the only varied factor — by the paper's own taxonomy OpenCode also changes the
+prompt frame and the action surface, so the match is as close as the design admits rather than a
+single-factor causal experiment:
 
 | | value |
 |---|---|
@@ -289,6 +317,15 @@ reintroduces the two-factor confound that v18 and v19 spent two revisions cleani
 k=2 for the mirror.** Note either way that k=2 carries no magnitude claim — arm 1 measured 7 of 36
 cells disagreeing across six identical repetitions on this very family.
 
+**Escalation to k=6 is a rule, not a later judgement, and it is fixed in
+[the analysis plan](opencode_probe_analysis_plan.md#escalation-to-k6--the-rule-fixed-before-any-outcome)
+before any outcome exists.** Stage 1 stays at k=2 because the probe's first purpose is
+foreign-scaffold existence plus within-OpenCode behaviour, not a precise Δ. Extension happens if and
+only if trajectories are 100% complete, at least 5 instances are informative (neither floor/floor nor
+ceiling/ceiling), and cost fits the probe's own cap — and then **regardless of which condition scored
+higher**. The failure this forestalls is the outcome-adaptive one: *"we saw +20 pp so we ran more to
+confirm it; we saw 0 so we stopped."*
+
 Excluded on purpose: a second model, further Bundle ablations, and SPICE. Each adds a factor before
 the first scaffold observation exists.
 
@@ -296,9 +333,12 @@ the first scaffold observation exists.
 
 Written down now, before any outcome exists, so that neither can be chosen after the fact:
 
-1. **Does tool-green semantic misbinding occur under an independent scaffold?** Answerable from a
-   single episode. A wrong binding accepted by a green `run_public.sh` reproduces the paper's central
-   finding on foreign scaffolding. Licensed either way; no contrast required.
+1. **Does tool-green semantic misbinding occur under an independent scaffold?** Descriptive
+   existence and frequency, reported as `n_semantic_wrong` and `n_tool_green_wrong` over valid
+   episodes. A wrong binding accepted by a green `run_public.sh` establishes that the failure mode is
+   not exclusive to our own runner; a single instance is reported as a single instance, and **no
+   significance is claimed at any count**. Licensed in both directions — 0 of *n* is a result and is
+   reported with equal prominence — and no contrast is required.
 2. **Does the Base → BundleS contrast have an observable effect within OpenCode?** The estimand.
    Reported by the same rules as arm 2 — sign test, instance resampling band, panel anatomy — and
    with the same three-part standard for the word "supported" (*p* < 0.05 **and** band excluding 0
