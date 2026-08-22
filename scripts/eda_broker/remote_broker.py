@@ -87,21 +87,32 @@ def materialise(op, inputs: dict, workdir, manifest: dict) -> None:
 
 
 def run_step(argv, cwd, deadline: float, env: dict):
-    """Run one step in its own session, and kill the whole group if it overruns."""
+    """Run one step in its own session, and kill the whole group if it overruns.
+
+    Returns (rc, stdout, stderr, timed_out, killed_pgid). The pgid is reported because it is the only
+    precise way to ask afterwards whether anything survived: `pgrep -g <pgid>`. Matching on the
+    process NAME instead is a trap -- `pgrep -f pt_shell` also matches the shell running the pgrep,
+    so the preflight's first orphan check reported a survivor on every run, including runs where
+    nothing had been killed at all.
+    """
     remaining = max(1.0, deadline - time.time())
     p = subprocess.Popen(argv, cwd=str(cwd), env=env, stdout=subprocess.PIPE,
                          stderr=subprocess.PIPE, stdin=subprocess.DEVNULL,
                          start_new_session=True)
     try:
+        pgid = os.getpgid(p.pid)
+    except OSError:
+        pgid = None
+    try:
         out, err = p.communicate(timeout=remaining)
-        return p.returncode, out, err, False
+        return p.returncode, out, err, False, None
     except subprocess.TimeoutExpired:
         _kill_group(p.pid)
         try:
             out, err = p.communicate(timeout=5)
         except subprocess.TimeoutExpired:
             out, err = b"", b""
-        return -1, out, err, True
+        return -1, out, err, True, pgid
 
 
 def _kill_group(pid: int) -> None:
@@ -235,13 +246,21 @@ def _serve(episode_id: str) -> dict:
         deadline = time.time() + wall_clock
         home = Path.home()
         rc, out, err, timed_out = 0, b"", b"", False
+        timed_out_step, killed_pgid = None, None
         for step in op.steps:
             argv = _resolve(step, deploy)
             if argv[0] == "TOOL":
                 argv[0] = op.shim_name          # resolved from the login-shell PATH, as the forwarder does
-            rc, o, e, timed_out = run_step(argv, workdir, deadline, env)
+            rc, o, e, timed_out, pgid = run_step(argv, workdir, deadline, env)
             out += o
             err += e
+            if timed_out:
+                killed_pgid = pgid
+                # Which step overran is part of the measurement, not a detail. A preflight that
+                # shortens the wall clock to observe the process-group kill needs to know it killed
+                # PrimeTime and not the little Python build script -- otherwise the check passes
+                # while never having exercised the thing it exists to exercise.
+                timed_out_step = "TOOL" if step[0] == "TOOL" else step[0]
             if rc != 0 or timed_out:
                 break
         arts_raw = {}
@@ -259,6 +278,9 @@ def _serve(episode_id: str) -> dict:
                 "stderr": sanitise(err.decode("utf-8", "replace"), workdir, home),
                 "artifacts": arts,
                 "invocation": n,
+                "timed_out_step": timed_out_step,
+                "killed_pgid": killed_pgid,
+                "wall_clock_sec": wall_clock,
                 "elapsed_s": round(wall_clock - max(0.0, deadline - time.time()), 2)}
     finally:
         shutil.rmtree(workdir, ignore_errors=True)

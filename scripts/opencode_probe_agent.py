@@ -323,8 +323,12 @@ def stage_broker_bin(state_dir: Path) -> Path:
     """Materialise the in-sandbox tool channel: two launchers and the client library.
 
     The launchers must be NAMED pt_shell and hspice, because broker_client selects its op from
-    argv[0] -- the filename is load-bearing, not cosmetic. The client itself is reached through
-    lib/, so its own filename does not have to be either of those.
+    argv[0] -- the filename is load-bearing, not cosmetic. They are therefore PYTHON scripts with a
+    shebang, not shell wrappers. A `#!/bin/sh` wrapper doing `exec python3 .../broker_client.py "$@"`
+    loses the name: Python sets sys.argv[0] to the script it was handed, so the client saw
+    `broker_client.py` and refused every call with UNKNOWN_SHIM. That is exactly what preflight
+    control 14 observed, and it would have broken every episode of the arm. With a shebang the kernel
+    hands Python the launcher's own path, so argv[0] is `.../pt_shell` and the op resolves.
 
     Only the client half is staged. remote_broker.py belongs on the remote host, and broker_admin.py
     -- the one component holding a credential that can write authorized_keys -- must never be inside
@@ -338,10 +342,23 @@ def stage_broker_bin(state_dir: Path) -> Path:
         (lib / name).write_bytes((src / name).read_bytes())
     for shim in broker_shim_names():
         p = bin_dir / shim
-        p.write_text("#!/bin/sh\n"
-                     f"exec python3 {BROKER_BIN}/lib/eda_broker/broker_client.py \"$@\"\n")
+        p.write_text(broker_launcher_source())
         p.chmod(0o755)
     return bin_dir
+
+
+def broker_launcher_source(python: str = "/usr/bin/env python3") -> str:
+    """The launcher, whose FILENAME selects the op. See stage_broker_bin for why it is not a shell
+    wrapper. It adds its own `lib/` to sys.path and hands its own argv straight through."""
+    return (f"#!{python}\n"
+            "# Invoked as pt_shell or hspice by run_public.sh via EDA_PT_CMD / EDA_HSPICE_CMD.\n"
+            "# The op is selected from argv[0], i.e. from THIS FILE'S NAME, so the name is part of\n"
+            "# the interface. Nothing here parses or rewrites the arguments.\n"
+            "import os\n"
+            "import sys\n"
+            "sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lib'))\n"
+            "from eda_broker import broker_client\n"
+            "raise SystemExit(broker_client.main(sys.argv))\n")
 
 
 def broker_shim_names() -> tuple:

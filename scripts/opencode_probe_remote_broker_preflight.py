@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import argparse
 import base64
+import difflib
 import hashlib
 import json
 import os
@@ -135,7 +136,16 @@ def _scratch(instance: Path) -> Path:
 
 
 def _remote(host, script, timeout=120):
-    return _run(["ssh", "-o", "BatchMode=yes", host, "bash", "-lc", script], timeout=timeout)
+    """One remote command, under a login shell, with the script quoted as ONE word.
+
+    ssh joins its remaining argv with spaces and the REMOTE shell parses the result, so an unquoted
+    `bash -lc 'a | b'` sends only `a` to bash -lc and runs `| b` elsewhere. The first preflight run
+    failed three controls on exactly that: the decoy could not be planted, the operator-key probe
+    printed nothing, and an `ls ... | wc -l` counted the remote home directory instead of the
+    invocation dirs -- reporting "19" invocation dirs left when there were none. Routed through
+    broker_admin._ssh so there is one quoting implementation, not two.
+    """
+    return ba._ssh(host, script, timeout=timeout)
 
 
 def _remote_user_region_sha(host, root) -> str:
@@ -150,18 +160,18 @@ def _remote_user_region_sha(host, root) -> str:
 
 def _stage_client_bin(dest: Path) -> Path:
     """A local pt_shell/hspice launcher pair, so run_public.sh can dispatch through the broker
-    exactly as it would inside the sandbox."""
-    lib = dest / "lib/eda_broker"
-    lib.mkdir(parents=True, exist_ok=True)
-    src = REPO / "scripts/eda_broker"
-    for n in ("__init__.py", "broker_protocol.py", "broker_client.py"):
-        (lib / n).write_bytes((src / n).read_bytes())
+    exactly as it would inside the sandbox -- built by the SAME function the sandbox uses, so the two
+    cannot drift. The shebang is rewritten to this interpreter; nothing else differs."""
+    sys.path.insert(0, str(REPO / "scripts"))
+    import opencode_probe_agent as agent
+
+    dest.mkdir(parents=True, exist_ok=True)
+    bin_dir = agent.stage_broker_bin(dest)
     for shim in sorted(bp.OP_BY_SHIM):
-        p = dest / shim
-        p.write_text("#!/bin/sh\n"
-                     f'exec {sys.executable} {lib}/broker_client.py "$@"\n')
+        p = bin_dir / shim
+        p.write_text(agent.broker_launcher_source(python=sys.executable))
         p.chmod(0o755)
-    return dest
+    return bin_dir
 
 
 # ---------------------------------------------------------------------------------------------
@@ -517,34 +527,52 @@ def control_cap_hit(host, root, work_root: Path) -> dict:
 def verify_cleanup(host, root, user_keys_before, work_root: Path) -> dict:
     """Including the process-group kill, observed on real PrimeTime processes.
 
-    The wall clock is shortened to 5 s through the manifest (lowering-only), PrimeTime is started,
-    and the surviving pt_shell processes are compared before and after. Comparing sets rather than
-    checking one pgid catches a re-parented survivor too.
-    """
-    def pt_pids():
-        r = _remote(host, "pgrep -u $USER -f 'pt_shell' | sort | tr '\\n' ' ' || true", timeout=60)
-        return set(((r.stdout or b"").decode().split()) if r else [])
+    The wall clock is shortened to 2 s through the manifest (lowering-only), PrimeTime is started, and
+    the broker reports the process GROUP it killed. Survivors are then asked for precisely:
+    `pgrep -g <pgid>`.
 
-    before_pids = pt_pids()
+    Two ways this check was wrong before, both fixed here, and both of the same family -- a check
+    that cannot say the thing it appears to say:
+
+      * VACUOUS PASS. A 5 s override let PrimeTime finish, the response came back `ok`, and "no orphan
+        survived" was true only because nothing had been killed. Now the kill must have happened AND
+        have landed on the TOOL step, not on the little Python build script.
+      * GUARANTEED FAIL. `pgrep -u $USER -f pt_shell` matches the shell running the pgrep, because
+        that shell's own command line contains "pt_shell". So it reported one survivor on every run
+        forever, including the run where nothing was killed. Asking about the pgid cannot self-match:
+        the probe's shell is in a different group.
+    """
     out_dir = work_root / EPISODE_KILL
-    timed_out = None
-    ba.provision(EPISODE_KILL, INSTANCE, out_dir, host=host, root=root, wall_clock_override=5)
+    resp = {}
+    ba.provision(EPISODE_KILL, INSTANCE, out_dir, host=host, root=root, wall_clock_override=2)
     try:
         files = _scratch(INSTANCE)
         raw = _probe_ssh(out_dir / "key", out_dir / "known_hosts", host,
                          payload=_request("sta_public", files), timeout=400)
         resp = _framed(raw) or {}
-        timed_out = resp.get("status")
         shutil.rmtree(files.parent, ignore_errors=True)
         time.sleep(bp.KILL_GRACE_SEC + 5)
-        survivors = sorted(pt_pids() - before_pids)
-        inv = _remote(host, f"ls -1d {root}/ep/{EPISODE_KILL}/inv-* 2>/dev/null | wc -l")
-        inv_left = (inv.stdout or b"0").decode().strip().splitlines()[-1] if inv else "?"
+        pgid = resp.get("killed_pgid")
+        if pgid:
+            # Separate -o flags, not `-o pid=,args=`. procps parses the latter as "column pid with
+            # header ',args='", so an EMPTY process group still prints one line -- the header -- and
+            # the check reported it as a survivor. Third time this preflight has been wrong about its
+            # own instrument rather than about the broker, so the parse now also requires a line to
+            # begin with a pid; a header or an error message cannot pose as a process.
+            r = _remote(host, f"ps -o pid= -o args= -g {int(pgid)} 2>/dev/null || true", timeout=60)
+            survivors = [l.strip() for l in (r.stdout or b"").decode("utf-8", "replace").splitlines()
+                         if l.strip() and l.strip().split()[0].isdigit()]
+        else:
+            survivors = ["(no killed process group was reported)"]
+        inv = _remote(host, f"ls -1d {root}/ep/{EPISODE_KILL}/inv-* 2>/dev/null | wc -l", timeout=60)
+        inv_left = (inv.stdout or b"?").decode().strip().splitlines()[-1] if inv else "?"
     finally:
         td = ba.teardown(EPISODE_KILL, host=host, root=root)
 
     a = ba.audit(host=host, root=root)
     after = _remote_user_region_sha(host, root)
+    timed_out = resp.get("status") == bp.Status.TOOL_TIMEOUT
+    killed_the_tool = resp.get("timed_out_step") == "TOOL"
     return {"user_keys_unchanged": after["sha"] == user_keys_before["sha"],
             "user_region_sha256_before": user_keys_before["sha"],
             "user_region_sha256_after": after["sha"],
@@ -552,10 +580,17 @@ def verify_cleanup(host, root, user_keys_before, work_root: Path) -> dict:
             "managed_entries_after": a["entries"],
             "episode_dirs_after": a["episode_dirs"],
             "quarantine": a["quarantine"],
-            "timeout_status": timed_out,
+            "timeout_status": resp.get("status"),
+            "timed_out_step": resp.get("timed_out_step"),
+            "killed_pgid": resp.get("killed_pgid"),
+            "wall_clock_sec": resp.get("wall_clock_sec"),
+            "elapsed_s": resp.get("elapsed_s"),
+            "kill_discipline_exercised": bool(timed_out and killed_the_tool),
             "invocation_dirs_left": inv_left,
-            "orphan_pt_shell": survivors,
-            "no_orphan_process": survivors == [] and str(inv_left) == "0"}
+            "survivors_in_killed_group": survivors,
+            # Non-vacuous by construction: the kill must have happened, on the tool, and left nothing.
+            "no_orphan_process": bool(timed_out and killed_the_tool
+                                      and survivors == [] and str(inv_left) == "0")}
 
 
 # ---------------------------------------------------------------------------------------------
@@ -577,63 +612,137 @@ def _normalise(text: str):
     return "\n".join(kept), rules, total
 
 
+def _shape(line: str) -> str:
+    """A line with its numeric runs masked. Used to generalise an empirically-measured
+    nondeterministic line across the values it takes, without hand-writing a rule for it."""
+    return re.sub(r"\d+(?:\.\d+)?", "#", line)
+
+
 def _identifiers(text: str) -> set:
     return set(re.findall(r"(?:/home/[A-Za-z0-9._-]+|\bb04\b|\btsb\b|[A-Za-z0-9._-]+@[A-Za-z0-9._-]+"
                           r"|/tmp/eda_shim_[0-9a-f]+|eda-probe-broker)", text))
 
 
-def check_equivalence(host, root, work_root: Path) -> dict:
+def check_equivalence(host, root, work_root: Path, n_forwarder=3, n_broker=2) -> dict:
     """PrimeTime path only. p16 has no unstudied directory of the studied generation -- p16_dev_0000
     predates the immutable-core scheme -- and provisioning a studied p16 instance from a preflight is
-    not acceptable. Recorded as a scope limit rather than left to be inferred."""
+    not acceptable. Recorded as a scope limit rather than left to be inferred.
+
+    The normalisation is DERIVED, not chosen, and the derivation is symmetric.
+
+    Each path is run several times. For every line SHAPE (the line with its numeric runs masked), the
+    set of values it takes within a path is collected. A shape is *stable for that path* iff it takes
+    exactly one value across that path's runs. Only shapes stable in BOTH paths are compared; a shape
+    unstable in either is reported as not-comparable, with every value it was observed to take.
+
+    Why this shape rather than something simpler. The first honest comparison differed on one line,
+    `Maximum memory usage for this session: 2897.31 MB` against `2897.26 MB`. Hand-writing a
+    memory-usage regex would have made it disappear and would have been indistinguishable, in the
+    record, from normalising away a real difference. A single same-path pair answered it -- until a
+    later run in which the two forwarder runs happened to report the SAME value, so the pair detected
+    nothing, nothing was dropped, and the check failed on noise it had previously identified. Two
+    samples on one side is too weak a basis for calling a line nondeterministic, and a gate that fails
+    at random is not a gate. Several runs on both sides is.
+    """
     from opencode_probe_raw_output_audit import tool_env
 
-    fwd_files = _scratch(INSTANCE)
-    fwd = _run(["bash", "run_public.sh"], cwd=str(fwd_files), env=tool_env(), timeout=600)
+    def prep(r, workdir):
+        text = ((r.stdout or b"") + (r.stderr or b"")).decode("utf-8", "replace") if r else ""
+        return text.replace(str(workdir), "@WORKDIR@")
+
+    def run_forwarder():
+        files = _scratch(INSTANCE)
+        r = _run(["bash", "run_public.sh"], cwd=str(files), env=tool_env(), timeout=600)
+        text = prep(r, files)
+        shutil.rmtree(files.parent, ignore_errors=True)
+        return r, text
+
+    fwd_runs = [run_forwarder() for _ in range(n_forwarder)]
 
     out_dir = work_root / (EPISODE + "_eq")
     ba.provision(EPISODE + "_eq", INSTANCE, out_dir, host=host, root=root)
+    brk_runs = []
     try:
-        brk_files = _scratch(INSTANCE)
         bin_dir = _stage_client_bin(work_root / "eqbin")
         env = dict(os.environ)
         env.update({"EDA_PT_CMD": str(bin_dir / "pt_shell"),
                     "EDA_BROKER_KEY": str(out_dir / "key"),
                     "EDA_BROKER_KNOWN_HOSTS": str(out_dir / "known_hosts"),
                     "EDA_BROKER_HOST": host})
-        brk = _run(["bash", "run_public.sh"], cwd=str(brk_files), env=env, timeout=600)
+        for _ in range(n_broker):
+            files = _scratch(INSTANCE)
+            r = _run(["bash", "run_public.sh"], cwd=str(files), env=env, timeout=600)
+            brk_runs.append((r, prep(r, files)))
+            shutil.rmtree(files.parent, ignore_errors=True)
     finally:
         ba.teardown(EPISODE + "_eq", host=host, root=root)
 
-    def prep(r, workdir):
-        text = ((r.stdout or b"") + (r.stderr or b"")).decode("utf-8", "replace") if r else ""
-        return text.replace(str(workdir), "@WORKDIR@")
+    fwd_norms = [_normalise(t)[0] for _, t in fwd_runs]
+    brk_norms = [_normalise(t)[0] for _, t in brk_runs]
+    rules, a_total = _normalise(fwd_runs[0][1])[1], _normalise(fwd_runs[0][1])[2]
 
-    fwd_text = prep(fwd, fwd_files)
-    brk_text = prep(brk, brk_files)
-    fwd_norm, rules, fwd_total = _normalise(fwd_text)
-    brk_norm, _, _ = _normalise(brk_text)
-    shutil.rmtree(fwd_files.parent, ignore_errors=True)
-    shutil.rmtree(brk_files.parent, ignore_errors=True)
+    def values_by_shape(norms):
+        seen = {}
+        for text in norms:
+            for line in text.splitlines():
+                seen.setdefault(_shape(line), set()).add(line)
+        return seen
 
+    fwd_vals, brk_vals = values_by_shape(fwd_norms), values_by_shape(brk_norms)
+    unstable = sorted({s for s, v in fwd_vals.items() if len(v) > 1}
+                      | {s for s, v in brk_vals.items() if len(v) > 1})
+
+    def drop_unstable(text):
+        kept, dropped = [], []
+        for line in text.splitlines():
+            (dropped if _shape(line) in set(unstable) else kept).append(line)
+        return "\n".join(kept), dropped
+
+    a_final, a_dropped = drop_unstable(fwd_norms[0])
+    brk_final, brk_dropped = drop_unstable(brk_norms[0])
+    cross_diff = list(difflib.unified_diff(a_final.splitlines(), brk_final.splitlines(),
+                                           "forwarder", "broker", lineterm="", n=1))
+
+    fwd_text, brk_text = fwd_runs[0][1], brk_runs[0][1]
     new_disclosures = sorted(_identifiers(brk_text) - _identifiers(fwd_text))
+    unstable_fraction = round(len(unstable) / max(1, len(fwd_norms[0].splitlines())), 4)
     return {"scope": "sta_public",
             "scope_limit": "p16 is absent: p16_dev_0000 is an older generation the op table does "
                            "not model, and a studied p16 instance may not be provisioned from a "
                            "preflight. The HSPICE path rests on shared code and the artifact round "
                            "trip, not on its own end-to-end comparison.",
             "instance": EPISODE,
-            "rc_forwarder": fwd.returncode if fwd else -1,
-            "rc_broker": brk.returncode if brk else -1,
-            "rc_equal": bool(fwd and brk and fwd.returncode == brk.returncode),
-            "normalised_equal": fwd_norm == brk_norm,
-            "lines_compared": len(fwd_norm.splitlines()),
-            "raw_lines_forwarder": fwd_total,
+            "n_forwarder_runs": n_forwarder, "n_broker_runs": n_broker,
+            "rc_forwarder": [r.returncode if r else -1 for r, _ in fwd_runs],
+            "rc_broker": [r.returncode if r else -1 for r, _ in brk_runs],
+            "rc_equal": bool({r.returncode for r, _ in fwd_runs if r}
+                             == {r.returncode for r, _ in brk_runs if r}),
+            "rc_equal_is_weak_evidence": ("run_public.sh ends in `exit 0` unconditionally, so equal "
+                                          "return codes are close to vacuous here. The load-bearing "
+                                          "assertion is normalised_equal; rc is recorded for "
+                                          "completeness, not relied on."),
+            "stability_control": {
+                "what": "each path run several times; a line SHAPE is comparable only if it takes "
+                        "exactly one value within BOTH paths. Shapes unstable in either path are "
+                        "excluded and listed with every value observed, so nothing is dropped on the "
+                        "strength of a hand-written rule.",
+                "unstable_shapes": unstable,
+                "unstable_values": {s: sorted(fwd_vals.get(s, set()) | brk_vals.get(s, set()))
+                                    for s in unstable},
+                "n_unstable": len(unstable),
+                "fraction_of_output": unstable_fraction,
+                "dropped_from_forwarder": a_dropped,
+                "dropped_from_broker": brk_dropped},
+            "normalised_equal": a_final == brk_final,
+            "normalised_diff": cross_diff[:120],
+            "normalised_diff_lines": len(cross_diff),
+            "lines_compared": len(a_final.splitlines()),
+            "raw_lines_forwarder": a_total,
             "rules": rules,
             "shared_identifiers": sorted(_identifiers(brk_text) & _identifiers(fwd_text)),
             "new_disclosures": new_disclosures,
-            "forwarder_normalised_head": fwd_norm[:400],
-            "broker_normalised_head": brk_norm[:400]}
+            "forwarder_normalised_head": a_final[:400],
+            "broker_normalised_head": brk_final[:400]}
 
 
 # ---------------------------------------------------------------------------------------------
@@ -644,7 +753,21 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Zero-call preflight for the EDA broker.")
     ap.add_argument("--host", default=ba.DEFAULT_HOST)
     ap.add_argument("--root", default=ba.DEFAULT_ROOT)
+    ap.add_argument("--only-equivalence", action="store_true",
+                    help="run ONLY the forwarder-equivalence check and print it. Writes no evidence "
+                         "file: a partial run may never carry a verdict.")
     a = ap.parse_args()
+
+    if a.only_equivalence:
+        wr = Path(tempfile.mkdtemp(prefix="broker_eq_"))
+        try:
+            eq = check_equivalence(a.host, a.root, wr)
+        finally:
+            shutil.rmtree(wr, ignore_errors=True)
+        print(json.dumps({k: v for k, v in eq.items()
+                          if k not in ("forwarder_normalised_head", "broker_normalised_head")},
+                         indent=2))
+        return 0 if eq["normalised_equal"] and eq["new_disclosures"] == [] else 1
 
     work_root = Path(tempfile.mkdtemp(prefix="broker_preflight_"))
     controls, cleanup, equivalence = [], {}, {}
@@ -677,6 +800,11 @@ def main() -> int:
                           and cleanup.get("quarantine") == []
                           and equivalence.get("rc_equal")
                           and equivalence.get("normalised_equal")
+                          # An empirically-derived drop set is legitimate; a large one means the
+                          # comparison has little content left to be equal about.
+                          and equivalence.get("stability_control", {}).get("fraction_of_output", 1)
+                          <= 0.10
+                          and equivalence.get("lines_compared", 0) > 0
                           and equivalence.get("new_disclosures") == [])
                else "FAIL")
 

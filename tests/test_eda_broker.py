@@ -535,13 +535,26 @@ def test_a_timeout_kills_the_whole_process_tree(tmp_path):
         f"( while true; do touch {marker}; sleep 0.2; done ) &\n"
         "sleep 300\n")
     script.chmod(0o755)
-    rc, out, err, timed_out = rb.run_step(
+    rc, out, err, timed_out, killed_pgid = rb.run_step(
         ["/bin/bash", str(script)], cwd=tmp_path, deadline=time.time() + 2.0, env=dict(os.environ))
     assert timed_out
+    assert killed_pgid, "the killed process group must be reported, so survivors can be asked about"
     if marker.exists():
         marker.unlink()
     time.sleep(1.5)
     assert not marker.exists(), "a descendant survived the timeout and is still running"
+    # The precise question, asked the precise way: is anything left in that group?
+    left = subprocess.run(["pgrep", "-g", str(killed_pgid)], capture_output=True, text=True)
+    assert left.stdout.strip() == "", f"survivors in pgid {killed_pgid}: {left.stdout.split()}"
+
+
+def test_a_step_that_finishes_reports_no_killed_group(tmp_path):
+    """So a caller cannot mistake "nothing was killed" for "the kill left nothing"."""
+    rb = _rb()
+    rc, out, err, timed_out, killed_pgid = rb.run_step(
+        ["/bin/echo", "ok"], cwd=tmp_path, deadline=time.time() + 30, env=dict(os.environ))
+    assert (rc, timed_out, killed_pgid) == (0, False, None)
+    assert out.strip() == b"ok"
 
 
 def test_the_failure_kinds_are_distinct_statuses():
@@ -1063,7 +1076,6 @@ def test_the_shim_launcher_selects_its_op_from_argv0(tmp_path):
     for n in names:
         p = bin_dir / n
         assert os.access(p, os.X_OK), f"{n} is not executable"
-        assert "broker_client.py" in p.read_text()
     lib = bin_dir / "lib/eda_broker"
     for mod in ("__init__.py", "broker_protocol.py", "broker_client.py"):
         assert (lib / mod).is_file(), f"{mod} must be staged beside the launchers"
@@ -1142,8 +1154,8 @@ def test_the_cap_hit_control_observed_a_fail_closed_response():
 
 @pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
 def test_the_equivalence_normalisation_did_not_grow_until_the_texts_matched():
-    """A normalisation that expands until two outputs agree proves nothing. Each regex records how
-    much it dropped, and no single one may account for more than a fifth of the output."""
+    """A normalisation that expands until two outputs agree proves nothing. Each static regex records
+    how much it dropped, and no single one may account for more than a fifth of the output."""
     r = json.loads(PREFLIGHT.read_text())
     eq = r["equivalence"]
     assert eq["scope"] == "sta_public", "p16 has no unstudied directory of the studied generation"
@@ -1152,6 +1164,36 @@ def test_the_equivalence_normalisation_did_not_grow_until_the_texts_matched():
         assert rule["dropped_fraction"] <= 0.20, \
             f"normalisation rule {rule['pattern']!r} dropped {rule['dropped_fraction']:.0%}"
     assert eq["lines_compared"] > 0, "an empty comparison is not an equivalence"
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_equivalence_exclusions_were_measured_not_chosen():
+    """Beyond the static rules, a line may be excluded only because it was OBSERVED to vary within a
+    path. The control is symmetric (both paths run several times) because a single pair on one side
+    missed the variation once and turned a known-noisy line into a spurious failure."""
+    sc = json.loads(PREFLIGHT.read_text())["equivalence"]["stability_control"]
+    assert sc["fraction_of_output"] <= 0.10, \
+        f"excluding {sc['fraction_of_output']:.0%} of the output leaves little to be equal about"
+    # Every exclusion must come with the values that justified it.
+    for shape in sc["unstable_shapes"]:
+        vals = sc["unstable_values"][shape]
+        assert len(vals) >= 2, f"{shape!r} was excluded without having been seen to vary: {vals}"
+    dropped = sc["dropped_from_forwarder"] + sc["dropped_from_broker"]
+    for line in dropped:
+        assert any(line in sc["unstable_values"][s] for s in sc["unstable_shapes"]), \
+            f"a line was dropped that no measurement justified: {line!r}"
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_equivalence_sampled_both_paths_more_than_once():
+    """The sample size is part of the claim. One run per path cannot distinguish tool noise from a
+    real difference, and one pair on one side demonstrably could not either."""
+    eq = json.loads(PREFLIGHT.read_text())["equivalence"]
+    assert eq["n_forwarder_runs"] >= 2 and eq["n_broker_runs"] >= 2
+    assert len(eq["rc_forwarder"]) == eq["n_forwarder_runs"]
+    assert len(eq["rc_broker"]) == eq["n_broker_runs"]
+    assert "weak_evidence" in json.dumps(eq), \
+        "run_public.sh always exits 0, so rc equality must be marked as the weak evidence it is"
 
 
 # --- byte-exactness: line endings are content ------------------------------------------------
@@ -1246,3 +1288,60 @@ def test_the_dry_run_confirmed_the_real_file_uses_crlf():
     r = json.loads(DRY_RUN.read_text())
     assert r["result"]["crlf_in_file"] is True
     assert r["result"]["crlf_preserved_during_batch"] is True
+
+
+def test_the_launcher_actually_preserves_argv0_when_executed(tmp_path):
+    """EXECUTED, not inspected. The previous version of this test read the launcher's source and
+    checked it mentioned broker_client.py, which a `#!/bin/sh` wrapper satisfied while destroying the
+    one property that matters: Python sets sys.argv[0] to the script it is handed, so
+    `exec python3 .../broker_client.py "$@"` made every call arrive as argv0=broker_client.py and be
+    refused UNKNOWN_SHIM. Preflight control 14 caught it; a source-inspecting test never could.
+
+    This runs each launcher for real and reads back the op it resolved, with the network step never
+    reached because the request is built before ssh is invoked and a missing input refuses first.
+    """
+    a = _agent()
+    bin_dir = a.stage_broker_bin(tmp_path)
+    # Rewrite the shebang to this interpreter so the test does not depend on `python3` in PATH.
+    for shim in ("pt_shell", "hspice"):
+        (bin_dir / shim).write_text(a.broker_launcher_source(python=sys.executable))
+        (bin_dir / shim).chmod(0o755)
+
+    probe = tmp_path / "probe"
+    probe.mkdir()
+    for shim, expected_missing in (("pt_shell", "exception_config.json"),
+                                   ("hspice", "meas_config.json")):
+        r = subprocess.run([str(bin_dir / shim)], cwd=probe,
+                           capture_output=True, text=True, timeout=60)
+        err = r.stderr
+        assert "UNKNOWN_SHIM" not in err, (
+            f"{shim} lost its own name: {err.strip()[:200]}")
+        # An empty argv is the canonical-argv refusal; that proves the op resolved from the name.
+        assert "UNEXPECTED_ARGV" in err, f"{shim}: expected the argv guard, got {err.strip()[:200]}"
+        assert r.returncode == 126
+
+
+def test_the_launcher_resolves_the_right_op_for_each_name(tmp_path):
+    """Both launchers are byte-identical; only their names differ. So the op mapping has to be
+    demonstrated per name, or a single-name test would pass with both wired to one op."""
+    a = _agent()
+    bin_dir = a.stage_broker_bin(tmp_path)
+    for shim in ("pt_shell", "hspice"):
+        (bin_dir / shim).write_text(a.broker_launcher_source(python=sys.executable))
+        (bin_dir / shim).chmod(0o755)
+    assert (bin_dir / "pt_shell").read_bytes() == (bin_dir / "hspice").read_bytes(), \
+        "the launchers must differ only in name; anything else makes the name decorative"
+
+    bp = _proto()
+    probe = tmp_path / "probe2"
+    probe.mkdir()
+    for shim, op in (("pt_shell", "sta_public"), ("hspice", "spice_public")):
+        argv = list(bp.OPS[op].client_argv)
+        r = subprocess.run([str(bin_dir / shim)] + argv, cwd=probe,
+                           capture_output=True, text=True, timeout=60)
+        # Canonical argv accepted, so it gets as far as building the request and refuses the first
+        # missing input -- which is an input of THAT op, naming the op that resolved.
+        assert "MISSING_INPUT" in r.stderr, f"{shim}: {r.stderr.strip()[:200]}"
+        missing = r.stderr.split("'file':")[1].split("'")[1]
+        assert missing in bp.input_names(bp.OPS[op]), \
+            f"{shim} resolved to the wrong op: missing input {missing!r} is not in {op}"

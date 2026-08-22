@@ -371,10 +371,32 @@ wall-clock overrun sends `SIGTERM` to the whole **process group**, waits out a 1
 
 The process group is the point, and `subprocess`'s own timeout is not enough. Killing only the direct
 child leaves orphan `pt_shell` descendants that hold licences and keep writing into whatever runs
-next — which on a shared EDA host means the next episode's workspace. The preflight observes this on
-real processes rather than asserting it: it shortens the wall clock through the manifest, starts real
-PrimeTime, and compares the set of surviving `pt_shell` processes before and after. Comparing sets
-rather than checking one process group also catches a re-parented survivor.
+next — which on a shared EDA host means the next episode's workspace. The broker therefore reports the
+process **group** it killed (`killed_pgid`) and which step overran (`timed_out_step`), and the
+preflight observes the property on real processes rather than asserting it: it shortens the wall clock
+through the manifest, starts real PrimeTime, and then asks `ps -g <pgid>` whether anything is left.
+
+Both halves of that check were wrong before they were right, in the same way — a check that cannot
+say the thing it appears to say:
+
+- **It could pass vacuously.** With a 5 s wall clock PrimeTime finished, the response came back `ok`,
+  and "no orphan survived" was true only because nothing had been killed. The check now requires the
+  kill to have happened *and* to have landed on the `TOOL` step rather than on the Python build
+  script — otherwise the observation is about the wrong process.
+- **It could only fail.** The first version asked `pgrep -u $USER -f pt_shell`, which matches the
+  shell *running the pgrep*, because that shell's own command line contains the string `pt_shell`. It
+  reported exactly one survivor on every run, including the run in which nothing had been killed.
+  Asking about the process group cannot self-match: the probe's shell is in a different group.
+- **Then it failed on a column header.** `ps -o pid=,args=` is parsed by procps as "column `pid` with
+  header `,args=`", so an *empty* process group still prints one line — the header — which the check
+  again read as a survivor. Separate `-o` flags print nothing, and the parse now additionally requires
+  a line to begin with a pid.
+
+Three failures in a row, none of them about the broker and all of them about the instrument. That is
+worth stating rather than tidying away: an instrument that has not been checked against a known-empty
+and a known-nonempty case is not yet a measurement. The unit test now does both — it asserts a killed
+group is reported and empty, and that a step which *finishes* reports no killed group at all, so
+"nothing was killed" can never be read as "the kill left nothing".
 
 Cleanup is verified rather than assumed: the preflight asserts the invocation directory is absent
 after each call, and that teardown leaves neither the episode directory nor the key line.
@@ -394,6 +416,42 @@ built**; the fourth is new.
 The client invokes ssh with `-o IdentitiesOnly=yes -o IdentityAgent=none -o BatchMode=yes -o
 StrictHostKeyChecking=yes -o UserKnownHostsFile=<pinned> -o ControlMaster=no`, so it cannot fall back
 to a key or a host key it was not given.
+
+### 6.1 The launcher's filename is part of the interface
+
+`run_public.sh` dispatches through `EDA_PT_CMD` / `EDA_HSPICE_CMD`, and the client selects its op from
+`argv[0]` — so the two launchers are two differently-named executables, and the **name is
+load-bearing**. They are Python scripts with a shebang, not shell wrappers, and that distinction is
+not cosmetic:
+
+```sh
+#!/bin/sh
+exec python3 .../broker_client.py "$@"      # WRONG: argv[0] becomes broker_client.py
+```
+
+Python sets `sys.argv[0]` to the script it was handed, so a shell wrapper destroys the name and every
+call arrives as `argv0=broker_client.py` and is refused `UNKNOWN_SHIM`. With a shebang the kernel
+hands Python the launcher's own path and `argv[0]` is `.../pt_shell`.
+
+This was a real defect, and the way it was caught is the part worth keeping. The unit test asserted
+that the launcher's *source text* mentioned `broker_client.py`, which the broken wrapper satisfied
+while breaking the only property that mattered; the preflight caught it because the preflight actually
+runs the tool. The test now **executes** each launcher and reads back which op resolved. A test that
+inspects an artifact instead of exercising it can agree with a defect indefinitely.
+
+### 6.2 Every remote command is quoted as one word
+
+`ssh host bash -lc <script>` does not pass argv through. ssh joins its remaining arguments with spaces
+and hands the result to the **remote** shell, which parses them again — so an unquoted `bash -lc 'a;
+b'` sends only `a` to `bash -lc` and lets the remote login shell run `b`. The frozen forwarder quotes
+for this reason (`ssh "$HOST" "bash -lc '...'"`).
+
+Unquoted, this failure is quiet and misleading rather than loud. It produced a deploy that reported
+"no python3 on the remote login PATH" while, in the same output, printing the `pt_shell` and `hspice`
+it had just resolved; and an `ls .../inv-* | wc -l` that counted the remote home directory and
+reported 19 leftover invocation directories where there were none. There is now one quoting
+implementation, in `broker_admin._ssh`, and the preflight routes through it rather than having a
+second.
 
 ## 7. Negative controls
 
@@ -439,6 +497,62 @@ right" and "the key still works" are different claims and only the second is the
 may lower a cap and shorten the wall clock; it may never raise or extend either, so a manifest can
 never buy an episode more transport or more tool time than the calibrated bounds allow. What the
 control asserts is that the reduced-cap response contains a shortened `stdout` under *no* key name.
+
+### 7.1 Forwarder equivalence, and a normalisation that is measured rather than chosen
+
+The strongest parity evidence available at zero model cost: run `run_public.sh` on `p15_dev_0000`
+through the frozen forwarder and through the broker client, normalise both, and require the public
+observations to be equal.
+
+Normalisation is where this check could quietly become worthless. A rule set that grows until the two
+texts agree is the same failure as a verifier tuned until it prints nothing. So the rules are split in
+two, and only the first half is written by hand:
+
+- **Static rules**, listed in the record with the number of lines each dropped — version and copyright
+  banners, dates, clock times, timing lines, licence chatter, pids. The check fails if any single rule
+  accounts for more than 20% of the output.
+- **A stability control, derived by measurement and symmetric between the paths.** Each path is run
+  several times (3 forwarder, 2 broker). For every line **shape** — the line with its numeric runs
+  masked — the set of values it takes *within* a path is collected. A shape is comparable only if it
+  takes exactly one value in **both** paths; a shape unstable in either is excluded and listed with
+  every value it was observed to take. Nothing is dropped on the strength of a hand-written rule.
+
+That control earned its place immediately, and then earned its final form the hard way. The first
+honest comparison differed on exactly one line:
+
+```
+-Maximum memory usage for this session: 2897.31 MB
++Maximum memory usage for this session: 2897.26 MB
+```
+
+Adding a memory-usage regex would have made that disappear and would have been indistinguishable, in
+the record, from normalising away a real difference. So the first version ran the forwarder twice and
+dropped whatever differed between those two runs. Two further defects followed, and both are worth
+keeping in the record because both are the same mistake in different clothing — trusting an
+under-sampled instrument:
+
+1. **Exact-text matching was too narrow.** Two forwarder runs gave 2897.26 and 2897.31; the broker
+   gave a *third* value, 2897.27, which the literal drop set left standing and reported as a
+   difference the control had already shown to be noise. Matching by masked shape fixed it.
+2. **One pair on one side was too small a sample.** In a later run the two forwarder runs happened to
+   report the *same* value, so the control detected nothing, nothing was dropped, and the check failed
+   on noise it had identified correctly minutes earlier. A gate that fails at random is not a gate.
+   Several runs on **both** sides fixed it.
+
+The check fails if the excluded set exceeds 10% of the output, because a large exclusion means there is
+little content left to be equal about.
+
+Measured: 82 lines compared, cross-path diff empty, one unstable shape at 1.2% of output — the memory
+line, observed taking 2897.26, 2897.27 and 2897.31 MB across five runs — and no identifier present in
+the broker's output that is absent from the forwarder's.
+
+**Scope limit.** PrimeTime only. The comparison needs an instance outside every studied panel and p16
+has none of the studied generation — `p16_dev_0000` predates the immutable-core scheme — while
+provisioning a studied p16 instance from a preflight is not acceptable. The HSPICE path rests on the
+shared broker/client code and the artifact round trip, not on its own end-to-end comparison.
+
+**And `rc_equal` is nearly vacuous here**, because `run_public.sh` ends in `exit 0` unconditionally.
+It is recorded for completeness; `normalised_equal` is the assertion that carries the weight.
 
 ## 8. Check 6 — a pre-arm parity correction
 

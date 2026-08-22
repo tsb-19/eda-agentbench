@@ -1,0 +1,323 @@
+{
+  "generated_by": "scripts/opencode_probe_remote_broker_preflight.py",
+  "when": "2026-08-22T20:35:24",
+  "model_calls": 0,
+  "host": "tsb@b04",
+  "root": "/home/tsb/eda-probe-broker",
+  "authorizes_formal_arm": false,
+  "scope": "addresses the tool-channel blocker in docs/opencode_probe_dry_run_report.md section 5. Check 7 remains UNSETTLED. Check 5's earlier PASS does not carry over: it was established with the tools absent, and this configuration mounts a tool channel.",
+  "controls": [
+    {
+      "id": 1,
+      "name": "client command is ignored by the forced command",
+      "attempt": "ssh -i key tsb@b04 'cat /etc/passwd' with empty stdin",
+      "expected": "the forced command runs; REFUSED FRAMING; no passwd content",
+      "observed": "exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; framed={'status': 'refused', 'reason': 'FRAMING', 'detail': {'got': ''}, 'rc': 126}",
+      "pass": true,
+      "detail": {
+        "etc_passwd_leaked": false
+      }
+    },
+    {
+      "id": 2,
+      "name": "unknown op",
+      "attempt": "framed {\"op\": \"ls\"}",
+      "expected": "REFUSED UNKNOWN_OP",
+      "observed": "exit 1; stdout='EDABROKER1 82\\n{\"status\": \"refused\", \"reason\": \"UNKNOWN_OP\", \"detail\": {\"op\": \"\\'ls\\'\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; framed={'status': 'refused', 'reason': 'UNKNOWN_OP', 'detail': {'op': \"'ls'\"}, 'rc': 126}",
+      "pass": true
+    },
+    {
+      "id": 3,
+      "name": "input key set with an extra name",
+      "attempt": "inputs + extra.txt",
+      "expected": "REFUSED INPUT_SET_MISMATCH",
+      "observed": "exit 1; stdout='ny.db\"], \"got\": [\"build_applied_sdc.py\", \"constraints.sdc\", \"design.v\", \"exception_config.json\", \"extra.txt\", \"intent_exception.json\", \"partition_pins.json\", \"run_public.tcl\", \"tiny.db\"]}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; framed={'status': 'refused', 'reason': 'INPUT_SET_MISMATCH', 'detail': {'expected': ['build_applied_sdc.py', 'constraints.sdc', 'design.v', 'exception_config.json', 'intent_exception.json', 'partition_pins.json', 'run_public.tcl', 'tiny.db'], 'got': ['build_applied_sdc.py', 'constraints.sdc', 'design.v', 'exception_config.json', 'extra.txt', 'intent_exception.json', 'partition_pins.json', 'run_public.tcl', 'tiny.db']}, 'rc': 126}",
+      "pass": true
+    },
+    {
+      "id": 4,
+      "name": "input name that expresses a path",
+      "attempt": "input key ../hidden/signoff_intent_truth.json",
+      "expected": "REFUSED ILLEGAL_INPUT_NAME",
+      "observed": "exit 1; stdout='EDABROKER1 125\\n{\"status\": \"refused\", \"reason\": \"ILLEGAL_INPUT_NAME\", \"detail\": {\"name\": \"\\'../hidden/signoff_intent_truth.json\\'\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; framed={'status': 'refused', 'reason': 'ILLEGAL_INPUT_NAME', 'detail': {'name': \"'../hidden/signoff_intent_truth.json'\"}, 'rc': 126}",
+      "pass": true
+    },
+    {
+      "id": 5,
+      "name": "scp",
+      "attempt": "scp -i key <file> tsb@b04:/tmp/",
+      "expected": "fails -- no scp server ever runs",
+      "observed": "exit 124; stdout=''; stderr='timed out'",
+      "pass": true
+    },
+    {
+      "id": 6,
+      "name": "sftp",
+      "attempt": "sftp -i key tsb@b04",
+      "expected": "fails -- no sftp-server",
+      "observed": "exit 124; stdout=''; stderr='timed out'",
+      "pass": true
+    },
+    {
+      "id": 7,
+      "name": "PTY allocation",
+      "attempt": "ssh -tt -i key tsb@b04",
+      "expected": "PTY allocation refused",
+      "observed": "exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; framed={'status': 'refused', 'reason': 'FRAMING', 'detail': {'got': ''}, 'rc': 126}",
+      "pass": true,
+      "detail": {
+        "pty_message_seen": false
+      }
+    },
+    {
+      "id": 8,
+      "name": "port forwarding",
+      "attempt": "ssh -L 9999:localhost:22 -i key tsb@b04",
+      "expected": "forwarding refused and no listener established",
+      "observed": "exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; local 9999 reachable: False",
+      "pass": true,
+      "detail": {
+        "refusal_message_seen": false
+      }
+    },
+    {
+      "id": 9,
+      "name": "agent forwarding",
+      "attempt": "ssh -A -i key tsb@b04",
+      "expected": "agent forwarding refused; no SSH_AUTH_SOCK exists to forward",
+      "observed": "exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; local SSH_AUTH_SOCK=None",
+      "pass": true
+    },
+    {
+      "id": 10,
+      "name": "cross-episode selection",
+      "attempt": "episode p15_dev_0000's key, naming p15_dev_0000_x in JSON fields, in argv, and via SendEnv",
+      "expected": "served for p15_dev_0000 or refused; p15_dev_0000_x's directory never touched",
+      "observed": "json=ok/None; argv=exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found' framed=refused; sendenv=exit 1; stdout='EDABROKER1 76\\n{\"status\": \"refused\", \"reason\": \"FRAMING\", \"detail\": {\"got\": \"\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'; p15_dev_0000_x inv-* count after: '0'",
+      "pass": true,
+      "detail": {
+        "other_episode_touched": false
+      }
+    },
+    {
+      "id": 11,
+      "name": "planted oracle decoy",
+      "attempt": "plant sentinel SENTINEL-cc86b038372... at /tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json and attempt to read it through every op and every field",
+      "expected": "the sentinel never appears in any response; correctness does not depend on /tmp being clean",
+      "observed": "4 attempts, 0 leaked the sentinel: []",
+      "pass": true,
+      "detail": {
+        "attempts": [
+          {
+            "attempt": "input name is the decoy path",
+            "sentinel_present": false,
+            "observed": "exit 1; stdout='EDABROKER1 139\\n{\"status\": \"refused\", \"reason\": \"ILLEGAL_INPUT_NAME\", \"detail\": {\"name\": \"\\'/tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json\\'\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+          },
+          {
+            "attempt": "input name traverses to the decoy",
+            "sentinel_present": false,
+            "observed": "exit 1; stdout='EDABROKER1 147\\n{\"status\": \"refused\", \"reason\": \"ILLEGAL_INPUT_NAME\", \"detail\": {\"name\": \"\\'../../../tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json\\'\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+          },
+          {
+            "attempt": "extra field names the decoy",
+            "sentinel_present": false,
+            "observed": "exit 0; stdout='1 warning, 4 informationals\\\\n\\\\nThank you for using pt_shell!\\\\n\", \"stderr\": \"\", \"artifacts\": {}, \"invocation\": 2, \"timed_out_step\": null, \"killed_pgid\": null, \"wall_clock_sec\": 180, \"elapsed_s\": 4.78}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+          },
+          {
+            "attempt": "tcl input is replaced with one that reads the decoy",
+            "sentinel_present": false,
+            "observed": "exit 1; stdout='EDABROKER1 178\\n{\"status\": \"refused\", \"reason\": \"NON_EDITABLE_DIVERGENCE\", \"detail\": {\"file\": \"run_public.tcl\", \"canonical\": \"sha256:c1c0f023c375\", \"supplied\": \"sha256:84f96dfd466e\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+          }
+        ],
+        "sentinel_prefix": "SENTINEL-cc86b038372"
+      }
+    },
+    {
+      "id": 12,
+      "name": "sandbox credential isolation",
+      "attempt": "run a probe inside the episode sandbox and report what credentials it can see",
+      "expected": "~/.ssh absent, SSH_AUTH_SOCK unset, only key/known_hosts/bin under /tmp/eda-probe, the key read-only, no forwarder on PATH",
+      "observed": "exit 0; stdout='HOME_SSH=absent\\nAUTH_SOCK=unset\\nPROBE_DIR=bin,key,known_hosts,\\nKEY_WRITABLE=no\\nFORWARDER=absent'; stderr=''; {\"HOME_SSH\": \"absent\", \"AUTH_SOCK\": \"unset\", \"PROBE_DIR\": \"bin,key,known_hosts,\", \"KEY_WRITABLE\": \"no\", \"FORWARDER\": \"absent\"}",
+      "pass": true,
+      "detail": {
+        "facts": {
+          "HOME_SSH": "absent",
+          "AUTH_SOCK": "unset",
+          "PROBE_DIR": "bin,key,known_hosts,",
+          "KEY_WRITABLE": "no",
+          "FORWARDER": "absent"
+        }
+      }
+    },
+    {
+      "id": 13,
+      "name": "batch install of a full arm's keys",
+      "attempt": "install 48 PREFLIGHT__-prefixed episode keys in one rewrite, then tear them down in one",
+      "expected": "the non-managed region of authorized_keys is byte-identical before, during and after; 48 entries during and 0 after; every line forces only its own episode; the operator's own key still authenticates while the batch is live",
+      "observed": "{\"n_entries_before\": 0, \"n_entries_during\": 48, \"n_entries_after\": 0, \"user_region_sha256_before\": \"1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c\", \"user_region_sha256_during\": \"1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c\", \"user_region_sha256_after\": \"1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c\", \"operator_key_authenticated_during_batch\": true, \"every_line_forces_only_its_own_episode\": true, \"batch_verified\": true}",
+      "pass": true,
+      "detail": {
+        "n_entries_before": 0,
+        "n_entries_during": 48,
+        "n_entries_after": 0,
+        "user_region_sha256_before": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+        "user_region_sha256_during": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+        "user_region_sha256_after": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+        "operator_key_authenticated_during_batch": true,
+        "every_line_forces_only_its_own_episode": true,
+        "teardown": {
+          "n": 48,
+          "keys_removed": true,
+          "dirs_removed": true,
+          "user_region_unchanged": true,
+          "survivors": {
+            "keys": [],
+            "dirs": []
+          },
+          "user_region_sha256": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+          "ok": true
+        },
+        "batch_verified": true
+      }
+    },
+    {
+      "id": 14,
+      "name": "an output over its transport cap fails closed",
+      "attempt": "provision with stdout_bytes lowered to 1024, then run real PrimeTime (measured 3205 B)",
+      "expected": "transport_output_limit; no stdout/stderr/artifacts key in the response; client exits 125 printing MEASUREMENT_INVALID and nothing on stdout",
+      "observed": "{\"status\": \"transport_output_limit\", \"reason\": \"output exceeded a transport cap\", \"limit_detail\": {\"kind\": \"stdout\", \"bytes\": 3252, \"limit\": 1024}, \"response_keys_with_output\": [], \"client_exit_code\": 125, \"client_stdout_bytes\": 0, \"client_stderr_head\": \"eda-broker: MEASUREMENT_INVALID transport_output_limit: output exceeded a transport cap {'kind': 'stdout', 'bytes': 3252, 'limit': 1024}\\n\"}",
+      "pass": true,
+      "detail": {
+        "status": "transport_output_limit",
+        "reason": "output exceeded a transport cap",
+        "limit_detail": {
+          "kind": "stdout",
+          "bytes": 3252,
+          "limit": 1024
+        },
+        "response_keys_with_output": [],
+        "client_exit_code": 125,
+        "client_stdout_bytes": 0,
+        "client_stderr_head": "eda-broker: MEASUREMENT_INVALID transport_output_limit: output exceeded a transport cap {'kind': 'stdout', 'bytes': 3252, 'limit': 1024}\n"
+      }
+    }
+  ],
+  "cleanup": {
+    "user_keys_unchanged": true,
+    "user_region_sha256_before": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "user_region_sha256_after": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "episode_dir_removed": true,
+    "managed_entries_after": [],
+    "episode_dirs_after": [],
+    "quarantine": [],
+    "timeout_status": "tool_timeout",
+    "timed_out_step": "TOOL",
+    "killed_pgid": 121343,
+    "wall_clock_sec": 2,
+    "elapsed_s": 2.0,
+    "kill_discipline_exercised": true,
+    "invocation_dirs_left": "0",
+    "survivors_in_killed_group": [],
+    "no_orphan_process": true
+  },
+  "equivalence": {
+    "scope": "sta_public",
+    "scope_limit": "p16 is absent: p16_dev_0000 is an older generation the op table does not model, and a studied p16 instance may not be provisioned from a preflight. The HSPICE path rests on shared code and the artifact round trip, not on its own end-to-end comparison.",
+    "instance": "p15_dev_0000",
+    "n_forwarder_runs": 3,
+    "n_broker_runs": 2,
+    "rc_forwarder": [
+      0,
+      0,
+      0
+    ],
+    "rc_broker": [
+      0,
+      0
+    ],
+    "rc_equal": true,
+    "rc_equal_is_weak_evidence": "run_public.sh ends in `exit 0` unconditionally, so equal return codes are close to vacuous here. The load-bearing assertion is normalised_equal; rc is recorded for completeness, not relied on.",
+    "stability_control": {
+      "what": "each path run several times; a line SHAPE is comparable only if it takes exactly one value within BOTH paths. Shapes unstable in either path are excluded and listed with every value observed, so nothing is dropped on the strength of a hand-written rule.",
+      "unstable_shapes": [
+        "Maximum memory usage for this session: # MB"
+      ],
+      "unstable_values": {
+        "Maximum memory usage for this session: # MB": [
+          "Maximum memory usage for this session: 2897.26 MB",
+          "Maximum memory usage for this session: 2897.27 MB",
+          "Maximum memory usage for this session: 2897.31 MB"
+        ]
+      },
+      "n_unstable": 1,
+      "fraction_of_output": 0.012,
+      "dropped_from_forwarder": [
+        "Maximum memory usage for this session: 2897.27 MB"
+      ],
+      "dropped_from_broker": [
+        "Maximum memory usage for this session: 2897.27 MB"
+      ]
+    },
+    "normalised_equal": true,
+    "normalised_diff": [],
+    "normalised_diff_lines": 0,
+    "lines_compared": 82,
+    "raw_lines_forwarder": 87,
+    "rules": [
+      {
+        "pattern": "^\\s*Version .* for linux64 .*$",
+        "label": "tool version banner",
+        "dropped_lines": 1,
+        "dropped_fraction": 0.0115
+      },
+      {
+        "pattern": "^\\s*Copyright \\(c\\).*$",
+        "label": "copyright banner",
+        "dropped_lines": 1,
+        "dropped_fraction": 0.0115
+      },
+      {
+        "pattern": "\\b\\d{4}-\\d{2}-\\d{2}\\b|\\b[A-Z][a-z]{2} \\d{1,2}, \\d{4}\\b",
+        "label": "dates",
+        "dropped_lines": 0,
+        "dropped_fraction": 0.0
+      },
+      {
+        "pattern": "\\b\\d{1,2}:\\d{2}:\\d{2}\\b",
+        "label": "clock times",
+        "dropped_lines": 2,
+        "dropped_fraction": 0.023
+      },
+      {
+        "pattern": "(?i)\\b(cpu|elapsed|wall)\\s*(time)?\\s*[:=]\\s*[\\d.:]+",
+        "label": "timing lines",
+        "dropped_lines": 0,
+        "dropped_fraction": 0.0
+      },
+      {
+        "pattern": "(?i)licen[cs]e.*(check ?out|server|queue|wait)",
+        "label": "licence chatter",
+        "dropped_lines": 0,
+        "dropped_fraction": 0.0
+      },
+      {
+        "pattern": "\\bpid\\s*[:=]?\\s*\\d+",
+        "label": "pids",
+        "dropped_lines": 0,
+        "dropped_fraction": 0.0
+      },
+      {
+        "pattern": "\\b\\d+\\.\\d{3,}\\b",
+        "label": "high-precision floats",
+        "dropped_lines": 0,
+        "dropped_fraction": 0.0
+      }
+    ],
+    "shared_identifiers": [],
+    "new_disclosures": [],
+    "forwarder_normalised_head": "\n                                 PrimeTime (R)\n\n\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys",
+    "broker_normalised_head": "\n                                 PrimeTime (R)\n\n\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys"
+  },
+  "disclosed_identifiers": [],
+  "verdict": "PASS"
+}
