@@ -789,3 +789,153 @@ def test_the_request_carries_exactly_the_ops_input_set_and_no_generated_file(tmp
     assert "agent_applied.sdc" not in req["inputs"]
     assert "episode" not in req and "episode_id" not in req, \
         "the client must have no field in which to name an episode"
+
+
+# --------------------------------------------------------------------------------------------
+# Task 6 -- host-side administration
+# --------------------------------------------------------------------------------------------
+
+def _admin():
+    from eda_broker import broker_admin as ba
+    return ba
+
+
+def test_the_authorized_keys_line_burns_the_episode_into_the_forced_command():
+    ba = _admin()
+    line = ba.authorized_keys_line("p15_eval_0004", "ssh-ed25519 AAAAKEY probe",
+                                   root="/home/tsb/eda-probe-broker", from_addr="10.0.0.1")
+    assert line.startswith("restrict,")
+    assert 'command="/home/tsb/eda-probe-broker/broker.sh p15_eval_0004"' in line
+    assert 'from="10.0.0.1"' in line
+    assert line.endswith("ssh-ed25519 AAAAKEY probe")
+    assert "\n" not in line
+
+
+def test_restrict_is_used_rather_than_an_enumeration_of_the_five_options():
+    """`restrict` is default-deny: an option a future OpenSSH adds is denied unless this line opts
+    back into it. An enumeration silently gains whatever is invented next."""
+    ba = _admin()
+    line = ba.authorized_keys_line("p15_eval_0004", "ssh-ed25519 AAAAKEY probe",
+                                   root="/r", from_addr=None)
+    assert line.split(",")[0] == "restrict"
+
+
+def test_an_illegal_episode_id_cannot_reach_a_forced_command():
+    ba = _admin()
+    for bad in ('x" command="/bin/sh', "a b", "../x", "p15\nssh-rsa AAAA", "a" * 65):
+        with pytest.raises(ValueError):
+            ba.authorized_keys_line(bad, "ssh-ed25519 AAAAKEY probe", root="/r", from_addr=None)
+
+
+def test_the_manifest_pins_every_canonical_file_and_no_oracle(tmp_path):
+    ba, bp = _admin(), _proto()
+    inst = REPO / "tasks/p15_sta_handoff/p15_dev_0000"
+    m = ba.build_manifest(inst)
+    assert m["ops"] == ["sta_public"]
+    for n in bp.OPS["sta_public"].canonical:
+        assert n in m["sha256"] and len(m["sha256"][n]) == 64
+    blob = json.dumps(m)
+    for forbidden in ("hidden", "truth", "solution", "oracle", "run_hidden"):
+        assert forbidden not in blob, f"the manifest discloses {forbidden!r}"
+    for n in bp.OPS["sta_public"].generated:
+        assert n not in m["sha256"], "a generated file must never be pinned as an input"
+
+
+def test_the_manifest_is_built_for_the_right_family(tmp_path):
+    ba = _admin()
+    m = ba.build_manifest(REPO / "tasks/p16_spice_handoff/p16_eval_0001_base")
+    assert m["ops"] == ["spice_public"]
+    assert "build_deck.py" in m["sha256"]
+    assert "circuit_core.sp" in m["sha256"]
+
+
+def test_the_p16_dev_instance_is_an_older_generation_and_is_refused_not_guessed_at():
+    """p16_dev_0000 predates the immutable-core scheme: its build_deck.py writes circuit_built.sp
+    from scratch with no circuit_core.sp, and it ships circuit_built.sp in the task. The op table
+    models the STUDIED generation (p16_eval_*), so the dev directory is not serviceable -- and it
+    fails loudly at manifest time rather than being silently provisioned with a different input set
+    from the one the tool will read.
+
+    This is why the forwarder-equivalence check cannot use p16_dev_0000: there is no unstudied p16
+    directory of the studied generation. Recorded here so a later reader does not conclude the
+    omission was an oversight.
+    """
+    ba = _admin()
+    dev = REPO / "tasks/p16_spice_handoff/p16_dev_0000"
+    assert not (dev / "files/circuit_core.sp").exists()
+    assert (dev / "files/circuit_built.sp").exists(), \
+        "the older generation ships the deck it builds; the newer one generates it"
+    with pytest.raises(SystemExit) as e:
+        ba.build_manifest(dev)
+    assert "circuit_core.sp" in str(e.value)
+
+
+# --- requirement E: the batch path ----------------------------------------------------------
+
+def test_the_episode_id_encodes_instance_condition_and_repetition_in_one_token():
+    """One token, not three argv fields: the forced command stays `broker.sh <id>` with argv fixed
+    at length 2, which is what the illegal-argv guard in Task 4 already holds. K_i => E_i needs the
+    episode to be unforgeable by the client, not to be structured."""
+    ba, bp = _admin(), _proto()
+    ep = ba.episode_id("p15_eval_0004", "BundleS", 1)
+    assert ep == "p15_eval_0004__BundleS__rep1"
+    assert bp.valid_episode_id(ep)
+    for inst, cond, rep in (("p15_eval_0004", "Base", 0), ("p15_eval_0015", "BundleS", 1)):
+        assert bp.valid_episode_id(ba.episode_id(inst, cond, rep))
+    for bad in (("p15 eval", "Base", 0), ("p15_eval_0004", "Base BundleS", 0),
+                ("p15_eval_0004", 'x" command="/bin/sh', 0)):
+        with pytest.raises(ValueError):
+            ba.episode_id(*bad)
+
+
+def test_the_formal_arm_plan_is_48_distinct_episodes_over_24_directories():
+    """docs/opencode_probe_analysis_plan.md stage 1: 12 instances x {Base, BundleS} x k=2."""
+    ba = _admin()
+    plan = ba.formal_arm_plan()
+    assert len(plan) == 48
+    assert len({p["episode"] for p in plan}) == 48, "every episode needs its own key"
+    assert len({p["instance"] for p in plan}) == 24, "12 instances x 2 conditions of task directory"
+    assert {p["condition"] for p in plan} == {"Base", "BundleS"}
+    assert {p["rep"] for p in plan} == {0, 1}
+    for p in plan:
+        assert (REPO / "tasks/p15_sta_handoff" / p["instance"]).is_dir(), p["instance"]
+
+
+def test_the_formal_arm_plan_selects_no_instance_on_prior_informativeness():
+    """The analysis plan says all twelve of p15_eval_0004..0015, with no selection. Derived from a
+    range rather than a literal list, so it cannot quietly become a favourable subset."""
+    ba = _admin()
+    got = sorted({p["instance_id"] for p in ba.formal_arm_plan()})
+    assert got == [f"p15_eval_{i:04d}" for i in range(4, 16)]
+
+
+def test_a_live_batch_locks_out_per_episode_key_mutation(tmp_path, monkeypatch):
+    """The mechanical half of "authorized_keys is static during the arm". A retry loop or a stray
+    helper calling provision() mid-arm would silently restore the 48-rewrite behaviour."""
+    ba = _admin()
+    rec = tmp_path / "batch.json"
+    rec.write_text(json.dumps({"batch_id": "b1", "episodes": ["p15_eval_0004__Base__rep0"]}))
+    monkeypatch.setattr(ba, "BATCH_RECORD", rec)
+    with pytest.raises(ba.BatchActive):
+        ba.provision("p15_eval_0004__Base__rep0",
+                     REPO / "tasks/p15_sta_handoff/p15_dev_0000", tmp_path / "out")
+    with pytest.raises(ba.BatchActive):
+        ba.teardown("p15_eval_0004__Base__rep0")
+    with pytest.raises(ba.BatchActive):
+        ba.provision_batch(ba.formal_arm_plan(), tmp_path / "out")
+
+
+def test_a_batch_plan_is_validated_before_any_key_is_generated(tmp_path, monkeypatch):
+    """Everything that can fail per episode must fail BEFORE the single authorized_keys write, so a
+    bad plan leaves zero probe keys authorized rather than a partially-authorized arm."""
+    ba = _admin()
+    monkeypatch.setattr(ba, "BATCH_RECORD", tmp_path / "absent.json")
+    dev = "p15_dev_0000"
+    for bad, why in (([{"episode": "p15 eval", "instance": dev}], "illegal id"),
+                     ([{"episode": "a__Base__rep0", "instance": dev},
+                       {"episode": "a__Base__rep0", "instance": dev}], "duplicate"),
+                     ([{"episode": "a__Base__rep0", "instance": "no_such_instance"}], "no instance")):
+        with pytest.raises(ValueError):
+            ba.validate_batch_plan(bad)
+    ok = ba.validate_batch_plan([{"episode": "a__Base__rep0", "instance": dev}])
+    assert ok[0]["instance_path"].is_dir()
