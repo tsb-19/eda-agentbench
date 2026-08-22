@@ -81,13 +81,17 @@ restrict,command="/home/tsb/eda-probe-broker/broker.sh …" ssh-ed25519 AAAA… 
 # END EDA-OPENCODE-PROBE
 ```
 
-This matters because b04's `~/.ssh/authorized_keys` holds **three real user keys in 687 bytes**. A
-partial write there locks the operator out of the host that runs every EDA tool. So every mutation
-is: acquire the mutex → read → write a sibling temp → `fsync` → `os.replace` → `fsync` the directory
-→ release. A failed mutation leaves the previous file byte-identical and removes its own temp, and
-teardown of episode A can never remove episode B's line. `audit --reap` removes managed entries whose
-episode is no longer live, because a probe key outliving its episode is a capability nobody is
-holding.
+This matters because b04's `~/.ssh/authorized_keys` holds **two real user keys in 687 bytes** — one
+`ssh-rsa`, one `ssh-ed25519`, and a trailing blank line. A partial write there locks the operator out
+of the host that runs every EDA tool. So every mutation is: acquire the mutex → read → write a
+sibling temp → `fsync` → `os.replace` → `fsync` the directory → release. A failed mutation leaves the
+previous file byte-identical and removes its own temp, and teardown of episode A can never remove
+episode B's line. `audit --reap` removes managed entries whose episode is no longer live, because a
+probe key outliving its episode is a capability nobody is holding.
+
+The trailing blank line is not a detail to be tidied away: a renderer that eats it would change the
+one region the operator cares about. The round trip is verified on that exact shape — two keys, blank
+line, trailing newline — and the file comes back byte-identical.
 
 The mutex is a `mkdir`, not `flock`: `$HOME` on b04 is NFS
 (`qhdx.inspurnfs.com:/data/home/b04`), where `flock(2)` is emulated through the lock manager and

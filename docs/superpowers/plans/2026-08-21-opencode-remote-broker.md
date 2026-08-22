@@ -978,7 +978,8 @@ git commit -m "define the broker op table and wire protocol, with paths unrepres
 ## Task 3: The `authorized_keys` managed block
 
 Requirements **A**, **E** and **G**. Never read-modify-write the whole file unguarded.
-`~/.ssh/authorized_keys` on b04 currently holds **3 real user keys in 687 bytes**; clobbering them
+`~/.ssh/authorized_keys` on b04 currently holds **2 real user keys in 687 bytes** (one `ssh-rsa`,
+one `ssh-ed25519`, plus a trailing blank line); clobbering them
 would lock the operator out of the host that runs every EDA tool.
 
 `$HOME` on b04 is NFS (`qhdx.inspurnfs.com:/data/home/b04`). `flock(2)` there is emulated through the
@@ -2954,7 +2955,8 @@ Confirm the operator's own keys are untouched:
 ssh tsb@b04 'grep -c "^ssh-" ~/.ssh/authorized_keys; grep -c EDA-OPENCODE-PROBE ~/.ssh/authorized_keys'
 ```
 
-Expected: `3` and `0` — three user keys, no managed block yet.
+Expected: `2` and `0` — two user keys, no managed block yet. (The draft said three; the file was
+measured at 2026-08-22 and holds two keys and a blank line.)
 
 - [ ] **Step 6: Commit**
 
@@ -3190,7 +3192,7 @@ a forwarder-equivalence check. No model calls.
 | 10 | **cross-episode**: episode 0004's key, request naming 0005 in every way the protocol allows (extra JSON fields, `SSH_ORIGINAL_COMMAND`, argv) | the invocation is served for **0004** or refused; it must never touch 0005's directory |
 | 11 | **planted decoy**: write `/tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json` with a unique sentinel, then attempt to reach it through every op and every field | the sentinel never appears in any response; correctness must not depend on `/tmp` being clean |
 | 12 | sandbox credential isolation | `~/.ssh` absent, `SSH_AUTH_SOCK` unset, only the probe key and `known_hosts` present under `/tmp/eda-probe` |
-| 13 | **batch provision/teardown of the full 48** (requirement E) | the non-managed region of `authorized_keys` is byte-identical before, during and after; the block holds exactly 48 entries during and 0 after; every line forces only its own episode; the operator's 3 keys still authenticate |
+| 13 | **batch provision/teardown of the full 48** (requirement E) | the non-managed region of `authorized_keys` is byte-identical before, during and after; the block holds exactly 48 entries during and 0 after; every line forces only its own episode; the operator's own key still authenticates |
 | 14 | **cap hit fails closed** (requirement F) | with the caps temporarily lowered below the measured output, the response is `transport_output_limit` with **no** `stdout`/`stderr`/`artifacts` key, and the client exits 125 printing `MEASUREMENT_INVALID` and nothing on stdout |
 
 Controls 1–11 and 13–14 are properties of the remote configuration; 12 is a property of the sandbox.
@@ -3222,7 +3224,7 @@ happen — and what the control asserts — is that the reduced-cap response con
 - After a deliberate timeout (an op whose remote step is made to overrun): no descendant of the
   killed process group survives — checked with `pgrep -g`.
 - After `teardown` / `teardown-batch`: neither the managed `authorized_keys` entries nor
-  `<root>/ep/<id>` exist, `batch.json` is gone, and the operator's three user keys are byte-identical
+  `<root>/ep/<id>` exist, `batch.json` is gone, and the operator's own keys are byte-identical
   to before the preflight started.
 - No quarantined lock directory was created: `audit` reports `quarantine: []`. A quarantine during a
   preflight with one actor means the stale rule fired when it should not have.
@@ -3399,7 +3401,7 @@ git status --porcelain -- opencode_probe/broker/batch.json
 git diff --stat -- tasks/
 ```
 
-Expected: `3`, `0`, `0`, `0`, no `batch.json`, and an empty diff. The fourth number is the
+Expected: `2`, `0`, `0`, `0`, no `batch.json`, and an empty diff. The fourth number is the
 quarantined-lock count: a preflight with a single actor must never break a lock.
 
 - [ ] **Step 6: Run the tests**
@@ -3537,7 +3539,7 @@ Nine edits, then mirror each into `.zh.md`:
    mutex (with the NFS reason — `flock` on `$HOME` is not dependable there), fsync +
    `os.replace`, the guarantee that non-probe lines are never rewritten, that concurrent episodes
    coexist, and that `audit --reap` removes crash residue. State the measured fact that b04's
-   `authorized_keys` holds three real user keys.
+   `authorized_keys` holds two real user keys and a trailing blank line.
 2. **New §2.2 — batch provisioning (requirement E).** The formal arm installs all 48 public keys in
    **one** atomic rewrite before the arm and removes them in one after; each sandbox mounts only its
    own private key; `authorized_keys` is byte-static for the duration. Give the reason in the

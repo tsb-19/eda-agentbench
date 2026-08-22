@@ -188,24 +188,54 @@ def _lock_dir(path) -> Path:
     return Path(path).parent / ".eda-probe-akb.lock.d"
 
 
-def _split(text: str):
-    """Return (before, managed, after). A file with no block yields (all, [], [])."""
-    lines = text.splitlines(keepends=True)
-    try:
-        b = next(i for i, l in enumerate(lines) if l.strip() == BEGIN)
-        e = next(i for i, l in enumerate(lines) if l.strip() == END)
-    except StopIteration:
-        return lines, [], []
-    return lines[:b], lines[b + 1:e], lines[e + 1:]
+def _read(path) -> bytes:
+    """Read the file as BYTES, never as text.
+
+    Measured on b04: `~/.ssh/authorized_keys` uses CRLF. `Path.read_text()` applies universal-newline
+    translation, so a read-then-write cycle through text mode silently rewrites every line ending in
+    the file -- including the operator's own lines, which is precisely the "nothing outside the
+    managed block is ever rewritten" guarantee. Line endings are content here, so all I/O in this
+    module is byte-exact and the only bytes this module ever originates are its own block's.
+    """
+    p = Path(path)
+    return p.read_bytes() if p.is_file() else b""
 
 
-def _atomic_write(path, text: str) -> None:
+def _lines(data: bytes) -> list:
+    """Split on b"\\n" keeping the terminator, so CR (and a missing final newline) survive."""
+    out, start = [], 0
+    while True:
+        i = data.find(b"\n", start)
+        if i < 0:
+            if start < len(data):
+                out.append(data[start:])
+            return out
+        out.append(data[start:i + 1])
+        start = i + 1
+
+
+def _split(data: bytes):
+    """Return (before, managed, after) as byte strings. No block yields (all, b"", b"")."""
+    lines = _lines(data)
+    b = e = None
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        if s == BEGIN.encode() and b is None:
+            b = i
+        elif s == END.encode():
+            e = i
+    if b is None or e is None or e < b:
+        return data, b"", b""
+    return b"".join(lines[:b]), b"".join(lines[b + 1:e]), b"".join(lines[e + 1:])
+
+
+def _atomic_write(path, data: bytes) -> None:
     path = Path(path)
     tmp = path.with_name(path.name + f".tmp{os.getpid()}")
     try:
         fd = os.open(str(tmp), os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
         try:
-            os.write(fd, text.encode())
+            os.write(fd, data)
             os.fsync(fd)
         finally:
             os.close(fd)
@@ -220,20 +250,20 @@ def _atomic_write(path, text: str) -> None:
             tmp.unlink()
 
 
-def _render(before, managed, after) -> str:
-    body = "".join(before)
-    if body and not body.endswith("\n"):
-        body += "\n"
+def _render(before: bytes, managed: bytes, after: bytes) -> bytes:
+    body = before
+    if body and not body.endswith(b"\n"):
+        body += b"\n"
     if managed:
-        body += BEGIN + "\n" + "".join(managed) + END + "\n"
-    return body + "".join(after)
+        body += BEGIN.encode() + b"\n" + managed + END.encode() + b"\n"
+    return body + after
 
 
 def list_entries(path) -> list:
-    text = Path(path).read_text() if Path(path).is_file() else ""
-    _, managed, _ = _split(text)
+    _, managed, _ = _split(_read(path))
     out, pending = [], None
-    for line in managed:
+    for raw in _lines(managed):
+        line = raw.decode("utf-8", "surrogateescape")
         if line.startswith(TAG):
             try:
                 pending = json.loads(line[len(TAG):])
@@ -241,36 +271,35 @@ def list_entries(path) -> list:
                 pending = None
         elif line.strip() and pending:
             out.append({"episode": pending.get("episode"), "added": pending.get("added"),
-                        "line": line.rstrip("\n")})
+                        "line": line.rstrip("\r\n")})
             pending = None
     return out
 
 
 def read_block(path) -> list:
-    text = Path(path).read_text() if Path(path).is_file() else ""
-    return _split(text)[1]
+    return [ln.decode("utf-8", "surrogateescape") for ln in _lines(_split(_read(path))[1])]
 
 
-def user_region(path) -> str:
-    """Everything OUTSIDE the managed block, as one string.
+def user_region(path) -> bytes:
+    """Everything OUTSIDE the managed block, as raw BYTES.
 
     This is the quantity the operator cares about and the one the preflight hashes three times:
-    before the batch, while all 48 keys are installed, and after teardown. Comparing whole files
-    would be useless during the batch; comparing only before and after would pass a bug that
-    dropped a user key for the duration of the arm and restored it at the end.
+    before the batch, while all 48 keys are installed, and after teardown. It returns bytes rather
+    than text on purpose. Returning text would normalise CRLF on both sides of the comparison, so the
+    check meant to prove "nothing outside the block changed" would be blind to a whole-file line-ending
+    rewrite -- a verifier that cannot see the mutation it exists to catch. That defect was real: it was
+    found by the dry run against a copy of b04's actual file, which is CRLF.
     """
-    text = Path(path).read_text() if Path(path).is_file() else ""
-    before, _, after = _split(text)
-    return "".join(before) + "".join(after)
+    before, _, after = _split(_read(path))
+    return before + after
 
 
 def _rewrite(path, entries: list) -> None:
-    text = Path(path).read_text() if Path(path).is_file() else ""
-    before, _, after = _split(text)
-    managed = []
+    before, _, after = _split(_read(path))
+    managed = b""
     for e in entries:
-        managed.append(TAG + json.dumps({"episode": e["episode"], "added": e["added"]}) + "\n")
-        managed.append(e["line"].rstrip("\n") + "\n")
+        managed += (TAG + json.dumps({"episode": e["episode"], "added": e["added"]}) + "\n").encode()
+        managed += e["line"].rstrip("\r\n").encode() + b"\n"
     _atomic_write(Path(path), _render(before, managed, after))
 
 

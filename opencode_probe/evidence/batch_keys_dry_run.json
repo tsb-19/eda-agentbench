@@ -1,0 +1,34 @@
+{
+  "generated_by": "scripts/eda_broker/broker_admin.py dry-run-batch",
+  "when": "2026-08-22T18:16:10",
+  "model_calls": 0,
+  "host": "tsb@b04",
+  "root": "/home/tsb/eda-probe-broker",
+  "n_episodes": 48,
+  "target": "~/.ssh/authorized_keys.PREFLIGHT_COPY (the live file is never written)",
+  "claim": "a full-size batch install and teardown, performed on the same NFS directory as the live authorized_keys, leaves a copy of it byte-identical",
+  "not_claimed": "anything about the live file, which this step deliberately does not write. That is established by preflight control 13.",
+  "defects_found_on_first_run": [
+    "ssh joins remaining argv with spaces and the remote shell re-parses it, so an unquoted `bash -lc 'a; b'` sent only `a` to bash -lc; deploy reported no remote python3 while simultaneously printing pt_shell and hspice",
+    "b04's authorized_keys is CRLF; text-mode read/write rewrote every line ending in the file, and user_region() was itself text-mode so the check meant to catch that was blind to it"
+  ],
+  "result": {
+    "installed": 48,
+    "entries_during": 48,
+    "removed": 48,
+    "region_sha256_before": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "region_sha256_during": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "region_sha256_after": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "region_identical_all_three": true,
+    "copy_byte_identical_after": true,
+    "crlf_in_file": true,
+    "crlf_preserved_during_batch": true,
+    "lines_forcing_wrong_episode": [],
+    "real_file_untouched": true,
+    "real_file_sha256": "1a6f16bb67cf35256f82114616ccea81eaf7677c4d243c51e233ca972e96f50c",
+    "quarantine": [],
+    "stray_temp_files": [],
+    "ok": true
+  },
+  "verdict": "PASS"
+}

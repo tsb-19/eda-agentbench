@@ -1152,3 +1152,97 @@ def test_the_equivalence_normalisation_did_not_grow_until_the_texts_matched():
         assert rule["dropped_fraction"] <= 0.20, \
             f"normalisation rule {rule['pattern']!r} dropped {rule['dropped_fraction']:.0%}"
     assert eq["lines_compared"] > 0, "an empty comparison is not an equivalence"
+
+
+# --- byte-exactness: line endings are content ------------------------------------------------
+
+CRLF_USER_KEYS = (
+    "ssh-rsa AAAAB3NzaC1yc2ELAPTOP operator@laptop\r\n"
+    "ssh-ed25519 AAAAC3NzaC1lZDI1WORKSTATION operator@workstation\r\n"
+    "\r\n"
+)
+
+
+def test_a_crlf_authorized_keys_survives_a_batch_round_trip_byte_for_byte(tmp_path):
+    """Measured on b04: the real ~/.ssh/authorized_keys uses CRLF.
+
+    Path.read_text() applies universal-newline translation, so an earlier read-then-write cycle
+    through text mode silently rewrote every line ending in the file -- including the operator's own
+    lines. That is a change OUTSIDE the managed block, which is the one thing this module promises
+    never to do. Line endings are content here, so the module is byte-exact.
+    """
+    akb = _akb()
+    ak = tmp_path / "authorized_keys"
+    ak.write_bytes(CRLF_USER_KEYS.encode())
+    original = ak.read_bytes()
+
+    akb.add_entries(ak, [(ep, _line(akb, ep)) for ep in FORMAL_EPISODES])
+    assert len(akb.list_entries(ak)) == 48
+    during = ak.read_bytes()
+    assert during.startswith(original.rstrip(b"\r\n")), "the user's own bytes must lead the file"
+    assert b"\r\n" in during, "the operator's CRLF endings must survive the install"
+
+    akb.remove_entries(ak, list(FORMAL_EPISODES))
+    assert ak.read_bytes() == original, "a batch round trip must restore the file byte-for-byte"
+
+
+def test_the_user_region_is_bytes_so_it_can_see_a_line_ending_rewrite(tmp_path):
+    """The other half, and the more serious defect of the two.
+
+    user_region() used to read through text mode, so its sha256 was computed on CRLF-normalised text
+    -- and the check meant to prove "nothing outside the managed block changed" was blind to a
+    whole-file line-ending rewrite. A verifier that cannot see the mutation it exists to catch is
+    worse than no verifier, because it also removes the reason anyone would look again.
+    """
+    akb = _akb()
+    crlf, lf = tmp_path / "crlf", tmp_path / "lf"
+    crlf.write_bytes(CRLF_USER_KEYS.encode())
+    lf.write_bytes(CRLF_USER_KEYS.replace("\r\n", "\n").encode())
+
+    a, b = akb.user_region(crlf), akb.user_region(lf)
+    assert isinstance(a, bytes) and isinstance(b, bytes)
+    assert a != b, "a CRLF->LF rewrite of the user's own lines must change the region hash"
+    assert a == CRLF_USER_KEYS.encode(), "the region must be the operator's exact bytes"
+
+
+def test_a_file_with_no_trailing_newline_is_not_silently_reflowed(tmp_path):
+    akb = _akb()
+    ak = tmp_path / "authorized_keys"
+    ak.write_bytes(b"ssh-ed25519 AAAAONLYKEY operator@host")      # no final newline
+    original = ak.read_bytes()
+    akb.add_entries(ak, [("p15_dev_0000", _line(akb, "p15_dev_0000"))])
+    # One newline must be added to terminate the user's last line before our block starts, and that
+    # is the only byte this module may originate outside its own region.
+    assert akb.user_region(ak) == original + b"\n"
+    akb.remove_entries(ak, ["p15_dev_0000"])
+    assert ak.read_bytes() == original + b"\n"
+
+
+DRY_RUN = REPO / "opencode_probe/evidence/batch_keys_dry_run.json"
+
+
+@pytest.mark.skipif(not DRY_RUN.is_file(), reason="batch dry run on a copy not yet performed")
+def test_the_batch_dry_run_on_a_copy_passed_and_claims_nothing_about_the_live_file():
+    r = json.loads(DRY_RUN.read_text())
+    assert r["model_calls"] == 0
+    assert r["verdict"] == "PASS"
+    res = r["result"]
+    assert res["n_episodes"] if "n_episodes" in res else r["n_episodes"] == 48
+    assert res["installed"] == res["entries_during"] == res["removed"] == 48
+    assert res["region_identical_all_three"] is True
+    assert res["copy_byte_identical_after"] is True
+    assert res["real_file_untouched"] is True
+    assert res["lines_forcing_wrong_episode"] == []
+    assert res["quarantine"] == [] and res["stray_temp_files"] == []
+    # It must not be readable as having cleared the live file; that is control 13's job.
+    assert "not_claimed" in r and "live file" in r["not_claimed"]
+    assert r["defects_found_on_first_run"], \
+        "the two defects this step found must stay in the record, not be tidied out of it"
+
+
+@pytest.mark.skipif(not DRY_RUN.is_file(), reason="batch dry run on a copy not yet performed")
+def test_the_dry_run_confirmed_the_real_file_uses_crlf():
+    """The fact that motivated the byte-exact rewrite, kept as a measurement rather than a memory."""
+    r = json.loads(DRY_RUN.read_text())
+    assert r["result"]["crlf_in_file"] is True
+    assert r["result"]["crlf_preserved_during_batch"] is True

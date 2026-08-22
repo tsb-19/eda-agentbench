@@ -142,7 +142,7 @@ def _remote_user_region_sha(host, root) -> str:
     d = ba._deploy_record()
     res = ba._remote_akb_call(host, root, d,
                               "import hashlib\n"
-                              "report({'sha': hashlib.sha256(akb.user_region(ak).encode()).hexdigest(),"
+                              "report({'sha': hashlib.sha256(akb.user_region(ak)).hexdigest(),"
                               " 'n': len(akb.list_entries(ak)),"
                               " 'lines': [e['line'] for e in akb.list_entries(ak)]})")
     return res

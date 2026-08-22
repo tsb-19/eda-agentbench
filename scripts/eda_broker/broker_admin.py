@@ -11,7 +11,7 @@ For the formal arm the per-episode path is not used. All 48 keys are installed i
 under ONE lock before the arm and removed in one after, so authorized_keys is byte-static while
 episodes are running -- see provision_batch. $HOME on b04 is NFS, and nfs(5) disclaims both
 cluster-coherent caching and lock survival across a partition, so 96 mutual-exclusion operations
-against the operator's three real login keys is a bet its own manual page declines to back. Nothing
+against the operator's real login keys is a bet its own manual page declines to back. Nothing
 is given up by batching: K_i => E_i lives in each line's command=, not in when the line was written.
 """
 
@@ -172,7 +172,18 @@ def build_manifest(instance, caps_override=None, wall_clock_override=None) -> di
 # ---------------------------------------------------------------------------------------------
 
 def _ssh(host: str, script: str, input_bytes=None, timeout: int = 180):
-    return subprocess.run(["ssh", "-o", "BatchMode=yes", host, "bash", "-lc", script],
+    """Run one script on the remote under a login shell.
+
+    The script is `shlex.quote`d because ssh does NOT pass argv through: it joins the remaining
+    arguments with spaces and hands the result to the REMOTE shell, which parses them again. Without
+    the quote, `bash -lc 'a; b'` arrives as `bash -lc a; b` -- so `bash -lc` receives only `a`, and
+    `b` is run by the login shell instead. That is exactly how the first deploy attempt reported "no
+    python3 on the remote login PATH" while simultaneously printing pt_shell and hspice: the
+    `command -v python3` fragment had gone to `bash -lc` as its $0/$1, and the two later fragments
+    were executed by a different shell. The frozen forwarder quotes for the same reason
+    (`ssh "$HOST" "bash -lc '...'"`).
+    """
+    return subprocess.run(["ssh", "-o", "BatchMode=yes", host, "bash", "-lc", shlex.quote(script)],
                           input=input_bytes, capture_output=True, timeout=timeout)
 
 
@@ -290,11 +301,34 @@ report({{"sha256": sha, "root": root}})
     host_key = _pinned_host_key(host, allow_keyscan=allow_keyscan)
     fp = hashlib.sha256(host_key.encode()).hexdigest()
 
+    # 5b. The remote resolves CAPS from broker_protocol's fallback literals, because the measured
+    # audit record is not shipped to b04. Those literals match the audited caps today. "Today" is
+    # not a guarantee, and a broker enforcing a transport bound the calibration never justified is
+    # exactly the silent divergence this project keeps meeting -- so it is asserted, not assumed.
+    remote_caps = _remote_py(host, root, """
+from eda_broker import broker_protocol as bp
+report({"caps": bp.CAPS, "statuses": sorted([bp.Status.OK, bp.Status.TOOL_TIMEOUT, bp.Status.REFUSED,
+        bp.Status.BROKER_ERROR, bp.Status.TRANSPORT_ERROR, bp.Status.TRANSPORT_OUTPUT_LIMIT])})
+""", py=py)
+    if remote_caps["caps"] != dict(bp.CAPS):
+        raise RemoteError(
+            "the deployed broker would enforce different transport caps from the calibrated ones. "
+            f"remote={remote_caps['caps']} local={dict(bp.CAPS)}. The remote falls back to "
+            "broker_protocol's literals because opencode_probe/evidence/raw_output_audit.json is "
+            "not shipped; reconcile the literals with the audit rather than deploying.")
+    if len(set(remote_caps["statuses"])) != 6:
+        raise RemoteError(f"the deployed taxonomy is not six distinct statuses: {remote_caps}")
+
     rec = {"generated_by": "scripts/eda_broker/broker_admin.py deploy",
            "when": time.strftime("%Y-%m-%dT%H:%M:%S"),
            "host": host, "root": root,
            "python3": py, "pt_shell": pt, "hspice": hs,
+           "remote_python_version": _remote_py(host, root,
+                                               "import sys\nreport(sys.version.split()[0])",
+                                               py=py),
            "remote_sha256": remote["sha256"], "local_sha256": local_sha,
+           "caps": dict(bp.CAPS),
+           "remote_caps_match_calibration": True,
            "host_key_lines": len(host_key.strip().splitlines()),
            "host_key_sha256": fp,
            "known_hosts": host_key,
@@ -444,7 +478,7 @@ def provision_batch(plan, out_root, host=DEFAULT_HOST, root=DEFAULT_ROOT,
 
     before = _remote_akb_call(host, root, d,
                               "report({'user_region_sha256': __import__('hashlib')"
-                              ".sha256(akb.user_region(ak).encode()).hexdigest(),"
+                              ".sha256(akb.user_region(ak)).hexdigest(),"
                               " 'entries': [e['episode'] for e in akb.list_entries(ak)]})")
     if before["entries"]:
         raise RemoteError(f"the managed block is not empty before a batch: {before['entries']}")
@@ -467,7 +501,7 @@ n = akb.add_entries(ak, {lines!r})
 report({{"n": n,
          "entries": [e["episode"] for e in akb.list_entries(ak)],
          "lines": [e["line"] for e in akb.list_entries(ak)],
-         "user_region_sha256": hashlib.sha256(akb.user_region(ak).encode()).hexdigest()}})
+         "user_region_sha256": hashlib.sha256(akb.user_region(ak)).hexdigest()}})
 """)
 
     # 4. verify WITHOUT rewriting: count, per-line forcing, and the untouched user region.
@@ -531,7 +565,7 @@ for ep in {eps!r}:
 report({{"removed": removed,
          "entries": [e["episode"] for e in akb.list_entries(ak)],
          "dir_survivors": survivors,
-         "user_region_sha256": hashlib.sha256(akb.user_region(ak).encode()).hexdigest()}})
+         "user_region_sha256": hashlib.sha256(akb.user_region(ak)).hexdigest()}})
 """)
     keys_removed = not (set(eps) & set(res["entries"]))
     dirs_removed = not res["dir_survivors"]
@@ -545,6 +579,103 @@ report({{"removed": removed,
     if out["ok"]:
         BATCH_RECORD.unlink()
     return out
+
+
+def batch_dry_run_on_copy(host=DEFAULT_HOST, root=DEFAULT_ROOT, n_episodes=None) -> dict:
+    """Exercise the full-size batch install/teardown against a COPY of authorized_keys on the remote.
+
+    Same directory, same NFS mount, same mutex, same fsync, same atomic rename -- and the live file is
+    never opened for writing. This is what makes "the batch cannot touch the operator's own keys" a
+    measurement instead of a hope, and it is worth having as a committed step rather than an ad-hoc
+    one because it is the check the operator will want to repeat before any future arm.
+
+    It found two real defects on first run, both recorded in the evidence file it writes:
+      * the ssh argv quoting bug (the remote shell re-parses, so an unquoted script splits at `;`);
+      * b04's authorized_keys is CRLF, text-mode I/O rewrote every line ending in the file, and
+        user_region() -- the check meant to catch exactly that -- was itself text-mode and blind to it.
+    """
+    d = _deploy_record()
+    plan = formal_arm_plan()
+    if n_episodes:
+        plan = plan[:n_episodes]
+    eps = ["PREFLIGHT__" + p["episode"] for p in plan]
+    lines = [(e, authorized_keys_line(e, f"ssh-ed25519 AAAADRYRUN{e} probe-{e}",
+                                      root=root, from_addr=None)) for e in eps]
+
+    code = f"""
+import hashlib, os, re, shutil
+from eda_broker import authorized_keys_block as akb
+real = os.path.expanduser("~/.ssh/authorized_keys")
+copy = real + ".PREFLIGHT_COPY"
+with open(real, "rb") as fh: original = fh.read()
+shutil.copyfile(real, copy); os.chmod(copy, 0o600)
+
+def region_sha(p): return hashlib.sha256(akb.user_region(p)).hexdigest()
+def file_bytes(p):
+    with open(p, "rb") as fh: return fh.read()
+
+before_region, before_file = region_sha(copy), file_bytes(copy)
+crlf_before = b"\\r\\n" in before_file
+n = akb.add_entries(copy, {lines!r})
+during_region = region_sha(copy)
+during = akb.list_entries(copy)
+bad = []
+for e in during:
+    forced = re.findall(r'command="[^"]*/broker\\.sh ([^"]*)"', e["line"])
+    if len(forced) != 1 or forced[0] != e["episode"] or ("probe-" + forced[0]) not in e["line"]:
+        bad.append(e["episode"])
+crlf_during = b"\\r\\n" in file_bytes(copy)
+removed = akb.remove_entries(copy, {eps!r})
+after_region, after_file = region_sha(copy), file_bytes(copy)
+quarantine = [str(p) for p in akb.list_quarantine(akb._lock_dir(copy))]
+strays = sorted(f for f in os.listdir(os.path.dirname(copy)) if ".tmp" in f)
+with open(real, "rb") as fh: still = fh.read()
+os.remove(copy)
+report({{
+  "installed": n, "entries_during": len(during), "removed": len(removed),
+  "region_sha256_before": before_region, "region_sha256_during": during_region,
+  "region_sha256_after": after_region,
+  "region_identical_all_three": before_region == during_region == after_region,
+  "copy_byte_identical_after": before_file == after_file,
+  "crlf_in_file": crlf_before, "crlf_preserved_during_batch": crlf_during,
+  "lines_forcing_wrong_episode": bad,
+  "real_file_untouched": still == original,
+  "real_file_sha256": hashlib.sha256(still).hexdigest(),
+  "quarantine": quarantine, "stray_temp_files": strays,
+}})
+"""
+    res = _remote_py(host, root, code, py=d["python3"], timeout=900)
+    res["ok"] = bool(res["installed"] == len(eps)
+                     and res["entries_during"] == len(eps)
+                     and res["removed"] == len(eps)
+                     and res["region_identical_all_three"]
+                     and res["copy_byte_identical_after"]
+                     and (res["crlf_preserved_during_batch"] or not res["crlf_in_file"])
+                     and res["lines_forcing_wrong_episode"] == []
+                     and res["real_file_untouched"]
+                     and res["quarantine"] == [] and res["stray_temp_files"] == [])
+    rec = {"generated_by": "scripts/eda_broker/broker_admin.py dry-run-batch",
+           "when": time.strftime("%Y-%m-%dT%H:%M:%S"),
+           "model_calls": 0,
+           "host": host, "root": root, "n_episodes": len(eps),
+           "target": "~/.ssh/authorized_keys.PREFLIGHT_COPY (the live file is never written)",
+           "claim": ("a full-size batch install and teardown, performed on the same NFS directory as "
+                     "the live authorized_keys, leaves a copy of it byte-identical"),
+           "not_claimed": ("anything about the live file, which this step deliberately does not "
+                           "write. That is established by preflight control 13."),
+           "defects_found_on_first_run": [
+               "ssh joins remaining argv with spaces and the remote shell re-parses it, so an "
+               "unquoted `bash -lc 'a; b'` sent only `a` to bash -lc; deploy reported no remote "
+               "python3 while simultaneously printing pt_shell and hspice",
+               "b04's authorized_keys is CRLF; text-mode read/write rewrote every line ending in the "
+               "file, and user_region() was itself text-mode so the check meant to catch that was "
+               "blind to it"],
+           "result": res,
+           "verdict": "PASS" if res["ok"] else "FAIL"}
+    out = REPO / "opencode_probe/evidence/batch_keys_dry_run.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(rec, indent=2) + "\n")
+    return rec
 
 
 # ---------------------------------------------------------------------------------------------
@@ -629,6 +760,11 @@ def main(argv=None) -> int:
 
     sub.add_parser("teardown-batch")
 
+    p = sub.add_parser("dry-run-batch",
+                       help="full-size batch install/teardown against a COPY of authorized_keys on "
+                            "the remote; the live file is never written")
+    p.add_argument("--episodes", type=int, default=0, help="0 = the full formal-arm size (48)")
+
     p = sub.add_parser("audit")
     p.add_argument("--reap", action="store_true")
 
@@ -643,6 +779,8 @@ def main(argv=None) -> int:
         out = teardown(a.episode, a.host, a.root)
     elif a.cmd == "teardown-batch":
         out = teardown_batch(a.host, a.root)
+    elif a.cmd == "dry-run-batch":
+        out = batch_dry_run_on_copy(a.host, a.root, n_episodes=a.episodes or None)
     else:
         out = audit(a.host, a.root, reap=a.reap)
     printable = {k: v for k, v in out.items() if k != "known_hosts"}

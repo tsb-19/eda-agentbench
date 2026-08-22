@@ -74,11 +74,15 @@ restrict,command="/home/tsb/eda-probe-broker/broker.sh …" ssh-ed25519 AAAA… 
 # END EDA-OPENCODE-PROBE
 ```
 
-这件事之所以重要，是因为 b04 的 `~/.ssh/authorized_keys` 里有**三把真实的用户密钥，共 687 字节**。在那
-里写坏一半，就会把操作者锁在运行全部 EDA 工具的那台主机之外。因此每一次改动都是：取互斥锁 → 读取 →
-写同目录临时文件 → `fsync` → `os.replace` → 对目录 `fsync` → 释放。失败的改动会让先前的文件保持逐字节
-不变，并清掉自己的临时文件；拆除 episode A 也永远不会移除 episode B 的那一行。`audit --reap` 会移除其
-episode 已不再存活的受管条目——一把活过了自己 episode 的 probe 密钥，是一份没有任何人持有的能力。
+这件事之所以重要，是因为 b04 的 `~/.ssh/authorized_keys` 里有**两把真实的用户密钥，共 687 字节**——一把
+`ssh-rsa`、一把 `ssh-ed25519`，以及一个末尾空行。在那里写坏一半，就会把操作者锁在运行全部 EDA 工具的那
+台主机之外。因此每一次改动都是：取互斥锁 → 读取 → 写同目录临时文件 → `fsync` → `os.replace` → 对目录
+`fsync` → 释放。失败的改动会让先前的文件保持逐字节不变，并清掉自己的临时文件；拆除 episode A 也永远不会
+移除 episode B 的那一行。`audit --reap` 会移除其 episode 已不再存活的受管条目——一把活过了自己 episode
+的 probe 密钥，是一份没有任何人持有的能力。
+
+末尾那个空行不是可以顺手"整理掉"的细节：一个把它吃掉的渲染器，会改变操作者唯一真正在意的那块区域。往返
+是在那个确切形状上验证的——两把密钥、一个空行、末尾换行——文件回来时逐字节一致。
 
 互斥锁用的是 `mkdir` 而不是 `flock`：b04 上的 `$HOME` 是 NFS（`qhdx.inspurnfs.com:/data/home/b04`），
 那里的 `flock(2)` 经由 lock manager 模拟，而 `nfs(5)` 明确声明它既不提供集群一致的缓存，也不保证锁能在
