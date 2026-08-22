@@ -1,0 +1,7 @@
+#!/bin/bash
+# Forced command for a probe key. The episode id arrives as "$1" from the authorized_keys line and
+# is passed through as a single argv element -- there is no eval, no re-parsing and no use of
+# SSH_ORIGINAL_COMMAND anywhere in this path.
+set -u
+export EDA_BROKER_ROOT="@ROOT@"
+exec "@PYTHON3@" "@ROOT@/lib/eda_broker/remote_broker.py" "$1"

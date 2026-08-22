@@ -471,3 +471,321 @@ def test_a_duplicate_episode_in_a_batch_is_refused(tmp_path):
     with pytest.raises(ValueError):
         akb.add_entries(ak, [(ep, _line(akb, ep)), (ep, _line(akb, ep) + "2")])
     assert ak.read_text() == USER_KEYS
+
+
+# --------------------------------------------------------------------------------------------
+# Task 4 -- the remote broker
+# --------------------------------------------------------------------------------------------
+
+import base64
+import hashlib
+import signal
+import subprocess
+
+
+def _rb():
+    from eda_broker import remote_broker as rb
+    return rb
+
+
+def test_ssh_original_command_is_never_consulted():
+    """A forced command that parses SSH_ORIGINAL_COMMAND has re-created the arbitrary-command
+    channel and put a filter in front of it. Every such filter is one quoting bug from a bypass.
+
+    Checked against the AST rather than by counting lines: every occurrence of the name must be the
+    argument of a `pop`, i.e. a deletion. There are legitimately two -- the process environment on
+    entry, and the login environment handed to children -- and a line count of "exactly one" would
+    fail a correct implementation while still passing a `os.environ.get(...)` hidden in a comment.
+    """
+    import ast
+
+    src = (REPO / "scripts/eda_broker/remote_broker.py").read_text()
+    tree = ast.parse(src)
+    NAME = "SSH_ORIGINAL_COMMAND"
+
+    def is_name(node):
+        return isinstance(node, ast.Constant) and node.value == NAME
+
+    deletions = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+                and node.func.attr in ("pop", "__delitem__")
+                and node.args and is_name(node.args[0])):
+            deletions.add(id(node.args[0]))
+
+    mentions = [n for n in ast.walk(tree) if is_name(n)]
+    assert mentions, "the forced command must still delete SSH_ORIGINAL_COMMAND"
+    non_deleting = [n for n in mentions if id(n) not in deletions]
+    assert non_deleting == [], (
+        f"{NAME} is used at line(s) "
+        f"{[n.lineno for n in non_deleting]} in something other than a deletion")
+    assert len(deletions) == 2, (
+        "expected exactly two deletions -- the process environment and the child login "
+        f"environment -- got {len(deletions)}")
+
+
+def test_a_timeout_kills_the_whole_process_tree(tmp_path):
+    """subprocess timeout alone leaves orphan pt_shell descendants holding licences and writing
+    into the next episode's workspace. The broker must kill the process GROUP."""
+    rb = _rb()
+    marker = tmp_path / "child_alive"
+    script = tmp_path / "spawn.sh"
+    script.write_text(
+        "#!/bin/bash\n"
+        f"( while true; do touch {marker}; sleep 0.2; done ) &\n"
+        "sleep 300\n")
+    script.chmod(0o755)
+    rc, out, err, timed_out = rb.run_step(
+        ["/bin/bash", str(script)], cwd=tmp_path, deadline=time.time() + 2.0, env=dict(os.environ))
+    assert timed_out
+    if marker.exists():
+        marker.unlink()
+    time.sleep(1.5)
+    assert not marker.exists(), "a descendant survived the timeout and is still running"
+
+
+def test_the_failure_kinds_are_distinct_statuses():
+    """An infrastructure fault may never be recorded as a capability failure. A tool that exits
+    nonzero, a tool that overran its wall clock, a broker that could not run at all, a transport
+    that broke and an output that exceeded a transport cap are five different facts and must not
+    collapse into one."""
+    bp = _proto()
+    assert len({bp.Status.OK, bp.Status.TOOL_TIMEOUT, bp.Status.REFUSED,
+                bp.Status.BROKER_ERROR, bp.Status.TRANSPORT_ERROR,
+                bp.Status.TRANSPORT_OUTPUT_LIMIT}) == 6
+    assert set(bp.MEASUREMENT_INVALID) == {bp.Status.BROKER_ERROR, bp.Status.TRANSPORT_ERROR,
+                                           bp.Status.TRANSPORT_OUTPUT_LIMIT}
+    assert bp.Status.OK not in bp.MEASUREMENT_INVALID
+    assert bp.Status.TOOL_TIMEOUT not in bp.MEASUREMENT_INVALID, \
+        "a tool that overran its own wall clock is a tool fact, not an infrastructure fault"
+
+
+def test_an_over_cap_output_fails_closed_instead_of_truncating(tmp_path):
+    """Requirement F. Task 1's headroom is measured over a finite calibration set, so a future
+    invocation may still exceed a cap. When it does, the only safe behaviour is to spend one
+    discarded episode -- not to hand the agent a silently shortened observation that the frozen arm
+    never had and that no log would distinguish from real tool output."""
+    rb, bp = _rb(), _proto()
+    small = 1024
+    caps = {"stdout_bytes": small, "stderr_bytes": small, "artifact_bytes": small}
+    rb.enforce_output_caps(b"x" * small, b"", {}, caps=caps)
+    for out, err, arts, kind in ((b"x" * (small + 1), b"", {}, "stdout"),
+                                 (b"", b"x" * (small + 1), {}, "stderr"),
+                                 (b"", b"", {"hspice_run.lis": b"x" * (small + 1)}, "artifact")):
+        with pytest.raises(bp.TransportOutputLimit) as e:
+            rb.enforce_output_caps(out, err, arts, caps=caps)
+        assert e.value.detail["kind"] == kind
+        assert e.value.detail["bytes"] == small + 1
+        assert e.value.detail["limit"] == small
+
+
+def test_a_cap_hit_is_reported_as_measurement_invalid_and_carries_no_output():
+    """The response for a cap hit must not contain a partial stdout at all. A caller that receives
+    both an error status and 1 MiB of plausible tool text will eventually log the text."""
+    rb, bp = _rb(), _proto()
+    resp = rb.limit_response(bp.TransportOutputLimit(kind="stdout", bytes=99, limit=98))
+    assert resp["status"] == bp.Status.TRANSPORT_OUTPUT_LIMIT
+    assert resp["status"] in bp.MEASUREMENT_INVALID
+    assert "stdout" not in resp and "stderr" not in resp and "artifacts" not in resp
+    assert resp["detail"]["kind"] == "stdout"
+
+
+def _fake_instance(tmp_path):
+    """A minimal sta_public input set with a real, deterministic build script."""
+    d = tmp_path / "src"
+    d.mkdir()
+    (d / "exception_config.json").write_text('{"intent_class": "a", "target_partition": "p"}')
+    (d / "build_applied_sdc.py").write_text(
+        "open('agent_applied.sdc','w').write('BUILT\\n')\n")
+    for n in ("run_public.tcl", "constraints.sdc", "partition_pins.json",
+              "intent_exception.json", "design.v", "tiny.db"):
+        (d / n).write_text(f"canonical-{n}\n")
+    return d
+
+
+def _inputs_and_manifest(src, op):
+    bp = _proto()
+    inputs, manifest = {}, {}
+    for n in bp.input_names(op):
+        b = (src / n).read_bytes()
+        inputs[n] = base64.b64encode(b).decode()
+        if n in op.canonical:
+            manifest[n] = hashlib.sha256(b).hexdigest()
+    return inputs, manifest
+
+
+def test_a_divergent_canonical_file_is_refused_before_anything_crosses(tmp_path):
+    rb, bp = _rb(), _proto()
+    op = bp.OPS["sta_public"]
+    src = _fake_instance(tmp_path)
+    inputs, manifest = _inputs_and_manifest(src, op)
+    inputs["run_public.tcl"] = base64.b64encode(b"exec /bin/sh\n").decode()
+    work = tmp_path / "inv"
+    work.mkdir()
+    with pytest.raises(bp.Refusal) as e:
+        rb.materialise(op, inputs, work, manifest)
+    assert e.value.reason == "NON_EDITABLE_DIVERGENCE"
+    assert e.value.detail["file"] == "run_public.tcl"
+    assert not list(work.iterdir()), "nothing may be written when a request is refused"
+
+
+def test_the_editable_file_is_accepted_verbatim_and_generated_files_are_not_written(tmp_path):
+    rb, bp = _rb(), _proto()
+    op = bp.OPS["sta_public"]
+    src = _fake_instance(tmp_path)
+    inputs, manifest = _inputs_and_manifest(src, op)
+    agent_bytes = b'{"intent_class": "CHANGED", "target_partition": "q"}'
+    inputs["exception_config.json"] = base64.b64encode(agent_bytes).decode()
+    work = tmp_path / "inv"
+    work.mkdir()
+    rb.materialise(op, inputs, work, manifest)
+    assert (work / "exception_config.json").read_bytes() == agent_bytes
+    assert not (work / "agent_applied.sdc").exists()
+    assert sorted(p.name for p in work.iterdir()) == sorted(bp.input_names(op))
+
+
+def test_the_remote_workdir_and_home_never_appear_in_a_response(tmp_path):
+    """The frozen forwarder rewrote the remote path back to the local one (bin/forwarder step 5).
+    Without the same rewrite the agent's observation would name /home/tsb/... -- both a departure
+    from the frozen observation and a de-anonymisation trace on a branch that is not anonymised."""
+    rb, bp = _rb(), _proto()
+    work = tmp_path / "ep" / "inv-1"
+    work.mkdir(parents=True)
+    home = tmp_path
+    text = f"Error: cannot open {work}/design.v\nlogfile in {home}/scratch\n"
+    clean = rb.sanitise(text, work, home)
+    assert str(work) not in clean
+    assert str(home) not in clean
+    assert bp.WORKDIR_TOKEN in clean
+
+
+def test_the_invocation_cap_is_enforced_server_side(tmp_path):
+    rb, bp = _rb(), _proto()
+    ep = tmp_path / "p15_eval_0004"
+    ep.mkdir()
+    for _ in range(bp.MAX_INVOCATIONS_PER_EPISODE):
+        rb.bump_invocation(ep)
+    with pytest.raises(bp.Refusal) as e:
+        rb.bump_invocation(ep)
+    assert e.value.reason == "INVOCATION_CAP"
+
+
+def test_an_illegal_episode_id_in_argv_is_refused(tmp_path, capsysbinary):
+    """Defence in depth: the host already validated it before writing authorized_keys. The broker
+    validates it again, because a forced command is only as trustworthy as whoever wrote the line."""
+    rb = _rb()
+    assert rb.main(["broker", "../etc"]) != 0
+    assert rb.main(["broker"]) != 0
+    out = capsysbinary.readouterr().out
+    assert b"ILLEGAL_EPISODE_ID" in out, "the refusal must be framed back, not merely returned"
+
+
+# --------------------------------------------------------------------------------------------
+# Task 5 -- the in-sandbox client
+# --------------------------------------------------------------------------------------------
+
+def _bc():
+    from eda_broker import broker_client as bc
+    return bc
+
+
+def test_the_op_is_selected_by_the_name_the_shim_was_invoked_as():
+    bc, bp = _bc(), _proto()
+    assert bc.op_for_argv0("/tmp/eda-probe/bin/pt_shell") == "sta_public"
+    assert bc.op_for_argv0("hspice") == "spice_public"
+    with pytest.raises(bp.Refusal):
+        bc.op_for_argv0("/tmp/eda-probe/bin/bash")
+
+
+def test_unexpected_argv_is_refused_rather_than_ignored():
+    """The design says the client ignores its arguments. Ignoring silently would also ignore a
+    tampered run_public.sh; asserting the canonical argv turns that into a visible refusal."""
+    bc, bp = _bc(), _proto()
+    sta = bp.OPS["sta_public"]
+    bc.check_argv(sta, ["-f", "run_public.tcl"])
+    for bad in (["-f", "evil.tcl"], [], ["-f", "run_public.tcl", "-x"], ["-shell"]):
+        with pytest.raises(bp.Refusal) as e:
+            bc.check_argv(sta, bad)
+        assert e.value.reason == "UNEXPECTED_ARGV"
+
+
+def test_ssh_is_invoked_so_it_cannot_fall_back_to_another_key_or_host_key(tmp_path):
+    bc = _bc()
+    argv = bc.ssh_argv(tmp_path / "key", tmp_path / "known_hosts", "tsb@b04")
+    joined = " ".join(argv)
+    for required in ("IdentitiesOnly=yes", "IdentityAgent=none", "BatchMode=yes",
+                     "StrictHostKeyChecking=yes", "ControlMaster=no",
+                     f"UserKnownHostsFile={tmp_path / 'known_hosts'}"):
+        assert required in joined, f"missing hardening option: {required}"
+    assert "-T" in argv, "no PTY may be requested"
+
+
+def test_a_transport_failure_is_never_reported_as_a_tool_result(capsys):
+    """The project's own rule: an infrastructure timeout, gateway error or worker failure is
+    measurement-invalid, never a capability failure. If ssh dies, the client must not print a
+    plausible-looking tool log and exit 0."""
+    bc, bp = _bc(), _proto()
+    rc = bc.emit({"status": bp.Status.TRANSPORT_ERROR, "reason": "ssh exited 255"},
+                 cwd=Path("."), out=sys.stdout, err=sys.stderr)
+    captured = capsys.readouterr()
+    assert rc == 125
+    assert captured.out == ""
+    assert "MEASUREMENT_INVALID" in captured.err
+    assert "transport_error" in captured.err
+
+
+@pytest.mark.parametrize("status", ["broker_error", "transport_output_limit"])
+def test_every_measurement_invalid_status_exits_125_and_prints_no_stdout(status, capsys):
+    """Requirement F's client half. A cap hit must reach the runner as an infrastructure fault with
+    an empty stdout -- if it arrived as a shortened tool log, nothing downstream could tell it from
+    a real one, and the episode would be scored."""
+    bc, bp = _bc(), _proto()
+    assert status in bp.MEASUREMENT_INVALID
+    rc = bc.emit({"status": status, "reason": "output exceeded a transport cap",
+                  "detail": {"kind": "stdout", "bytes": 2097152, "limit": 1048576},
+                  "stdout": "THIS MUST NOT BE PRINTED"},
+                 cwd=Path("."), out=sys.stdout, err=sys.stderr)
+    captured = capsys.readouterr()
+    assert rc == 125
+    assert captured.out == ""
+    assert "THIS MUST NOT BE PRINTED" not in captured.err
+    assert "MEASUREMENT_INVALID" in captured.err and status in captured.err
+
+
+def test_the_workdir_token_is_rewritten_to_the_local_cwd(tmp_path, capsys):
+    bc, bp = _bc(), _proto()
+    rc = bc.emit({"status": bp.Status.OK, "rc": 0, "op": "sta_public",
+                  "stdout": f"reading {bp.WORKDIR_TOKEN}/design.v\n", "stderr": "",
+                  "artifacts": {}},
+                 cwd=tmp_path, out=sys.stdout, err=sys.stderr)
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert f"reading {tmp_path}/design.v" in captured.out
+    assert bp.WORKDIR_TOKEN not in captured.out
+
+
+def test_an_artifact_the_op_does_not_declare_is_not_written(tmp_path, capsys):
+    """The broker is trusted for its own table, but the client keeps its own whitelist: a response
+    is still a message from the network, and it must not be able to create arbitrary workspace
+    files."""
+    bc, bp = _bc(), _proto()
+    bc.emit({"status": bp.Status.OK, "rc": 0, "op": "spice_public", "stdout": "", "stderr": "",
+             "artifacts": {"hspice_run.lis": base64.b64encode(b"REAL").decode(),
+                           "run_hidden.sh": base64.b64encode(b"INJECTED").decode()}},
+            cwd=tmp_path, out=sys.stdout, err=sys.stderr)
+    capsys.readouterr()
+    assert (tmp_path / "hspice_run.lis").read_bytes() == b"REAL"
+    assert not (tmp_path / "run_hidden.sh").exists(), "an undeclared artifact must be dropped"
+
+
+def test_the_request_carries_exactly_the_ops_input_set_and_no_generated_file(tmp_path):
+    bc, bp = _bc(), _proto()
+    op = bp.OPS["sta_public"]
+    src = _fake_instance(tmp_path)
+    (src / "agent_applied.sdc").write_text("AGENT INJECTED\n")
+    req = bc.build_request(op, src)
+    assert req["op"] == "sta_public"
+    assert set(req["inputs"]) == set(bp.input_names(op))
+    assert "agent_applied.sdc" not in req["inputs"]
+    assert "episode" not in req and "episode_id" not in req, \
+        "the client must have no field in which to name an episode"
