@@ -129,6 +129,7 @@ Every condition is evaluated mechanically and recorded in `opencode_probe/eviden
 | real PrimeTime tool loop | server-side invocation counter ≥ 1 **and** PrimeTime markers in tool output **and** ≥ 1 step after the first tool call **and** no `SKIP` lines |
 | no broker transport failure | no `eda-broker: MEASUREMENT_INVALID` marker in any tool output |
 | artifact fidelity | changed files ⊆ editable; workspace manifest present |
+| the agent's edit reached the grader | at least one editable file changed — separate, because the condition above is vacuously true of an unmodified submission |
 | grader scored the artifact | a `ScoreResult` exists |
 | request ledger only the target model | every model id anywhere in OpenCode's session storage |
 | the ledger read something | `json_files_scanned` > 0 |
@@ -191,3 +192,144 @@ Run it as:
 ```bash
 python3 scripts/opencode_probe_broker_dry_run.py --cost-cap-cny 20 --confirm-paid-run
 ```
+
+---
+
+## Outcome, 2026-08-23 — FAIL, and the blocker is architectural
+
+The run happened at commit `f33a94fd34c9fe41dacd5cda0efba45580c07f2f`, tree clean and pushed, after a
+zero-model preflight that reported **14/14 PASS**. That last number is the finding.
+
+**Verdict: FAIL.** Two gate conditions failed, and a third passed vacuously.
+
+| | |
+|---|---|
+| requests | 60, all `probe/deepseek-v4-pro`, 47 state JSON files scanned |
+| cost | **¥14.83 – ¥15.03** at frozen rates; cap ¥20; governor live (60 events over 461 s) and did not trip |
+| latency | 467 s in the sandbox, 507 s including grading |
+| stop rule | `steps_cap` — 60 of 60 steps, `reason: stop`, exit 0 |
+| `run_public.sh` calls | 16 |
+| **server-side remote invocations** | **0** |
+| `eda-broker: MEASUREMENT_INVALID` markers | **21** |
+| files the agent changed | **none** |
+
+### What failed
+
+Every broker call returned `transport_error: ssh rc=255 framing=FRAMING`. The cause is not a bug in
+the broker; it is an assumption the design made about the network that this host does not satisfy.
+
+On the host, `b04` is not a resolvable name. `ssh -G b04` shows a `HostName` rewrite, a **`ProxyJump`
+through a bastion**, and the bastion's own `IdentityFile` — all of it in the operator's
+`~/.ssh/config`. Inside the sandbox that file is deliberately absent, so `ssh -G b04` returns
+`hostname b04` with no `proxyjump` at all and the connection dies at
+`Could not resolve hostname b04: Name or service not known`.
+
+So the broker's transport premise — that the sandbox can open a direct TCP connection to b04
+authenticated only by the episode key — is false here. **b04 is reachable only through a third host
+that requires a separate, general-purpose credential**, and putting that credential or that route
+inside the sandbox would grant the agent ssh to the bastion and to b04 generally, which is the exact
+capability the whole design exists to withhold. This is a redesign, not a patch.
+
+### Why the preflight said PASS
+
+Because all fourteen controls issued ssh **from the host**, where the operator's `~/.ssh/config`
+silently supplied the route. Those controls establish what the capability *refuses*, which is a
+property of the forced command and testable from anywhere. Not one of them established what it
+*permits*, which is a property of the sandbox's reachability and is only testable from inside the
+sandbox. A battery of refusals is not a test of the thing itself.
+
+Control 12 came closest and shows the shape of the mistake precisely: it ran a probe inside the
+sandbox and asked what credentials it could *see* — `~/.ssh` absent, `SSH_AUTH_SOCK` unset, no
+forwarder on `PATH`, key read-only. Every one of those answers was correct, and together they are
+exactly the reason the tool channel could not work. The control was measuring the isolation and
+reading it as safety.
+
+**Control 15 now exists**: run `bash run_public.sh` inside the episode sandbox through the broker shim
+and require real PrimeTime output. It reproduces the failure at zero cost, records the route as the
+sandbox sees it (`sandbox_route_keys: ["hostname"]` — no `proxyjump`), and the preflight verdict is now
+**FAIL**, which is the truth. `test_the_battery_contains_a_positive_control_run_from_inside_the_sandbox`
+fails if the battery ever again consists only of refusals.
+
+### What the run nevertheless settled
+
+These are real results and they do not depend on the tool channel.
+
+- **Check 7 (stop behaviour) — the step-cap path is SETTLED.** 60 of 60 steps, `reason: stop`,
+  wrapper exit 0, no crash, no hang. The wall-clock path was not exercised, and the per-command
+  timeout path was exercised by the preflight rather than here.
+- **Request accounting — no hidden model.** 60 requests, every model identifier anywhere in
+  OpenCode's session storage is `probe/deepseek-v4-pro`. No title, summary, compaction or subagent
+  model. The event stream and the session storage agree on 60.
+- **The cost governor works and was live.** 60 token records arriving over 461 s, ¥15.03 against a
+  ¥20 cap. The cap did not trip and did not need to, and the run came within 25 % of it — on a *dev*
+  instance whose tool channel was broken. ¥10 would have killed this episode; ¥20 was the right call.
+- **The sandbox and oracle isolation held.** The planted sentinel appears in none of 3 680 files /
+  65 MB scanned across the event stream, the graded artifacts and OpenCode's session storage.
+- **Canonical integrity held.** Fingerprint identical before and after; `git status -- tasks/` empty.
+- **Cleanup held.** Key torn down and verified, episode directory gone, no quarantine, b04's
+  `authorized_keys` byte-identical, key material removed from disk.
+- **The refusal path works from a real agent.** The agent probed the shims and got
+  `REFUSED UNEXPECTED_ARGV` for `pt_shell -help` and for `hspice` with empty argv. Neither reached
+  the tool.
+
+### Two instrument defects this run exposed
+
+**`artifact_fidelity` passed vacuously.** The agent changed nothing — it spent all 60 steps fighting
+the tool channel and never edited `exception_config.json` — and "only editable files changed" is
+trivially true of an unmodified submission. The check reported a clean pass, which would have read as
+*the agent's edit reached the grader* when no edit existed. Split in two:
+`ok` (nothing illegal was written, still true) and `agent_edit_reached_the_grader` (an edit existed and
+was graded, now a separate gate condition, now `false`). The generated record is left as the run
+produced it; the corrected reader will be exercised by the next dry run.
+
+**A marker false positive, caught by the design rather than by luck.** `PUBLIC_DONE` appeared once in
+the transcript with zero remote invocations, because it is a `puts` inside the canonical
+`run_public.tcl` and the agent read that file. The server-side invocation counter overrode it. This is
+why the tool-loop condition requires the counter and not transcript text — a transcript showing
+PrimeTime output is not proof PrimeTime ran.
+
+### A third finding: the sandbox discloses the remote host after all
+
+The agent ran `env` and imported the mounted client module, and its transcript therefore records two
+strings the design believed it had withheld:
+
+- `PT_HOME=<EDA_ROOT>/EDA/soft2/synopsys/prime/V-2023.12` — `EnvShim` sets one variable per detected
+  tool, and that value spells out the operator's username and the private shim root. It is parity with
+  the frozen arm, which set the same variable, and it is a de-anonymisation trace rather than a
+  capability.
+- `HOST: tsb@b04`, printed by the agent from `broker_client.HOST` — the client module is mounted
+  read-only in the sandbox and carries the remote account as its default.
+
+The second is the interesting one. §6 scrubs `B04_HOST` precisely so that "an agent that reads
+`B04_HOST` learns the host where the oracles are", and the client module hands over the same string by
+another route. It is the same failure as the leak the sandbox audit found earlier — scrubbing
+`EDA_TASK_PATH` while leaving `OPENCODE_CONFIG` pointing at the repository root — a pointer removed
+under one name and left in place under another.
+
+It conferred nothing here, because the sandbox has neither the route nor the bastion credential. It is
+also an argument for where the redesign should put the boundary: a sandbox that speaks to a local unix
+socket has no remote host name to disclose, because it does not have one.
+
+The evidence files are **not** sanitised, and that is the branch's documented policy rather than an
+oversight: 180 tracked files already carry the username, including the previous dry run's own event
+stream and the broker deploy record, and `CLAUDE.md` records that a double-blind supplement needs a
+separate sanitising export. Sanitising three files would break comparability with the run they are
+meant to be compared against without achieving anonymity.
+
+### What has to happen next
+
+**This run cannot be re-read as a pass**, and the fix is not a fix to the broker. The candidate
+redesign moves the authorization boundary from b04 to the local host: a per-episode endpoint the
+sandbox can reach — one bind-mounted unix socket, no ssh client and no key material inside at all —
+whose server runs outside the sandbox, holds the operator credentials, and performs only the two
+provisioned operations for one episode. `K_i ⇒ E_i` survives because the episode is still burned into
+the server side. Whether that is the right design is a decision for the operator, not a consequence of
+this run.
+
+Whatever is built, it needs its own zero-model preflight including control 15, and then **a new
+discarded paid dry run**. The 48-episode arm remains unauthorized, and so does the cost calibration
+that would precede it.
+
+One cost note that is not a projection: ¥15.03 bought sixty steps of an agent retrying a broken tool.
+It says nothing about what a working episode costs, and it may not be used as a floor, a ceiling or a
+rate.

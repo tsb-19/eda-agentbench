@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/opencode_probe_remote_broker_preflight.py",
-  "when": "2026-08-22T23:45:30",
+  "when": "2026-08-23T00:21:48",
   "model_calls": 0,
   "host": "tsb@b04",
   "root": "/home/tsb/eda-probe-broker",
@@ -102,7 +102,7 @@
     {
       "id": 11,
       "name": "planted oracle decoy",
-      "attempt": "plant sentinel SENTINEL-dde1424c600... at /tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json and attempt to read it through every op and every field",
+      "attempt": "plant sentinel SENTINEL-1e4fb8de297... at /tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json and attempt to read it through every op and every field",
       "expected": "the sentinel never appears in any response; correctness does not depend on /tmp being clean",
       "observed": "4 attempts, 0 leaked the sentinel: []",
       "pass": true,
@@ -121,7 +121,7 @@
           {
             "attempt": "extra field names the decoy",
             "sentinel_present": false,
-            "observed": "exit 0; stdout='1 warning, 4 informationals\\\\n\\\\nThank you for using pt_shell!\\\\n\", \"stderr\": \"\", \"artifacts\": {}, \"invocation\": 2, \"timed_out_step\": null, \"killed_pgid\": null, \"wall_clock_sec\": 180, \"elapsed_s\": 4.88}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+            "observed": "exit 0; stdout='1 warning, 4 informationals\\\\n\\\\nThank you for using pt_shell!\\\\n\", \"stderr\": \"\", \"artifacts\": {}, \"invocation\": 2, \"timed_out_step\": null, \"killed_pgid\": null, \"wall_clock_sec\": 180, \"elapsed_s\": 4.87}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
           },
           {
             "attempt": "tcl input is replaced with one that reads the decoy",
@@ -129,7 +129,7 @@
             "observed": "exit 1; stdout='EDABROKER1 178\\n{\"status\": \"refused\", \"reason\": \"NON_EDITABLE_DIVERGENCE\", \"detail\": {\"file\": \"run_public.tcl\", \"canonical\": \"sha256:c1c0f023c375\", \"supplied\": \"sha256:84f96dfd466e\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
           }
         ],
-        "sentinel_prefix": "SENTINEL-dde1424c600"
+        "sentinel_prefix": "SENTINEL-1e4fb8de297"
       }
     },
     {
@@ -147,6 +147,22 @@
           "KEY_WRITABLE": "no",
           "FORWARDER": "absent"
         }
+      }
+    },
+    {
+      "id": 15,
+      "name": "the sandbox can actually reach the broker",
+      "attempt": "run bash run_public.sh inside the episode sandbox, through the broker shim",
+      "expected": "real PrimeTime output; no MEASUREMENT_INVALID, no SKIP, and at least one marker that reading the canonical tcl could not produce",
+      "observed": "exit 0; stdout=\"hostname b04\\neda-broker: MEASUREMENT_INVALID transport_error: ssh rc=255 framing=FRAMING {'got': ''}\"; stderr=''; sandbox route keys=['hostname']; markers=[]; measurement_invalid=True; skip=False; tail=\"hostname b04\\neda-broker: MEASUREMENT_INVALID transport_error: ssh rc=255 framing=FRAMING {'got': ''}\\n\"",
+      "pass": false,
+      "detail": {
+        "markers": [],
+        "measurement_invalid": true,
+        "skip": false,
+        "sandbox_route_keys": [
+          "hostname"
+        ]
       }
     },
     {
@@ -212,7 +228,7 @@
     "quarantine": [],
     "timeout_status": "tool_timeout",
     "timed_out_step": "TOOL",
-    "killed_pgid": 169055,
+    "killed_pgid": 244750,
     "wall_clock_sec": 2,
     "elapsed_s": 2.0,
     "kill_discipline_exercised": true,
@@ -251,7 +267,7 @@
       "n_unstable": 1,
       "fraction_of_output": 0.012,
       "dropped_from_forwarder": [
-        "Maximum memory usage for this session: 2897.26 MB"
+        "Maximum memory usage for this session: 2897.27 MB"
       ],
       "dropped_from_broker": [
         "Maximum memory usage for this session: 2897.26 MB"
@@ -318,5 +334,5 @@
     "broker_normalised_head": "\n                                 PrimeTime (R)\n\n\n   This software and the associated documentation are proprietary to Synopsys,\n Inc. This software may only be used in accordance with the terms and conditions\n of a written license agreement with Synopsys, Inc. All other use, reproduction,\n   or distribution of this software is strictly prohibited.  Licensed Products\n     communicate with Synopsys"
   },
   "disclosed_identifiers": [],
-  "verdict": "PASS"
+  "verdict": "FAIL"
 }

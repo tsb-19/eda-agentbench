@@ -1097,7 +1097,7 @@ def test_the_preflight_record_is_complete_and_cost_nothing():
     r = json.loads(PREFLIGHT.read_text())
     assert r["model_calls"] == 0
     ids = sorted(c["id"] for c in r["controls"])
-    assert ids == list(range(1, 15)), f"expected 14 controls, got {ids}"
+    assert ids == list(range(1, 16)), f"expected 15 controls, got {ids}"
     for c in r["controls"]:
         assert c["observed"], f"control {c['id']} recorded no observation"
     decoy = next(c for c in r["controls"] if c["id"] == 11)
@@ -1109,6 +1109,28 @@ def test_the_preflight_record_is_complete_and_cost_nothing():
     assert r["equivalence"]["rc_equal"] is True
     assert r["equivalence"]["normalised_equal"] is True
     assert r["equivalence"]["new_disclosures"] == []
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_battery_contains_a_positive_control_run_from_inside_the_sandbox():
+    """Controls 1-14 all issue ssh from the HOST and establish what the capability REFUSES. They
+    passed 14/14 while the sandbox could not reach b04 at all, because the route to it -- a HostName
+    rewrite and a ProxyJump through a bastion -- lives in the operator's ~/.ssh/config, which the
+    sandbox deliberately does not have. A battery of refusals is not a test of the thing itself, so at
+    least one control must establish what the capability PERMITS, from inside the sandbox, which is
+    the only place that question exists."""
+    r = json.loads(PREFLIGHT.read_text())
+    reach = [c for c in r["controls"] if "reach" in c["name"]]
+    assert reach, "the battery has no positive control; refusals alone cannot clear a tool channel"
+    c = reach[0]
+    assert "inside the episode sandbox" in c["attempt"]
+    assert "sandbox_route_keys" in c["detail"], (
+        "the control must record the route as the SANDBOX sees it, which is the diagnosis rather "
+        "than a symptom")
+    # A pass here may not rest on PUBLIC_DONE alone: it is a `puts` in the canonical tcl, so an agent
+    # that merely READS run_public.tcl reproduces it. The paid dry run recorded that false positive.
+    if c["pass"]:
+        assert [m for m in c["detail"]["markers"] if m != "PUBLIC_DONE"]
 
 
 @pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")

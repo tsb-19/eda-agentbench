@@ -112,6 +112,7 @@ sandbox 内的 `run_public.sh` 就会派发到 forwarder，episode 会在看上�
 | 真实 PrimeTime 工具环路 | 服务端调用计数 ≥ 1 **且** 工具输出中出现 PrimeTime 标记 **且** 首次工具调用之后 ≥ 1 步 **且** 没有 `SKIP` 行 |
 | 无 broker 传输失败 | 任何工具输出中都没有 `eda-broker: MEASUREMENT_INVALID` 标记 |
 | artifact 保真 | 改动文件 ⊆ editable；workspace manifest 存在 |
+| Agent 的编辑到达了 grader | 至少一个 editable 文件被改动——单列一条，因为上一条对未修改的提交平凡为真 |
 | grader 给 artifact 打了分 | 存在 `ScoreResult` |
 | request ledger 只有目标模型 | OpenCode session storage 中任何位置出现的每一个 model id |
 | ledger 确实读到了东西 | `json_files_scanned` > 0 |
@@ -168,3 +169,121 @@ opencode_probe/evidence/broker_dry_run/eventstream.json  原始事件流与 ledg
 ```bash
 python3 scripts/opencode_probe_broker_dry_run.py --cost-cap-cny 20 --confirm-paid-run
 ```
+
+---
+
+## 结果，2026-08-23——FAIL，且阻塞点是架构性的
+
+该运行发生在 commit `f33a94fd34c9fe41dacd5cda0efba45580c07f2f`，工作树干净且已推送，在一次报告
+**14/14 PASS** 的零模型 preflight 之后。最后这个数字本身就是结论。
+
+**判定：FAIL。** 两项门槛条件失败，第三项以空洞方式通过。
+
+| | |
+|---|---|
+| 请求数 | 60，全部 `probe/deepseek-v4-pro`；扫描 47 个 state JSON 文件 |
+| 成本 | 按冻结速率 **¥14.83 – ¥15.03**；上限 ¥20；governor 实时（461 秒内 60 条事件）且未触发 |
+| 时延 | sandbox 内 467 秒，含评分 507 秒 |
+| 停止规则 | `steps_cap`——60/60 步，`reason: stop`，退出 0 |
+| `run_public.sh` 调用 | 16 |
+| **服务端远端调用** | **0** |
+| `eda-broker: MEASUREMENT_INVALID` 标记 | **21** |
+| Agent 改动的文件 | **无** |
+
+### 失败的是什么
+
+每一次 broker 调用都返回 `transport_error: ssh rc=255 framing=FRAMING`。原因不是 broker 的 bug，而是
+设计对网络所作的一个假设，而本机并不满足它。
+
+在主机上 `b04` 并不是一个可解析的名字。`ssh -G b04` 显示一次 `HostName` 改写、一次**经由跳板机的
+`ProxyJump`**，以及跳板机自己的 `IdentityFile`——全都在操作者的 `~/.ssh/config` 里。sandbox 内该文件被
+有意排除，于是 `ssh -G b04` 返回 `hostname b04`，完全没有 `proxyjump`，连接死在
+`Could not resolve hostname b04: Name or service not known`。
+
+因此 broker 的传输前提——sandbox 能仅凭 episode key 认证、直接对 b04 建立 TCP 连接——在此为假。**b04 只能
+经由第三台主机到达，而那需要一份独立的通用凭据**；把那份凭据或那条路由放进 sandbox，就等于把对跳板机
+以及对 b04 的一般 ssh 能力交给 Agent，而这正是整个设计存在的目的所要扣留的能力。这是重新设计，不是打补丁。
+
+### preflight 为何报告 PASS
+
+因为十四项控制全部**从主机**发起 ssh，而操作者的 `~/.ssh/config` 在那里静默地提供了路由。这些控制建立的是
+capability **拒绝**什么，那是 forced command 的性质，从任何地方都可检验。它们中没有一项建立 capability
+**允许**什么，而那是 sandbox 可达性的性质，只能从 sandbox 内部检验。一组拒绝并不是对事物本身的检验。
+
+control 12 最接近，而它恰好显示了这个错误的形状：它在 sandbox 内跑了一个探针，问它能**看见**哪些凭据——
+`~/.ssh` 不存在、`SSH_AUTH_SOCK` 未设置、`PATH` 上没有 forwarder、key 只读。这些答案每一条都正确，而它们
+合在一起正是工具通道无法工作的原因。该控制测的是隔离，却把它读成了安全。
+
+**control 15 现已存在**：在 episode sandbox 内经 broker shim 运行 `bash run_public.sh`，并要求真实
+PrimeTime 输出。它以零成本复现该失败，记录 sandbox 所见的路由（`sandbox_route_keys: ["hostname"]`——没有
+`proxyjump`），且 preflight 判定现在是 **FAIL**，这才是事实。
+`test_the_battery_contains_a_positive_control_run_from_inside_the_sandbox` 会在这组控制再次只剩拒绝时失败。
+
+### 这次运行仍然落定了什么
+
+以下都是真实结果，且不依赖工具通道。
+
+- **Check 7（停止行为）——step-cap 这条路径已落定。** 60/60 步，`reason: stop`，wrapper 退出 0，无崩溃、
+  无挂死。wall-clock 路径未被检验；单命令超时路径由 preflight 而非本次检验。
+- **请求记账——没有隐藏模型。** 60 次请求；OpenCode session storage 中任何位置出现的每一个 model 标识都是
+  `probe/deepseek-v4-pro`。没有 title、summary、compaction 或 subagent 模型。事件流与 session storage 在
+  60 这个数上一致。
+- **成本 governor 有效且是实时的。** 461 秒内到达 60 条 token 记录，¥15.03 对 ¥20 上限。上限未触发也无需
+  触发，而该运行已到上限的 25% 以内——而且是在一个工具通道坏掉的 *dev* 实例上。¥10 会杀掉这个 episode；
+  ¥20 是正确的判断。
+- **sandbox 与 oracle 隔离成立。** 在事件流、被评分 artifacts 与 OpenCode session storage 中扫描的 3 680
+  个文件 / 65 MB 里，植入的 sentinel 一次都没出现。
+- **canonical 完整性成立。** 前后指纹一致；`git status -- tasks/` 为空。
+- **清理成立。** key 已拆除并核验，episode 目录已消失，无 quarantine，b04 的 `authorized_keys` 逐字节一致，
+  key 材料已从磁盘移除。
+- **拒绝路径在真实 Agent 面前有效。** Agent 探测了两个 shim，得到 `pt_shell -help` 与空 argv 的 `hspice`
+  各一次 `REFUSED UNEXPECTED_ARGV`。两者都没有到达工具。
+
+### 这次运行暴露的两处仪器缺陷
+
+**`artifact_fidelity` 空洞地通过了。** Agent 什么也没改——它把 60 步全花在与工具通道搏斗上，从未编辑
+`exception_config.json`——而「只有 editable 文件被改动」对一个未修改的提交是平凡为真的。该检查报告了干净
+通过，而这会被读成*Agent 的编辑到达了 grader*，可当时并不存在任何编辑。现已一分为二：
+`ok`（没有写入任何非法内容，仍然为真）与 `agent_edit_reached_the_grader`（存在编辑且被评分，现为独立门槛
+条件，现值为 `false`）。生成的记录保持运行时的原样；修正后的读取器将由下一次 dry run 来检验。
+
+**一次标记误报，是被设计而不是被运气抓住的。** `PUBLIC_DONE` 在服务端调用为 0 的情况下于 transcript 中出现
+过一次，因为它是 canonical `run_public.tcl` 里的一条 `puts`，而 Agent 读了那个文件。服务端调用计数器否决了
+它。这正是工具环路条件要求计数器而不要求 transcript 文本的原因——transcript 里出现 PrimeTime 输出并不证明
+PrimeTime 运行过。
+
+### 第三项发现：sandbox 终究还是泄露了远端主机
+
+Agent 跑了 `env` 并 import 了被挂载的 client 模块，于是它的 transcript 记录下两个设计以为自己已经扣留的
+字符串：
+
+- `PT_HOME=<EDA_ROOT>/EDA/soft2/synopsys/prime/V-2023.12`——`EnvShim` 为每个被检测到的工具设置一个变量，
+  而那个值拼出了操作者的用户名与私有 shim 根目录。它与冻结 arm 是 parity（后者设置同一变量），属于去匿名化
+  痕迹而不是能力。
+- `HOST: tsb@b04`，由 Agent 从 `broker_client.HOST` 打印出来——该 client 模块以只读方式挂在 sandbox 内，
+  并把远端账号作为其默认值携带。
+
+第二条才是有意思的那条。§6 之所以 scrub `B04_HOST`，正是为了让「读到 `B04_HOST` 的 Agent 不会得知 oracle
+所在的主机」，而 client 模块经另一条路径把同一个字符串交了出去。这与此前 sandbox 审计发现的那处泄漏是同一
+类错误——scrub 掉 `EDA_TASK_PATH` 却留下指向仓库根的 `OPENCODE_CONFIG`——一个指针以一个名字被移除，又以另一
+个名字留在原处。
+
+在这里它没有带来任何能力，因为 sandbox 既没有路由也没有跳板机凭据。它同时也是关于「重新设计应把边界放在
+哪里」的一个论据：一个只与本机 unix socket 对话的 sandbox 没有远端主机名可泄露，因为它根本不持有一个。
+
+证据文件**未经**脱敏，而这是本分支既有的成文政策而非疏漏：已有 180 个被跟踪文件带有用户名，其中包括上一次
+dry run 自己的事件流与 broker 部署记录，而 `CLAUDE.md` 明确记载双盲补充材料需要一次独立的脱敏导出。只脱敏
+三个文件，会在无法达成匿名的同时破坏它们与本该被对照的那次运行之间的可比性。
+
+### 接下来必须发生什么
+
+**这次运行不能被重新解读为通过**，而且要修的不是 broker。候选的重新设计把授权边界从 b04 移到本机：一个
+sandbox 能到达的按 episode 划分的端点——一个 bind-mount 的 unix socket，内部完全没有 ssh 客户端也没有任何
+key 材料——其服务端跑在 sandbox 之外，持有操作者凭据，且只为一个 episode 执行那两个已开通的操作。
+`K_i ⇒ E_i` 仍然成立，因为 episode 依旧烧在服务端。那是否是正确设计，是操作者的决定，而不是本次运行的推论。
+
+无论造出什么，它都需要自己的零模型 preflight（含 control 15），然后需要**一次新的、被丢弃的付费 dry run**。
+48 episode arm 仍未授权，先于它的成本标定同样仍未授权。
+
+一条不是外推的成本说明：¥15.03 买到的是一个 Agent 反复重试坏工具的六十步。它对一个正常 episode 的花费不说
+明任何事情，也不得被当作下界、上界或速率使用。

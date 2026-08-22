@@ -2,8 +2,12 @@
 
 # 用于 OpenCode probe 的受限 SSH EDA broker
 
-**状态：设计稿，日期 2026-08-21。本文不授权正式的 48 episode 实验臂。** 它只处理该实验臂无法启动的其中
-一个原因——即 [`opencode_probe_dry_run_report.zh.md`](opencode_probe_dry_run_report.zh.md) §5 记录的那
+**状态：设计稿，日期 2026-08-21。其传输前提在本机上已于 2026-08-23 被推翻——请先读这个：
+[dry run 结果](opencode_probe_broker_dry_run.zh.md)。** 该设计假定沙箱能仅凭 episode key 认证、直接与 b04
+建立连接。事实上 b04 只能经由一台跳板机到达，而其路由与凭据都在操作者的 `~/.ssh/config` 里，沙箱按设计并
+不拥有它，因此从沙箱内发起的每一次 broker 调用都以 `Could not resolve hostname b04` 失败。下文关于
+capability 模型、受管区块、批量生命周期、协议、上界与错误分类的内容全部成立且已被实测；不成立的是「agent
+能够到达它」。本文不授权正式的 48 episode 实验臂。它只处理该实验臂无法启动的其中一个原因——即 [`opencode_probe_dry_run_report.zh.md`](opencode_probe_dry_run_report.zh.md) §5 记录的那
 个阻塞项——其余原因原样保留。Check 7 仍为 UNSETTLED。Check 5 **不继承**先前的 PASS：那次 PASS 是在
 "工具不挂载"的配置下取得的，而本设计改变了该配置，因此 check 5 必须在新配置下重新建立。在零调用的
 remote-broker preflight 通过之前，不得花费任何模型调用。
@@ -416,8 +420,18 @@ python3"，而在同一份输出里却打印出它刚刚解析到的 `pt_shell` 
 | 12 | 沙箱凭据隔离 | `~/.ssh` 不存在，`SSH_AUTH_SOCK` 未设置，`/tmp/eda-probe` 下只有 `key`/`known_hosts`/`bin`，密钥只读，PATH 上没有 forwarder |
 | 13 | **全尺寸批量**——一次重写装入 48 把 episode 密钥，再一次重写拆除 | 非受管区域在之前、期间、之后逐字节一致；期间 48 条、之后 0 条；每一行只强制它自己的 episode；批量在位期间操作者本人的密钥仍能认证 |
 | 14 | **超限命中**——把 stdout 上限调到实测 3 205 B 以下，再跑真实 PrimeTime | `transport_output_limit`；响应中没有 `stdout`/`stderr`/`artifacts`；客户端以 125 退出且 stdout 为空 |
+| 15 | **正控制**——在 episode 沙箱内经 broker shim 运行 `bash run_public.sh` | 真实 PrimeTime 输出；没有 `MEASUREMENT_INVALID`、没有 `SKIP`，且至少有一个标记是「读 canonical tcl」无法产生的 |
 
-第 1–11 与 13–14 项是远端配置的性质，第 12 项是沙箱的性质。十四项全部零模型调用。
+第 1–11 与 13–14 项是远端配置的性质，第 12 与 15 项是沙箱的性质。十五项全部零模型调用。
+
+**第 15 项之所以存在，是因为前十四项在工具通道根本无法工作的情况下全部通过了。** 它们每一项都**从主机**
+发起 ssh，而操作者的 `~/.ssh/config` 在那里静默地提供了到 b04 的路由——一次 `HostName` 改写与一次经由跳板机
+的 `ProxyJump`。沙箱内该文件按设计不存在，于是 `ssh -G b04` 给出 `hostname b04`、没有 `proxyjump`，连接死在
+`Could not resolve hostname b04`。第 1–14 项建立的是 capability **拒绝**什么，那是 forced command 的性质，
+从任何地方都可检验；第 15 项建立的是它**允许**什么，那是沙箱可达性的性质，只能从内部检验。一组拒绝并不是
+对事物本身的检验，而第 12 项恰好显示了这个错误的形状：它确认了 `~/.ssh` 不存在、`PATH` 上没有 forwarder，
+每个答案都正确，而这些答案合在一起正是一切无法工作的原因。它测的是隔离，却把它读成了安全。参见
+[dry run 结果](opencode_probe_broker_dry_run.zh.md)。
 
 **第 11 项就是它胜过 `find /tmp` 的原因。** broker 的正确性不可以依赖 b04 的 `/tmp` 是干净的：dry run
 报告实测到 1492 个 `eda_shim_*` 目录，里面装着两个 family 的 truth 文件；它们被清掉了，而下一次评分运行
@@ -533,7 +547,11 @@ forwarder 跑两次，丢弃这两次之间有差异的内容。接着又出现�
 
 明确写出来，因为本项目反复防范的失败模式，正是"一项检查在没人会真正使用的配置下通过了"：
 
-- **它不授权正式实验臂。** check 7 仍为 UNSETTLED，本设计并未触及它。
+- **它的传输前提在本机上不成立。** 由 2026-08-23 的付费 dry run 建立，并由 control 15 以零成本复现。沙箱
+  根本无法到达 b04，因为路由是经由跳板机的 `ProxyJump`，且它位于 `~/.ssh/config`。要堵住这一点，需要一个
+  不同的授权边界——在本机而不是在 b04 上的按 episode 端点——而不是一个补丁。
+- **它不授权正式实验臂。** check 7 的 step-cap 路径现已由那次 dry run 落定；其 wall-clock 路径尚未落定，
+  而本设计并不触及其中任何一条。
 - **check 5 不能顺延。** 它的 PASS 是在工具缺席的情况下建立的。本设计挂上了工具通道，因此 check 5 必须在
   实验臂真正会使用的配置下重新建立，才算数。
 - **它不使实验臂变得负担得起。** 成本是另一个问题，dry run 拒绝从单个短 instance 外推，理由是

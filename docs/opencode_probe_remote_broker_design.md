@@ -2,8 +2,15 @@
 
 # A restricted-SSH EDA broker for the OpenCode probe
 
-**Status: design, dated 2026-08-21. Nothing here authorizes the formal 48-episode arm.** It
-addresses exactly one of the reasons the arm cannot start — the blocker recorded in
+**Status: design, dated 2026-08-21. Its transport premise is REFUTED on this host as of 2026-08-23 —
+read that first: [the dry-run outcome](opencode_probe_broker_dry_run.md#outcome-2026-08-23--fail-and-the-blocker-is-architectural).**
+The design assumed the sandbox can open a direct connection to b04 authenticated only by the episode
+key. In fact b04 is reachable only through a bastion whose route and credential live in the operator's
+`~/.ssh/config`, which the sandbox deliberately does not have, so every broker call from inside the
+sandbox fails with `Could not resolve hostname b04`. Everything below about the capability model, the
+managed block, the batch lifecycle, the protocol, the caps and the error taxonomy stands and was
+measured; what does not stand is that an agent can reach it. Nothing here authorizes the formal
+48-episode arm. It addresses exactly one of the reasons the arm cannot start — the blocker recorded in
 [`opencode_probe_dry_run_report.md`](opencode_probe_dry_run_report.md) §5 — and leaves the others
 where they are. Check 7 remains UNSETTLED. Check 5 does not inherit its earlier PASS: that PASS was
 established in the tools-absent configuration, and this design changes the configuration, so check 5
@@ -474,9 +481,22 @@ after the dry run: a battery of named bypasses, not a list of guessed absent pat
 | 12 | sandbox credential isolation | `~/.ssh` absent, `SSH_AUTH_SOCK` unset, only `key`/`known_hosts`/`bin` under `/tmp/eda-probe`, key read-only, no forwarder on PATH |
 | 13 | **full-size batch** — install 48 episode keys in one rewrite, tear them down in one | the non-managed region byte-identical before, during and after; 48 entries during, 0 after; every line forces only its own episode; the operator's own key still authenticates while the batch is live |
 | 14 | **cap hit** — stdout cap lowered below the measured 3 205 B, then real PrimeTime run | `transport_output_limit`; no `stdout`/`stderr`/`artifacts` in the response; client exits 125 with empty stdout |
+| 15 | **positive control** — `bash run_public.sh` inside the episode sandbox, through the broker shim | real PrimeTime output; no `MEASUREMENT_INVALID`, no `SKIP`, and at least one marker that reading the canonical tcl could not produce |
 
-Controls 1–11 and 13–14 are properties of the remote configuration; control 12 is a property of the
-sandbox. All fourteen cost zero model calls.
+Controls 1–11 and 13–14 are properties of the remote configuration; controls 12 and 15 are properties
+of the sandbox. All fifteen cost zero model calls.
+
+**Control 15 exists because the first fourteen passed while the tool channel could not work at all.**
+Every one of them issues ssh from the HOST, where the operator's `~/.ssh/config` silently supplies the
+route to b04 — a `HostName` rewrite and a `ProxyJump` through a bastion. Inside the sandbox that file is
+absent by design, so `ssh -G b04` yields `hostname b04` with no `proxyjump` and the connection dies at
+`Could not resolve hostname b04`. Controls 1–14 establish what the capability REFUSES, which is a
+property of the forced command and testable from anywhere; control 15 establishes what it PERMITS,
+which is a property of the sandbox's reachability and testable only from inside. A battery of refusals
+is not a test of the thing itself, and control 12 shows the shape of the error exactly: it confirmed
+`~/.ssh` absent and no forwarder on `PATH`, every answer correct, and those answers together are the
+reason nothing worked. It was measuring the isolation and reading it as safety. See
+[the dry-run outcome](opencode_probe_broker_dry_run.md#outcome-2026-08-23--fail-and-the-blocker-is-architectural).
 
 **Control 11 is why this beats `find /tmp`.** Broker correctness may not depend on b04's `/tmp` being
 clean: the dry-run report measured 1492 `eda_shim_*` directories holding both families' truth files,
@@ -623,7 +643,12 @@ what it means:
 Stated explicitly, because the failure mode this project keeps guarding against is a check that
 passes in a configuration nobody will use:
 
-- **It does not authorize the formal arm.** Check 7 is UNSETTLED and this design does not touch it.
+- **Its transport premise does not hold on this host.** Established 2026-08-23 by the paid dry run and
+  reproduced at zero cost by control 15. The sandbox cannot reach b04 at all, because the route is a
+  `ProxyJump` through a bastion and it lives in `~/.ssh/config`. Closing this needs a different
+  authorization boundary — a per-episode endpoint on the local host rather than on b04 — not a patch.
+- **It does not authorize the formal arm.** Check 7's step-cap path is now settled by that dry run;
+  its wall-clock path is not, and this design does not touch either.
 - **Check 5 does not carry over.** Its PASS was established with the tools absent. This design mounts
   a tool channel, so check 5 must be established again, under the configuration the arm would
   actually use, before it counts.

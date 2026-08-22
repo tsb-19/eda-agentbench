@@ -500,6 +500,38 @@ def test_without_the_broker_the_tool_pointer_is_a_dead_path_and_that_is_recorded
         "the residue must stay documented where a reader will find it")
 
 
+def test_artifact_fidelity_does_not_pass_vacuously_on_an_empty_submission(tmp_path):
+    """The first paid run under the broker configuration changed nothing: the agent spent all sixty
+    steps fighting a broken tool channel and never edited the editable file. "Only editable files
+    changed" is vacuously true of that, and the check as first written reported a clean pass -- which
+    would have said the agent's edit reached the grader when no edit existed."""
+    meta = {"files": {"editable": ["exception_config.json"]}}
+    (tmp_path / "workspace_manifest.json").write_text("{}")
+
+    (tmp_path / "modified_files.json").write_text(json.dumps({"modified": []}))
+    empty = dry.artifact_fidelity(tmp_path, meta)
+    assert empty["ok"] is True, "nothing illegal was written, and that much is still true"
+    assert empty["changed_nothing"] is True
+    assert empty["agent_edit_reached_the_grader"] is False
+
+    (tmp_path / "modified_files.json").write_text(
+        json.dumps({"modified": ["exception_config.json"]}))
+    edited = dry.artifact_fidelity(tmp_path, meta)
+    assert edited["changed_nothing"] is False
+    assert edited["agent_edit_reached_the_grader"] is True
+
+    (tmp_path / "modified_files.json").write_text(json.dumps({"modified": ["design.v"]}))
+    illegal = dry.artifact_fidelity(tmp_path, meta)
+    assert illegal["ok"] is False
+    assert illegal["agent_edit_reached_the_grader"] is False
+
+
+def test_the_gate_carries_the_stronger_edit_condition_separately():
+    src = (REPO / "scripts/opencode_probe_broker_dry_run.py").read_text()
+    assert '"agent_edit_reached_the_grader": None' in src
+    assert 'gate["agent_edit_reached_the_grader"]' in src
+
+
 def test_the_dry_run_is_marked_unscored_discarded_and_not_a_contrast():
     src = (REPO / "scripts/opencode_probe_broker_dry_run.py").read_text()
     for flag in ('"unscored": True', '"discarded": True',

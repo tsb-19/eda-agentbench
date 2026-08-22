@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Zero-call preflight for the restricted-SSH EDA broker.
 
-Fourteen negative controls, a planted oracle decoy, a full-size batch key install, a fail-closed cap
-hit, verified cleanup, and a forwarder-equivalence check. No model is called; every one of these is a
+Fifteen controls: a negative battery on the ssh surface, a planted oracle decoy, a full-size batch key
+install, a fail-closed cap hit, a positive control that the sandbox can actually USE the capability,
+verified cleanup, and a forwarder-equivalence check. No model is called; every one of these is a
 property of the configuration, the remote host and the sandbox, and a model adds nothing to
 establishing them.
 
@@ -10,13 +11,18 @@ This preflight does NOT authorize the formal 48-episode arm. It addresses one bl
 remains UNSETTLED and check 5 must be re-established under this configuration -- its earlier PASS
 was obtained with the tools absent, which is not the configuration the arm would use.
 
-Two rules govern how the controls are written:
+Three rules govern how the controls are written, and the third was added after a paid episode:
 
   * Record the OBSERVATION, never a verdict alone. "ssh exit 255, stderr: 'PTY allocation request
     failed'", not "refused".
   * A control that cannot run is a FAIL, not a skip. If scp is not installed locally, control 5
     established nothing, and a battery that quietly shrinks is the failure mode this project keeps
     meeting.
+  * A battery of refusals is not a test of the thing itself. Controls 1-14 all issue ssh from the
+    HOST and establish what the capability REFUSES. They passed 14/14 while the sandbox could not
+    reach b04 at all, because the route to it lives in the operator's ~/.ssh/config, which the sandbox
+    deliberately does not have. Control 15 establishes what the capability PERMITS, from inside the
+    sandbox, which is the only place that question exists.
 """
 
 from __future__ import annotations
@@ -29,6 +35,7 @@ import json
 import os
 import re
 import secrets
+import shlex
 import shutil
 import subprocess
 import sys
@@ -521,6 +528,78 @@ def control_cap_hit(host, root, work_root: Path) -> dict:
 
 
 # ---------------------------------------------------------------------------------------------
+# control 15: the sandbox can actually use the capability
+# ---------------------------------------------------------------------------------------------
+
+def control_sandbox_can_reach_the_broker(broker_dir: Path, host: str) -> dict:
+    """Run the real client, from inside the real sandbox, and require real tool output.
+
+    This control exists because the battery did not have it, and its absence let the preflight report
+    PASS for a configuration that could not work. Every other control issues ssh from the HOST, where
+    the operator's ~/.ssh/config supplies the route to b04 -- a HostName rewrite, a ProxyJump through
+    a bastion, and the bastion's own IdentityFile. Inside the sandbox ~/.ssh is deliberately absent,
+    so `ssh -G b04` resolves to the literal name `b04` and the connection dies at
+    `Could not resolve hostname b04`. Fourteen controls passed while the one thing the arm needs --
+    an agent reaching PrimeTime -- was impossible.
+
+    The distinction that got lost: those controls establish what the capability REFUSES, which is a
+    property of the forced command and is testable from anywhere. This one establishes what it
+    PERMITS, which is a property of the sandbox's reachability and is only testable from inside.
+
+    Failing here is the correct outcome while the transport blocker stands. It must not be softened
+    into a skip: a battery that quietly shrinks around the thing it cannot do is the failure mode
+    this project keeps meeting.
+    """
+    sys.path.insert(0, str(REPO / "scripts"))
+    import opencode_probe_agent as agent
+
+    with tempfile.TemporaryDirectory(prefix="preflight_reach_") as td:
+        td = Path(td)
+        ws, state = td / "ws", td / "state"
+        ws.mkdir()
+        state.mkdir()
+        shutil.copytree(INSTANCE / "files", ws, dirs_exist_ok=True)
+        bin_dir = agent.stage_broker_bin(state)
+        # Exactly what an episode does: run_public.sh dispatches through EDA_PT_CMD.
+        argv = agent.bwrap_argv(ws, state, Path("/bin/sh"),
+                                ["/bin/sh", "-c",
+                                 "ssh -G " + shlex.quote(host.split('@')[-1])
+                                 + " 2>/dev/null | grep -E '^(hostname|proxyjump)' || true; "
+                                 "bash run_public.sh 2>&1 | tail -25"],
+                                ro_binds=[], seal_tool_output=False,
+                                resolv=agent.write_resolv(state),
+                                broker=agent.BrokerMounts(key=broker_dir / "key",
+                                                          known_hosts=broker_dir / "known_hosts",
+                                                          bin_dir=bin_dir))
+        env = agent.scrubbed_env(REPO / "opencode_probe/config/opencode.json", state,
+                                 api_key="unused", broker_enabled=True)
+        r = _run(argv, env=env, timeout=420)
+
+    text = (r.stdout or b"").decode("utf-8", "replace") if r else ""
+    # The route as the SANDBOX sees it, which is the diagnosis rather than a symptom. Redacted: this
+    # branch is not anonymised and the record is committed.
+    route = [ln.split(None, 1)[0] for ln in text.splitlines()
+             if ln.startswith(("hostname", "proxyjump"))]
+    markers = [m for m in ("PrimeTime (R)", "Report : timing", "PUBLIC_DONE",
+                           "Thank you for using pt_shell!") if m in text]
+    invalid = "eda-broker: MEASUREMENT_INVALID" in text
+    skipped = "SKIP: pt_shell not found" in text
+    ok = bool(r is not None and markers and not invalid and not skipped)
+    # PUBLIC_DONE alone is not enough: it is a `puts` in the canonical tcl, so an agent that merely
+    # READS run_public.tcl reproduces it. The paid dry run recorded exactly that false positive.
+    ok = ok and any(m != "PUBLIC_DONE" for m in markers)
+    return control(
+        15, "the sandbox can actually reach the broker",
+        "run bash run_public.sh inside the episode sandbox, through the broker shim",
+        "real PrimeTime output; no MEASUREMENT_INVALID, no SKIP, and at least one marker that "
+        "reading the canonical tcl could not produce",
+        _describe(r) + f"; sandbox route keys={route}; markers={markers}; "
+        f"measurement_invalid={invalid}; skip={skipped}; tail={text[-400:]!r}",
+        ok, markers=markers, measurement_invalid=invalid, skip=skipped,
+        sandbox_route_keys=route)
+
+
+# ---------------------------------------------------------------------------------------------
 # cleanup verification
 # ---------------------------------------------------------------------------------------------
 
@@ -782,6 +861,7 @@ def main() -> int:
             controls.append(control_cross_episode(key, kh, a.host, a.root))
             controls.append(control_planted_decoy(key, kh, a.host))
             controls.append(control_sandbox_isolation(out_dir))
+            controls.append(control_sandbox_can_reach_the_broker(out_dir, a.host))
         finally:
             ba.teardown(EPISODE_X, host=a.host, root=a.root)
             ba.teardown(EPISODE, host=a.host, root=a.root)
@@ -793,7 +873,7 @@ def main() -> int:
         shutil.rmtree(work_root, ignore_errors=True)
 
     verdict = ("PASS" if (all(c["pass"] for c in controls)
-                          and len(controls) == 14
+                          and len(controls) == 15
                           and cleanup.get("user_keys_unchanged")
                           and cleanup.get("no_orphan_process")
                           and cleanup.get("episode_dir_removed")

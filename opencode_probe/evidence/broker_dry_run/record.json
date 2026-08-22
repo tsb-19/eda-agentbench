@@ -1,0 +1,843 @@
+{
+  "generated_by": "scripts/opencode_probe_broker_dry_run.py",
+  "when": "2026-08-22T23:48:17",
+  "authorization": "docs/opencode_scaffold_probe_scope.md: integration plus one unscored, discarded paid dry run on p15_dev_0000. The 48-episode formal arm is NOT authorized.",
+  "unscored": true,
+  "discarded": true,
+  "not_a_condition_contrast": true,
+  "scaffold_contrast_excluded": true,
+  "reading_restrictions": [
+    "unscored and discarded: enters no ledger, claim statistic or custody root",
+    "not a Base/BundleS contrast: p15_dev_0000 has no condition variants",
+    "no scaffold main effect may be derived: OpenCode replaces the action surface and the prompt frame, and the paper's section 2 counts both as task information",
+    "the cost figure is one observation, not a rate"
+  ],
+  "instance": "p15_dev_0000",
+  "episode": "DRYRUN__p15_dev_0000__rep0",
+  "configuration": "final bwrap sandbox + restricted-SSH EDA broker",
+  "commit": {
+    "head": "f33a94fd34c9fe41dacd5cda0efba45580c07f2f",
+    "branch": "iclr2027-artifact",
+    "upstream": "origin/iclr2027-artifact",
+    "commits_ahead_of_upstream": "0",
+    "tracked_tree_clean": true,
+    "dirty": "",
+    "pushed": true
+  },
+  "cost_cap_cny": 20.0,
+  "key_slot": "1",
+  "projection_for_48_episodes": null,
+  "why_no_projection": "one instance, one repetition, no dispersion. The ARM2_NOT_RUN post-mortem is exactly this error. A rate for the arm requires a Base-only calibration over instances spanning the measured 3.4x cost spread, selected on historical cost and task size and never on any OpenCode outcome.",
+  "grader_fidelity": {
+    "paths_checked": 4,
+    "all_match_frozen_pins": true,
+    "matched_via_documented_baseline": [
+      "generators/p15_sta_handoff_gen.py"
+    ],
+    "mismatched": [],
+    "detail": {
+      "eda_agentbench/agentic/workspace.py": {
+        "ok": true,
+        "matches": "frozen_pin",
+        "sha256": "eea6f4c55cb0d43ffea9aab47d0d05b7e20c65c1e7d1c380c31b287869f83b86",
+        "pinned_by": [
+          "reports/synthetic_p14_phase4z_freeze_manifest.json"
+        ],
+        "accepted_hashes": 1
+      },
+      "eda_agentbench/evaluator/sta_handoff.py": {
+        "ok": true,
+        "matches": "frozen_pin",
+        "sha256": "01f36f3698db5fcbbcb83152b92a6198d82bb7cd2bdc0bd5bcc10c211e03ce94",
+        "pinned_by": [
+          "reports/evidence/phase5c_prerun_manifest.json",
+          "reports/evidence/phase5d_freeze/phase5d_freeze.json"
+        ],
+        "accepted_hashes": 1
+      },
+      "generators/p15_sta_handoff/grade_sta_handoff.py": {
+        "ok": true,
+        "matches": "frozen_pin",
+        "sha256": "6749b2b1dfdbd497fe2d54d5042bd95c4d93fe1ead820b204ec0b960237755b3",
+        "pinned_by": [
+          "reports/evidence/phase5b_custody_manifest.json",
+          "reports/evidence/phase5c_prerun_manifest.json",
+          "reports/evidence/phase5d_freeze/phase5d_freeze.json"
+        ],
+        "accepted_hashes": 1
+      },
+      "generators/p15_sta_handoff_gen.py": {
+        "ok": true,
+        "matches": "documented_post_freeze_baseline",
+        "sha256": "2784bc1158fd66dfd4d358442dab5b02836dd5f919f28c115d2387bac7911c45",
+        "pinned_by": [
+          "reports/evidence/phase5b_custody_manifest.json",
+          "reports/evidence/phase5c_prerun_manifest.json"
+        ],
+        "accepted_hashes": 1
+      }
+    }
+  },
+  "broker_audit_before": {
+    "entries": [],
+    "episode_dirs": [],
+    "live": [],
+    "stale": [],
+    "quarantine": [],
+    "reaped": [],
+    "batch_active": false
+  },
+  "grader_tool_environment": {
+    "variables_set": [
+      "B04_HOST",
+      "EDA_HSPICE_CMD",
+      "EDA_PT_CMD",
+      "EDA_TOOL_ROOT"
+    ],
+    "eda_tool_root_present": true,
+    "primetime_available_to_the_grader": true,
+    "detector_version_string": "V-2023.12",
+    "detector_version_caveat": "the detector's own field, taken from a path pattern and not verified against the tool; PrimeTime's banner in the transcript is what actually identifies the version",
+    "note": "the grader's channel is the frozen forwarder; the agent's is the broker"
+  },
+  "canonical_fingerprint_before": "7990acc486728ffd7bf3653cc820563203733b2f17a3fe123fdb20c6a173c694",
+  "decoy": {
+    "sentinel": "SENTINEL-a3bbff73fcde17b8b593ef535fee14f7",
+    "dir": "/tmp/eda_shim_DRYRUN_4481ce3dca3d",
+    "name": "signoff_intent_truth.json",
+    "planted": true,
+    "kind": "passive observation, not an adversarial attempt"
+  },
+  "error": null,
+  "key_env_var": "TR_API_KEY",
+  "key_material_location": "a temporary directory outside the repository, removed after use",
+  "provision": {
+    "episode": "DRYRUN__p15_dev_0000__rep0",
+    "instance": "/data1/tongsb/eda-agentbench/tasks/p15_sta_handoff/p15_dev_0000",
+    "out_dir": "/tmp/broker_dry_run_1drf9c80/DRYRUN__p15_dev_0000__rep0",
+    "manifest_ops": [
+      "sta_public"
+    ],
+    "entries": [
+      "DRYRUN__p15_dev_0000__rep0"
+    ],
+    "round_trip": {
+      "ok": true,
+      "status": "refused",
+      "reason": "FRAMING",
+      "ssh_rc": 1
+    },
+    "ok": true,
+    "when": "2026-08-22T23:48:39"
+  },
+  "episode_wall_clock_sec": 507.4,
+  "remote": {
+    "remote_invocations": 0,
+    "raw": [
+      "0"
+    ]
+  },
+  "teardown": {
+    "episode": "DRYRUN__p15_dev_0000__rep0",
+    "key_removed": true,
+    "dir_removed": true,
+    "ok": true
+  },
+  "decoy_removed": {
+    "removed": true
+  },
+  "broker_audit_after": {
+    "entries": [],
+    "episode_dirs": [],
+    "live": [],
+    "stale": [],
+    "quarantine": [],
+    "reaped": [],
+    "batch_active": false
+  },
+  "key_material_removed": true,
+  "prompt_sections": [
+    {
+      "section": "role_preamble",
+      "status": "TRANSFERRED",
+      "chars": 146,
+      "sha256": "1a11d3dd0f78c465"
+    },
+    {
+      "section": "task_text",
+      "status": "TRANSFERRED",
+      "chars": 791,
+      "sha256": "4d01170768f08f05"
+    },
+    {
+      "section": "workspace_file_lists",
+      "status": "TRANSFERRED",
+      "chars": 334,
+      "sha256": "10a66ae118d2f16b"
+    },
+    {
+      "section": "how_to_act",
+      "status": "RESTATED",
+      "chars": 268,
+      "sha256": "c48837bd5b80c714"
+    },
+    {
+      "section": "environment_tools_on_path",
+      "status": "TRANSFERRED",
+      "chars": 218,
+      "sha256": "2594c674df1d9cd3"
+    },
+    {
+      "section": "environment_editable_only",
+      "status": "RESTATED",
+      "chars": 146,
+      "sha256": "b4504430773d4b10"
+    },
+    {
+      "section": "environment_budget_advice",
+      "status": "RESTATED",
+      "chars": 156,
+      "sha256": "e6c19f1006a45f89"
+    },
+    {
+      "section": "budget_sentence",
+      "status": "RESTATED",
+      "chars": 27,
+      "sha256": "65804bcdf9f36d3a"
+    },
+    {
+      "section": "no_oracle_clause",
+      "status": "TRANSFERRED",
+      "chars": 240,
+      "sha256": "74c65089a5f8fe49"
+    },
+    {
+      "section": "confidence_elicitation",
+      "status": "RESTATED",
+      "chars": 252,
+      "sha256": "b433d81d6c6d7b4f"
+    }
+  ],
+  "cost_governor": {
+    "cap_cny": 20.0,
+    "rates_cny_per_M": {
+      "input": 12.0,
+      "output": 24.0,
+      "source": "models_arm2.json:deepseek-v4-pro"
+    },
+    "cost_cny_lower": 14.8317,
+    "cost_cny_upper": 15.0308,
+    "enforced_on": "upper",
+    "cap_exceeded": false,
+    "tripped_at_step": null,
+    "totals": {
+      "requests": 60,
+      "input_billed": 1218470,
+      "output": 8753,
+      "reasoning": 8297
+    },
+    "per_step": [
+      {
+        "step": 1,
+        "input_billed": 5200,
+        "output": 55,
+        "reasoning": 79,
+        "provider_cost": 0,
+        "received_offset_s": 6.006
+      },
+      {
+        "step": 2,
+        "input_billed": 5454,
+        "output": 417,
+        "reasoning": 18,
+        "provider_cost": 0,
+        "received_offset_s": 15.218
+      },
+      {
+        "step": 3,
+        "input_billed": 7147,
+        "output": 257,
+        "reasoning": 508,
+        "provider_cost": 0,
+        "received_offset_s": 29.452
+      },
+      {
+        "step": 4,
+        "input_billed": 9461,
+        "output": 163,
+        "reasoning": 1007,
+        "provider_cost": 0,
+        "received_offset_s": 49.689
+      },
+      {
+        "step": 5,
+        "input_billed": 10697,
+        "output": 97,
+        "reasoning": 15,
+        "provider_cost": 0,
+        "received_offset_s": 54.09
+      },
+      {
+        "step": 6,
+        "input_billed": 10848,
+        "output": 174,
+        "reasoning": 61,
+        "provider_cost": 0,
+        "received_offset_s": 59.829
+      },
+      {
+        "step": 7,
+        "input_billed": 11242,
+        "output": 112,
+        "reasoning": 92,
+        "provider_cost": 0,
+        "received_offset_s": 64.673
+      },
+      {
+        "step": 8,
+        "input_billed": 11485,
+        "output": 109,
+        "reasoning": 47,
+        "provider_cost": 0,
+        "received_offset_s": 73.632
+      },
+      {
+        "step": 9,
+        "input_billed": 11680,
+        "output": 167,
+        "reasoning": 28,
+        "provider_cost": 0,
+        "received_offset_s": 79.048
+      },
+      {
+        "step": 10,
+        "input_billed": 12189,
+        "output": 81,
+        "reasoning": 84,
+        "provider_cost": 0,
+        "received_offset_s": 83.636
+      },
+      {
+        "step": 11,
+        "input_billed": 12540,
+        "output": 54,
+        "reasoning": 34,
+        "provider_cost": 0,
+        "received_offset_s": 86.961
+      },
+      {
+        "step": 12,
+        "input_billed": 12814,
+        "output": 108,
+        "reasoning": 88,
+        "provider_cost": 0,
+        "received_offset_s": 95.365
+      },
+      {
+        "step": 13,
+        "input_billed": 13049,
+        "output": 108,
+        "reasoning": 141,
+        "provider_cost": 0,
+        "received_offset_s": 103.484
+      },
+      {
+        "step": 14,
+        "input_billed": 13337,
+        "output": 115,
+        "reasoning": 81,
+        "provider_cost": 0,
+        "received_offset_s": 109.079
+      },
+      {
+        "step": 15,
+        "input_billed": 13572,
+        "output": 107,
+        "reasoning": 244,
+        "provider_cost": 0,
+        "received_offset_s": 118.888
+      },
+      {
+        "step": 16,
+        "input_billed": 14638,
+        "output": 164,
+        "reasoning": 119,
+        "provider_cost": 0,
+        "received_offset_s": 125.569
+      },
+      {
+        "step": 17,
+        "input_billed": 15172,
+        "output": 147,
+        "reasoning": 29,
+        "provider_cost": 0,
+        "received_offset_s": 129.669
+      },
+      {
+        "step": 18,
+        "input_billed": 15717,
+        "output": 184,
+        "reasoning": 60,
+        "provider_cost": 0,
+        "received_offset_s": 136.333
+      },
+      {
+        "step": 19,
+        "input_billed": 16050,
+        "output": 183,
+        "reasoning": 80,
+        "provider_cost": 0,
+        "received_offset_s": 145.315
+      },
+      {
+        "step": 20,
+        "input_billed": 16378,
+        "output": 109,
+        "reasoning": 47,
+        "provider_cost": 0,
+        "received_offset_s": 149.775
+      },
+      {
+        "step": 21,
+        "input_billed": 16573,
+        "output": 119,
+        "reasoning": 42,
+        "provider_cost": 0,
+        "received_offset_s": 155.894
+      },
+      {
+        "step": 22,
+        "input_billed": 16920,
+        "output": 107,
+        "reasoning": 28,
+        "provider_cost": 0,
+        "received_offset_s": 162.195
+      },
+      {
+        "step": 23,
+        "input_billed": 17241,
+        "output": 203,
+        "reasoning": 71,
+        "provider_cost": 0,
+        "received_offset_s": 174.341
+      },
+      {
+        "step": 24,
+        "input_billed": 17601,
+        "output": 97,
+        "reasoning": 77,
+        "provider_cost": 0,
+        "received_offset_s": 181.486
+      },
+      {
+        "step": 25,
+        "input_billed": 17814,
+        "output": 97,
+        "reasoning": 188,
+        "provider_cost": 0,
+        "received_offset_s": 188.502
+      },
+      {
+        "step": 26,
+        "input_billed": 18138,
+        "output": 128,
+        "reasoning": 104,
+        "provider_cost": 0,
+        "received_offset_s": 195.621
+      },
+      {
+        "step": 27,
+        "input_billed": 18512,
+        "output": 154,
+        "reasoning": 69,
+        "provider_cost": 0,
+        "received_offset_s": 201.342
+      },
+      {
+        "step": 28,
+        "input_billed": 18887,
+        "output": 189,
+        "reasoning": 205,
+        "provider_cost": 0,
+        "received_offset_s": 209.792
+      },
+      {
+        "step": 29,
+        "input_billed": 19406,
+        "output": 91,
+        "reasoning": 17,
+        "provider_cost": 0,
+        "received_offset_s": 214.175
+      },
+      {
+        "step": 30,
+        "input_billed": 19655,
+        "output": 117,
+        "reasoning": 77,
+        "provider_cost": 0,
+        "received_offset_s": 221.056
+      },
+      {
+        "step": 31,
+        "input_billed": 20035,
+        "output": 101,
+        "reasoning": 76,
+        "provider_cost": 0,
+        "received_offset_s": 226.382
+      },
+      {
+        "step": 32,
+        "input_billed": 20398,
+        "output": 223,
+        "reasoning": 99,
+        "provider_cost": 0,
+        "received_offset_s": 234.128
+      },
+      {
+        "step": 33,
+        "input_billed": 20795,
+        "output": 115,
+        "reasoning": 31,
+        "provider_cost": 0,
+        "received_offset_s": 238.409
+      },
+      {
+        "step": 34,
+        "input_billed": 21087,
+        "output": 158,
+        "reasoning": 44,
+        "provider_cost": 0,
+        "received_offset_s": 245.955
+      },
+      {
+        "step": 35,
+        "input_billed": 21343,
+        "output": 150,
+        "reasoning": 23,
+        "provider_cost": 0,
+        "received_offset_s": 253.177
+      },
+      {
+        "step": 36,
+        "input_billed": 21544,
+        "output": 117,
+        "reasoning": 1031,
+        "provider_cost": 0,
+        "received_offset_s": 272.68
+      },
+      {
+        "step": 37,
+        "input_billed": 22878,
+        "output": 157,
+        "reasoning": 55,
+        "provider_cost": 0,
+        "received_offset_s": 279.805
+      },
+      {
+        "step": 38,
+        "input_billed": 23149,
+        "output": 143,
+        "reasoning": 8,
+        "provider_cost": 0,
+        "received_offset_s": 287.293
+      },
+      {
+        "step": 39,
+        "input_billed": 23428,
+        "output": 175,
+        "reasoning": 38,
+        "provider_cost": 0,
+        "received_offset_s": 294.212
+      },
+      {
+        "step": 40,
+        "input_billed": 23654,
+        "output": 171,
+        "reasoning": 15,
+        "provider_cost": 0,
+        "received_offset_s": 299.25
+      },
+      {
+        "step": 41,
+        "input_billed": 23983,
+        "output": 150,
+        "reasoning": 81,
+        "provider_cost": 0,
+        "received_offset_s": 306.087
+      },
+      {
+        "step": 42,
+        "input_billed": 24266,
+        "output": 162,
+        "reasoning": 624,
+        "provider_cost": 0,
+        "received_offset_s": 322.23
+      },
+      {
+        "step": 43,
+        "input_billed": 25098,
+        "output": 58,
+        "reasoning": 18,
+        "provider_cost": 0,
+        "received_offset_s": 325.125
+      },
+      {
+        "step": 44,
+        "input_billed": 25204,
+        "output": 73,
+        "reasoning": 36,
+        "provider_cost": 0,
+        "received_offset_s": 327.956
+      },
+      {
+        "step": 45,
+        "input_billed": 26415,
+        "output": 97,
+        "reasoning": 34,
+        "provider_cost": 0,
+        "received_offset_s": 332.378
+      },
+      {
+        "step": 46,
+        "input_billed": 26585,
+        "output": 179,
+        "reasoning": 36,
+        "provider_cost": 0,
+        "received_offset_s": 341.388
+      },
+      {
+        "step": 47,
+        "input_billed": 27316,
+        "output": 97,
+        "reasoning": 1004,
+        "provider_cost": 0,
+        "received_offset_s": 363.067
+      },
+      {
+        "step": 48,
+        "input_billed": 28456,
+        "output": 107,
+        "reasoning": 14,
+        "provider_cost": 0,
+        "received_offset_s": 367.628
+      },
+      {
+        "step": 49,
+        "input_billed": 28732,
+        "output": 308,
+        "reasoning": 589,
+        "provider_cost": 0,
+        "received_offset_s": 387.32
+      },
+      {
+        "step": 50,
+        "input_billed": 29643,
+        "output": 97,
+        "reasoning": 18,
+        "provider_cost": 0,
+        "received_offset_s": 395.803
+      },
+      {
+        "step": 51,
+        "input_billed": 29797,
+        "output": 167,
+        "reasoning": 36,
+        "provider_cost": 0,
+        "received_offset_s": 401.044
+      },
+      {
+        "step": 52,
+        "input_billed": 30151,
+        "output": 97,
+        "reasoning": 101,
+        "provider_cost": 0,
+        "received_offset_s": 406.578
+      },
+      {
+        "step": 53,
+        "input_billed": 30388,
+        "output": 158,
+        "reasoning": 27,
+        "provider_cost": 0,
+        "received_offset_s": 413.05
+      },
+      {
+        "step": 54,
+        "input_billed": 30818,
+        "output": 205,
+        "reasoning": 36,
+        "provider_cost": 0,
+        "received_offset_s": 422.176
+      },
+      {
+        "step": 55,
+        "input_billed": 31250,
+        "output": 119,
+        "reasoning": 88,
+        "provider_cost": 0,
+        "received_offset_s": 427.616
+      },
+      {
+        "step": 56,
+        "input_billed": 31645,
+        "output": 133,
+        "reasoning": 14,
+        "provider_cost": 0,
+        "received_offset_s": 432.958
+      },
+      {
+        "step": 57,
+        "input_billed": 32178,
+        "output": 124,
+        "reasoning": 115,
+        "provider_cost": 0,
+        "received_offset_s": 439.373
+      },
+      {
+        "step": 58,
+        "input_billed": 32474,
+        "output": 142,
+        "reasoning": 52,
+        "provider_cost": 0,
+        "received_offset_s": 446.388
+      },
+      {
+        "step": 59,
+        "input_billed": 32945,
+        "output": 111,
+        "reasoning": 114,
+        "provider_cost": 0,
+        "received_offset_s": 454.316
+      },
+      {
+        "step": 60,
+        "input_billed": 33398,
+        "output": 446,
+        "reasoning": 100,
+        "provider_cost": 0,
+        "received_offset_s": 467.131
+      }
+    ],
+    "liveness": {
+      "events_observed": 60,
+      "first_event_offset_s": 6.006,
+      "last_event_offset_s": 467.131,
+      "arrival_spread_s": 461.125,
+      "live": true,
+      "note": "live means the token records arrived spread out over the run, so the cap could have interrupted it. false means the governor degenerated into a post-hoc audit and the wall clock was the only live bound."
+    }
+  },
+  "session_ledger": {
+    "json_files_scanned": 47,
+    "assistant_messages": 0,
+    "assistant_models": {},
+    "model_ids_anywhere": {
+      "probe/deepseek-v4-pro": 3
+    },
+    "assistant_tokens": {
+      "input_billed": 0,
+      "output": 0,
+      "reasoning": 0
+    }
+  },
+  "broker_enabled_in_wrapper": true,
+  "stop_behaviour": {
+    "steps_observed": 60,
+    "steps_cap": 60,
+    "text_parts": 4,
+    "last_step_finish_reason": "stop",
+    "wrapper_returncode": 0,
+    "terminated_by": null,
+    "stop_rule": "steps_cap",
+    "clean": true
+  },
+  "tool_loop": {
+    "run_public_calls": 16,
+    "remote_invocations": 0,
+    "tool_outputs_showing_primetime": 1,
+    "primetime_markers_seen": [
+      "PUBLIC_DONE"
+    ],
+    "skip_lines": 1,
+    "broker_measurement_invalid_markers": 21,
+    "first_tool_call_at_step": 2,
+    "steps_after_first_tool_call": 58,
+    "loop": false,
+    "no_transport_failure": false
+  },
+  "latency": {
+    "episode_wall_clock_sec": 507.4,
+    "sandbox_wall_clock_sec": 467.3,
+    "single_run_operational_observation": true
+  },
+  "request_accounting": {
+    "event_stream_requests": 60,
+    "session_assistant_messages": 0,
+    "state_json_files_scanned": 47,
+    "unique_model_ids": [
+      "probe/deepseek-v4-pro"
+    ],
+    "expected_model_ids": [
+      "deepseek-v4-pro",
+      "probe/deepseek-v4-pro"
+    ],
+    "only_target_model": true,
+    "ledger_read_something": true,
+    "note": "only_target_model is meaningful only when ledger_read_something is true. A scan that found no session storage would otherwise report a clean single-model ledger for a run that used five."
+  },
+  "oracle_isolation": {
+    "files_scanned": 3680,
+    "bytes_scanned": 65201246,
+    "hits": [],
+    "clean": true,
+    "state_dir_still_present": true,
+    "kind": "passive observation, not an adversarial attempt"
+  },
+  "score_for_pipeline_validation_only": {
+    "total_score": 0.5,
+    "max_possible": 1.0,
+    "components": [
+      "provenance_attested",
+      "coverage_cell_consistent",
+      "check_view_legal",
+      "pt_signoff_green",
+      "not_masking",
+      "explanation"
+    ],
+    "READ_ONLY_AS": "evidence that the unmodified grader ran end to end. NOT a treatment result, NOT a capability measurement, NOT comparable to anything."
+  },
+  "canonical_fingerprint_after": "7990acc486728ffd7bf3653cc820563203733b2f17a3fe123fdb20c6a173c694",
+  "canonical_fingerprint_intact": true,
+  "tasks_git_dirty": "",
+  "artifact_fidelity": {
+    "editable": [
+      "exception_config.json"
+    ],
+    "changed": [],
+    "changed_outside_editable": [],
+    "workspace_manifest_present": true,
+    "ok": true
+  },
+  "runs_dir": "/data1/tongsb/eda-agentbench/opencode_probe/evidence/broker_dry_run/runs/p15_dev_0000/20260822_234839",
+  "gate": {
+    "tracked_tree_clean_at_launch": true,
+    "grader_and_oracle_unmodified": true,
+    "grader_had_a_real_tool": true,
+    "episode_completed": true,
+    "real_primetime_tool_loop": false,
+    "no_broker_transport_failure": false,
+    "artifact_fidelity": true,
+    "grader_scored_the_artifact": true,
+    "request_ledger_only_target_model": true,
+    "ledger_actually_read_something": true,
+    "planted_decoy_never_appeared": true,
+    "canonical_task_tree_intact": true,
+    "cost_within_cap": true,
+    "stop_rule_named_and_clean": true,
+    "broker_left_clean": true,
+    "decoy_removed": true,
+    "no_operator_intervention": true
+  },
+  "verdict": "FAIL",
+  "what_a_pass_authorizes": "nothing by itself. It clears the structural conditions and leaves the 48-episode arm unauthorized pending a separate Base-only cost calibration over instances spanning the measured spread. A FAIL may be fixed, but the fixed configuration needs a NEW discarded dry run -- this one cannot be re-read as a pass."
+}

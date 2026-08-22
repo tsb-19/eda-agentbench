@@ -385,7 +385,14 @@ def tool_loop_evidence(log: dict, invocations: int) -> dict:
 
 
 def artifact_fidelity(runs_dir: Path, meta: dict) -> dict:
-    """Check 8: only editable files changed, and the graded submission is what the agent wrote."""
+    """Check 8: only editable files changed, and the graded submission is what the agent wrote.
+
+    `changed_nothing` is reported separately, and the gate treats it as a distinct condition, because
+    "only editable files changed" is VACUOUSLY true of a submission identical to the input. The first
+    paid run under this configuration changed nothing at all -- the agent spent all sixty steps
+    fighting a broken tool channel -- and the check as first written reported a clean pass on it. That
+    would have said the agent's edit reached the grader when no edit existed.
+    """
     editable = set(meta["files"].get("editable", []))
     mod = runs_dir / "modified_files.json"
     manifest = runs_dir / "workspace_manifest.json"
@@ -401,10 +408,16 @@ def artifact_fidelity(runs_dir: Path, meta: dict) -> dict:
     elif isinstance(changed, list):
         names = [str(x) for x in changed]
     outside = sorted(n for n in names if Path(n).name not in editable)
+    inside = sorted(n for n in names if Path(n).name in editable)
     return {"editable": sorted(editable), "changed": sorted(set(names)),
             "changed_outside_editable": outside,
+            "changed_editable": inside,
+            "changed_nothing": not names,
             "workspace_manifest_present": manifest.is_file(),
-            "ok": not outside and manifest.is_file()}
+            "ok": not outside and manifest.is_file(),
+            "agent_edit_reached_the_grader": bool(inside) and not outside and manifest.is_file(),
+            "note": ("ok means nothing illegal was written. agent_edit_reached_the_grader is the "
+                     "stronger and separately-gated claim: an edit existed and was graded.")}
 
 
 # ---------------------------------------------------------------------------------------------
@@ -600,6 +613,7 @@ def main() -> int:
         "real_primetime_tool_loop": rec["tool_loop"]["loop"],
         "no_broker_transport_failure": rec["tool_loop"]["no_transport_failure"],
         "artifact_fidelity": None,          # filled below when a runs_dir exists
+        "agent_edit_reached_the_grader": None,
         "grader_scored_the_artifact": score is not None,
         "request_ledger_only_target_model": rec["request_accounting"]["only_target_model"],
         "ledger_actually_read_something": rec["request_accounting"]["ledger_read_something"],
@@ -616,6 +630,8 @@ def main() -> int:
     if runs_dir is not None:
         rec["artifact_fidelity"] = artifact_fidelity(Path(runs_dir), meta)
         gate["artifact_fidelity"] = rec["artifact_fidelity"]["ok"]
+        gate["agent_edit_reached_the_grader"] = \
+            rec["artifact_fidelity"]["agent_edit_reached_the_grader"]
     rec["runs_dir"] = str(runs_dir) if runs_dir else None
     rec["gate"] = gate
     rec["verdict"] = "PASS" if all(v is True for v in gate.values()) else "FAIL"
