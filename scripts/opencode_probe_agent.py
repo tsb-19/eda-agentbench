@@ -23,6 +23,11 @@ Zero-call modes, used by opencode_probe_preflight.py:
   --emit-prompt-only     compose and print the message; make no model call
   --emit-manifest-only   print the section provenance manifest as JSON
   --emit-argv-only       print the exact sandboxed argv that would be executed
+
+`--cost-cap-cny` adds a live spend cap, enforced on the event stream as each request's token record
+arrives and fail-closed: on breach the process group is killed and the episode is measurement-invalid
+rather than a model result that happens to stop early. See CostGovernor for why the cap has to be
+live, and for how the record proves it was.
 """
 
 from __future__ import annotations
@@ -31,11 +36,13 @@ import argparse
 import hashlib
 import json
 import os
-import shlex
 import shutil
+import signal
 import subprocess
 import sys
-from dataclasses import dataclass
+import threading
+import time
+from dataclasses import dataclass, field
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -388,18 +395,311 @@ def write_resolv(state_dir: Path) -> Path:
     return p
 
 
+# ---------------------------------------------------------------------------------------------
+# Cost governor and request ledger.
+# ---------------------------------------------------------------------------------------------
+
+EXIT_COST_CAP = 121
+EXIT_WALL_CLOCK = 122
+
+MODELS_ARM2 = REPO_ROOT / "phase8a/models_arm2.json"
+
+
+@dataclass(frozen=True)
+class Rates:
+    """CNY per 1M tokens. Read from the arm-2 model config rather than restated here, so the probe's
+    ledger and the frozen arm's ledger cannot drift apart silently. This uses a frozen file as a
+    PRICE REFERENCE; it pools, sums and differences no frozen outcome."""
+    input_per_m: float
+    output_per_m: float
+    source: str
+
+    @classmethod
+    def from_arm2(cls, path: Path = MODELS_ARM2, model: str = "deepseek-v4-pro") -> "Rates":
+        for m in json.loads(Path(path).read_text()).get("models", []):
+            if m.get("name") == model:
+                return cls(float(m["price_in_per_m"]), float(m["price_out_per_m"]),
+                           f"{Path(path).name}:{model}")
+        raise SystemExit(f"opencode_probe_agent: no rates for {model!r} in {path}")
+
+
+def billed(tokens: dict) -> tuple[int, int, int]:
+    """Split one token record into (input_billed, output, reasoning).
+
+    OpenCode's `step_finish` reports total = input + output + reasoning + cache.read, so the four are
+    disjoint. Cache traffic is billed AS INPUT, which is the difference between an orientation figure
+    and a usable one: dry-run episode 2 read 485 888 cached tokens against 36 311 fresh input ones,
+    so ignoring cache turns CNY 6.41 into CNY 0.58. Cache writes go on the same side; they were zero
+    in both dry-run episodes, so this still reproduces the published figures exactly.
+    """
+    cache = tokens.get("cache") or {}
+    inp = int(tokens.get("input") or 0) + int(cache.get("read") or 0) + int(cache.get("write") or 0)
+    return inp, int(tokens.get("output") or 0), int(tokens.get("reasoning") or 0)
+
+
+def cost_range(input_billed: int, output: int, reasoning: int, rates: Rates) -> tuple[float, float]:
+    """(lower, upper) CNY. The two differ only in whether reasoning tokens are billed as output; the
+    gateway reports `cost: 0` and does not say. A cap is enforced on the UPPER figure -- the safe
+    direction for runaway protection, and the wrong direction for predicting spend."""
+    fixed = input_billed * rates.input_per_m / 1e6
+    return (round(fixed + output * rates.output_per_m / 1e6, 4),
+            round(fixed + (output + reasoning) * rates.output_per_m / 1e6, 4))
+
+
+@dataclass
+class CostGovernor:
+    """A hard spend cap enforced where the ledger is produced.
+
+    `opencode run --format json` emits one JSON object per line and each `step_finish` carries that
+    request's token counts, so the event stream IS the ledger and it arrives one request at a time.
+    Accumulating there and killing the process group on breach is a live cap; totalling afterwards is
+    an audit. This project has a rule about that difference, so the governor RECORDS whether it ran
+    live -- the arrival offsets of the events it saw -- rather than asserting it. If OpenCode ever
+    buffers its stdout, `live` comes out false and the wall clock was the only real protection; that
+    has to be reported, not assumed away.
+
+    The cap is not decorative. With `compaction.auto: false` history grows monotonically, so cached
+    input grows with the square of the turn count (80 896 tokens at 10 turns, 485 888 at 26), and
+    extrapolating that curve to the configured 60-turn ceiling clears CNY 20.
+    """
+    cap_cny: float
+    rates: Rates
+    t0: float
+    steps: list = field(default_factory=list)
+    tripped_at_step: int | None = None
+
+    def observe(self, line: str, now: float) -> bool:
+        """Feed one event-stream line. Returns True once the cap is breached."""
+        try:
+            obj = json.loads(line)
+        except (json.JSONDecodeError, TypeError, ValueError):
+            return False
+        if not isinstance(obj, dict) or obj.get("type") != "step_finish":
+            return False
+        part = obj.get("part") or {}
+        inp, out, rea = billed(part.get("tokens") or {})
+        self.steps.append({"step": len(self.steps) + 1,
+                           "input_billed": inp, "output": out, "reasoning": rea,
+                           "provider_cost": part.get("cost"),
+                           "received_offset_s": round(now - self.t0, 3)})
+        if self.cost()[1] > self.cap_cny and self.tripped_at_step is None:
+            self.tripped_at_step = len(self.steps)
+            return True
+        return False
+
+    def totals(self) -> dict:
+        return {"requests": len(self.steps),
+                "input_billed": sum(s["input_billed"] for s in self.steps),
+                "output": sum(s["output"] for s in self.steps),
+                "reasoning": sum(s["reasoning"] for s in self.steps)}
+
+    def cost(self) -> tuple[float, float]:
+        t = self.totals()
+        return cost_range(t["input_billed"], t["output"], t["reasoning"], self.rates)
+
+    def liveness(self) -> dict:
+        """Evidence that the cap was enforced during the run rather than after it."""
+        offs = [s["received_offset_s"] for s in self.steps]
+        spread = round(max(offs) - min(offs), 3) if len(offs) > 1 else 0.0
+        return {"events_observed": len(offs),
+                "first_event_offset_s": min(offs) if offs else None,
+                "last_event_offset_s": max(offs) if offs else None,
+                "arrival_spread_s": spread,
+                "live": bool(len(offs) > 1 and spread >= 1.0),
+                "note": ("live means the token records arrived spread out over the run, so the cap "
+                         "could have interrupted it. false means the governor degenerated into a "
+                         "post-hoc audit and the wall clock was the only live bound.")}
+
+    def record(self) -> dict:
+        lo, hi = self.cost()
+        return {"cap_cny": self.cap_cny,
+                "rates_cny_per_M": {"input": self.rates.input_per_m,
+                                    "output": self.rates.output_per_m,
+                                    "source": self.rates.source},
+                "cost_cny_lower": lo, "cost_cny_upper": hi,
+                "enforced_on": "upper",
+                "cap_exceeded": self.tripped_at_step is not None,
+                "tripped_at_step": self.tripped_at_step,
+                "totals": self.totals(), "per_step": self.steps,
+                "liveness": self.liveness()}
+
+
+def _kill_group(pid: int, grace: float = 10.0) -> None:
+    """SIGTERM the whole process group, wait, then SIGKILL.
+
+    Deliberately a local copy rather than an import of remote_broker._kill_group: that module deletes
+    SSH_ORIGINAL_COMMAND and installs SIGTERM/SIGINT/SIGHUP handlers at import time, which is right
+    for a forced command and wrong for anything that merely wants to kill a child.
+
+    The group, not the process: bwrap starts opencode, opencode starts bash, bash starts
+    run_public.sh, and run_public.sh starts the broker client, which holds an ssh connection to a
+    remote PrimeTime. Killing only the top of that chain leaves a licence checked out.
+    """
+    try:
+        pgid = os.getpgid(pid)
+    except OSError:
+        return
+    for sig, wait in ((signal.SIGTERM, grace), (signal.SIGKILL, 2.0)):
+        try:
+            os.killpg(pgid, sig)
+        except OSError:
+            return
+        end = time.time() + wait
+        while time.time() < end:
+            try:
+                os.killpg(pgid, 0)
+            except OSError:
+                return
+            time.sleep(0.1)
+
+
+def run_governed(argv: list, env: dict, deadline_sec: float,
+                 governor: "CostGovernor | None") -> dict:
+    """Run the sandbox, streaming its event stream through the governor.
+
+    Two independent live bounds, because they fail in different ways. The governor needs OpenCode to
+    flush its stdout; the wall clock needs nothing from OpenCode at all and runs in its own thread, so
+    a model that stops responding mid-request is still bounded. Whichever fires, the process GROUP is
+    killed and the episode is measurement-invalid -- not a model result with a short transcript.
+    """
+    proc = subprocess.Popen(argv, env=env, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                            stdin=subprocess.DEVNULL, start_new_session=True)
+    t0 = time.time()
+    if governor is not None:
+        governor.t0 = t0
+    state = {"reason": None}
+    done = threading.Event()
+
+    def watchdog():
+        if not done.wait(deadline_sec):
+            state["reason"] = state["reason"] or "wall_clock"
+            _kill_group(proc.pid)
+
+    err_chunks: list = []
+
+    def drain_stderr():
+        try:
+            err_chunks.append(proc.stderr.read())
+        except Exception:
+            pass
+
+    threads = [threading.Thread(target=watchdog, daemon=True),
+               threading.Thread(target=drain_stderr, daemon=True)]
+    for t in threads:
+        t.start()
+
+    out_parts: list = []
+    for raw in proc.stdout:                        # readline on a pipe: yields as events arrive
+        out_parts.append(raw)
+        if governor is not None and governor.observe(raw.decode("utf-8", "replace"), time.time()):
+            state["reason"] = "cost_cap_exceeded"
+            _kill_group(proc.pid)
+            break
+    done.set()
+    try:
+        proc.wait(timeout=30)
+    except subprocess.TimeoutExpired:
+        _kill_group(proc.pid, grace=2.0)
+        proc.wait(timeout=30)
+    for t in threads:
+        t.join(timeout=15)
+    try:
+        out_parts.append(proc.stdout.read())       # anything still buffered after a break
+    except Exception:
+        pass
+
+    return {"returncode": proc.returncode,
+            "stdout": b"".join(p for p in out_parts if p).decode("utf-8", "replace"),
+            "stderr": b"".join(c for c in err_chunks if c).decode("utf-8", "replace"),
+            "wall_clock_sec": round(time.time() - t0, 1),
+            "terminated_by": state["reason"]}
+
+
+MODEL_ID_KEYS = ("modelID", "modelId", "model", "small_model")
+
+
+def _walk_model_ids(obj, out: dict) -> None:
+    """Every model identifier anywhere in a JSON tree, not only the ones on assistant messages.
+
+    The question is whether a hidden title / summary / compaction agent ever routed to a second
+    model. A scan restricted to `role == "assistant"` could not answer it, because what a hidden
+    agent writes need not be an assistant message in the session it was summarising.
+    """
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k in MODEL_ID_KEYS and isinstance(v, str) and v:
+                out[v] = out.get(v, 0) + 1
+            else:
+                _walk_model_ids(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _walk_model_ids(v, out)
+
+
+def session_ledger(state_dir: Path) -> dict:
+    """The request ledger, read out of OpenCode's own session storage.
+
+    Independent of the event stream on purpose: check 9 asks whether two instruments agree on the
+    request count, and two readings of one file are one instrument. `json_files_scanned` is reported
+    so an empty ledger is distinguishable from a ledger of nothing -- a scan that silently found no
+    storage at all would otherwise report "only the pinned model" for a run that used five.
+    """
+    models: dict = {}
+    assistant: dict = {}
+    files = 0
+    messages = 0
+    tokens = {"input_billed": 0, "output": 0, "reasoning": 0}
+    for p in sorted(Path(state_dir).rglob("*.json")):
+        if not p.is_file():
+            continue
+        files += 1
+        try:
+            obj = json.loads(p.read_text(errors="ignore"))
+        except (json.JSONDecodeError, OSError, ValueError):
+            continue
+        _walk_model_ids(obj, models)
+        if isinstance(obj, dict) and obj.get("role") == "assistant":
+            messages += 1
+            mid = str(obj.get("modelID") or obj.get("model") or "?")
+            assistant[mid] = assistant.get(mid, 0) + 1
+            inp, out, rea = billed(obj.get("tokens") or {})
+            tokens["input_billed"] += inp
+            tokens["output"] += out
+            tokens["reasoning"] += rea
+    return {"json_files_scanned": files, "assistant_messages": messages,
+            "assistant_models": assistant, "model_ids_anywhere": models,
+            "assistant_tokens": tokens}
+
+
+# The three provisioned balances, in the order they are to be spent. Listed rather than computed
+# because the names are off by one against the slot numbers: slot 2 is TR_API_KEY_1. A formula would
+# have silently selected the wrong balance, and a wrong balance looks exactly like an exhausted one.
+KEY_SLOTS = ("TR_API_KEY", "TR_API_KEY_1", "TR_API_KEY_2")
+
+
 def _provider_key() -> str:
-    """Same credential and same convention as the frozen arm: .env TR_API_KEY exported as API_KEY
-    (scripts/phase8a_run.py:312). The probe introduces no new credential path."""
-    key = os.environ.get("API_KEY") or os.environ.get("TR_API_KEY") or ""
+    """Same credential and same convention as the frozen arm: a .env key exported as API_KEY
+    (scripts/phase8a_run.py:312). The probe introduces no new credential path.
+
+    EDA_PROBE_KEY_SLOT selects which of the three provisioned balances to spend, 1 by default.
+    Rotation is explicit rather than automatic: a driver that moved to the next key by itself on
+    failure could not distinguish an exhausted balance from a gateway fault, and this project counts
+    the second as measurement-invalid rather than as a reason to spend more money.
+    """
+    slot = os.environ.get("EDA_PROBE_KEY_SLOT", "1").strip()
+    if slot not in ("1", "2", "3"):
+        raise SystemExit(f"opencode_probe_agent: EDA_PROBE_KEY_SLOT must be 1, 2 or 3; got {slot!r}")
+    name = KEY_SLOTS[int(slot) - 1]
+    key = os.environ.get("API_KEY") or os.environ.get(name) or ""
     if not key:
         env_file = REPO_ROOT / ".env"
         if env_file.is_file():
             for line in env_file.read_text().splitlines():
-                if line.startswith("TR_API_KEY="):
+                if line.startswith(name + "="):
                     key = line.split("=", 1)[1].strip().strip("'\"")
     if not key:
-        raise SystemExit("opencode_probe_agent: TR_API_KEY not provisioned (expected in .env)")
+        raise SystemExit(f"opencode_probe_agent: {name} not provisioned (expected in .env); "
+                         f"EDA_PROBE_KEY_SLOT={slot}")
     return key
 
 
@@ -421,6 +721,10 @@ def main() -> int:
                     help="a provision output directory holding `key` and `known_hosts`. When given, "
                          "the episode gets a real PrimeTime/HSPICE channel as a two-operation "
                          "capability; ~/.ssh and the forwarder stay unmounted either way.")
+    ap.add_argument("--cost-cap-cny", type=float, default=0.0,
+                    help="hard spend cap for this episode, enforced live on the event stream and "
+                         "fail-closed: on breach the process group is killed and the episode is "
+                         "measurement-invalid. 0 disables the governor.")
     a = ap.parse_args()
 
     task_path = Path(os.environ["EDA_TASK_PATH"])       # stage A only; never crosses into stage B
@@ -477,19 +781,32 @@ def main() -> int:
     assert not leaked, f"repository/task path survived the scrub in: {sorted(leaked)}"
 
     # Wall clock, mirroring the runner's own subprocess timeout with margin, as the driver does.
-    proc = subprocess.run(argv, env=env, capture_output=True, text=True,
-                          timeout=max(30, timeout - 30))
+    governor = (CostGovernor(cap_cny=a.cost_cap_cny, rates=Rates.from_arm2(), t0=time.time())
+                if a.cost_cap_cny > 0 else None)
+    run = run_governed(argv, env, max(30, timeout - 30), governor)
+    ledger = session_ledger(state_dir)
     if a.log:
         a.log.parent.mkdir(parents=True, exist_ok=True)
         a.log.write_text(json.dumps({
-            "returncode": proc.returncode,
+            "returncode": run["returncode"],
             "prompt_sections": manifest,
-            "stdout": proc.stdout,
-            "stderr": proc.stderr[-20000:],
+            "stdout": run["stdout"],
+            "stderr": run["stderr"][-20000:],
+            "wall_clock_sec": run["wall_clock_sec"],
+            "terminated_by": run["terminated_by"],
+            "cost_governor": governor.record() if governor else None,
+            "session_ledger": ledger,
+            "broker_enabled": broker is not None,
         }, indent=2))
-    sys.stdout.write(proc.stdout)
-    sys.stderr.write(proc.stderr)
-    return proc.returncode
+    sys.stdout.write(run["stdout"])
+    sys.stderr.write(run["stderr"])
+    if run["terminated_by"] == "cost_cap_exceeded":
+        sys.stderr.write("opencode_probe_agent: MEASUREMENT_INVALID cost_cap_exceeded\n")
+        return EXIT_COST_CAP
+    if run["terminated_by"] == "wall_clock":
+        sys.stderr.write("opencode_probe_agent: MEASUREMENT_INVALID wall_clock\n")
+        return EXIT_WALL_CLOCK
+    return run["returncode"]
 
 
 if __name__ == "__main__":

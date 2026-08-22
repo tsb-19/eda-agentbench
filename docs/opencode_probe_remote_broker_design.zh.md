@@ -549,6 +549,10 @@ forwarder 跑两次，丢弃这两次之间有差异的内容。接着又出现�
   `circuit_built.sp` 且没有 `circuit_core.sp`，op 表无法为它服务。而从 preflight 去开通一个被研究的 p16
   instance 并不是可接受的替代。因此 HSPICE 这条路径所依靠的是共用的 broker/client 代码与 artifact 往返，
   而不是它自己的端到端比较。
+- **它没有落定任何需要真实模型请求的性质。** 尤其 check 7 是一个动态性质，一个零调用 preflight 若报告它
+  已落定，就是把动态检查伪装成静态检查。唯一被授权的付费 episode 及其预注册门槛见
+  [`opencode_probe_broker_dry_run.md`](opencode_probe_broker_dry_run.zh.md)；界定它的 ¥20 实时成本上限在
+  那里说明，并且与 §4.2 是同一意义上的 fail-closed。
 
 ## 11. 文件与验证
 
@@ -562,7 +566,9 @@ scripts/eda_broker/broker_admin.py                   宿主机侧的部署 / 开
 scripts/opencode_probe_raw_output_audit.py           零调用的传输余量校准
 scripts/opencode_probe_remote_broker_preflight.py    零调用；写出证据记录
 scripts/opencode_probe_agent.py                      把该能力绑定进沙箱
+scripts/opencode_probe_broker_dry_run.py             唯一那次付费 episode；另见其自身文档
 tests/test_eda_broker.py                             协议、分类、拒绝、负控制
+tests/test_opencode_cost_governor.py                 实时成本上限与本次运行的读取器
 opencode_probe/evidence/raw_output_audit.json        §4.1 背后的实测上界
 opencode_probe/evidence/remote_broker_preflight.json 记录本身
 opencode_probe/broker/deploy.json                    远端解释器、逐文件 sha256、主机密钥

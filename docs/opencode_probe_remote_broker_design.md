@@ -644,6 +644,11 @@ passes in a configuration nobody will use:
   with no `circuit_core.sp` and the op table cannot service it. Provisioning a studied p16 instance
   from a preflight is not an acceptable substitute. The HSPICE path therefore rests on the shared
   broker/client code and the artifact round trip, not on its own end-to-end comparison.
+- **It does not settle anything that needs a real model request.** Check 7 in particular is a
+  dynamic property, and a zero-call preflight that reported it settled would be disguising a dynamic
+  check as a static one. The one authorized paid episode and its preregistered gate are
+  [`opencode_probe_broker_dry_run.md`](opencode_probe_broker_dry_run.md); the ¥20 live cost cap that
+  bounds it is described there and is fail-closed in the same sense as §4.2.
 
 ## 11. Files and verification
 
@@ -657,7 +662,9 @@ scripts/eda_broker/broker_admin.py                   host-side deploy / provisio
 scripts/opencode_probe_raw_output_audit.py           zero-call transport-headroom calibration
 scripts/opencode_probe_remote_broker_preflight.py    zero-call; writes the evidence record
 scripts/opencode_probe_agent.py                      binds the capability into the sandbox
+scripts/opencode_probe_broker_dry_run.py             the one paid episode; see its own document
 tests/test_eda_broker.py                             protocol, classification, refusal, controls
+tests/test_opencode_cost_governor.py                 the live cost cap and the run's readers
 opencode_probe/evidence/raw_output_audit.json        the measured bounds behind section 4.1
 opencode_probe/evidence/remote_broker_preflight.json the record
 opencode_probe/broker/deploy.json                    remote interpreter, per-file sha256, host key
