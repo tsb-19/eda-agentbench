@@ -265,3 +265,105 @@ def test_the_probe_does_not_touch_the_studied_panels_for_the_dry_run():
     # and the studied panel is named as the panel, not as a selection
     assert "with no selection on prior informativeness" in plan
     assert "p15_eval_0004" in plan and "p15_eval_0015" in plan
+
+
+def test_check6_is_parity_not_absolute():
+    """Check 6's criterion was corrected BEFORE the formal arm, and the correction is recorded as
+    a dated amendment rather than by editing the original to look as though it always said this.
+
+    The original demanded the agent "cannot recover the overflow by any path" -- a property the
+    frozen control never had either (llm_agent_driver.py:67 does not block redirect-then-read), so
+    it would have failed the probe for being EQUAL to the control. The quantity check 6 protects is
+    comparability of the observation budget, and parity is that quantity.
+    """
+    for doc in (SCOPE, SCOPE_ZH):
+        raw = doc.read_text()
+        text = _flat(raw)
+        assert "Amendment, 2026-08-21" in raw or "修订，2026-08-21" in raw, \
+            f"{doc.name}: the correction must be a dated amendment with its own heading"
+        # tightened half: mandatory and explicit
+        assert "tool-output" in text and "/tmp/opencode" in text, \
+            f"{doc.name}: the backing-store requirement must be explicit, not folded into a general ban"
+        # loosened half: parity, not absolute. The original wording stays, marked superseded.
+        assert ("by any path" not in text and "任何路径" not in raw) or \
+               ("Superseded" in raw or "被取代" in raw), \
+            f"{doc.name}: the absolute wording must be superseded, not left standing unmarked"
+
+
+def test_the_broker_does_not_claim_to_authorize_the_formal_arm():
+    design = REPO / "docs/opencode_probe_remote_broker_design.md"
+    if not design.is_file():
+        pytest.skip("design doc not yet committed")
+    for doc in (design, REPO / "docs/opencode_probe_remote_broker_design.zh.md"):
+        text = doc.read_text()
+        assert "**English | [中文]" in text or "**[English]" in text, f"{doc.name}: missing bilingual header"
+    text = _flat(design.read_text())
+    assert "does not authorize the formal" in text or "NOT authorize" in design.read_text()
+
+
+def test_the_broker_caps_are_justified_by_measurement():
+    """`64 KiB is 16x the 4000-byte observation cap` is not evidence for a transport bound. The
+    design must cite the measured raw-output audit instead."""
+    design = REPO / "docs/opencode_probe_remote_broker_design.md"
+    if not design.is_file():
+        pytest.skip("design doc not yet committed")
+    text = _flat(design.read_text())
+    assert "raw_output_audit.json" in text, "the caps must cite the measured audit record"
+    assert "16x the frozen 4000-byte" not in text and "16× the frozen 4000-byte" not in text, \
+        "the superseded justification must be gone"
+
+
+def test_the_design_states_the_limit_of_the_headroom_claim_and_the_fail_closed_rule():
+    """Requirement F, in the document a later reader will quote. Headroom over a finite calibration
+    set is not a proof, and the design must say which property covers the gap."""
+    for name in ("opencode_probe_remote_broker_design.md",
+                 "opencode_probe_remote_broker_design.zh.md"):
+        doc = REPO / "docs" / name
+        if not doc.is_file():
+            pytest.skip("design doc not yet committed")
+        raw = doc.read_text()
+        text = _flat(raw)
+        assert "transport_output_limit" in text, f"{name}: the sixth status must be documented"
+        assert "measurement-invalid" in text or "测量无效" in raw, \
+            f"{name}: a cap hit must be documented as measurement-invalid"
+        assert "calibration set" in text or "校准集" in raw, \
+            f"{name}: the headroom claim must name the set it holds over"
+
+
+def test_the_design_does_not_claim_byte_for_byte_action_parity():
+    """The broker hash-pins tool-authoritative inputs to the canonical task version; the frozen
+    runner shipped whatever was in $PWD and caught tampering at scoring time. That is a real
+    difference in the action surface, and the paper's own section 2 counts the action surface as task
+    information -- so it gets recorded, not inferred away."""
+    for name in ("opencode_probe_remote_broker_design.md",
+                 "opencode_probe_remote_broker_design.zh.md"):
+        doc = REPO / "docs" / name
+        if not doc.is_file():
+            pytest.skip("design doc not yet committed")
+        raw = doc.read_text()
+        text = _flat(raw)
+        for overclaim in ("byte-for-byte action parity", "byte-for-byte parity of the action",
+                          "identical action surface", "完全一致的动作面"):
+            assert overclaim not in text and overclaim not in raw, \
+                f"{name}: unestablished parity claim: {overclaim!r}"
+        assert ("pins tool-authoritative inputs" in text
+                or "canonical task version" in text
+                or "规范任务版本" in raw), \
+            f"{name}: the pinning difference must be stated positively, not merely not-denied"
+
+
+def test_the_batch_key_lifecycle_is_documented_in_both_languages():
+    """Requirement E is a safety property about the operator's real login keys, so it belongs in the
+    reader-facing document and not only in the code."""
+    for name in ("opencode_probe_remote_broker_design.md",
+                 "opencode_probe_remote_broker_design.zh.md"):
+        doc = REPO / "docs" / name
+        if not doc.is_file():
+            pytest.skip("design doc not yet committed")
+        raw = doc.read_text()
+        text = _flat(raw)
+        assert "48" in text, f"{name}: the batch size must be stated"
+        assert "batch.json" in text, f"{name}: the lock-out record must be named"
+        assert "nfs(5)" in text, f"{name}: the reason batching exists must cite the NFS guarantee"
+        assert ("quarantine" in text or "隔离" in raw), \
+            f"{name}: the mutex must not be described as breaking locks on age alone"

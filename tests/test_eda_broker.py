@@ -590,6 +590,33 @@ def test_a_cap_hit_is_reported_as_measurement_invalid_and_carries_no_output():
     assert resp["detail"]["kind"] == "stdout"
 
 
+def test_a_manifest_can_only_make_an_episode_stricter_never_looser():
+    """Both preflight overrides are one-directional, and that is what makes them safe to exist.
+
+    They are there so the zero-model preflight can observe a real cap hit and a real process-group
+    kill without waiting out a 180 s wall clock or manufacturing a 1 MiB PrimeTime log. A manifest
+    that could RAISE a cap or EXTEND the wall clock would be a way to buy an episode more tool
+    budget than the frozen arm allowed, which is a task-information difference.
+    """
+    rb, bp = _rb(), _proto()
+    assert rb._episode_caps({}) == bp.CAPS
+    assert rb._episode_wall_clock({}) == bp.OP_WALL_CLOCK_SEC
+
+    lowered = rb._episode_caps({"caps_override": {"stdout_bytes": 1024}})
+    assert lowered["stdout_bytes"] == 1024
+    assert lowered["stderr_bytes"] == bp.CAPS["stderr_bytes"], "only the named cap moves"
+    assert rb._episode_wall_clock({"wall_clock_override": 5}) == 5
+
+    for raised in ({"stdout_bytes": bp.CAPS["stdout_bytes"] * 4}, {"stdout_bytes": 0},
+                   {"stdout_bytes": -1}, {"stdout_bytes": "1048576"},
+                   {"not_a_cap": 1}):
+        got = rb._episode_caps({"caps_override": raised})
+        assert got["stdout_bytes"] == bp.CAPS["stdout_bytes"], f"{raised} widened a cap"
+    for bad in (bp.OP_WALL_CLOCK_SEC * 2, 0, -1, "5", None, 180):
+        assert rb._episode_wall_clock({"wall_clock_override": bad}) == bp.OP_WALL_CLOCK_SEC, \
+            f"{bad!r} extended the wall clock"
+
+
 def _fake_instance(tmp_path):
     """A minimal sta_public input set with a real, deterministic build script."""
     d = tmp_path / "src"
@@ -1044,3 +1071,84 @@ def test_the_shim_launcher_selects_its_op_from_argv0(tmp_path):
         "the forced command belongs on the remote host, not in the agent's sandbox"
     assert not (lib / "broker_admin.py").exists(), \
         "the component that can write authorized_keys must never be inside the sandbox"
+
+
+# --------------------------------------------------------------------------------------------
+# Task 8 -- the preflight record
+# --------------------------------------------------------------------------------------------
+
+PREFLIGHT = REPO / "opencode_probe/evidence/remote_broker_preflight.json"
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_preflight_record_is_complete_and_cost_nothing():
+    r = json.loads(PREFLIGHT.read_text())
+    assert r["model_calls"] == 0
+    ids = sorted(c["id"] for c in r["controls"])
+    assert ids == list(range(1, 15)), f"expected 14 controls, got {ids}"
+    for c in r["controls"]:
+        assert c["observed"], f"control {c['id']} recorded no observation"
+    decoy = next(c for c in r["controls"] if c["id"] == 11)
+    assert "sentinel" in decoy["attempt"].lower() or "decoy" in decoy["name"].lower()
+    assert r["cleanup"]["user_keys_unchanged"] is True
+    assert r["cleanup"]["episode_dir_removed"] is True
+    assert r["cleanup"]["no_orphan_process"] is True
+    assert r["cleanup"]["quarantine"] == []
+    assert r["equivalence"]["rc_equal"] is True
+    assert r["equivalence"]["normalised_equal"] is True
+    assert r["equivalence"]["new_disclosures"] == []
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_preflight_does_not_claim_check_5_or_check_7_for_the_formal_arm():
+    """Check 5's earlier PASS was established with the tools absent, and this design mounts a tool
+    channel. Check 7 is untouched by any of this. Neither may be quietly inherited."""
+    r = json.loads(PREFLIGHT.read_text())
+    blob = json.dumps(r).lower()
+    assert "formal arm authorized" not in blob
+    assert r.get("authorizes_formal_arm") is False
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_batch_control_compared_the_user_region_three_times():
+    """Requirement E's acceptance check. Before-and-after alone would pass a bug that dropped a user
+    key for the duration of the arm and put it back at teardown."""
+    r = json.loads(PREFLIGHT.read_text())
+    b = next(c for c in r["controls"] if c["id"] == 13)
+    assert b["pass"] is True
+    d = b["detail"]
+    assert d["n_entries_during"] == 48
+    assert d["n_entries_after"] == 0
+    assert d["user_region_sha256_before"] == d["user_region_sha256_during"] == \
+           d["user_region_sha256_after"]
+    assert d["operator_key_authenticated_during_batch"] is True
+    assert d["every_line_forces_only_its_own_episode"] is True
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_cap_hit_control_observed_a_fail_closed_response():
+    """Requirement F's acceptance check: a cap hit must arrive as an infrastructure fault carrying no
+    output, not as a shortened tool log under any key name."""
+    r = json.loads(PREFLIGHT.read_text())
+    c = next(x for x in r["controls"] if x["id"] == 14)
+    assert c["pass"] is True
+    d = c["detail"]
+    assert d["status"] == "transport_output_limit"
+    assert d["response_keys_with_output"] == []
+    assert d["client_exit_code"] == 125
+    assert d["client_stdout_bytes"] == 0
+    assert "MEASUREMENT_INVALID" in d["client_stderr_head"]
+
+
+@pytest.mark.skipif(not PREFLIGHT.is_file(), reason="remote-broker preflight not yet run (Task 8)")
+def test_the_equivalence_normalisation_did_not_grow_until_the_texts_matched():
+    """A normalisation that expands until two outputs agree proves nothing. Each regex records how
+    much it dropped, and no single one may account for more than a fifth of the output."""
+    r = json.loads(PREFLIGHT.read_text())
+    eq = r["equivalence"]
+    assert eq["scope"] == "sta_public", "p16 has no unstudied directory of the studied generation"
+    assert eq["rules"], "the normalisation rules must be recorded, not just their effect"
+    for rule in eq["rules"]:
+        assert rule["dropped_fraction"] <= 0.20, \
+            f"normalisation rule {rule['pattern']!r} dropped {rule['dropped_fraction']:.0%}"
+    assert eq["lines_compared"] > 0, "an empty comparison is not an equivalence"

@@ -391,3 +391,31 @@ curl -s https://opencode.ai/config.json            # 上文引用的每个键的
 `scripts/phase8a_episode_runner.py:187`（driver 调用）、
 `scripts/llm_agent_driver.py:632`（workspace、截止时间、环境抹除）、
 `eda_agentbench/agentic/runner.py:179`（`agent_cmd` 接缝）。
+
+---
+
+## 修订，2026-08-21 —— check 6 改为一项 parity 判据
+
+**被取代的措辞。** check 6 原文为："确认智能体**无法通过任何路径**取回溢出部分"。该判据予以撤回。它
+被原样保留在上文而非改写，以便记录同时显示"此前要求的是什么"与"现在要求的是什么"。
+
+**替代判据**分为两半，一半更严、一半更松：
+
+- **强制（新增，更严）：** OpenCode 特有的溢出落盘存储
+  `<state>/data/opencode/tool-output/*` 与 `/tmp/opencode/*` 必须不可达。dry run 通过把两者都设为只读
+  建立了这一点；每一次读取都返回"不存在"。此前这一条被并入一项笼统的禁止之中，现在成为一项显式、可单独
+  检查的要求。
+- **允许（新增，更松）：** 允许对 agent 自己创建的工作区文件做"重定向再分页"式的取回，因为
+  `scripts/llm_agent_driver.py:67` 在冻结 runner 中同样允许它。
+
+**为什么这是实验臂前的更正，而不是事后的补救。** 这个区分在此处比通常更要紧，因为本论文讲的就是不要
+草率地做这种区分：
+
+- 它是在**正式实验臂运行之前**做出的；不存在任何可供窥看的正式实验臂结果。
+- 触发它的是一个**按授权即为不计分、并被丢弃的 dry-run episode**，跑在 `p15_dev_0000` 上——该 instance
+  不属于任何被研究的面板，也不携带条件变体，因此根本不存在可被看到的 Base/BundleS 对比，也没有计算过。
+- 它**在放松的同时也收紧了**。
+- 原判据要求了一项**对照组本身也从不具备**的性质，会因为 probe **与冻结 runner 相等**而判其失败。那是
+  判据有缺陷，不是 probe 有缺陷。check 6 存在所要保护的量，是观测预算的可比性；parity 正是这个量。
+
+`test_check6_is_parity_not_absolute` 断言该修订在两个语言版本中都存在。

@@ -462,3 +462,35 @@ Frozen-side numbers: `scripts/phase8a_run.py:48` (constants),
 `scripts/phase8a_episode_runner.py:187` (driver invocation),
 `scripts/llm_agent_driver.py:632` (workspace, deadline, env scrub),
 `eda_agentbench/agentic/runner.py:179` (the `agent_cmd` seam).
+
+---
+
+## Amendment, 2026-08-21 — check 6 becomes a parity criterion
+
+**Superseded wording.** Check 6 read: "confirm the agent cannot recover the overflow *by any
+path*". That criterion is withdrawn. It is left in place above rather than rewritten, so the
+record shows what was asked before and what is asked now.
+
+**Replacement criterion**, in two halves, one stricter and one weaker:
+
+- **Mandatory (new, stricter):** the OpenCode-specific overflow backing stores
+  `<state>/data/opencode/tool-output/*` and `/tmp/opencode/*` must be unreachable. The dry run
+  established this by making both read-only; every read returned not-found. This was previously
+  folded into a general prohibition and is now an explicit, separately checkable requirement.
+- **Permitted (new, weaker):** redirect-then-paginate recovery of an agent-created workspace file
+  is allowed, because `scripts/llm_agent_driver.py:67` permits it in the frozen runner too.
+
+**Why this is a pre-arm correction and not a post-hoc rescue.** The distinction matters here more
+than usual, because the paper is about not making it loosely:
+
+- It is made **before the formal arm runs**; no formal-arm outcome exists to be read.
+- It was provoked by a **dry-run episode that is unscored and discarded by authorization**, on
+  `p15_dev_0000` — an instance in no studied panel, carrying no condition variants, so no
+  Base/BundleS contrast existed to be seen and none was computed.
+- It **tightens as well as loosens**.
+- The original criterion demanded a property the *control* never had, and would have failed the
+  probe for being **equal to the frozen runner**. That is a defective criterion, not a defective
+  probe. What check 6 exists to protect is comparability of the observation budget; parity is
+  exactly that quantity.
+
+`test_check6_is_parity_not_absolute` asserts this amendment is present in both languages.

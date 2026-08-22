@@ -196,6 +196,20 @@ def _episode_caps(manifest: dict) -> dict:
     return caps
 
 
+def _episode_wall_clock(manifest: dict) -> int:
+    """The op wall clock, which a manifest may only ever SHORTEN.
+
+    Same reason as the cap override and the same restriction: the preflight needs to observe a real
+    PrimeTime process group being killed, and waiting out the full 180 s to see it would make the
+    check expensive enough to be skipped. Lowering-only, so a manifest can never buy an episode more
+    tool time than the frozen per-command timeout allows.
+    """
+    v = manifest.get("wall_clock_override")
+    if isinstance(v, int) and 0 < v < bp.OP_WALL_CLOCK_SEC:
+        return v
+    return bp.OP_WALL_CLOCK_SEC
+
+
 def _serve(episode_id: str) -> dict:
     deploy = _deploy()
     episode_dir = ROOT / "ep" / episode_id
@@ -217,7 +231,8 @@ def _serve(episode_id: str) -> dict:
     try:
         materialise(op, req["inputs"], workdir, manifest["sha256"])
         env = _login_env()
-        deadline = time.time() + bp.OP_WALL_CLOCK_SEC
+        wall_clock = _episode_wall_clock(manifest)
+        deadline = time.time() + wall_clock
         home = Path.home()
         rc, out, err, timed_out = 0, b"", b"", False
         for step in op.steps:
@@ -244,7 +259,7 @@ def _serve(episode_id: str) -> dict:
                 "stderr": sanitise(err.decode("utf-8", "replace"), workdir, home),
                 "artifacts": arts,
                 "invocation": n,
-                "elapsed_s": round(bp.OP_WALL_CLOCK_SEC - max(0.0, deadline - time.time()), 2)}
+                "elapsed_s": round(wall_clock - max(0.0, deadline - time.time()), 2)}
     finally:
         shutil.rmtree(workdir, ignore_errors=True)
 

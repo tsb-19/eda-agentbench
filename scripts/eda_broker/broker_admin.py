@@ -145,7 +145,7 @@ def validate_batch_plan(plan) -> list:
     return out
 
 
-def build_manifest(instance, caps_override=None) -> dict:
+def build_manifest(instance, caps_override=None, wall_clock_override=None) -> dict:
     """sha256 for every canonical input of the instance's op. Contains no oracle and no task
     content, so its presence on the remote is not itself a disclosure."""
     instance = Path(instance)
@@ -158,9 +158,12 @@ def build_manifest(instance, caps_override=None) -> dict:
             raise SystemExit(f"broker_admin: canonical input missing: {f}")
         sha[name] = hashlib.sha256(f.read_bytes()).hexdigest()
     m = {"ops": [op_name], "sha256": sha, "built": time.strftime("%Y-%m-%dT%H:%M:%S")}
+    # Preflight-only, and both are honoured by the broker only where they make the episode STRICTER:
+    # a cap can be lowered but not raised, and the wall clock shortened but not extended.
     if caps_override:
-        # Preflight-only, and the broker will honour it only where it LOWERS a cap.
         m["caps_override"] = dict(caps_override)
+    if wall_clock_override:
+        m["wall_clock_override"] = int(wall_clock_override)
     return m
 
 
@@ -369,7 +372,7 @@ def _round_trip_refusal(key: Path, known_hosts: Path, host: str) -> dict:
 
 
 def provision(ep: str, instance, out_dir, host=DEFAULT_HOST, root=DEFAULT_ROOT,
-              from_addr=None, caps_override=None) -> dict:
+              from_addr=None, caps_override=None, wall_clock_override=None) -> dict:
     """Single-episode provisioning, for the preflight and any dry run. Refuses while a batch is
     live: the formal arm must not rewrite authorized_keys per episode."""
     _refuse_if_batch_active()
@@ -378,7 +381,8 @@ def provision(ep: str, instance, out_dir, host=DEFAULT_HOST, root=DEFAULT_ROOT,
     d = _deploy_record()
     out_dir = Path(out_dir)
     pub = _keygen(out_dir, ep)
-    manifest = build_manifest(Path(instance), caps_override=caps_override)
+    manifest = build_manifest(Path(instance), caps_override=caps_override,
+                              wall_clock_override=wall_clock_override)
     _install_episode_dir(host, root, d, ep, manifest)
 
     line = authorized_keys_line(ep, pub, root=root, from_addr=from_addr)
