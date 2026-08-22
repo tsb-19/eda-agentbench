@@ -939,3 +939,108 @@ def test_a_batch_plan_is_validated_before_any_key_is_generated(tmp_path, monkeyp
             ba.validate_batch_plan(bad)
     ok = ba.validate_batch_plan([{"episode": "a__Base__rep0", "instance": dev}])
     assert ok[0]["instance_path"].is_dir()
+
+
+# --------------------------------------------------------------------------------------------
+# Task 7 -- sandbox wiring
+# --------------------------------------------------------------------------------------------
+
+def _agent():
+    import opencode_probe_agent as a
+    return a
+
+
+def _broker_argv(a, tmp_path):
+    for p, content in (("key", "PRIVATE"), ("kh", "b04 ssh-ed25519 AAAA")):
+        (tmp_path / p).write_text(content)
+    (tmp_path / "bin").mkdir(exist_ok=True)
+    return a.bwrap_argv(tmp_path / "ws", tmp_path / "st", Path("/usr/bin/true"), ["true"],
+                        ro_binds=[], seal_tool_output=False,
+                        broker=a.BrokerMounts(key=tmp_path / "key",
+                                              known_hosts=tmp_path / "kh",
+                                              bin_dir=tmp_path / "bin"))
+
+
+def test_the_sandbox_never_mounts_the_users_ssh_directory_or_the_forwarder(tmp_path):
+    """The blocker this whole design exists to remove: mounting ~/.ssh and the forwarder gives the
+    agent `ssh tsb@b04`, i.e. arbitrary execution on the host where grading deposits the oracles."""
+    a = _agent()
+    joined = " ".join(_broker_argv(a, tmp_path))
+    assert "/.ssh" not in joined
+    assert "eda-remote-shim" not in joined
+    assert "forwarder" not in joined
+
+
+def test_the_probe_key_and_shims_are_bound_read_only_at_neutral_paths(tmp_path):
+    a = _agent()
+    argv = _broker_argv(a, tmp_path)
+    ro_dests = {argv[i + 2] for i, x in enumerate(argv) if x == "--ro-bind"}
+    rw_dests = {argv[i + 2] for i, x in enumerate(argv) if x == "--bind"}
+    assert "/tmp/eda-probe/key" in ro_dests
+    assert "/tmp/eda-probe/known_hosts" in ro_dests
+    assert "/tmp/eda-probe/bin" in ro_dests
+    assert not any(d.startswith(a.IN_SANDBOX_BROKER) for d in rw_dests), \
+        "no broker mount may be writable -- the agent must not be able to replace its own key"
+
+
+def test_the_shim_paths_are_exported_so_run_public_sh_dispatches_through_them(tmp_path):
+    a = _agent()
+    env = a.scrubbed_env(tmp_path / "cfg", tmp_path / "state", api_key="k", broker_enabled=True)
+    assert env["EDA_PT_CMD"] == "/tmp/eda-probe/bin/pt_shell"
+    assert env["EDA_HSPICE_CMD"] == "/tmp/eda-probe/bin/hspice"
+    assert env["EDA_BROKER_KEY"] == "/tmp/eda-probe/key"
+    assert env["EDA_BROKER_KNOWN_HOSTS"] == "/tmp/eda-probe/known_hosts"
+
+
+def test_the_broker_paths_disclose_neither_the_repository_nor_the_remote_user(tmp_path):
+    a = _agent()
+    env = a.scrubbed_env(tmp_path / "cfg", tmp_path / "state", api_key="k", broker_enabled=True)
+    for k in ("EDA_PT_CMD", "EDA_HSPICE_CMD", "EDA_BROKER_KEY", "EDA_BROKER_KNOWN_HOSTS"):
+        assert "/data1" not in env[k] and "tsb" not in env[k] and "eda-agentbench" not in env[k]
+
+
+def test_the_forwarder_pointers_cannot_survive_into_the_sandbox_by_inheritance(monkeypatch, tmp_path):
+    """EDA_TOOL_ROOT and B04_HOST are how the frozen forwarder is found. Inside the probe sandbox the
+    forwarder is not reachable and must not appear to be: an agent that reads B04_HOST learns the
+    host where the oracles are, and EDA_TOOL_ROOT would point pt_shell back at the forwarder shim
+    rather than at the broker client."""
+    a = _agent()
+    monkeypatch.setenv("EDA_TOOL_ROOT", "/data1/tongsb/eda-remote-shim/EDA")
+    monkeypatch.setenv("B04_HOST", "tsb@b04")
+    for enabled in (True, False):
+        env = a.scrubbed_env(tmp_path / "cfg", tmp_path / "state", api_key="k",
+                             broker_enabled=enabled)
+        assert "EDA_TOOL_ROOT" not in env, "the forwarder mirror must not be inherited"
+        assert "B04_HOST" not in env, "the remote host name must not be inherited"
+
+
+def test_the_broker_is_off_unless_asked_for(tmp_path):
+    """Every frozen-parity call site passes no broker at all. The wiring must be additive, so the
+    existing preflight and the recorded dry-run configuration are unchanged."""
+    a = _agent()
+    argv = a.bwrap_argv(tmp_path / "ws", tmp_path / "st", Path("/usr/bin/true"), ["true"],
+                        ro_binds=[], seal_tool_output=False)
+    assert a.IN_SANDBOX_BROKER not in " ".join(argv)
+    env = a.scrubbed_env(tmp_path / "cfg", tmp_path / "state", api_key="k")
+    for k in ("EDA_PT_CMD", "EDA_HSPICE_CMD", "EDA_BROKER_KEY", "EDA_BROKER_KNOWN_HOSTS"):
+        assert k not in env
+
+
+def test_the_shim_launcher_selects_its_op_from_argv0(tmp_path):
+    """The client reads argv[0], so the launcher's FILENAME is load-bearing: pt_shell and hspice
+    must be two differently-named executables, not one script with a flag."""
+    a = _agent()
+    bin_dir = a.stage_broker_bin(tmp_path)
+    names = sorted(p.name for p in bin_dir.iterdir() if p.is_file())
+    assert names == ["hspice", "pt_shell"]
+    for n in names:
+        p = bin_dir / n
+        assert os.access(p, os.X_OK), f"{n} is not executable"
+        assert "broker_client.py" in p.read_text()
+    lib = bin_dir / "lib/eda_broker"
+    for mod in ("__init__.py", "broker_protocol.py", "broker_client.py"):
+        assert (lib / mod).is_file(), f"{mod} must be staged beside the launchers"
+    assert not (lib / "remote_broker.py").exists(), \
+        "the forced command belongs on the remote host, not in the agent's sandbox"
+    assert not (lib / "broker_admin.py").exists(), \
+        "the component that can write authorized_keys must never be inside the sandbox"

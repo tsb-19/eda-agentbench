@@ -35,6 +35,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+from dataclasses import dataclass
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -159,11 +160,40 @@ SCRUB = ("EDA_TASK_PATH", "EDA_TASK_ID")
 # run_env as os.environ minus the two pointers). That is parity, and it is recorded as parity.
 SCRUB_PREFIXES = ("CLAUDE", "ANTHROPIC_", "OLLAMA_", "TMUX", "SSH_", "DBUS_", "AWS_", "OPENAI_")
 SCRUB_EXACT = ("AI_AGENT", "DISPLAY", "XAUTHORITY", "API_TIMEOUT_MS", "GIT_EDITOR",
-               "TERM_PROGRAM", "TERM_PROGRAM_VERSION")
+               "TERM_PROGRAM", "TERM_PROGRAM_VERSION",
+               # The two pointers to the frozen forwarder. Inside this sandbox the forwarder is not
+               # reachable and must not appear to be: B04_HOST names the host where grading deposits
+               # the oracles, and EDA_TOOL_ROOT would aim pt_shell at the forwarder shim instead of
+               # at the broker client. Scrubbed whether or not the broker is enabled, because a
+               # stale pointer surviving by inheritance is a leak in both configurations.
+               "EDA_TOOL_ROOT", "B04_HOST")
 
 # Sandbox-internal paths. Neutral by construction: they name neither the repository nor the task.
 IN_SANDBOX_CONFIG = "/tmp/opencode-probe-config.json"
 RESOLV_STUB = "/run/systemd/resolve/stub-resolv.conf"
+
+# Broker mounts, at neutral in-sandbox paths: they name neither the repository, nor the task, nor
+# the remote account. /tmp is a bwrap tmpfs, so these are mount points inside it -- unlike /opt,
+# which is already a read-only bind and cannot host new children.
+IN_SANDBOX_BROKER = "/tmp/eda-probe"
+BROKER_KEY = f"{IN_SANDBOX_BROKER}/key"
+BROKER_KNOWN_HOSTS = f"{IN_SANDBOX_BROKER}/known_hosts"
+BROKER_BIN = f"{IN_SANDBOX_BROKER}/bin"
+
+# Staged into the sandbox beside the launchers. remote_broker.py and broker_admin.py are absent on
+# purpose: the forced command belongs on the remote host, and the component that can write
+# authorized_keys must never be inside the sandbox at all.
+BROKER_CLIENT_MODULES = ("__init__.py", "broker_protocol.py", "broker_client.py")
+
+
+@dataclass(frozen=True)
+class BrokerMounts:
+    """Everything the episode's tool channel needs, and nothing else. The agent holds the private
+    key by design: it is a capability for two named operations on one episode, not an account. What
+    it must NOT hold is ~/.ssh or the forwarder, which is the whole point of this design."""
+    key: Path
+    known_hosts: Path
+    bin_dir: Path
 
 # Escape hatches that must be set, each closing an injection source that has no counterpart in a
 # frozen episode. Values are strings because they go into the child environment.
@@ -190,7 +220,7 @@ def _secret_markers() -> list[str]:
 
 
 def scrubbed_env(config: Path, state_dir: Path, *, in_sandbox_config: str = IN_SANDBOX_CONFIG,
-                 api_key: str | None = None) -> dict:
+                 api_key: str | None = None, broker_enabled: bool = False) -> dict:
     markers = _secret_markers()
 
     def leaks(value: str) -> bool:
@@ -218,12 +248,22 @@ def scrubbed_env(config: Path, state_dir: Path, *, in_sandbox_config: str = IN_S
     env["XDG_CACHE_HOME"] = str(state_dir / "cache")
     env["XDG_CONFIG_HOME"] = str(state_dir / "config")
     env["XDG_STATE_HOME"] = str(state_dir / "state")
+    if broker_enabled:
+        # run_public.sh already dispatches through these two variables, so the broker needs no
+        # change to any hash-pinned canonical file. EDA_TOOL_ROOT and B04_HOST are in SCRUB_EXACT
+        # and so are already gone: the forwarder is not reachable from inside the sandbox and must
+        # not appear to be.
+        env["EDA_PT_CMD"] = f"{BROKER_BIN}/pt_shell"
+        env["EDA_HSPICE_CMD"] = f"{BROKER_BIN}/hspice"
+        env["EDA_BROKER_KEY"] = BROKER_KEY
+        env["EDA_BROKER_KNOWN_HOSTS"] = BROKER_KNOWN_HOSTS
     return env
 
 
 def bwrap_argv(workspace: Path, state_dir: Path, opencode: Path, inner: list[str],
                ro_binds: list[str], seal_tool_output: bool,
-               config: Path | None = None, resolv: Path | None = None) -> list[str]:
+               config: Path | None = None, resolv: Path | None = None,
+               broker: "BrokerMounts | None" = None) -> list[str]:
     """Sandbox in which the task tree is simply not mounted."""
     argv = [
         "bwrap",
@@ -267,8 +307,50 @@ def bwrap_argv(workspace: Path, state_dir: Path, opencode: Path, inner: list[str
         # without this the sandbox has working egress and no name resolution: every model request
         # would fail as an infrastructure fault. Binding one file is narrower than exposing /run.
         argv += ["--ro-bind", str(resolv), RESOLV_STUB]
+    if broker is not None:
+        # The episode's tool capability: one private key, one pinned host key, two launchers. All
+        # read-only -- the agent must not be able to replace its own key with one whose forced
+        # command names a different episode. ~/.ssh is still not mounted and neither is the
+        # forwarder, which is the difference between a capability and an account.
+        argv += ["--ro-bind", str(broker.key), BROKER_KEY]
+        argv += ["--ro-bind", str(broker.known_hosts), BROKER_KNOWN_HOSTS]
+        argv += ["--ro-bind", str(broker.bin_dir), BROKER_BIN]
     argv += ["--chdir", str(workspace), "--"]
     return argv + inner
+
+
+def stage_broker_bin(state_dir: Path) -> Path:
+    """Materialise the in-sandbox tool channel: two launchers and the client library.
+
+    The launchers must be NAMED pt_shell and hspice, because broker_client selects its op from
+    argv[0] -- the filename is load-bearing, not cosmetic. The client itself is reached through
+    lib/, so its own filename does not have to be either of those.
+
+    Only the client half is staged. remote_broker.py belongs on the remote host, and broker_admin.py
+    -- the one component holding a credential that can write authorized_keys -- must never be inside
+    the sandbox at all.
+    """
+    src = REPO_ROOT / "scripts/eda_broker"
+    bin_dir = Path(state_dir) / "broker/bin"
+    lib = bin_dir / "lib/eda_broker"
+    lib.mkdir(parents=True, exist_ok=True)
+    for name in BROKER_CLIENT_MODULES:
+        (lib / name).write_bytes((src / name).read_bytes())
+    for shim in broker_shim_names():
+        p = bin_dir / shim
+        p.write_text("#!/bin/sh\n"
+                     f"exec python3 {BROKER_BIN}/lib/eda_broker/broker_client.py \"$@\"\n")
+        p.chmod(0o755)
+    return bin_dir
+
+
+def broker_shim_names() -> tuple:
+    """The shim names come from the op table, so adding an op cannot silently forget its launcher."""
+    scripts = str(REPO_ROOT / "scripts")
+    if scripts not in sys.path:
+        sys.path.insert(0, scripts)
+    from eda_broker import broker_protocol as bp
+    return tuple(sorted(bp.OP_BY_SHIM))
 
 
 def write_resolv(state_dir: Path) -> Path:
@@ -318,6 +400,10 @@ def main() -> int:
     ap.add_argument("--emit-prompt-only", action="store_true")
     ap.add_argument("--emit-manifest-only", action="store_true")
     ap.add_argument("--emit-argv-only", action="store_true")
+    ap.add_argument("--broker-dir", type=Path, default=None,
+                    help="a provision output directory holding `key` and `known_hosts`. When given, "
+                         "the episode gets a real PrimeTime/HSPICE channel as a two-operation "
+                         "capability; ~/.ssh and the forwarder stay unmounted either way.")
     a = ap.parse_args()
 
     task_path = Path(os.environ["EDA_TASK_PATH"])       # stage A only; never crosses into stage B
@@ -347,10 +433,19 @@ def main() -> int:
              "--format", "json",
              "--title", "probe",
              message]
+    broker = None
+    if a.broker_dir is not None:
+        key = a.broker_dir / "key"
+        kh = a.broker_dir / "known_hosts"
+        for p in (key, kh):
+            if not p.is_file():
+                raise SystemExit(f"opencode_probe_agent: --broker-dir is missing {p.name}")
+        broker = BrokerMounts(key=key, known_hosts=kh, bin_dir=stage_broker_bin(state_dir))
+
     argv = bwrap_argv(workspace, state_dir, opencode, inner,
                       ro_binds=os.environ.get("EDA_PROBE_BIND_RO", "").split(":"),
                       seal_tool_output=not a.no_seal_tool_output,
-                      config=a.config, resolv=write_resolv(state_dir))
+                      config=a.config, resolv=write_resolv(state_dir), broker=broker)
 
     if a.emit_argv_only:
         # redact the message, which is many KB and is emitted separately
@@ -358,7 +453,8 @@ def main() -> int:
         print(json.dumps(shown, indent=2))
         return 0
 
-    env = scrubbed_env(a.config, state_dir, api_key=_provider_key())
+    env = scrubbed_env(a.config, state_dir, api_key=_provider_key(),
+                       broker_enabled=broker is not None)
     assert not any(k in env for k in SCRUB), "oracle pointers survived the scrub"
     leaked = {k for k, v in env.items() if k != "PATH" and any(m in v for m in _secret_markers())}
     assert not leaked, f"repository/task path survived the scrub in: {sorted(leaked)}"
