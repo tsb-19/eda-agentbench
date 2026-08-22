@@ -199,7 +199,7 @@ not carry a `HEADROOM_ESTABLISHED` verdict.
   "claim": str, "not_claimed": str}`.
   Task 2 reads `caps` from this file.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Create `tests/test_eda_broker.py` with this content:
 
@@ -279,7 +279,7 @@ def test_the_audit_does_not_claim_the_caps_can_never_bind():
         assert overclaim not in blob, f"the record overclaims: {overclaim!r}"
 ```
 
-- [ ] **Step 2: Run it to confirm it skips, not passes**
+- [x] **Step 2: Run it to confirm it skips, not passes**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q -rs
@@ -288,7 +288,7 @@ python3 -m pytest tests/test_eda_broker.py -q -rs
 Expected: `3 skipped`, with the reason `headroom calibration not yet run (Task 1)`. A *pass* here
 would mean the evidence file already exists and the tests are not measuring what they claim.
 
-- [ ] **Step 3: Write the audit script**
+- [x] **Step 3: Write the audit script**
 
 Create `scripts/opencode_probe_raw_output_audit.py`:
 
@@ -539,7 +539,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: Run the calibration over the complete set**
+- [x] **Step 4: Run the calibration over the complete set**
 
 ```bash
 source /data1/tongsb/eda-remote-shim/env.sh
@@ -557,7 +557,7 @@ tuned until the check passes is the same failure as a verifier tuned until it pr
 If the verdict is `INCOMPLETE`, some formal-panel directory never ran the tool. That is an
 infrastructure fault, not a result. Fix the tool channel and re-run.
 
-- [ ] **Step 5: Run the tests to verify they now pass**
+- [x] **Step 5: Run the tests to verify they now pass**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -565,7 +565,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: `3 passed`.
 
-- [ ] **Step 6: Confirm the canonical tree is untouched**
+- [x] **Step 6: Confirm the canonical tree is untouched**
 
 ```bash
 git status --porcelain -- tasks/
@@ -574,7 +574,7 @@ python3 -m pytest tests/test_fullpath_check.py -q -k canonical_golden_fingerprin
 
 Expected: empty output from `git status`, and the fingerprint test passing.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/opencode_probe_raw_output_audit.py tests/test_eda_broker.py \
@@ -619,7 +619,7 @@ rule is unit-testable without a network, a sandbox or a tool.
   - `validate_request(req: dict) -> Op` — raises `Refusal`
   - `input_names(op: Op) -> tuple[str, ...]` — the exact required key set, `editable + canonical`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -751,7 +751,7 @@ def test_caps_come_from_the_measured_audit_record():
     assert bp.CAPS == audit["caps"]
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -759,7 +759,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: `ModuleNotFoundError: No module named 'eda_broker'` on the new tests.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `scripts/eda_broker/__init__.py` (empty file, one line):
 
@@ -958,7 +958,7 @@ def validate_request(req) -> Op:
     return op
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -966,7 +966,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: all Task 1 + Task 2 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/eda_broker/__init__.py scripts/eda_broker/broker_protocol.py tests/test_eda_broker.py
@@ -1031,7 +1031,7 @@ acquisition, one atomic rewrite, 48 lines. During the arm `authorized_keys` is b
   - Every mutation is: acquire mutex → read → write temp in the same directory → `fsync` →
     `os.replace` → `fsync` the directory → release.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -1295,7 +1295,7 @@ def test_a_duplicate_episode_in_a_batch_is_refused(tmp_path):
 `import time` is already needed by Task 4's block; add it to the module imports at the top of the
 file when this task lands so the mutex tests can use it.
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -1304,7 +1304,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 Expected: the new tests fail with
 `ModuleNotFoundError: No module named 'eda_broker.authorized_keys_block'`.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `scripts/eda_broker/authorized_keys_block.py`:
 
@@ -1645,7 +1645,7 @@ def reap(path, live: set) -> list[str]:
         return dead
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -1653,7 +1653,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: all pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/eda_broker/authorized_keys_block.py tests/test_eda_broker.py
@@ -1690,7 +1690,7 @@ Requirements **C** and **D**'s materialisation half.
   - `sanitise(text: str, workdir: Path, home: Path) -> str`
   - `SSH_ORIGINAL_COMMAND` appears exactly once in this file, in the deletion line.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -1905,7 +1905,7 @@ def test_an_illegal_episode_id_in_argv_is_refused(tmp_path):
     assert rb.main(["broker"]) != 0
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -1913,7 +1913,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: the eight new tests fail with `ModuleNotFoundError: No module named 'eda_broker.remote_broker'`.
 
-- [ ] **Step 3: Implement the broker**
+- [x] **Step 3: Implement the broker**
 
 Create `scripts/eda_broker/remote_broker.py`:
 
@@ -2192,7 +2192,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: Write the forced-command wrapper template**
+- [x] **Step 4: Write the forced-command wrapper template**
 
 Create `scripts/eda_broker/broker_sh.template`. `broker_admin.py deploy` substitutes `@PYTHON3@`
 and `@ROOT@` and installs the result as `<root>/broker.sh`.
@@ -2207,7 +2207,7 @@ export EDA_BROKER_ROOT="@ROOT@"
 exec "@PYTHON3@" "@ROOT@/lib/eda_broker/remote_broker.py" "$1"
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -2215,7 +2215,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: all pass, including the process-tree kill test.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/eda_broker/remote_broker.py scripts/eda_broker/broker_sh.template tests/test_eda_broker.py
@@ -2246,7 +2246,7 @@ git commit -m "add the forced command: two ops, no client paths, process-group k
   matching the forwarder's `eda-shim: remote execution ... failed` convention so the runner's
   existing log heuristics see a named infrastructure fault rather than tool text.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -2362,7 +2362,7 @@ def test_the_request_carries_exactly_the_ops_input_set_and_no_generated_file(tmp
         "the client must have no field in which to name an episode"
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -2370,7 +2370,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: the new client tests fail on the missing module.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `scripts/eda_broker/broker_client.py`:
 
@@ -2506,7 +2506,7 @@ if __name__ == "__main__":
     raise SystemExit(main())
 ```
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -2514,7 +2514,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: all pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add scripts/eda_broker/broker_client.py tests/test_eda_broker.py
@@ -2569,7 +2569,7 @@ property rather than an intention: there is no code path that mutates the file p
 batch is live, so a stray helper or a retry loop cannot reintroduce the 48 rewrites the reviewer
 removed.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -2698,7 +2698,7 @@ def test_a_live_batch_locks_out_per_episode_key_mutation(tmp_path, monkeypatch):
         ba.teardown("p15_eval_0004__Base__rep0")
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -2706,7 +2706,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: the five new tests fail on the missing module.
 
-- [ ] **Step 3: Implement**
+- [x] **Step 3: Implement**
 
 Create `scripts/eda_broker/broker_admin.py`. Key parts, in full:
 
@@ -2929,7 +2929,7 @@ Add an `argparse` front end with subcommands `deploy`, `provision`, `provision-b
 `teardown-batch`, `audit`, each printing its returned dict as JSON. `provision-batch` accepts
 `--plan formal` (meaning `formal_arm_plan()`) or `--plan <path.json>`.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -2938,7 +2938,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 Expected: all pass. These are pure-function tests — key generation, the remote paths and the batch
 round trip are exercised in Task 8.
 
-- [ ] **Step 5: Deploy to b04 and read back the record**
+- [x] **Step 5: Deploy to b04 and read back the record**
 
 ```bash
 python3 -m eda_broker.broker_admin deploy 2>/dev/null || \
@@ -2958,7 +2958,7 @@ ssh tsb@b04 'grep -c "^ssh-" ~/.ssh/authorized_keys; grep -c EDA-OPENCODE-PROBE 
 Expected: `2` and `0` — two user keys, no managed block yet. (The draft said three; the file was
 measured at 2026-08-22 and holds two keys and a blank line.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/eda_broker/broker_admin.py opencode_probe/broker/deploy.json tests/test_eda_broker.py
@@ -2989,7 +2989,7 @@ python3 -c "import sys; sys.path.insert(0,'scripts'); \
 Expected `False`. If it prints `True`, **stop** — the file is sha256-pinned and this task needs a
 different approach.
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -3053,7 +3053,7 @@ def test_the_broker_paths_disclose_neither_the_repository_nor_the_remote_user(tm
         assert "/data1" not in env[k] and "tsb" not in env[k] and "eda-agentbench" not in env[k]
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -3062,7 +3062,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 Expected: the four new tests fail with `AttributeError: module 'opencode_probe_agent' has no
 attribute 'BrokerMounts'`.
 
-- [ ] **Step 3: Modify `scripts/opencode_probe_agent.py`**
+- [x] **Step 3: Modify `scripts/opencode_probe_agent.py`**
 
 Add near the other sandbox constants (after `RESOLV_STUB`):
 
@@ -3128,7 +3128,7 @@ the client is reached through `lib/` so its own filename does not have to be the
 Also add `B04_HOST` and `EDA_TOOL_ROOT` to `SCRUB_EXACT`, so a stale forwarder pointer cannot
 survive into the sandbox by inheritance.
 
-- [ ] **Step 4: Run the tests**
+- [x] **Step 4: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py tests/test_opencode_probe.py -q
@@ -3137,7 +3137,7 @@ python3 -m pytest tests/test_eda_broker.py tests/test_opencode_probe.py -q
 Expected: all pass. `test_opencode_probe.py` must stay green — the wiring adds a parameter with a
 default, so the existing call sites are unaffected.
 
-- [ ] **Step 5: Re-verify the pin status of the edited file**
+- [x] **Step 5: Re-verify the pin status of the edited file**
 
 ```bash
 python3 -c "import sys; sys.path.insert(0,'scripts'); \
@@ -3149,7 +3149,7 @@ scripts/check
 Expected: `False`, then `1065 pins / 9 missing / 2 mismatch / 1 multi-sha`. **Any other counts mean
 stop and investigate** — do not adjust the baseline.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add scripts/opencode_probe_agent.py tests/test_eda_broker.py
@@ -3262,7 +3262,7 @@ Additionally record, without failing on them, every remaining host/user/licence 
 broker output. Those that also appear in the forwarder output are **parity** and stay; any that
 appear only in the broker output are a new disclosure and **do** fail the check.
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_eda_broker.py`:
 
@@ -3334,14 +3334,14 @@ def test_the_preflight_does_not_claim_check_5_or_check_7_for_the_formal_arm():
     assert r.get("authorizes_formal_arm") is False
 ```
 
-- [ ] **Step 2: Run to confirm it skips**
+- [x] **Step 2: Run to confirm it skips**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q -rs
 ```
 
 Expected: four skipped with `remote-broker preflight not yet run (Task 8)`.
-- [ ] **Step 3: Implement the preflight**
+- [x] **Step 3: Implement the preflight**
 
 Create `scripts/opencode_probe_remote_broker_preflight.py`. Structure:
 
@@ -3381,7 +3381,7 @@ the `authorized_keys` write is exactly the size the formal arm would perform, an
 instance is provisioned by a preflight. Running the batch does **not** authorize the arm; it
 establishes that installing its keys cannot cost the operator their host.
 
-- [ ] **Step 4: Run the preflight**
+- [x] **Step 4: Run the preflight**
 
 ```bash
 source /data1/tongsb/eda-remote-shim/env.sh
@@ -3393,7 +3393,7 @@ Expected: `"verdict": "PASS"`, exit 0, all fourteen controls passing.
 If any control fails, record it and stop. Do not weaken a control to reach a verdict — the point of
 the battery is that it can say no.
 
-- [ ] **Step 5: Confirm the remote host is clean afterwards**
+- [x] **Step 5: Confirm the remote host is clean afterwards**
 
 ```bash
 ssh tsb@b04 'grep -c "^ssh-" ~/.ssh/authorized_keys; grep -c EDA-OPENCODE-PROBE ~/.ssh/authorized_keys; ls ~/eda-probe-broker/ep/ | wc -l; ls -d ~/.ssh/.eda-probe-akb.lock.d* 2>/dev/null | wc -l; rm -rf /tmp/eda_shim_PREFLIGHT'
@@ -3404,7 +3404,7 @@ git diff --stat -- tasks/
 Expected: `2`, `0`, `0`, `0`, no `batch.json`, and an empty diff. The fourth number is the
 quarantined-lock count: a preflight with a single actor must never break a lock.
 
-- [ ] **Step 6: Run the tests**
+- [x] **Step 6: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_eda_broker.py -q
@@ -3412,7 +3412,7 @@ python3 -m pytest tests/test_eda_broker.py -q
 
 Expected: all pass, with the four previously-skipped tests now running.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add scripts/opencode_probe_remote_broker_preflight.py tests/test_eda_broker.py \
@@ -3433,7 +3433,7 @@ in the same commit as the implementation it describes — so its paths resolve w
 - Modify: `docs/opencode_scaffold_probe_scope.md` and `.zh.md`
 - Modify: `tests/test_opencode_probe.py`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 Append to `tests/test_opencode_probe.py`:
 
@@ -3521,7 +3521,7 @@ def test_the_design_does_not_claim_byte_for_byte_action_parity():
             f"{name}: the pinning difference must be stated positively, not merely not-denied"
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 python3 -m pytest tests/test_opencode_probe.py -q
@@ -3530,7 +3530,7 @@ python3 -m pytest tests/test_opencode_probe.py -q
 Expected: `test_check6_is_parity_not_absolute` fails (the scope doc still carries the absolute
 wording) and `test_the_broker_caps_are_justified_by_measurement` fails.
 
-- [ ] **Step 3: Edit `docs/opencode_probe_remote_broker_design.md`**
+- [x] **Step 3: Edit `docs/opencode_probe_remote_broker_design.md`**
 
 Nine edits, then mirror each into `.zh.md`:
 
@@ -3616,7 +3616,7 @@ Also correct two facts the draft has slightly wrong: the p15 generated file is
 `agent_applied.sdc` (not `applied.sdc`), and `tiny.lib` is not an input to `sta_public`
 (`run_public.tcl` reads `tiny.db`).
 
-- [ ] **Step 4: Add the check-6 amendment to `docs/opencode_scaffold_probe_scope.md`**
+- [x] **Step 4: Add the check-6 amendment to `docs/opencode_scaffold_probe_scope.md`**
 
 Append a new section, and mirror it into `.zh.md`. Do **not** edit the original check-6 row — leave
 it standing and mark it superseded, so the record shows what changed and when.
@@ -3653,7 +3653,7 @@ than usual, because the paper is about not making it loosely:
 `test_check6_is_parity_not_absolute` asserts this amendment is present in both languages.
 ```
 
-- [ ] **Step 5: Run the tests**
+- [x] **Step 5: Run the tests**
 
 ```bash
 python3 -m pytest tests/test_opencode_probe.py tests/test_eda_broker.py -q
@@ -3661,7 +3661,7 @@ python3 -m pytest tests/test_opencode_probe.py tests/test_eda_broker.py -q
 
 Expected: all pass.
 
-- [ ] **Step 6: Run the full gate**
+- [x] **Step 6: Run the full gate**
 
 ```bash
 scripts/check
@@ -3681,7 +3681,7 @@ python3 scripts/phase8a_arm2_cost_calibration.py --check
 Every one must pass with the counts recorded in `CLAUDE.md`. The frozen-membership line is expected
 to report non-zero counts; **do not** drive them to zero.
 
-- [ ] **Step 7: Stage everything, then run the link check**
+- [x] **Step 7: Stage everything, then run the link check**
 
 `slim_link_check.py` scans only *tracked* files, so it must run **after** `git add`:
 
@@ -3697,7 +3697,7 @@ implementation landed in Tasks 1–8. **If it reports a dangling reference, fix 
 an entry to `EXEMPT_FILES` or `KNOWN_PROSE`.** A verifier that was taught to look at less is exactly
 the false-pass mode this branch's own history records.
 
-- [ ] **Step 8: Verify the manuscript is untouched**
+- [x] **Step 8: Verify the manuscript is untouched**
 
 Nothing in this plan changes `submission/`. Confirm:
 
@@ -3708,7 +3708,7 @@ git status --porcelain -- submission/
 Expected: empty. The manuscript build and page-limit gate are therefore not required for this
 change.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git commit -m "land the broker design with its implementation, and correct check 6 to a parity criterion
@@ -3746,6 +3746,30 @@ record, and a pass at one level is not evidence at the next. Check 7 stays UNSET
 If any of the four fails, the failure is recorded and the sequence stops there. None of them may be
 weakened to obtain a pass: a control that was reworded until it agreed is worth less than no control,
 because it also removes the reason anyone would look again.
+
+### Outcome, 2026-08-22
+
+All four passed, on the fifth attempt at the preflight. `opencode_probe/evidence/remote_broker_preflight.json`
+carries the record; `verdict: PASS`, `model_calls: 0`, `authorizes_formal_arm: false`.
+
+| | Check | Measured |
+|---|---|---|
+| 1 | batch keys cannot touch the operator's keys | control 13: 0 → 48 → 0 managed entries; user-region sha256 equal at all three samples; every line forces only its own episode; operator key still authenticates during the batch. Plus `dry-run-batch` on a copy, byte-identical |
+| 2 | planted decoy unreachable | control 11: unique sentinel, four attack routes including a substituted `run_public.tcl`; sentinel in no response |
+| 3 | broker ≡ forwarder on public observation | 82 lines compared, cross-path diff empty, no new disclosures |
+| 4 | cap hit fails closed | control 14: 3252 B against a 1024 B cap → `transport_output_limit`, no output key in the response, client exit 125, empty stdout |
+
+**Four of the five attempts failed, and none of the failures was the broker.** They were, in order: a
+launcher that lost its own `argv[0]`; an orphan detector that could only pass vacuously, then could
+only fail (self-matching `pgrep`), then failed on a `ps` column header; a second unquoted copy of the
+ssh argv bug; and a normalisation that would have been unfalsifiable had it been written by hand
+instead of measured. Each is recorded in
+`docs/opencode_probe_remote_broker_design.md` §5, §6.1, §6.2 and §7.1 rather than summarised away,
+because the common thread is one lesson: an instrument that has not been checked against a
+known-empty **and** a known-nonempty case is not yet a measurement.
+
+**What is still not authorized.** The 48-episode formal arm. Check 7 (stop behaviour) is UNSETTLED and
+untouched by any of this. A paid dry run is the next decision after this one, not a consequence of it.
 
 ---
 
