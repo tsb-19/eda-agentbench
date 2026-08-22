@@ -1,6 +1,6 @@
 {
   "generated_by": "scripts/opencode_probe_remote_broker_preflight.py",
-  "when": "2026-08-22T23:18:56",
+  "when": "2026-08-22T23:45:30",
   "model_calls": 0,
   "host": "tsb@b04",
   "root": "/home/tsb/eda-probe-broker",
@@ -102,7 +102,7 @@
     {
       "id": 11,
       "name": "planted oracle decoy",
-      "attempt": "plant sentinel SENTINEL-631caf456d0... at /tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json and attempt to read it through every op and every field",
+      "attempt": "plant sentinel SENTINEL-dde1424c600... at /tmp/eda_shim_PREFLIGHT/signoff_intent_truth.json and attempt to read it through every op and every field",
       "expected": "the sentinel never appears in any response; correctness does not depend on /tmp being clean",
       "observed": "4 attempts, 0 leaked the sentinel: []",
       "pass": true,
@@ -121,7 +121,7 @@
           {
             "attempt": "extra field names the decoy",
             "sentinel_present": false,
-            "observed": "exit 0; stdout='1 warning, 4 informationals\\\\n\\\\nThank you for using pt_shell!\\\\n\", \"stderr\": \"\", \"artifacts\": {}, \"invocation\": 2, \"timed_out_step\": null, \"killed_pgid\": null, \"wall_clock_sec\": 180, \"elapsed_s\": 4.72}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
+            "observed": "exit 0; stdout='1 warning, 4 informationals\\\\n\\\\nThank you for using pt_shell!\\\\n\", \"stderr\": \"\", \"artifacts\": {}, \"invocation\": 2, \"timed_out_step\": null, \"killed_pgid\": null, \"wall_clock_sec\": 180, \"elapsed_s\": 4.88}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
           },
           {
             "attempt": "tcl input is replaced with one that reads the decoy",
@@ -129,7 +129,7 @@
             "observed": "exit 1; stdout='EDABROKER1 178\\n{\"status\": \"refused\", \"reason\": \"NON_EDITABLE_DIVERGENCE\", \"detail\": {\"file\": \"run_public.tcl\", \"canonical\": \"sha256:c1c0f023c375\", \"supplied\": \"sha256:84f96dfd466e\"}, \"rc\": 126}'; stderr='Authorized users only. All activities may be monitored and reported.\\nbash: lsof: command not found'"
           }
         ],
-        "sentinel_prefix": "SENTINEL-631caf456d0"
+        "sentinel_prefix": "SENTINEL-dde1424c600"
       }
     },
     {
@@ -212,7 +212,7 @@
     "quarantine": [],
     "timeout_status": "tool_timeout",
     "timed_out_step": "TOOL",
-    "killed_pgid": 107504,
+    "killed_pgid": 169055,
     "wall_clock_sec": 2,
     "elapsed_s": 2.0,
     "kill_discipline_exercised": true,
@@ -244,17 +244,17 @@
       ],
       "unstable_values": {
         "Maximum memory usage for this session: # MB": [
-          "Maximum memory usage for this session: 2897.27 MB",
-          "Maximum memory usage for this session: 2897.31 MB"
+          "Maximum memory usage for this session: 2897.26 MB",
+          "Maximum memory usage for this session: 2897.27 MB"
         ]
       },
       "n_unstable": 1,
       "fraction_of_output": 0.012,
       "dropped_from_forwarder": [
-        "Maximum memory usage for this session: 2897.27 MB"
+        "Maximum memory usage for this session: 2897.26 MB"
       ],
       "dropped_from_broker": [
-        "Maximum memory usage for this session: 2897.27 MB"
+        "Maximum memory usage for this session: 2897.26 MB"
       ]
     },
     "normalised_equal": true,
