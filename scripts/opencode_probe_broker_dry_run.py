@@ -37,8 +37,10 @@ import hashlib
 import json
 import os
 import secrets
+import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -483,13 +485,19 @@ def main() -> int:
               file=sys.stderr)
         return 2
 
-    broker_dir = EVIDENCE / "broker" / EPISODE
+    # The episode's private key never goes inside the repository. It is a live capability until
+    # teardown removes its authorized_keys line, and an evidence tree is exactly where a credential
+    # gets committed by accident -- the preflight uses a temp directory for the same reason. Only the
+    # public-key fingerprint is recorded, and the directory is removed in the finally block.
+    key_root = Path(tempfile.mkdtemp(prefix="broker_dry_run_"))
+    broker_dir = key_root / EPISODE
     log_path = EVIDENCE / "eventstream.json"
     meta = json.loads((DEV_TASK / "metadata.json").read_text())
     provisioned = None
     runs_dir = score = None
     rec["error"] = None
     rec["key_env_var"] = agent.KEY_SLOTS[int(a.key_slot) - 1]
+    rec["key_material_location"] = "a temporary directory outside the repository, removed after use"
     try:
         provisioned = ba.provision(EPISODE, DEV_TASK, broker_dir, a.host, a.root)
         rec["provision"] = {k: v for k, v in provisioned.items() if k != "known_hosts"}
@@ -526,6 +534,8 @@ def main() -> int:
         rec["teardown"] = ba.teardown(EPISODE, a.host, a.root) if provisioned else None
         rec["decoy_removed"] = remove_decoy(a.host, rec["decoy"])
         rec["broker_audit_after"] = ba.audit(a.host, a.root)
+        rec["key_material_removed"] = not key_root.exists() or (
+            shutil.rmtree(key_root, ignore_errors=True) or not key_root.exists())
 
     # 5. read the instruments.
     log = json.loads(log_path.read_text()) if log_path.is_file() else {}
@@ -555,9 +565,15 @@ def main() -> int:
                  "that found no session storage would otherwise report a clean single-model ledger "
                  "for a run that used five.")}
 
+    # Three places a leaked sentinel could be: the event stream (which carries every tool output the
+    # agent saw), the graded artifacts, and OpenCode's own session storage. The state directory's path
+    # comes from the wrapper's log rather than being reconstructed, because a guessed path that no
+    # longer exists would scan nothing and report clean.
     rec["oracle_isolation"] = scan_for_sentinel(
         rec["decoy"]["sentinel"],
-        [log_path, EVIDENCE / "runs", EVIDENCE / "broker"])
+        [p for p in (log_path, EVIDENCE / "runs", log.get("state_dir")) if p])
+    rec["oracle_isolation"]["state_dir_still_present"] = bool(
+        log.get("state_dir") and Path(log["state_dir"]).exists())
     rec["oracle_isolation"]["kind"] = rec["decoy"]["kind"]
 
     rec["score_for_pipeline_validation_only"] = (

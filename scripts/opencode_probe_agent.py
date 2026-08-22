@@ -796,6 +796,7 @@ def main() -> int:
             "terminated_by": run["terminated_by"],
             "cost_governor": governor.record() if governor else None,
             "session_ledger": ledger,
+            "state_dir": str(state_dir),
             "broker_enabled": broker is not None,
         }, indent=2))
     sys.stdout.write(run["stdout"])
